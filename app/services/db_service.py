@@ -15,14 +15,19 @@ class DBService:
                 logging.error(f"DB Error create_call: {e}")
                 return None
 
-    async def log_transcript(self, session_id: str, role: str, content: str):
+    async def log_transcript(self, session_id: str, role: str, content: str, call_db_id: int = None):
         async with AsyncSessionLocal() as session:
             try:
-                # Find call by session_id
-                result = await session.execute(select(Call).where(Call.session_id == session_id))
-                call = result.scalars().first()
-                if call:
-                    transcript = Transcript(call_id=call.id, role=role, content=content)
+                call_id = call_db_id
+                if not call_id:
+                     # Fallback: Find call by session_id
+                    result = await session.execute(select(Call).where(Call.session_id == session_id))
+                    call = result.scalars().first()
+                    if call:
+                        call_id = call.id
+                
+                if call_id:
+                    transcript = Transcript(call_id=call_id, role=role, content=content)
                     session.add(transcript)
                     await session.commit()
             except Exception as e:

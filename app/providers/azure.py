@@ -10,7 +10,11 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             region=settings.AZURE_SPEECH_REGION
         )
         # Latency optimization
+        # InitialSilence: Time to wait for user to START speaking
         self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000")
+        # SegmentationSilence: Time of silence to consider the user has STOPPED speaking (Pause detection)
+        # Increasing to 1000ms helps avoid cutting off users who pause to think.
+        self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, "900")
         
     def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio"):
         """

@@ -28,9 +28,10 @@ class VoiceOrchestrator:
         self.recognizer = None
         self.push_stream = None
         self.synthesizer = None
+        self.response_task = None # Track current generation task
 
     async def start(self):
-        """Initialize providers and start recognition."""
+        # ... (no change to start) ...
         # Capture the current event loop to schedule tasks from sync callbacks
         self.loop = asyncio.get_running_loop()
 
@@ -56,11 +57,13 @@ class VoiceOrchestrator:
         self.synthesizer = self.tts_provider.create_synthesizer(voice_name=self.config.voice_name, audio_mode=self.client_type)
 
         if self.stream_id:
-            await db_service.create_call(self.stream_id)
+            self.call_db_id = await db_service.create_call(self.stream_id)
             
         self.recognizer.start_continuous_recognition()
 
     async def stop(self):
+        if self.response_task:
+            self.response_task.cancel()
         if self.recognizer:
             self.recognizer.stop_continuous_recognition()
 
@@ -79,18 +82,28 @@ class VoiceOrchestrator:
     async def _handle_recognized_async(self, text):
         logging.info(f"USER SAID: {text}")
         
+        # Cancel any ongoing response generation (e.g. overlapping turns or fragmented speech)
+        if self.response_task and not self.response_task.done():
+            self.response_task.cancel()
+        
         # Send transcript to UI immediately
         if self.client_type == "browser":
              await self.websocket.send_text(json.dumps({"type": "transcript", "role": "user", "text": text}))
 
         if self.stream_id:
-            await db_service.log_transcript(self.stream_id, "user", text)
+            await db_service.log_transcript(self.stream_id, "user", text, call_db_id=self.call_db_id)
         
         self.conversation_history.append({"role": "user", "content": text})
-        await self.generate_response()
+        
+        # Create new task
+        self.response_task = asyncio.create_task(self.generate_response())
+        await self.response_task
 
     async def handle_interruption(self):
         self.is_bot_speaking = False
+        if self.response_task and not self.response_task.done():
+            self.response_task.cancel()
+            
         # Send clear signal to both Twilio and Browser to stop audio
         msg = {"event": "clear", "streamSid": self.stream_id}
         await self.websocket.send_text(json.dumps(msg))
@@ -112,7 +125,14 @@ class VoiceOrchestrator:
                 return self.synthesizer.speak_text_async(text_chunk).get()
 
             # Run in thread pool to avoid blocking asyncio loop
-            result = await asyncio.to_thread(synthesize_blocking)
+            try:
+                result = await asyncio.to_thread(synthesize_blocking)
+            except asyncio.CancelledError:
+                return
+
+            # CRITICAL: Check if we were interrupted DURING synthesis
+            if not self.is_bot_speaking: 
+                return
             
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 audio_data = result.audio_data
@@ -131,23 +151,28 @@ class VoiceOrchestrator:
                     await self.websocket.send_text(json.dumps(msg))
 
         buffer = ""
-        async for token in self.llm_provider.get_stream(self.conversation_history, self.config.system_prompt, self.config.temperature):
-            if not self.is_bot_speaking: break
-            full_response += token
-            buffer += token
+        try:
+            async for token in self.llm_provider.get_stream(self.conversation_history, self.config.system_prompt, self.config.temperature):
+                if not self.is_bot_speaking: break
+                full_response += token
+                buffer += token
+                
+                if any(p in buffer for p in [".", "?", "!", "\n"]):
+                    await process_tts(buffer)
+                    buffer = ""
             
-            if any(p in buffer for p in [".", "?", "!", "\n"]):
+            if buffer and self.is_bot_speaking:
                 await process_tts(buffer)
-                buffer = ""
-        
-        if buffer and self.is_bot_speaking:
-            await process_tts(buffer)
+                
+            if self.stream_id and full_response:
+                await db_service.log_transcript(self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
+                
+            self.conversation_history.append({"role": "assistant", "content": full_response})
             
-        if self.stream_id and full_response:
-             await db_service.log_transcript(self.stream_id, "assistant", full_response)
-             
-        self.conversation_history.append({"role": "assistant", "content": full_response})
-        self.is_bot_speaking = False
+        except asyncio.CancelledError:
+            logging.info("Response generation cancelled.")
+        finally:
+            self.is_bot_speaking = False
 
     async def process_audio(self, payload):
         try:
