@@ -149,16 +149,13 @@ class VoiceOrchestrator:
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 audio_data = result.audio_data
                 if self.client_type == "twilio":
-                    b64_audio = base64.b64encode(audio_data).decode("utf-8")
-                    msg = {
-                        "event": "media",
-                        "streamSid": self.stream_id,
-                        "media": {"payload": b64_audio}
-                    }
-                    await self.websocket.send_text(json.dumps(msg))
+                    # ... twilio logic ...
+                    pass
                 else:
                     # Browser expects raw bytes or base64? Let's send base64 with a specialized event
                     b64_audio = base64.b64encode(audio_data).decode("utf-8")
+                    data_hash = hash(b64_audio)
+                    logging.info(f"🔊 SENDING AUDIO PACKET | Hash: {data_hash} | Size: {len(b64_audio)}")
                     msg = {"type": "audio", "data": b64_audio}
                     await self.websocket.send_text(json.dumps(msg))
 
