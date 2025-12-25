@@ -40,9 +40,14 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         else:
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
         
+        # IMPORTANT: In Docker (headless), we must not use default speaker (audio_config=None)
+        # causing Error 2176. We redirect to /dev/null to avoid hardware init.
+        # The audio data is still returned in result.audio_data by speak_text_async.
+        audio_config = speechsdk.audio.AudioConfig(filename="/dev/null")
+        
         synthesizer = speechsdk.SpeechSynthesizer(
             speech_config=self.speech_config, 
-            audio_config=None 
+            audio_config=audio_config 
         )
         return synthesizer
 
