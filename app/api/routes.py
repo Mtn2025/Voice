@@ -57,7 +57,4 @@ async def media_stream(websocket: WebSocket, client: str = "twilio"):
         await orchestrator.stop()
         await websocket.close()
 
-    except Exception as e:
-        logging.error(f"WebSocket error: {e}")
-    finally:
-        await websocket.close()
+
