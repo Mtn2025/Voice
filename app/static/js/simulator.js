@@ -44,6 +44,14 @@ async function startCall() {
                 playAudioChunk(msg.data);
                 statusDiv.innerText = "Andrea está hablando...";
                 statusDiv.className = "text-blue-400 font-mono mb-4 text-lg";
+            } else if (msg.type === 'transcript') {
+                // Append transcript
+                const p = document.createElement('p');
+                p.className = msg.role === 'user' ? 'text-right text-emerald-400' : 'text-left text-blue-400';
+                p.innerText = `${msg.role === 'user' ? 'Tú' : 'Andrea'}: ${msg.text}`;
+                transcriptBox.appendChild(p);
+                transcriptBox.scrollTop = transcriptBox.scrollHeight;
+
             } else if (msg.event === 'clear') {
                 // Stop current audio (Barge-in)
                 clearAudio();

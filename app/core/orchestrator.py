@@ -79,6 +79,10 @@ class VoiceOrchestrator:
     async def _handle_recognized_async(self, text):
         logging.info(f"USER SAID: {text}")
         
+        # Send transcript to UI immediately
+        if self.client_type == "browser":
+             await self.websocket.send_text(json.dumps({"type": "transcript", "role": "user", "text": text}))
+
         if self.stream_id:
             await db_service.log_transcript(self.stream_id, "user", text)
         
@@ -87,12 +91,9 @@ class VoiceOrchestrator:
 
     async def handle_interruption(self):
         self.is_bot_speaking = False
-        if self.client_type == "twilio":
-            clear_msg = {"event": "clear", "streamSid": self.stream_id}
-            await self.websocket.send_text(json.dumps(clear_msg))
-        else:
-            # Browser interruption (just stop sending audio)
-            pass
+        # Send clear signal to both Twilio and Browser to stop audio
+        msg = {"event": "clear", "streamSid": self.stream_id}
+        await self.websocket.send_text(json.dumps(msg))
 
     async def generate_response(self):
         self.is_bot_speaking = True
