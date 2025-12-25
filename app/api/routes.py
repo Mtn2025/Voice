@@ -29,31 +29,45 @@ import uuid
 
 @router.websocket("/ws/media-stream")
 async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: str = None):
-    """
-    WebSocket endpoint.
-    client: 'twilio' or 'browser'
-    client_id: Unique ID for browser tab/session (to enforce singleton connection)
-    """
-    # For Twilio, use a random ID or streamSid if possible (Twilio doesn't send query params easily usually, 
-    # but we can assume Twilio manages its own unrelated streams). 
-    # For Browser, we require/expect client_id.
+    logging.info(f"Hit media_stream endpoint. Client: {client}, ID: {client_id}")
+    
     if not client_id:
         client_id = str(uuid.uuid4())
+        logging.info(f"Generated new client_id: {client_id}")
 
-    await manager.connect(client_id, websocket)
-    logging.info(f"WebSocket connected: {client} (ID: {client_id})")
-    
+    try:
+        logging.info("Attempting manager.connect...")
+        await manager.connect(client_id, websocket)
+        logging.info("Manager.connect success.")
+    except Exception as e:
+        logging.error(f"Manager connect failed: {e!r}")
+        return # Exit if connection failed
+
     orchestrator = VoiceOrchestrator(websocket, client_type=client)
-    await orchestrator.start()
     
+    try:
+        logging.info("Starting orchestrator...")
+        await orchestrator.start()
+        logging.info("Orchestrator started.")
+    except Exception as e:
+        logging.error(f"Orchestrator start failed: {e!r}")
+        manager.disconnect(client_id, websocket)
+        await websocket.close()
+        return
+
     try:
         while True:
             data = await websocket.receive_text()
+            # logging.info(f"Received data: {data[:50]}...") # Optional: Debug verbose
             msg = json.loads(data)
             
             if msg["event"] == "start":
                 logging.info(f"Stream started: {msg['start']['streamSid']}")
                 orchestrator.stream_id = msg['start']['streamSid']
+                if orchestrator.call_db_id is None:
+                     # Attempt creation if not done in start (redundancy)
+                     logging.info("Creating call DB record from START event...")
+                     orchestrator.call_db_id = await db_service.create_call(orchestrator.stream_id)
                 
             elif msg["event"] == "media":
                 payload = msg["media"]["payload"]
