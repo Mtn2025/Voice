@@ -62,11 +62,17 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 logging.info("Stream stopped")
                 break
                 
+from starlette.websockets import WebSocketDisconnect
+
+# ...
+
+    except WebSocketDisconnect:
+        logging.info(f"WebSocket disconnected: {client} (ID: {client_id})")
     except Exception as e:
-        logging.error(f"WebSocket error: {e}")
+        logging.error(f"WebSocket error: {e!r}")
         
     finally:
-        manager.disconnect(client_id)
+        manager.disconnect(client_id, websocket)
         await orchestrator.stop()
         try:
             await websocket.close()
