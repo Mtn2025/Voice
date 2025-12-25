@@ -10,7 +10,8 @@ async def lifespan(app: FastAPI):
     print("Starting Voice Orchestrator...")
     
     # Init DB Tables
-    from app.db.database import engine, Base
+    from app.db.database import engine
+    from app.db.models import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         
