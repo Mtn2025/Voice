@@ -31,6 +31,9 @@ class VoiceOrchestrator:
 
     async def start(self):
         """Initialize providers and start recognition."""
+        # Capture the current event loop to schedule tasks from sync callbacks
+        self.loop = asyncio.get_running_loop()
+
         # Load Config
         self.config = await db_service.get_agent_config()
         self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
@@ -66,17 +69,21 @@ class VoiceOrchestrator:
             logging.info("Interruption detected! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
-    async def handle_recognized(self, evt):
+    def handle_recognized(self, evt):
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             text = evt.result.text
             if not text: return
-            logging.info(f"USER SAID: {text}")
-            
-            if self.stream_id:
-                await db_service.log_transcript(self.stream_id, "user", text)
-            
-            self.conversation_history.append({"role": "user", "content": text})
-            asyncio.create_task(self.generate_response())
+            # Dispatch async work to the main loop
+            asyncio.run_coroutine_threadsafe(self._handle_recognized_async(text), self.loop)
+
+    async def _handle_recognized_async(self, text):
+        logging.info(f"USER SAID: {text}")
+        
+        if self.stream_id:
+            await db_service.log_transcript(self.stream_id, "user", text)
+        
+        self.conversation_history.append({"role": "user", "content": text})
+        await self.generate_response()
 
     async def handle_interruption(self):
         self.is_bot_speaking = False
