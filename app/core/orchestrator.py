@@ -17,6 +17,7 @@ class VoiceOrchestrator:
         self.conversation_history = []
         self.is_bot_speaking = False
         self.stream_id = None
+        self.call_db_id = None # Initialize to None
         self.config = None
         
         # Providers (Initialized in start)
