@@ -1,5 +1,5 @@
 from app.db.database import AsyncSessionLocal
-from app.db.models import Call, Transcript
+from app.db.models import Call, Transcript, AgentConfig
 from sqlalchemy.future import select
 import logging
 
