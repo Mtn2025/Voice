@@ -10,19 +10,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     expose:
       - "8000"
-    labels:
-      - "traefik.enable=true"
-      # Usamos el dominio exacto de tu captura
-      - "traefik.http.routers.voice-app.rule=Host(`andrea.ubrokers.mx`)"
-      - "traefik.http.routers.voice-app.entrypoints=websecure"
-      - "traefik.http.routers.voice-app.tls.certresolver=letsencrypt"
-      - "traefik.http.services.voice-app.loadbalancer.server.port=8000"
-      - "traefik.http.routers.voice-app.service=voice-app"
-    networks:
-      - voice_net
     restart: always
 
   db:
@@ -34,18 +25,12 @@ services:
       POSTGRES_DB: voice_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - voice_net
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
-
-networks:
-  voice_net:
-    driver: bridge
 
 volumes:
   postgres_data:
