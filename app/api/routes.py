@@ -55,6 +55,11 @@ async def media_stream(websocket: WebSocket, client: str = "twilio"):
         
     finally:
         await orchestrator.stop()
-        await websocket.close()
+        try:
+            # Check safely, though close() typically handles idempotent calls, 
+            # sometimes ASGI race conditions occur.
+            await websocket.close()
+        except RuntimeError:
+            pass # Already closed
 
 

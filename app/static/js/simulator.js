@@ -46,7 +46,7 @@ async function startCall() {
                 statusDiv.className = "text-blue-400 font-mono mb-4 text-lg";
             } else if (msg.event === 'clear') {
                 // Stop current audio (Barge-in)
-                // In simple implementation: just clear buffer or do nothing if small chunks
+                clearAudio();
                 statusDiv.innerText = "Interrupción detectada.";
             }
         };
@@ -103,7 +103,11 @@ async function setupAudioCapture() {
     };
 }
 
+const activeSources = [];
+
 function playAudioChunk(base64Data) {
+    if (!audioContext) return;
+
     // Decode base64 to buffer
     const binaryString = window.atob(base64Data);
     const len = binaryString.length;
@@ -112,11 +116,7 @@ function playAudioChunk(base64Data) {
         bytes[i] = binaryString.charCodeAt(i);
     }
 
-    // Create Audio Buffer (assuming 16kHz from server for browser mode)
-    // Server currently sends what TTS generates. Azure "Raw16Khz16BitMonoPcm" is raw bytes.
-    // Web Audio API decodeAudioData expects a file format (WAV/MP3) or we use buffer source manually
-
-    // Since it's raw PCM, we need to manually put it into an AudioBuffer
+    // Since it's raw PCM 16bit 16kHz
     const int16 = new Int16Array(bytes.buffer);
     const float32 = new Float32Array(int16.length);
     for (let i = 0; i < int16.length; i++) {
@@ -129,7 +129,21 @@ function playAudioChunk(base64Data) {
     const source = audioContext.createBufferSource();
     source.buffer = audioBuf;
     source.connect(audioContext.destination);
+
+    source.onended = () => {
+        const index = activeSources.indexOf(source);
+        if (index > -1) activeSources.splice(index, 1);
+    };
+
+    activeSources.push(source);
     source.start();
+}
+
+function clearAudio() {
+    activeSources.forEach(src => {
+        try { src.stop(); } catch (e) { }
+    });
+    activeSources.length = 0;
 }
 
 function updateUI(active) {
