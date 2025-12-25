@@ -21,14 +21,26 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
+from app.api.connection_manager import manager
+import uuid
+
+# ... imports ...
+
 @router.websocket("/ws/media-stream")
-async def media_stream(websocket: WebSocket, client: str = "twilio"):
+async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: str = None):
     """
     WebSocket endpoint.
     client: 'twilio' or 'browser'
+    client_id: Unique ID for browser tab/session (to enforce singleton connection)
     """
-    await websocket.accept()
-    logging.info(f"WebSocket connected: {client}")
+    # For Twilio, use a random ID or streamSid if possible (Twilio doesn't send query params easily usually, 
+    # but we can assume Twilio manages its own unrelated streams). 
+    # For Browser, we require/expect client_id.
+    if not client_id:
+        client_id = str(uuid.uuid4())
+
+    await manager.connect(client_id, websocket)
+    logging.info(f"WebSocket connected: {client} (ID: {client_id})")
     
     orchestrator = VoiceOrchestrator(websocket, client_type=client)
     await orchestrator.start()
@@ -54,10 +66,9 @@ async def media_stream(websocket: WebSocket, client: str = "twilio"):
         logging.error(f"WebSocket error: {e}")
         
     finally:
+        manager.disconnect(client_id)
         await orchestrator.stop()
         try:
-            # Check safely, though close() typically handles idempotent calls, 
-            # sometimes ASGI race conditions occur.
             await websocket.close()
         except RuntimeError:
             pass # Already closed

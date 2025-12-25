@@ -31,15 +31,31 @@ async function startCall() {
         // 1. Initialize Audio Context (16kHz for consistency)
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
+        // Get persistent ID for this tab/session
+        let clientId = sessionStorage.getItem("voice_client_id");
+        if (!clientId) {
+            clientId = crypto.randomUUID();
+            sessionStorage.setItem("voice_client_id", clientId);
+        }
+
         // 2. Connect WebSocket
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        socket = new WebSocket(`${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`);
+        socket = new WebSocket(`${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser&client_id=${clientId}`);
 
         socket.onopen = () => {
             isCallActive = true;
             updateUI(true);
             statusDiv.innerText = "Conectado. Habla ahora.";
             statusDiv.className = "text-emerald-400 font-mono mb-4 text-lg animate-pulse";
+
+            // Send START event so backend initializes stream_id properly
+            socket.send(JSON.stringify({
+                event: "start",
+                start: {
+                    streamSid: clientId, // Use client ID as stream ID for browser
+                    callSid: clientId
+                }
+            }));
 
             // Start Audio Capture
             setupAudioCapture();
