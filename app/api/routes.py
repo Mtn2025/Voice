@@ -23,6 +23,7 @@ async def incoming_call(request: Request):
 
 from starlette.websockets import WebSocketDisconnect
 from app.api.connection_manager import manager
+from app.services.db_service import db_service
 import uuid
 
 # ... imports ...
