@@ -4,7 +4,6 @@ services:
   app:
     build: .
     container_name: voice_orchestrator
-    # El puerto 8000 se define aquí para el uso INTERNO del contenedor
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/voice_db
@@ -12,7 +11,16 @@ services:
       - .env
     depends_on:
       - db
-    # ELIMINAMOS la sección 'ports' para evitar el choque con Coolify
+    expose:
+      - "8000"
+    labels:
+      - "traefik.enable=true"
+      # Usamos el dominio exacto de tu captura
+      - "traefik.http.routers.voice-app.rule=Host(`andrea.ubrokers.mx`)"
+      - "traefik.http.routers.voice-app.entrypoints=websecure"
+      - "traefik.http.routers.voice-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.voice-app.loadbalancer.server.port=8000"
+      - "traefik.http.routers.voice-app.service=voice-app"
     networks:
       - voice_net
     restart: always
