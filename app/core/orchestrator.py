@@ -2,6 +2,7 @@ import asyncio
 import json
 import base64
 import logging
+import uuid
 import azure.cognitiveservices.speech as speechsdk
 from fastapi import WebSocket
 from app.services.db_service import db_service
@@ -82,9 +83,14 @@ class VoiceOrchestrator:
 
     async def _handle_recognized_async(self, text):
         logging.info(f"USER SAID: {text}")
+
+        # Overlap Detection Logic
+        if self.is_bot_speaking:
+            logging.warning(f"⚠️ OVERLAP DETECTED: User spoke while Bot was speaking. Current task will be cancelled.")
         
         # Cancel any ongoing response generation (e.g. overlapping turns or fragmented speech)
         if self.response_task and not self.response_task.done():
+            logging.info("🛑 Cancelling previous response task used to avoid double audio.")
             self.response_task.cancel()
         
         # Send transcript to UI immediately
@@ -97,21 +103,26 @@ class VoiceOrchestrator:
         self.conversation_history.append({"role": "user", "content": text})
         
         # Create new task
-        self.response_task = asyncio.create_task(self.generate_response())
+        response_id = str(uuid.uuid4())[:8]
+        logging.info(f"🚀 Starting new response generation (ID: {response_id})")
+        self.response_task = asyncio.create_task(self.generate_response(response_id))
         await self.response_task
 
     async def handle_interruption(self):
+        logging.info("⚡ Interruption Handler Triggered")
         self.is_bot_speaking = False
         if self.response_task and not self.response_task.done():
+            logging.info("🛑 Cancelling response task due to interruption.")
             self.response_task.cancel()
             
         # Send clear signal to both Twilio and Browser to stop audio
         msg = {"event": "clear", "streamSid": self.stream_id}
         await self.websocket.send_text(json.dumps(msg))
 
-    async def generate_response(self):
+    async def generate_response(self, response_id: str):
         self.is_bot_speaking = True
         full_response = ""
+        logging.info(f"📝 Generating response {response_id}...")
         
         async def process_tts(text_chunk):
             if not text_chunk or not self.is_bot_speaking: return
