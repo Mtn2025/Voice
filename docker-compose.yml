@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: voice_orchestrator
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - voice_net
+
+  db:
+    image: postgres:15-alpine
+    container_name: voice_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: voice_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - voice_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: voice_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - voice_net
+
+networks:
+  voice_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

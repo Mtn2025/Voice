@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Orquestador de Voz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+    <div class="container mx-auto p-6">
+        <header class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                Orquestador de Voz Nativo
+            </h1>
+            <div class="px-3 py-1 bg-slate-800 rounded-full text-sm">
+                Estado: <span class="text-emerald-400">● En Línea</span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Configuration Panel -->
+            <div class="lg:col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <h2 class="text-xl font-semibold mb-4 text-blue-300">Configuración del Agente</h2>
+                <form action="/api/config/update" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Proveedor STT (Transcripción)</label>
+                        <select name="stt_provider"
+                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                            <option value="azure" {% if config.stt_provider=='azure' %}selected{% endif %}>Azure Speech
+                                (Recomendado)</option>
+                            <option value="deepgram" {% if config.stt_provider=='deepgram' %}selected{% endif %}>
+                                Deepgram (Próximamente)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Proveedor LLM (Cerebro)</label>
+                        <select name="llm_provider"
+                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                            <option value="groq" {% if config.llm_provider=='groq' %}selected{% endif %}>Groq
+                                (DeepSeek-v3)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Proveedor TTS (Voz)</label>
+                        <select name="tts_provider"
+                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                            <option value="azure" {% if config.tts_provider=='azure' %}selected{% endif %}>Azure Speech
+                                Neural</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
+                        <textarea name="system_prompt" rows="6"
+                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Temperatura: <span id="temp-val">{{
+                                    config.temperature }}</span></label>
+                            <input type="range" name="temperature" min="0" max="1" step="0.1"
+                                value="{{ config.temperature }}" class="w-full"
+                                oninput="document.getElementById('temp-val').innerText = this.value">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Velocidad Voz: <span id="speed-val">{{
+                                    config.voice_speed }}</span></label>
+                            <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.1"
+                                value="{{ config.voice_speed }}" class="w-full"
+                                oninput="document.getElementById('speed-val').innerText = this.value">
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-medium transition-colors">
+                        Guardar Cambios
+                    </button>
+                </form>
+            </div>
+
+            <!-- Simulator Panel -->
+            <div class="lg:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
+                    <button id="start-btn" onclick="toggleCall()"
+                        class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
+                        Iniciar Prueba
+                    </button>
+                </div>
+
+                <div
+                    class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                    <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                    </div>
+
+                    <!-- Visualizer Canvas -->
+                    <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
+                </div>
+
+                <!-- Latest Transcript -->
+                <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
+                    <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
+                    <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
+                        <!-- Messages inserted by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/simulator.js"></script>
+</body>
+
+</html>
