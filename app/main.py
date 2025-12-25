@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.api import routes
@@ -25,6 +26,8 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan
 )
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(routes.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router)
