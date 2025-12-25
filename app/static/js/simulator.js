@@ -20,6 +20,14 @@ async function toggleCall() {
 
 async function startCall() {
     try {
+        // Enforce single connection
+        if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+            console.log("Closing existing socket before starting new one.");
+            socket.close();
+            // Wait a tiny bit for cleanup?
+        }
+        clearAudio(); // Stop any pending audio
+
         // 1. Initialize Audio Context (16kHz for consistency)
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
