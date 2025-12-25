@@ -99,7 +99,12 @@ class VoiceOrchestrator:
             
             # Note: We are using the Azure SDK directly here via the provider
             # Ideally this logic is inside the provider's synthesize_stream
-            result = self.synthesizer.speak_text_async(text_chunk).get()
+            # Wrapper for non-blocking execution of blocking Azure SDK call
+            def synthesize_blocking():
+                return self.synthesizer.speak_text_async(text_chunk).get()
+
+            # Run in thread pool to avoid blocking asyncio loop
+            result = await asyncio.to_thread(synthesize_blocking)
             
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 audio_data = result.audio_data
