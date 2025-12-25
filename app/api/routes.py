@@ -21,6 +21,7 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
+from starlette.websockets import WebSocketDisconnect
 from app.api.connection_manager import manager
 import uuid
 
@@ -62,10 +63,6 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 logging.info("Stream stopped")
                 break
                 
-from starlette.websockets import WebSocketDisconnect
-
-# ...
-
     except WebSocketDisconnect:
         logging.info(f"WebSocket disconnected: {client} (ID: {client_id})")
     except Exception as e:
