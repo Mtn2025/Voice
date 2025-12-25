@@ -65,6 +65,7 @@ async function startCall() {
             const msg = JSON.parse(event.data);
             if (msg.type === 'audio') {
                 // Play audio from server
+                console.log(`🔊 PLAYING AUDIO PACKET | Size: ${msg.data.length}`);
                 playAudioChunk(msg.data);
                 statusDiv.innerText = "Andrea está hablando...";
                 statusDiv.className = "text-blue-400 font-mono mb-4 text-lg";
@@ -137,6 +138,8 @@ async function setupAudioCapture() {
 
 const activeSources = [];
 
+let nextStartTime = 0;
+
 function playAudioChunk(base64Data) {
     if (!audioContext) return;
 
@@ -168,7 +171,15 @@ function playAudioChunk(base64Data) {
     };
 
     activeSources.push(source);
-    source.start();
+
+    // Scheduling Magic: Play sequentially, not simultaneously
+    const currentTime = audioContext.currentTime;
+    if (nextStartTime < currentTime) {
+        nextStartTime = currentTime;
+    }
+
+    source.start(nextStartTime);
+    nextStartTime += audioBuf.duration;
 }
 
 function clearAudio() {
@@ -176,6 +187,7 @@ function clearAudio() {
         try { src.stop(); } catch (e) { }
     });
     activeSources.length = 0;
+    nextStartTime = 0; // Reset scheduler
 }
 
 function updateUI(active) {
