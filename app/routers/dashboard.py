@@ -43,7 +43,8 @@ async def update_config(
     voice_speed: float = Form(...),
     voice_name: str = Form("es-MX-DaliaNeural"), 
     stt_language: str = Form("es-MX"), # New
-    llm_model: str = Form("llama3-8b-8192"), # New
+    llm_model: str = Form("deepseek-r1-distill-llama-70b"), # New
+    background_sound: str = Form("none"), # New
     stt_provider: str = Form(...),
     llm_provider: str = Form(...),
     tts_provider: str = Form(...)
@@ -55,6 +56,7 @@ async def update_config(
         voice_name=voice_name,
         stt_language=stt_language,
         llm_model=llm_model,
+        background_sound=background_sound,
         stt_provider=stt_provider,
         llm_provider=llm_provider,
         tts_provider=tts_provider

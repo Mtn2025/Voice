@@ -3,6 +3,7 @@ let audioContext;
 let processor;
 let inputSource;
 let analyser;
+let bgAudio;
 let isCallActive = false;
 
 const startBtn = document.getElementById('start-btn');
@@ -82,6 +83,19 @@ async function startCall() {
                 // Stop current audio (Barge-in)
                 clearAudio();
                 statusDiv.innerText = "Interrupción detectada.";
+            } else if (msg.type === 'config') {
+                // Handle Config (e.g. Background Sound)
+                const bgSound = msg.config?.background_sound;
+                if (bgSound && bgSound !== 'none') {
+                    console.log(`🎵 Starting Background Sound: ${bgSound}`);
+                    if (bgAudio) { bgAudio.pause(); bgAudio = null; }
+
+                    // Uses files in /static/sounds/office.mp3 etc.
+                    bgAudio = new Audio(`/static/sounds/${bgSound}.mp3`);
+                    bgAudio.loop = true;
+                    bgAudio.volume = 0.1; // 10% volume (Subtle)
+                    bgAudio.play().catch(e => console.warn("Background Audio Auto-play blocked (Interact first)?", e));
+                }
             }
         };
 
@@ -99,6 +113,7 @@ function stopCall() {
     if (socket) socket.close();
     if (audioContext) audioContext.close();
     if (processor) processor.disconnect();
+    if (bgAudio) { bgAudio.pause(); bgAudio = null; }
     statusDiv.innerText = "Llamada Finalizada";
     statusDiv.className = "text-slate-500 font-mono mb-4 text-lg";
 }

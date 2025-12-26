@@ -93,5 +93,6 @@ Si es necesario transferir o terminar: Hazlo en silencio sin notificar al usuari
     voice_name = Column(String, default="es-MX-DaliaNeural")
     voice_speed = Column(Float, default=1.0)
     temperature = Column(Float, default=0.7)
+    background_sound = Column(String, default="none") # none, office, cafe, call_center
     
     is_active = Column(Boolean, default=True)

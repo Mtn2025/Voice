@@ -23,7 +23,8 @@ async def lifespan(app: FastAPI):
             # Also ensure llm_model col exists too if we wanted, but voice_name exists by default? 
             # Check models.py again. voice_name exists. llm_model doesn't.
             # Let's add llm_model too while we are at it to fulfill previous promise.
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_model VARCHAR DEFAULT 'llama3-8b-8192'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_model VARCHAR DEFAULT 'deepseek-r1-distill-llama-70b'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS background_sound VARCHAR DEFAULT 'none'"))
         except Exception as e:
             print(f"Migration warning: {e}")
         

@@ -44,6 +44,16 @@ class VoiceOrchestrator:
         self.config = await db_service.get_agent_config()
         self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
         
+        # BROADCAST CONFIG TO CLIENT (e.g. Background Sound)
+        if self.client_type == "browser":
+            bgs = getattr(self.config, "background_sound", "none")
+            await self.websocket.send_text(json.dumps({
+                "type": "config",
+                "config": {
+                    "background_sound": bgs
+                }
+            }))
+        
         # Instantiate Providers
         self.stt_provider = ServiceFactory.get_stt_provider(self.config)
         self.llm_provider = ServiceFactory.get_llm_provider(self.config)
