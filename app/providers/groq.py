@@ -7,44 +7,43 @@ import json
 import base64
 import logging
 
-class GroqProvider(AbstractLLM):
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
         self.client = AsyncGroq(api_key=self.api_key)
-        self.model_name = settings.GROQ_MODEL or "llama3-8b-8192"
-        # Default model, can be overridden by config usually, but Groq requires specific model names
-        self.model_map = {
-            "default": "llama-3.3-70b-versatile",
-            "deepseek": "deepseek-r1-distill-llama-70b" 
-        }
+        self.default_model = "deepseek-r1-distill-llama-70b"
 
     def get_available_models(self):
         return [
-            "llama3-8b-8192",
+            "deepseek-r1-distill-llama-70b",
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
             "llama3-70b-8192",
-            "mixtral-8x7b-32768",
-            "gemma-7b-it",
-            "deepseek-r1-distill-llama-70b"
+            "mixtral-8x7b-32768"
         ]
 
-    async def get_stream(self, messages: list, system_prompt: str, temperature: float) -> AsyncGenerator[str, None]:
-        # Inject system prompt if not present or replace it?
-        # Typically orchestrator manages history. We ensure system prompt is first.
+    async def get_stream(self, messages: list, system_prompt: str, temperature: float, model: str = None) -> AsyncGenerator[str, None]:
         
-        msgs = [{"role": "system", "content": system_prompt}] + [m for m in messages if m["role"] != "system"]
-        
-        completion = await self.client.chat.completions.create(
-            model=self.model_map.get("default"), # Could be dynamic
-            messages=msgs,
-            temperature=temperature,
-            max_tokens=512,
-            stream=True
-        )
+        target_model = model or self.default_model
 
-        async for chunk in completion:
-            delta = chunk.choices[0].delta.content
-            if delta:
-                yield delta
+        # Ensure correct message format for Groq
+        chat_messages = [{"role": "system", "content": system_prompt}] + [m for m in messages if m["role"] != "system"]
+        
+        try:
+            completion = await self.client.chat.completions.create(
+                model=target_model,
+                messages=chat_messages,
+                temperature=temperature,
+                max_tokens=600, # Increased for DeepSeek reasoning if needed
+                stream=True
+            )
+
+            async for chunk in completion:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+        except Exception as e:
+            logging.error(f"Groq Error ({target_model}): {e}")
+            yield f"Error: {str(e)}"
 
     async def transcribe_audio(self, audio_content: bytes, language: str = "es") -> str:
         """

@@ -215,7 +215,13 @@ class VoiceOrchestrator:
         
         sentence_buffer = ""
         try:
-            async for text_chunk in self.llm_provider.get_stream(messages, system_prompt=system_prompt, temperature=self.config.temperature):
+            # Pass selected model (e.g., deepseek-r1-distill-llama-70b)
+            async for text_chunk in self.llm_provider.get_stream(
+                messages, 
+                system_prompt=system_prompt, 
+                temperature=self.config.temperature,
+                model=self.config.llm_model
+            ):
                 if not self.is_bot_speaking: break
                 full_response += text_chunk
                 sentence_buffer += text_chunk
