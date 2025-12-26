@@ -74,13 +74,8 @@ class VoiceOrchestrator:
             self.recognizer.stop_continuous_recognition()
 
     def handle_recognizing(self, evt):
-        # Interruption Logic:
-        # 1. Bot is actively generating/speaking (server side flag)
-        # 2. OR we sent audio recently (within 5s), so client is likely still playing buffer.
-        is_audio_tail = (time.time() - self.last_audio_sent_at) < 5.0
-        
-        if len(evt.result.text) > 0 and (self.is_bot_speaking or is_audio_tail):
-            logging.info(f"Interruption detected (Text: '{evt.result.text}', Active: {self.is_bot_speaking}, Tail: {is_audio_tail})! Stopping audio.")
+        if len(evt.result.text) > 0 and self.is_bot_speaking:
+            logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
     def handle_recognized(self, evt):

@@ -59,6 +59,55 @@ async function startCall() {
 
             // Start Audio Capture
             setupAudioCapture();
+
+            // Initialize AnalyserNode and start visualization loop
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048; // Adjust as needed for frequency resolution
+            bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+
+            // Connect the analyser to the audio graph (e.g., from the input source or processor)
+            // For visualization of input, connect processor to analyser
+            processor.connect(analyser);
+            analyser.connect(audioContext.destination); // Ensure analyser is connected to something to process audio
+
+            const draw = () => {
+                requestAnimationFrame(draw);
+
+                analyser.getByteFrequencyData(dataArray);
+
+                canvasCtx.fillStyle = '#0f172a'; // slate-900
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                // --- Local VAD (Barge-In) ---
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    sum += dataArray[i];
+                }
+                const average = sum / bufferLength;
+
+                // Threshold 20/255 roughly -50dB? Tune as needed.
+                if (average > 20 && activeSources.length > 0) {
+                    console.log("🎤 Local VAD: Creating Silence (User Speaking)");
+                    clearAudio();
+                    // Optional: Inform server immediately? Server VAD will catch it via stream anyway.
+                }
+                // -----------------------------
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+
+                    canvasCtx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+                    canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                    x += barWidth + 1;
+                }
+            };
+            draw(); // Start the visualization loop
         };
 
         socket.onmessage = async (event) => {
