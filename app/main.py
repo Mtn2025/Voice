@@ -28,6 +28,26 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS idle_timeout FLOAT DEFAULT 10.0"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS idle_message VARCHAR DEFAULT '¿Hola? ¿Sigue ahí?'"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_duration INTEGER DEFAULT 600"))
+            
+            # VAPI Parity Stage 1
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message VARCHAR DEFAULT 'Hola, soy Andrea de Ubrokers. ¿Me escucha bien?'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_mode VARCHAR DEFAULT 'speak-first'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_tokens INTEGER DEFAULT 250"))
+            
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_id_manual VARCHAR"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS background_sound_url VARCHAR"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters INTEGER DEFAULT 3"))
+            
+            # VAPI Parity Stage 2
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms INTEGER DEFAULT 500"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS segmentation_max_time INTEGER DEFAULT 30000"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS segmentation_strategy VARCHAR DEFAULT 'default'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_denoising BOOLEAN DEFAULT TRUE"))
+            
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_end_call BOOLEAN DEFAULT TRUE"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_dial_keypad BOOLEAN DEFAULT FALSE"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS transfer_phone_number VARCHAR"))
+
         except Exception as e:
             print(f"Migration warning: {e}")
         

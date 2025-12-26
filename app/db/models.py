@@ -100,4 +100,29 @@ Si es necesario transferir o terminar: Hazlo en silencio sin notificar al usuari
     idle_message = Column(String, default="¿Hola? ¿Sigue ahí?")
     max_duration = Column(Integer, default=600) # Max call seconds
     
+    # VAPI Stage 1: Model & Voice
+    first_message = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
+    first_message_mode = Column(String, default="speak-first") # speak-first, wait-for-user, speak-first-dynamic
+    max_tokens = Column(Integer, default=250)
+    
+    voice_id_manual = Column(String, nullable=True) # Override standard list
+    background_sound_url = Column(String, nullable=True) # External URL for ambient noise
+    input_min_characters = Column(Integer, default=3)
+    punctuation_boundaries = Column(String, nullable=True)
+    
+    # VAPI Stage 2: Transcriber & Functions
+    silence_timeout_ms = Column(Integer, default=500) # Speech end silence
+    segmentation_max_time = Column(Integer, default=30000) # ms (max phrase duration)
+    segmentation_strategy = Column(String, default="default") # default, time, semantic
+    enable_denoising = Column(Boolean, default=True)
+    
+    enable_end_call = Column(Boolean, default=True)
+    enable_dial_keypad = Column(Boolean, default=False)
+    transfer_phone_number = Column(String, nullable=True)
+    
+    # Flow Control (Legacy/Simple)
+    idle_timeout = Column(Float, default=10.0) 
+    idle_message = Column(String, default="¿Hola? ¿Sigue ahí?")
+    max_duration = Column(Integer, default=600)
+    
     is_active = Column(Boolean, default=True)

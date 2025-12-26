@@ -24,74 +24,53 @@
             <!-- Configuration Panel -->
             <div class="lg:col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
                 <h2 class="text-xl font-semibold mb-4 text-blue-300">Configuración del Agente</h2>
-                <form action="/api/config/update" method="POST" class="space-y-4">
-                    <!-- Hidden Providers (Fixed for now, enabled via dropdowns logically) -->
-                    <input type="hidden" name="stt_provider" value="azure">
-                    <input type="hidden" name="llm_provider" value="groq">
-                    <input type="hidden" name="tts_provider" value="azure">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Proveedor STT (Transcripción)</label>
-                        <select name="stt_provider"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            <option value="azure" {% if config.stt_provider=='azure' %}selected{% endif %}>Azure Speech
-                                (Recomendado)</option>
-                            <option value="deepgram" {% if config.stt_provider=='deepgram' %}selected{% endif %}>
-                                Deepgram (Próximamente)</option>
-                        </select>
+                <script src="//unpkg.com/alpinejs" defer></script>
+
+                <div x-data="{ tab: 'model' }">
+                    <!-- Tabs Header -->
+                    <div class="flex space-x-1 border-b border-slate-700 mb-6 overflow-x-auto">
+                        <button @click.prevent="tab = 'model'"
+                            :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Model</button>
+                        <button @click.prevent="tab = 'voice'"
+                            :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Voice</button>
+                        <button @click.prevent="tab = 'transcriber'"
+                            :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Transcriber</button>
+                        <button @click.prevent="tab = 'advanced'"
+                            :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Advanced</button>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Idioma de Transcripción</label>
-                        <select name="stt_language"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            {% for lang in languages %}
-                            <option value="{{ lang }}" {% if config.stt_language==lang %}selected{% endif %}>{{ lang }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <form action="/api/config/update" method="POST" class="space-y-4">
+                        <input type="hidden" name="stt_provider" value="azure">
+                        <input type="hidden" name="llm_provider" value="groq">
+                        <input type="hidden" name="tts_provider" value="azure">
 
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Modelo LLM</label>
-                        <select name="llm_model" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            {% for model in models %}
-                            <option value="{{ model }}" {% if config.llm_model==model %}selected{% endif %}>{{ model }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Sonido de Fondo (Ambiente)</label>
-                        <select name="background_sound"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            <option value="none" {% if config.background_sound=='none' %}selected{% endif %}>Ninguno
-                                (Silencio)</option>
-                            <option value="office" {% if config.background_sound=='office' %}selected{% endif %}>Oficina
-                                (Suave)</option>
-                            <option value="cafe" {% if config.background_sound=='cafe' %}selected{% endif %}>Cafetería
-                            </option>
-                            <option value="call_center" {% if config.background_sound=='call_center' %}selected{% endif
-                                %}>Call Center</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Voz (TTS)</label>
-                        <select name="voice_name" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            {% for voice in voices %}
-                            <option value="{{ voice }}" {% if config.voice_name==voice %}selected{% endif %}>{{ voice }}
-                            </option>
-                            {% endfor %}
-                        </select>
-
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
-                            <textarea name="system_prompt" rows="6"
-                                class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
+                        <!-- Tab: Model -->
+                        <div x-show="tab === 'model'" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Modelo LLM</label>
+                                <select name="llm_model"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                    {% for model in models %}
+                                    <option value="{{ model }}" {% if config.llm_model==model %}selected{% endif %}>{{
+                                        model }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Primer Mensaje (First Message)</label>
+                                <input type="text" name="first_message" value="{{ config.first_message }}"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
+                                    placeholder="Hola...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
+                                <textarea name="system_prompt" rows="8"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium mb-1">Temperatura: <span id="temp-val">{{
                                         config.temperature }}</span></label>
@@ -99,45 +78,105 @@
                                     value="{{ config.temperature }}" class="w-full"
                                     oninput="document.getElementById('temp-val').innerText = this.value">
                             </div>
+                        </div>
+
+                        <!-- Tab: Voice -->
+                        <div x-show="tab === 'voice'" class="space-y-4" style="display: none;">
                             <div>
-                                <label class="block text-sm font-medium mb-1">Velocidad Voz: <span id="speed-val">{{
+                                <label class="block text-sm font-medium mb-1">Voz (TTS)</label>
+                                <select name="voice_name"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                    {% for voice in voices %}
+                                    <option value="{{ voice }}" {% if config.voice_name==voice %}selected{% endif %}>{{
+                                        voice }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Velocidad: <span id="speed-val">{{
                                         config.voice_speed }}</span></label>
                                 <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.1"
                                     value="{{ config.voice_speed }}" class="w-full"
                                     oninput="document.getElementById('speed-val').innerText = this.value">
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Sonido de Fondo</label>
+                                <select name="background_sound"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                    <option value="none" {% if config.background_sound=='none' %}selected{% endif %}>
+                                        Ninguno</option>
+                                    <option value="office" {% if config.background_sound=='office' %}selected{% endif
+                                        %}>Oficina</option>
+                                    <option value="cafe" {% if config.background_sound=='cafe' %}selected{% endif %}>
+                                        Cafetería</option>
+                                    <option value="call_center" {% if config.background_sound=='call_center'
+                                        %}selected{% endif %}>Call Center</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Flow Control -->
-                        <div class="border-t border-slate-700 pt-4 mt-4">
-                            <h3 class="text-sm font-semibold text-blue-300 mb-2">Control de Flujo (VAPI-Style)</h3>
-
-                            <div class="grid grid-cols-2 gap-4 mb-2">
+                        <!-- Tab: Transcriber -->
+                        <div x-show="tab === 'transcriber'" class="space-y-4" style="display: none;">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Idioma de Transcripción</label>
+                                <select name="stt_language"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                    {% for lang in languages %}
+                                    <option value="{{ lang }}" {% if config.stt_language==lang %}selected{% endif %}>{{
+                                        lang }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Timeout Inactividad (s)</label>
+                                    <label class="block text-sm font-medium mb-1">Silence Timeout (ms)</label>
+                                    <input type="number" name="silence_timeout_ms"
+                                        value="{{ config.silence_timeout_ms }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                    <p class="text-xs text-slate-500 mt-1">Tiempo de silencio para finalizar frase
+                                        (Endpointing).</p>
+                                </div>
+                                <div class="flex items-center pt-6">
+                                    <input type="hidden" name="enable_denoising" value="false"> <!-- Fallback -->
+                                    <input type="checkbox" name="enable_denoising" value="true"
+                                        class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
+                                        config.enable_denoising %}checked{% endif %}>
+                                    <label class="text-sm font-medium ml-2">Reducción de Ruido (Denoising)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Advanced -->
+                        <div x-show="tab === 'advanced'" class="space-y-4" style="display: none;">
+                            <h3 class="text-sm font-semibold text-blue-300">Control de Flujo (VAPI-Style)</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Idle Timeout (s)</label>
                                     <input type="number" name="idle_timeout" step="0.5"
                                         value="{{ config.idle_timeout }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1">Duración Máx (s)</label>
                                     <input type="number" name="max_duration" value="{{ config.max_duration }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                                 </div>
                             </div>
-
                             <div>
-                                <label class="block text-sm font-medium mb-1">Mensaje de Inactividad (Idle)</label>
+                                <label class="block text-sm font-medium mb-1">Mensaje Idle</label>
                                 <input type="text" name="idle_message" value="{{ config.idle_message }}"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                             </div>
                         </div>
 
-                        <button type="submit"
-                            class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-medium transition-colors">
-                            Guardar Cambios
-                        </button>
-                </form>
+                        <div class="pt-4 border-t border-slate-700">
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-medium transition-colors shadow-lg">
+                                Guardar Configuración
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <!-- Simulator Panel -->
