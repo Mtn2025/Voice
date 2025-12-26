@@ -9,7 +9,7 @@ import logging
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     config = await db_service.get_agent_config()
     

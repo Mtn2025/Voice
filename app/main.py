@@ -44,6 +44,8 @@ app.include_router(routes.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router)
 
 
-@app.get("/")
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
 async def root():
-    return {"message": "Voice Orchestrator is running"}
+    return RedirectResponse(url="/dashboard")
