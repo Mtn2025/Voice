@@ -39,6 +39,7 @@ async def dashboard(request: Request):
 @router.post("/api/config/update")
 async def update_config(
     system_prompt: str = Form(...),
+    temperature: float = Form(...), # Restore temperature
     voice_speed: float = Form(...),
     voice_name: str = Form("es-MX-DaliaNeural"), 
     stt_language: str = Form("es-MX"), # New
