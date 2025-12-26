@@ -3,6 +3,7 @@ import json
 import base64
 import logging
 import uuid
+import time
 import azure.cognitiveservices.speech as speechsdk
 from fastapi import WebSocket
 from app.services.db_service import db_service
@@ -17,6 +18,7 @@ class VoiceOrchestrator:
         self.client_type = client_type
         self.conversation_history = []
         self.is_bot_speaking = False
+        self.last_audio_sent_at = 0 # Track when we last sent bytes
         self.stream_id = None
         self.call_db_id = None 
         self.config = None
@@ -72,8 +74,13 @@ class VoiceOrchestrator:
             self.recognizer.stop_continuous_recognition()
 
     def handle_recognizing(self, evt):
-        if len(evt.result.text) > 0 and self.is_bot_speaking:
-            logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
+        # Interruption Logic:
+        # 1. Bot is actively generating/speaking (server side flag)
+        # 2. OR we sent audio recently (within 5s), so client is likely still playing buffer.
+        is_audio_tail = (time.time() - self.last_audio_sent_at) < 5.0
+        
+        if len(evt.result.text) > 0 and (self.is_bot_speaking or is_audio_tail):
+            logging.info(f"Interruption detected (Text: '{evt.result.text}', Active: {self.is_bot_speaking}, Tail: {is_audio_tail})! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
     def handle_recognized(self, evt):
@@ -185,6 +192,8 @@ class VoiceOrchestrator:
                     logging.info(f"🔊 SENDING AUDIO PACKET | Hash: {data_hash} | Size: {len(b64_audio)}")
                     msg = {"type": "audio", "data": b64_audio}
                     await self.websocket.send_text(json.dumps(msg))
+                    self.last_audio_sent_at = time.time() # Update usage
+
 
         buffer = ""
         try:
