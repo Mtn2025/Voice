@@ -270,7 +270,7 @@ function startVisualizer() {
         if (speechFrames > 4) {
             console.log(`🎤 VAD Triggered: Level ${average.toFixed(1)} for ${speechFrames} frames`);
             clearAudio();
-            speechFrames = 0; # Reset after trigger to prevent spam
+            speechFrames = 0; // Reset after trigger to prevent spam
         }
         // -----------------------------
         // -----------------------------
