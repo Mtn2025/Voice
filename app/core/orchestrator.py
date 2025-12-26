@@ -75,6 +75,7 @@ class VoiceOrchestrator:
         except Exception as e:
             logging.error(f"Idle/Direct output error: {e}")
         finally:
+            self.last_interaction_time = time.time()
             self.is_bot_speaking = False
 
     async def monitor_idle(self):
@@ -342,6 +343,7 @@ class VoiceOrchestrator:
         except asyncio.CancelledError:
             logging.info("Response generation cancelled.")
         finally:
+            self.last_interaction_time = time.time() # Reset idle timer mostly for the bot's end
             self.is_bot_speaking = False
 
     async def process_audio(self, payload):
