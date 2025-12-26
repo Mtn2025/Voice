@@ -2,6 +2,7 @@ let socket;
 let audioContext;
 let processor;
 let inputSource;
+let analyser;
 let isCallActive = false;
 
 const startBtn = document.getElementById('start-btn');
@@ -57,57 +58,8 @@ async function startCall() {
                 }
             }));
 
-            // Start Audio Capture
+            // Start Audio Capture (which also starts Visualizer/VAD)
             setupAudioCapture();
-
-            // Initialize AnalyserNode and start visualization loop
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048; // Adjust as needed for frequency resolution
-            bufferLength = analyser.frequencyBinCount;
-            dataArray = new Uint8Array(bufferLength);
-
-            // Connect the analyser to the audio graph (e.g., from the input source or processor)
-            // For visualization of input, connect processor to analyser
-            processor.connect(analyser);
-            analyser.connect(audioContext.destination); // Ensure analyser is connected to something to process audio
-
-            const draw = () => {
-                requestAnimationFrame(draw);
-
-                analyser.getByteFrequencyData(dataArray);
-
-                canvasCtx.fillStyle = '#0f172a'; // slate-900
-                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-                const barWidth = (canvas.width / bufferLength) * 2.5;
-                let barHeight;
-                let x = 0;
-
-                // --- Local VAD (Barge-In) ---
-                let sum = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    sum += dataArray[i];
-                }
-                const average = sum / bufferLength;
-
-                // Threshold 20/255 roughly -50dB? Tune as needed.
-                if (average > 20 && activeSources.length > 0) {
-                    console.log("🎤 Local VAD: Creating Silence (User Speaking)");
-                    clearAudio();
-                    // Optional: Inform server immediately? Server VAD will catch it via stream anyway.
-                }
-                // -----------------------------
-
-                for (let i = 0; i < bufferLength; i++) {
-                    barHeight = dataArray[i] / 2;
-
-                    canvasCtx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
-                    canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-
-                    x += barWidth + 1;
-                }
-            };
-            draw(); // Start the visualization loop
         };
 
         socket.onmessage = async (event) => {
@@ -155,16 +107,26 @@ async function setupAudioCapture() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     inputSource = audioContext.createMediaStreamSource(stream);
 
-    // Processor to capture raw PCM
-    processor = audioContext.createScriptProcessor(4096, 1, 1);
+    // 1. Analyser for VAD (Direct Mic Connection)
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    inputSource.connect(analyser);
 
+    // 2. Processor for Streaming
+    processor = audioContext.createScriptProcessor(4096, 1, 1);
     inputSource.connect(processor);
-    processor.connect(audioContext.destination);
+
+    // 3. Mute Output (Required for Chrome to fire processor)
+    const mute = audioContext.createGain();
+    mute.gain.value = 0;
+    processor.connect(mute);
+    mute.connect(audioContext.destination);
 
     processor.onaudioprocess = (e) => {
         if (!isCallActive || socket.readyState !== WebSocket.OPEN) return;
 
         const inputData = e.inputBuffer.getChannelData(0);
+
         // Convert Float32 to Int16
         const buffer = new ArrayBuffer(inputData.length * 2);
         const view = new DataView(buffer);
@@ -179,14 +141,12 @@ async function setupAudioCapture() {
             event: "media",
             media: { payload: base64Audio }
         }));
-
-        // Visualizer
-        drawVisualizer(inputData);
     };
+
+    startVisualizer();
 }
 
 const activeSources = [];
-
 let nextStartTime = 0;
 
 function playAudioChunk(base64Data) {
@@ -221,7 +181,7 @@ function playAudioChunk(base64Data) {
 
     activeSources.push(source);
 
-    // Scheduling Magic: Play sequentially, not simultaneously
+    // Scheduling Magic
     const currentTime = audioContext.currentTime;
     if (nextStartTime < currentTime) {
         nextStartTime = currentTime;
@@ -236,7 +196,7 @@ function clearAudio() {
         try { src.stop(); } catch (e) { }
     });
     activeSources.length = 0;
-    nextStartTime = 0; // Reset scheduler
+    nextStartTime = 0;
 }
 
 function updateUI(active) {
@@ -256,24 +216,44 @@ function arrayBufferToBase64(buffer) {
     return window.btoa(binary);
 }
 
-function drawVisualizer(dataArray) {
-    canvasCtx.fillStyle = 'rgb(15, 23, 42)';
-    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-    canvasCtx.lineWidth = 2;
-    canvasCtx.strokeStyle = 'rgb(52, 211, 153)';
-    canvasCtx.beginPath();
+function startVisualizer() {
+    if (!analyser) return;
 
-    const sliceWidth = canvas.width / dataArray.length;
-    let x = 0;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
 
-    for (let i = 0; i < dataArray.length; i++) {
-        const v = dataArray[i] * 50 + 50; // Scale center
-        const y = v; // Simple wave
+    const draw = () => {
+        if (!isCallActive) return;
+        requestAnimationFrame(draw);
 
-        if (i === 0) canvasCtx.moveTo(x, y);
-        else canvasCtx.lineTo(x, y);
-        x += sliceWidth;
-    }
-    canvasCtx.lineTo(canvas.width, canvas.height / 2);
-    canvasCtx.stroke();
+        analyser.getByteFrequencyData(dataArray);
+
+        canvasCtx.fillStyle = '#0f172a';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        // --- Local VAD (Barge-In) ---
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+
+        if (average > 25 && activeSources.length > 0) {
+            console.log(`🎤 Interruption Detected! Level: ${average.toFixed(1)}`);
+            clearAudio();
+        }
+        // -----------------------------
+
+        for (let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] / 2;
+            canvasCtx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
+        }
+    };
+    draw();
 }
