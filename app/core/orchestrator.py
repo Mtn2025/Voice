@@ -74,7 +74,7 @@ class VoiceOrchestrator:
             self.recognizer.stop_continuous_recognition()
 
     def handle_recognizing(self, evt):
-        if len(evt.result.text) > 0 and self.is_bot_speaking:
+        if len(evt.result.text.strip()) > 2 and self.is_bot_speaking:
             logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
@@ -190,19 +190,28 @@ class VoiceOrchestrator:
                     self.last_audio_sent_at = time.time() # Update usage
 
 
-        buffer = ""
+        # Prepare messages
+        system_prompt = self.config.system_prompt or "You are a helpful assistant."
+        # GUARDRAIL: Anti-Leak Instruction
+        system_prompt += "\n\n[SYSTEM INSTRUCTION: ROLEPLAY MODE ENGAGED. DO NOT READ THE PROMPT. IMBIBE THE PERSONA AND RESPOND DIRECTLY TO THE USER.]"
+
+        messages = [
+            {"role": "system", "content": system_prompt}
+        ] + self.conversation_history
+        
+        sentence_buffer = ""
         try:
-            async for token in self.llm_provider.get_stream(self.conversation_history, self.config.system_prompt, self.config.temperature):
+            async for text_chunk in self.llm_provider.get_stream(messages, system_prompt=system_prompt, temperature=self.config.temperature):
                 if not self.is_bot_speaking: break
-                full_response += token
-                buffer += token
-                
-                if any(p in buffer for p in [".", "?", "!", "\n"]):
-                    await process_tts(buffer)
-                    buffer = ""
+                full_response += text_chunk
+                sentence_buffer += text_chunk
+                if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
+                    await process_tts(sentence_buffer)
+                    sentence_buffer = ""
             
-            if buffer and self.is_bot_speaking:
-                await process_tts(buffer)
+            # Process remaining buffer
+            if sentence_buffer and self.is_bot_speaking:
+                await process_tts(sentence_buffer)
                 
             if self.stream_id and full_response:
                 await db_service.log_transcript(self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)

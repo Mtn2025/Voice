@@ -259,16 +259,17 @@ function startVisualizer() {
 
         // Tuning: 
         // Threshold: 35 (Higher than floor noise, sensitive to voice)
-        // Persistence: 4 consecutive frames (~60ms) to trigger
+        // Persistence: 10 consecutive frames (~160ms) to trigger
+        // This validates "Sustained" speech vs "Transient" noise (coughs, clicks).
 
         if (average > 35 && activeSources.length > 0) {
             speechFrames++;
         } else {
-            speechFrames = 0;
+            speechFrames = 0; // Strict reset: sound must be continuous
         }
 
-        if (speechFrames > 4) {
-            console.log(`🎤 VAD Triggered: Level ${average.toFixed(1)} for ${speechFrames} frames`);
+        if (speechFrames > 10) {
+            console.log(`🎤 VAD Triggered (Sustained): Level ${average.toFixed(1)} for ${speechFrames} frames`);
             clearAudio();
             speechFrames = 0; // Reset after trigger to prevent spam
         }
