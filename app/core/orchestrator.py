@@ -18,8 +18,9 @@ class VoiceOrchestrator:
         self.conversation_history = []
         self.is_bot_speaking = False
         self.stream_id = None
-        self.call_db_id = None # Initialize to None
+        self.call_db_id = None 
         self.config = None
+        self.user_audio_buffer = bytearray() # Capture user audio
         
         # Providers (Initialized in start)
         self.stt_provider = None
@@ -70,19 +71,40 @@ class VoiceOrchestrator:
             self.recognizer.stop_continuous_recognition()
 
     def handle_recognizing(self, evt):
-        if len(evt.result.text) > 3 and self.is_bot_speaking:
-            logging.info("Interruption detected! Stopping audio.")
+        if len(evt.result.text) > 0 and self.is_bot_speaking:
+            logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
     def handle_recognized(self, evt):
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            text = evt.result.text
-            if not text: return
-            # Dispatch async work to the main loop
-            asyncio.run_coroutine_threadsafe(self._handle_recognized_async(text), self.loop)
+            # Azure Text (Fast but maybe inaccurate)
+            azure_text = evt.result.text
+            if not azure_text: return
+            
+            # Hybrid Mode: Capture Audio & Use Groq
+            audio_snapshot = bytes(self.user_audio_buffer)
+            self.user_audio_buffer = bytearray() # Reset buffer for next turn
+            
+            # Dispatch async work
+            asyncio.run_coroutine_threadsafe(self._handle_recognized_async(azure_text, audio_snapshot), self.loop)
 
-    async def _handle_recognized_async(self, text):
-        logging.info(f"USER SAID: {text}")
+    async def _handle_recognized_async(self, text, audio_data=None):
+        logging.info(f"Azure VAD Detected: {text}")
+        
+        # QUALITY UPGRADE: Re-transcribe with Groq Whisper if audio available
+        if audio_data and len(audio_data) > 0:
+            logging.info("📝 Sending audio to Groq Whisper for better transcription...")
+            try:
+                groq_text = await self.llm_provider.transcribe_audio(audio_data)
+                if groq_text and len(groq_text.strip()) > 0:
+                    logging.info(f"✅ Groq Whisper Result: {groq_text}")
+                    text = groq_text
+                else:
+                    logging.warning("Groq transcription empty, falling back to Azure.")
+            except Exception as e:
+                logging.error(f"Groq Transcription Failed: {e}")
+
+        logging.info(f"FINAL USER TEXT: {text}")        
 
         # Overlap Detection Logic
         if self.is_bot_speaking:
@@ -189,5 +211,6 @@ class VoiceOrchestrator:
             # Assuming Browser also sends base64 for consistency via WS
             audio_bytes = base64.b64decode(payload)
             self.push_stream.write(audio_bytes)
+            self.user_audio_buffer.extend(audio_bytes)
         except Exception as e:
             logging.error(f"Error processing audio: {e}")

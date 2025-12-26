@@ -2,6 +2,10 @@ from groq import AsyncGroq
 from app.services.base import AbstractLLM
 from app.core.config import settings
 from typing import AsyncGenerator
+import io
+import json
+import base64
+import logging
 
 class GroqProvider(AbstractLLM):
     def __init__(self):
@@ -30,3 +34,24 @@ class GroqProvider(AbstractLLM):
             delta = chunk.choices[0].delta.content
             if delta:
                 yield delta
+
+    async def transcribe_audio(self, audio_content: bytes, language: str = "es") -> str:
+        """
+        Transcribes audio using Groq Whisper (faster/better than Azure Realtime often).
+        """
+        try:
+            # Create a file-like object
+            audio_file = io.BytesIO(audio_content)
+            audio_file.name = "audio.wav" # Groq needs a filename
+            
+            transcription = await self.client.audio.transcriptions.create(
+                file=(audio_file.name, audio_file.read()),
+                model="whisper-large-v3",
+                response_format="json",
+                language=language,
+                temperature=0.0
+            )
+            return transcription.text
+        except Exception as e:
+            print(f"Groq STT Error: {e}")
+            return ""
