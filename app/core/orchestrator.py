@@ -115,10 +115,13 @@ class VoiceOrchestrator:
         # BROADCAST CONFIG TO CLIENT (e.g. Background Sound)
         if self.client_type == "browser":
             bgs = getattr(self.config, "background_sound", "none")
+            bgs_url = getattr(self.config, "background_sound_url", None)
+            
             await self.websocket.send_text(json.dumps({
                 "type": "config",
                 "config": {
-                    "background_sound": bgs
+                    "background_sound": bgs,
+                    "background_sound_url": bgs_url
                 }
             }))
         
@@ -147,6 +150,18 @@ class VoiceOrchestrator:
         asyncio.create_task(self.monitor_idle())
             
         self.recognizer.start_continuous_recognition()
+        
+        # First Message Logic (VAPI Style)
+        first_mode = getattr(self.config, 'first_message_mode', 'speak-first')
+        first_msg = getattr(self.config, 'first_message', "Hola, soy Andrea. ¿En qué puedo ayudarte?")
+        
+        if first_mode == 'speak-first' and first_msg:
+             logging.info(f"🗣️ Triggering First Message: {first_msg}")
+             # We use speak_direct to initiate without user input
+             asyncio.create_task(self.speak_direct(first_msg))
+        elif first_mode == 'speak-first-dynamic':
+             # Placeholder for dynamic generation (future)
+             pass
 
     async def stop(self):
         if self.response_task:

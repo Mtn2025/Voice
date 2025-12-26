@@ -86,13 +86,23 @@ async function startCall() {
             } else if (msg.type === 'config') {
                 // Handle Config (e.g. Background Sound)
                 const bgSound = msg.config?.background_sound;
-                if (bgSound && bgSound !== 'none') {
-                    console.log(`🎵 Starting Background Sound: ${bgSound}`);
+                const bgSoundUrl = msg.config?.background_sound_url;
+
+                let sourceUrl = null;
+
+                if (bgSoundUrl && bgSoundUrl.startsWith('http')) {
+                    sourceUrl = bgSoundUrl;
+                    console.log(`🎵 Starting External Background Sound: ${sourceUrl}`);
+                } else if (bgSound && bgSound !== 'none') {
+                    sourceUrl = `/static/sounds/${bgSound}.mp3`;
+                    console.log(`🎵 Starting Local Background Sound: ${bgSound}`);
+                }
+
+                if (sourceUrl) {
                     if (bgAudio) { bgAudio.pause(); bgAudio = null; }
 
-                    // Uses files in /static/sounds/office.mp3 etc.
-                    bgAudio = new Audio(`/static/sounds/${bgSound}.mp3`);
-                    bgAudio.loop = true;
+                    bgAudio = new Audio(sourceUrl);
+                    bgAudio.loop = true; // Loop is ENABLED here
                     bgAudio.volume = 0.1; // 10% volume (Subtle)
                     bgAudio.play().catch(e => console.warn("Background Audio Auto-play blocked (Interact first)?", e));
                 }
