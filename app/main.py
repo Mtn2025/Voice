@@ -37,6 +37,7 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_id_manual VARCHAR"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS background_sound_url VARCHAR"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters INTEGER DEFAULT 3"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS punctuation_boundaries VARCHAR"))
             
             # VAPI Parity Stage 2
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms INTEGER DEFAULT 500"))
