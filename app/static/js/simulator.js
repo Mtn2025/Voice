@@ -221,6 +221,7 @@ function startVisualizer() {
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
+    let speechFrames = 0; // VAD State
 
     const draw = () => {
         if (!isCallActive) return;
@@ -237,15 +238,41 @@ function startVisualizer() {
 
         // --- Local VAD (Barge-In) ---
         let sum = 0;
-        for (let i = 0; i < bufferLength; i++) {
-            sum += dataArray[i];
-        }
-        const average = sum / bufferLength;
+        // --- Local VAD (Barge-In) 2.0: Band-Pass & Debounce ---
+        let speechSum = 0;
+        let speechBins = 0;
 
-        if (average > 25 && activeSources.length > 0) {
-            console.log(`🎤 Interruption Detected! Level: ${average.toFixed(1)}`);
-            clearAudio();
+        // FFT Size 2048 @ 16kHz = ~7.8Hz per bin
+        // Human Voice Fundamental: ~85Hz to ~255Hz
+        // Harmonics up to 3000Hz typically dominant.
+        // Range: 80Hz (Bin 10) to 1000Hz (Bin 128) for robust detection
+        // Focusing on lower partials avoids high-pitch hiss (fans) and low rumble (<80Hz)
+
+        const startBin = 10;  // ~80Hz
+        const endBin = 200;   // ~1500Hz (Strong voice detection range)
+
+        for (let i = startBin; i < endBin; i++) {
+            speechSum += dataArray[i];
+            speechBins++;
         }
+        const average = speechSum / speechBins;
+
+        // Tuning: 
+        // Threshold: 35 (Higher than floor noise, sensitive to voice)
+        // Persistence: 4 consecutive frames (~60ms) to trigger
+
+        if (average > 35 && activeSources.length > 0) {
+            speechFrames++;
+        } else {
+            speechFrames = 0;
+        }
+
+        if (speechFrames > 4) {
+            console.log(`🎤 VAD Triggered: Level ${average.toFixed(1)} for ${speechFrames} frames`);
+            clearAudio();
+            speechFrames = 0; # Reset after trigger to prevent spam
+        }
+        // -----------------------------
         // -----------------------------
 
         for (let i = 0; i < bufferLength; i++) {
