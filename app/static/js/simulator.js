@@ -202,6 +202,14 @@ function playAudioChunk(base64Data) {
     source.onended = () => {
         const index = activeSources.indexOf(source);
         if (index > -1) activeSources.splice(index, 1);
+
+        // If queue is empty, notify backend that playback finished
+        if (activeSources.length === 0) {
+            console.log("🔊 Playback Finished. Notifying Backend.");
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ event: "mark", mark: "speech_ended" }));
+            }
+        }
     };
 
     activeSources.push(source);
