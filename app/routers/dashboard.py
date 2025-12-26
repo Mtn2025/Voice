@@ -26,7 +26,7 @@ async def dashboard(request: Request):
     
     # Models
     llm_provider = GroqProvider()
-    models = llm_provider.get_available_models()
+    models = await llm_provider.get_available_models()
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
@@ -43,7 +43,7 @@ async def update_config(
     voice_speed: float = Form(...),
     voice_name: str = Form("es-MX-DaliaNeural"), 
     stt_language: str = Form("es-MX"), # New
-    llm_model: str = Form("deepseek-r1-distill-llama-70b"), # New
+    llm_model: str = Form("llama-3.3-70b-versatile"), # New
     background_sound: str = Form("none"), # New
     stt_provider: str = Form(...),
     llm_provider: str = Form(...),

@@ -7,6 +7,12 @@ class DBService:
     async def create_call(self, session_id: str):
         async with AsyncSessionLocal() as session:
             try:
+                # Check if exists first to avoid IntegrityError on reconnections
+                result = await session.execute(select(Call).where(Call.session_id == session_id))
+                existing_call = result.scalars().first()
+                if existing_call:
+                    return existing_call.id
+                    
                 call = Call(session_id=session_id)
                 session.add(call)
                 await session.commit()

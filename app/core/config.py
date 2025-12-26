@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     AZURE_SPEECH_REGION: str
     AZURE_SPEECH_REGION: str
     GROQ_API_KEY: str
-    GROQ_MODEL: str = "deepseek-r1-distill-llama-70b"
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
     
     # Database
     POSTGRES_USER: str = "postgres"

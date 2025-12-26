@@ -37,7 +37,7 @@ class AgentConfig(Base):
     stt_provider = Column(String, default="azure")
     stt_language = Column(String, default="es-MX") # Add stt_language
     llm_provider = Column(String, default="groq")
-    llm_model = Column(String, default="deepseek-r1-distill-llama-70b") 
+    llm_model = Column(String, default="llama-3.3-70b-versatile") 
     tts_provider = Column(String, default="azure")
     
     # Parameters

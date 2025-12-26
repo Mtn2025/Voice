@@ -11,16 +11,24 @@ class GroqProvider(AbstractLLM):
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
         self.client = AsyncGroq(api_key=self.api_key)
-        self.default_model = "deepseek-r1-distill-llama-70b"
+        self.default_model = "llama-3.3-70b-versatile"
 
-    def get_available_models(self):
-        return [
-            "deepseek-r1-distill-llama-70b",
-            "llama-3.3-70b-versatile",
-            "llama-3.1-8b-instant",
-            "llama3-70b-8192",
-            "mixtral-8x7b-32768"
-        ]
+    async def get_available_models(self):
+        try:
+            # Dynamic Fetch from Groq API
+            # This ensures we always have the latest supported models (no more hardcoded deprecations)
+            models = await self.client.models.list()
+            # Filter out Whisper/Audio models
+            return [m.id for m in models.data if "whisper" not in m.id]
+        except Exception as e:
+            logging.warning(f"Could not fetch Groq models dynamically: {e}")
+            # Fallback list if API fails
+            return [
+                "llama-3.3-70b-versatile",
+                "llama-3.1-70b-versatile",
+                "llama-3.1-8b-instant", 
+                "mixtral-8x7b-32768"
+            ]
 
     async def get_stream(self, messages: list, system_prompt: str, temperature: float, model: str = None) -> AsyncGenerator[str, None]:
         
