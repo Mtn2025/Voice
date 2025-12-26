@@ -7,6 +7,7 @@ import json
 import base64
 import logging
 
+class GroqProvider(AbstractLLM):
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
         self.client = AsyncGroq(api_key=self.api_key)
