@@ -48,7 +48,7 @@ async def update_config(
     idle_timeout: float = Form(10.0), # New
     idle_message: str = Form("¿Hola? ¿Sigue ahí?"), # New
     max_duration: int = Form(600), # New
-    max_duration: int = Form(600), # New
+
     
     # Stage 1: Model & Voice
     first_message: str = Form("Hola, soy Andrea..."),
