@@ -95,4 +95,9 @@ Si es necesario transferir o terminar: Hazlo en silencio sin notificar al usuari
     temperature = Column(Float, default=0.7)
     background_sound = Column(String, default="none") # none, office, cafe, call_center
     
+    # Flow Control
+    idle_timeout = Column(Float, default=10.0) # Seconds to wait before prompt
+    idle_message = Column(String, default="¿Hola? ¿Sigue ahí?")
+    max_duration = Column(Integer, default=600) # Max call seconds
+    
     is_active = Column(Boolean, default=True)

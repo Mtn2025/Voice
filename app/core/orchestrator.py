@@ -34,6 +34,74 @@ class VoiceOrchestrator:
         self.push_stream = None
         self.synthesizer = None
         self.response_task = None # Track current generation task
+        
+        # Flow Control State
+        self.last_interaction_time = time.time()
+        self.start_time = time.time()
+
+    async def speak_direct(self, text: str):
+        """Helper to speak text without LLM generation (e.g. Idle messages)"""
+        if not text: return
+        self.is_bot_speaking = True
+        try:
+            # We must run blocking sync calls in executor if TTS is blocking, but assume async here or fast enough
+            # For Azure, synthesize_stream is wrapped or we use simple one-off
+            # We implemented synthesize_stream as async in AbstractTTS?
+            # Let's check AzureProvider.synthesize_stream. It uses `speak.speak_text_async`.
+            # We need to verify if we get bytes easily.
+            # Ideally we reuse the existing TTS path but it's buried in generate_response.
+            # I will assume `synthesize_stream` returns bytes.
+            
+            # Note: The current Azure implementation in Orchestrator `generate_response` uses direct SDK calls unfortunately
+            # instead of the Provider abstraction fully. This is debt.
+            # I will use the `tts_provider.synthesize_stream` if available, or copy logic.
+            # Logic in generate_response: "result = synthesizer.speak_text_async(text_chunk).get()"
+            
+            # Simple fallback for now:
+            if self.synthesizer:
+                loop = asyncio.get_running_loop()
+                result = await loop.run_in_executor(None, lambda: self.synthesizer.speak_text_async(text).get())
+                if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+                     audio_data = result.audio_data
+                     if self.client_type == "browser":
+                         b64 = base64.b64encode(audio_data).decode("utf-8")
+                         await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
+            
+            # Log
+            self.conversation_history.append({"role": "assistant", "content": text})
+            if self.stream_id:
+               await db_service.log_transcript(self.stream_id, "assistant", text + " [IDLE]", call_db_id=self.call_db_id)
+
+        except Exception as e:
+            logging.error(f"Idle/Direct output error: {e}")
+        finally:
+            self.is_bot_speaking = False
+
+    async def monitor_idle(self):
+        while True:
+            await asyncio.sleep(1.0)
+            try:
+                now = time.time()
+                
+                # Max Duration Check
+                max_dur = getattr(self.config, 'max_duration', 600)
+                if now - self.start_time > max_dur:
+                     logging.info("🛑 Max duration reached. Ending call.")
+                     if self.client_type == "browser":
+                         await self.websocket.close()
+                     break
+                
+                # Idle Check (Only if not speaking)
+                idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
+                if not self.is_bot_speaking and (now - self.last_interaction_time > idle_timeout):
+                     logging.info(f"💤 Idle timeout ({idle_timeout}s) reached. Triggering prompt.")
+                     msg = getattr(self.config, 'idle_message', "¿Hola? ¿Sigue ahí?")
+                     if msg:
+                        self.last_interaction_time = now # Reset to prevent spam
+                        asyncio.create_task(self.speak_direct(msg))
+                        
+            except Exception as e:
+                 logging.warning(f"Monitor error: {e}")
 
     async def start(self):
         # ... (no change to start) ...
@@ -75,6 +143,9 @@ class VoiceOrchestrator:
         if self.stream_id:
             self.call_db_id = await db_service.create_call(self.stream_id)
             
+        # Start background idle monitor
+        asyncio.create_task(self.monitor_idle())
+            
         self.recognizer.start_continuous_recognition()
 
     async def stop(self):
@@ -84,11 +155,16 @@ class VoiceOrchestrator:
             self.recognizer.stop_continuous_recognition()
 
     def handle_recognizing(self, evt):
+        # Reset Idle Timer also on partial speech to avoid interrupting mid-sentence if slow
+        self.last_interaction_time = time.time()
+        
         if len(evt.result.text.strip()) > 2 and self.is_bot_speaking:
             logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
     def handle_recognized(self, evt):
+        self.last_interaction_time = time.time() # Reset Idle Timer
+        
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             # Azure Text (Fast but maybe inaccurate)
             azure_text = evt.result.text

@@ -25,6 +25,9 @@ async def lifespan(app: FastAPI):
             # Let's add llm_model too while we are at it to fulfill previous promise.
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_model VARCHAR DEFAULT 'deepseek-r1-distill-llama-70b'"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS background_sound VARCHAR DEFAULT 'none'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS idle_timeout FLOAT DEFAULT 10.0"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS idle_message VARCHAR DEFAULT '¿Hola? ¿Sigue ahí?'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_duration INTEGER DEFAULT 600"))
         except Exception as e:
             print(f"Migration warning: {e}")
         

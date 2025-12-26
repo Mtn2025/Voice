@@ -45,6 +45,9 @@ async def update_config(
     stt_language: str = Form("es-MX"), # New
     llm_model: str = Form("llama-3.3-70b-versatile"), # New
     background_sound: str = Form("none"), # New
+    idle_timeout: float = Form(10.0), # New
+    idle_message: str = Form("¿Hola? ¿Sigue ahí?"), # New
+    max_duration: int = Form(600), # New
     stt_provider: str = Form(...),
     llm_provider: str = Form(...),
     tts_provider: str = Form(...)
@@ -57,6 +60,9 @@ async def update_config(
         stt_language=stt_language,
         llm_model=llm_model,
         background_sound=background_sound,
+        idle_timeout=idle_timeout,
+        idle_message=idle_message,
+        max_duration=max_duration,
         stt_provider=stt_provider,
         llm_provider=llm_provider,
         tts_provider=tts_provider
