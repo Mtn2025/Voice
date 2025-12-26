@@ -50,7 +50,8 @@ class VoiceOrchestrator:
         # Setup STT (Azure)
         # Note: In a pure abstract world, we'd wrap these events too, 
         # but for now we know it's Azure underlying.
-        self.recognizer, self.push_stream = self.stt_provider.create_recognizer(language="es-MX", audio_mode=self.client_type)
+        language = getattr(self.config, "stt_language", "es-MX") # Fallback if migration hasn't run yet? No, getattr is safe.
+        self.recognizer, self.push_stream = self.stt_provider.create_recognizer(language=language, audio_mode=self.client_type)
         
         # Wire up Azure events
         self.recognizer.recognizing.connect(self.handle_recognizing)
@@ -95,7 +96,11 @@ class VoiceOrchestrator:
         if audio_data and len(audio_data) > 0:
             logging.info("📝 Sending audio to Groq Whisper for better transcription...")
             try:
-                groq_text = await self.llm_provider.transcribe_audio(audio_data)
+                lang_code = "es"
+                if self.config and hasattr(self.config, "stt_language"):
+                    lang_code = self.config.stt_language.split('-')[0]
+                
+                groq_text = await self.llm_provider.transcribe_audio(audio_data, language=lang_code)
                 if groq_text and len(groq_text.strip()) > 0:
                     logging.info(f"✅ Groq Whisper Result: {groq_text}")
                     text = groq_text

@@ -35,7 +35,9 @@ class AgentConfig(Base):
     
     # Providers
     stt_provider = Column(String, default="azure")
+    stt_language = Column(String, default="es-MX") # Add stt_language
     llm_provider = Column(String, default="groq")
+    llm_model = Column(String, default="llama3-8b-8192") # Add llm_model
     tts_provider = Column(String, default="azure")
     
     # Parameters

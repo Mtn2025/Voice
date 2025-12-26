@@ -9,12 +9,23 @@ import logging
 
 class GroqProvider(AbstractLLM):
     def __init__(self):
-        self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+        self.api_key = settings.GROQ_API_KEY
+        self.client = AsyncGroq(api_key=self.api_key)
+        self.model_name = settings.GROQ_MODEL or "llama3-8b-8192"
         # Default model, can be overridden by config usually, but Groq requires specific model names
         self.model_map = {
             "default": "llama-3.3-70b-versatile",
             "deepseek": "deepseek-r1-distill-llama-70b" 
         }
+
+    def get_available_models(self):
+        return [
+            "llama3-8b-8192",
+            "llama3-70b-8192",
+            "mixtral-8x7b-32768",
+            "gemma-7b-it",
+            "deepseek-r1-distill-llama-70b"
+        ]
 
     async def get_stream(self, messages: list, system_prompt: str, temperature: float) -> AsyncGenerator[str, None]:
         # Inject system prompt if not present or replace it?

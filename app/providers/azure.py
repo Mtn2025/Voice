@@ -16,6 +16,27 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         # Increasing to 1000ms helps avoid cutting off users who pause to think.
         self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, "900")
         
+    def get_available_voices(self):
+        return [
+            "es-MX-DaliaNeural",
+            "es-MX-JorgeNeural",
+            "es-ES-ElviraNeural",
+            "es-ES-AlvaroNeural",
+            "es-US-PalomaNeural",
+            "en-US-JennyNeural"
+        ]
+
+    def get_available_languages(self):
+        return [
+            "es-MX",
+            "es-ES",
+            "es-US",
+            "es-AR",
+            "es-CO",
+            "es-CL",
+            "en-US"
+        ]
+
     def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio"):
         """
         audio_mode: 'twilio' (8khz mulaw) or 'browser' (16khz pcm)

@@ -25,6 +25,10 @@
             <div class="lg:col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
                 <h2 class="text-xl font-semibold mb-4 text-blue-300">Configuración del Agente</h2>
                 <form action="/api/config/update" method="POST" class="space-y-4">
+                    <!-- Hidden Providers (Fixed for now, enabled via dropdowns logically) -->
+                    <input type="hidden" name="stt_provider" value="azure">
+                    <input type="hidden" name="llm_provider" value="groq">
+                    <input type="hidden" name="tts_provider" value="azure">
                     <div>
                         <label class="block text-sm font-medium mb-1">Proveedor STT (Transcripción)</label>
                         <select name="stt_provider"
@@ -37,50 +41,62 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium mb-1">Proveedor LLM (Cerebro)</label>
-                        <select name="llm_provider"
+                        <label class="block text-sm font-medium mb-1">Idioma de Transcripción</label>
+                        <select name="stt_language"
                             class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            <option value="groq" {% if config.llm_provider=='groq' %}selected{% endif %}>Groq
-                                (DeepSeek-v3)</option>
+                            {% for lang in languages %}
+                            <option value="{{ lang }}" {% if config.stt_language==lang %}selected{% endif %}>{{ lang }}
+                            </option>
+                            {% endfor %}
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium mb-1">Proveedor TTS (Voz)</label>
-                        <select name="tts_provider"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                            <option value="azure" {% if config.tts_provider=='azure' %}selected{% endif %}>Azure Speech
-                                Neural</option>
+                        <label class="block text-sm font-medium mb-1">Modelo LLM</label>
+                        <select name="llm_model" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                            {% for model in models %}
+                            <option value="{{ model }}" {% if config.llm_model==model %}selected{% endif %}>{{ model }}
+                            </option>
+                            {% endfor %}
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
-                        <textarea name="system_prompt" rows="6"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
-                    </div>
+                        <label class="block text-sm font-medium mb-1">Voz (TTS)</label>
+                        <select name="voice_name" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                            {% for voice in voices %}
+                            <option value="{{ voice }}" {% if config.voice_name==voice %}selected{% endif %}>{{ voice }}
+                            </option>
+                            {% endfor %}
+                        </select>
 
-                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium mb-1">Temperatura: <span id="temp-val">{{
-                                    config.temperature }}</span></label>
-                            <input type="range" name="temperature" min="0" max="1" step="0.1"
-                                value="{{ config.temperature }}" class="w-full"
-                                oninput="document.getElementById('temp-val').innerText = this.value">
+                            <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
+                            <textarea name="system_prompt" rows="6"
+                                class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Velocidad Voz: <span id="speed-val">{{
-                                    config.voice_speed }}</span></label>
-                            <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.1"
-                                value="{{ config.voice_speed }}" class="w-full"
-                                oninput="document.getElementById('speed-val').innerText = this.value">
-                        </div>
-                    </div>
 
-                    <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-medium transition-colors">
-                        Guardar Cambios
-                    </button>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Temperatura: <span id="temp-val">{{
+                                        config.temperature }}</span></label>
+                                <input type="range" name="temperature" min="0" max="1" step="0.1"
+                                    value="{{ config.temperature }}" class="w-full"
+                                    oninput="document.getElementById('temp-val').innerText = this.value">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Velocidad Voz: <span id="speed-val">{{
+                                        config.voice_speed }}</span></label>
+                                <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.1"
+                                    value="{{ config.voice_speed }}" class="w-full"
+                                    oninput="document.getElementById('speed-val').innerText = this.value">
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-medium transition-colors">
+                            Guardar Cambios
+                        </button>
                 </form>
             </div>
 
