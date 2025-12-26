@@ -12,7 +12,9 @@ class Settings(BaseSettings):
     # AI Services
     AZURE_SPEECH_KEY: str
     AZURE_SPEECH_REGION: str
+    AZURE_SPEECH_REGION: str
     GROQ_API_KEY: str
+    GROQ_MODEL: str = "llama3-8b-8192"
     
     # Database
     POSTGRES_USER: str = "postgres"
