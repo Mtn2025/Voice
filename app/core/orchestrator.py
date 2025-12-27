@@ -48,6 +48,7 @@ class VoiceOrchestrator:
              # Browser can handle larger packets or manages its own buffer
              b64 = base64.b64encode(audio_data).decode("utf-8")
              await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
+             logging.info(f"🔊 [AUDIO OUT] Sent {len(audio_data)} bytes to Browser")
              return
 
         # For Telephony (Twilio/Telenyx)
@@ -533,14 +534,19 @@ class VoiceOrchestrator:
     async def process_audio(self, payload):
         try:
             # Reverted to standard decoding as requested
-            # Added DIAGNOSTIC LOGGING to catch why it fails if it happens again
             
-            # Simple padding fix (Standard Base64 requirement, safe to keep)
+            # Simple padding fix
             missing_padding = len(payload) % 4
             if missing_padding:
                 payload += '=' * (4 - missing_padding)
             
             audio_bytes = base64.b64decode(payload)
+            
+            # VERBOSE AUDIO LOGGING (Requested by User)
+            if len(audio_bytes) > 0:
+                 # SPAM WARNING: Logging every packet as requested
+                 logging.info(f"🎤 [AUDIO IN] Processed {len(audio_bytes)} bytes -> Azure PushStream")
+            
             self.push_stream.write(audio_bytes)
             self.user_audio_buffer.extend(audio_bytes)
         except Exception as e:
