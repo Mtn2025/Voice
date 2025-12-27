@@ -173,7 +173,7 @@
                             </script>
                             <label class="block text-sm font-medium mb-1">Voice Speed: <span id="speed-val">{{
                                     config.voice_speed }}</span></label>
-                            <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.1"
+                            <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
                                 value="{{ config.voice_speed }}" class="w-full"
                                 oninput="document.getElementById('speed-val').innerText = this.value">
                             <!-- Removed premature closing div -->
