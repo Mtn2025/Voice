@@ -110,7 +110,7 @@ async function startCall() {
             }
         };
 
-        socket.onclose = () => stopCall();
+        socket.onclose = () => stopCall(false);
 
     } catch (err) {
         console.error("Error starting call:", err);
@@ -118,22 +118,38 @@ async function startCall() {
     }
 }
 
-function stopCall() {
+function stopCall(immediate = true) {
     isCallActive = false;
     updateUI(false);
-    if (socket) socket.close();
-    if (audioContext) audioContext.close();
-    if (processor) processor.disconnect();
-    if (bgAudio) { bgAudio.pause(); bgAudio = null; }
 
-    // Stop Microphone
+    // Stop Microphone IMMEDIATELY
+    if (processor) {
+        try { processor.disconnect(); } catch (e) { }
+    }
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
     }
 
-    statusDiv.innerText = "Llamada Finalizada";
-    statusDiv.className = "text-slate-500 font-mono mb-4 text-lg";
+    // Close socket if open
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+    }
+
+    if (bgAudio) { bgAudio.pause(); bgAudio = null; }
+
+    if (immediate) {
+        if (audioContext) try { audioContext.close(); } catch (e) { }
+        statusDiv.innerText = "Llamada Finalizada";
+        statusDiv.className = "text-slate-500 font-mono mb-4 text-lg";
+    } else {
+        // Graceful exit: allow audio buffer to drain
+        statusDiv.innerText = "Cerrando...";
+        setTimeout(() => {
+            if (audioContext) try { audioContext.close(); } catch (e) { }
+            statusDiv.innerText = "Llamada Finalizada";
+        }, 3000);
+    }
 }
 
 async function setupAudioCapture() {

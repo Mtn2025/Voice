@@ -1,5 +1,7 @@
 from app.db.database import AsyncSessionLocal
 from app.db.models import Call, Transcript, AgentConfig
+import logging
+import traceback
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy import desc
@@ -20,7 +22,8 @@ class DBService:
                 await session.commit()
                 return call.id
             except Exception as e:
-                logging.error(f"DB Error create_call: {e}")
+                logging.error(f"❌ DB Error create_call: {e}")
+                logging.error(traceback.format_exc())
                 return None
 
     async def log_transcript(self, session_id: str, role: str, content: str, call_db_id: int = None):
