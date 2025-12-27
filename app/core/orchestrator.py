@@ -173,10 +173,10 @@ class VoiceOrchestrator:
         self.recognizer.session_stopped.connect(self.handle_session_stopped)
         self.recognizer.canceled.connect(self.handle_canceled)
         
-        # Instantiate Providers
-        self.stt_provider = ServiceFactory.get_stt_provider(self.config)
+        # Initialize Providers
         self.llm_provider = ServiceFactory.get_llm_provider(self.config)
-        self.tts_provider = ServiceFactory.get_tts_provider(self.config)
+        self.stt_provider = ServiceFactory.get_stt_provider(self.config)
+        self.tts_provider = ServiceFactory.get_tts_provider(self.config)  # Using Factory abstraction if possible
         
         # Setup STT (Azure)
         # Note: In a pure abstract world, we'd wrap these events too, 
