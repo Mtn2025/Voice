@@ -370,38 +370,12 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for call in history %}
-                                        <tr
-                                            class="bg-slate-800 border-b border-slate-700 hover:bg-slate-700 transition">
-                                            <td class="px-4 py-2 text-white font-medium">{{ call.id }}</td>
-                                            <td class="px-4 py-2">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
-                                            <td class="px-4 py-2">
-                                                <span
-                                                    class="px-2 py-1 rounded text-xs {{ 'bg-green-900 text-green-300' if call.status == 'completed' else 'bg-yellow-900 text-yellow-300' }}">
-                                                    {{ call.status }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-2">
-                                                <a href="/dashboard/call/{{ call.id }}" target="_blank"
-                                                    class="inline-flex items-center space-x-1 text-blue-400 hover:text-blue-300 font-medium">
-                                                    <span>Revisar</span>
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
-                                                        </path>
-                                                    </svg>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">No se
-                                                han
-                                                registrado llamadas recientes.</td>
-                                        </tr>
-                                        {% endfor %}
+                                    <tbody hx-get="/dashboard/history-rows" hx-trigger="load, refreshHistory from:body"
+                                        hx-target="this">
+                                        <!-- Initial load will be handled by HTMX or server-side render fallthrough if needed, 
+                                            but to avoid duplication we'll let HTMX load it or keep static for SEO/Non-JS. 
+                                            Actually, let's keep the server-side render for first paint, and HTMX for updates. -->
+                                        {% include "partials/history_rows.html" %}
                                     </tbody>
                                 </table>
                             </div>

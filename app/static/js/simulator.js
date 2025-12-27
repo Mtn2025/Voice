@@ -153,7 +153,13 @@ function stopCall(immediate = true) {
         setTimeout(() => {
             if (audioContext) try { audioContext.close(); } catch (e) { }
             statusDiv.innerText = "Llamada Finalizada";
+            document.body.dispatchEvent(new Event('refreshHistory')); // Trigger Dashboard Update
         }, 3000);
+    }
+
+    // Immediate stop also triggers refresh
+    if (immediate) {
+        document.body.dispatchEvent(new Event('refreshHistory'));
     }
 }
 

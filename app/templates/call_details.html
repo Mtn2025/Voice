@@ -17,7 +17,13 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen p-6">
 
     <div class="max-w-4xl mx-auto">
-        <a href="/dashboard" class="text-blue-400 hover:text-blue-300 mb-4 inline-block">&larr; Volver al Dashboard</a>
+        <div class="flex justify-between items-center mb-4">
+            <button onclick="if(window.opener) { window.close(); } else { window.location.href='/dashboard'; }"
+                class="text-blue-400 hover:text-blue-300 inline-flex items-center space-x-1 cursor-pointer">
+                <span>&larr; Cerrar Pestaña / Volver</span>
+            </button>
+            <a href="/dashboard" class="text-xs text-slate-500 hover:text-slate-400">Ir al Dashboard</a>
+        </div>
 
         <div class="bg-slate-800 rounded-lg shadow-xl border border-slate-700 p-6 mb-6">
             <h1 class="text-2xl font-bold mb-2">Detalles de la Llamada</h1>

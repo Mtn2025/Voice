@@ -116,6 +116,14 @@ async def update_config(
     )
     return RedirectResponse(url="/dashboard", status_code=303)
 
+@router.get("/dashboard/history-rows", response_class=HTMLResponse)
+async def history_rows(request: Request):
+    history = await db_service.get_recent_calls(limit=10)
+    return templates.TemplateResponse("partials/history_rows.html", {
+        "request": request,
+        "history": history
+    })
+
 @router.get("/dashboard/call/{call_id}", response_class=HTMLResponse)
 async def call_details(request: Request, call_id: int):
     call = await db_service.get_call_details(call_id)
