@@ -40,6 +40,37 @@ class VoiceOrchestrator:
         self.start_time = time.time()
         self.was_interrupted = False # Track if last stop was due to interruption
 
+    async def send_audio_chunked(self, audio_data: bytes):
+        """
+        Sends audio in small chunks (e.g. 20ms/160bytes) to prevent provider timeouts.
+        """
+        if self.client_type == "browser":
+             # Browser can handle larger packets or manages its own buffer
+             b64 = base64.b64encode(audio_data).decode("utf-8")
+             await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
+             return
+
+        # For Telephony (Twilio/Telenyx)
+        # MuLaw 8kHz = 8000 bytes/sec. 20ms = 160 bytes.
+        CHUNK_SIZE = 160 
+        
+        for i in range(0, len(audio_data), CHUNK_SIZE):
+            chunk = audio_data[i : i + CHUNK_SIZE]
+            b64_audio = base64.b64encode(chunk).decode("utf-8")
+            
+            msg = {
+                "event": "media",
+                "media": {"payload": b64_audio}
+            }
+            if self.client_type == "twilio":
+                msg["streamSid"] = self.stream_id
+            elif self.client_type == "telenyx":
+                msg["stream_id"] = self.stream_id
+            
+            await self.websocket.send_text(json.dumps(msg))
+            # Optional: Tiny yield to let event loop breathe, but usually not needed for 160b
+            # await asyncio.sleep(0) 
+
     def _synthesize_text(self, text):
         """
         Wraps text in SSML with configured voice and style.
@@ -101,22 +132,7 @@ class VoiceOrchestrator:
                 result = await loop.run_in_executor(None, lambda: self._synthesize_text(text))
                 if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                      audio_data = result.audio_data
-                     if self.client_type == "browser":
-                         b64 = base64.b64encode(audio_data).decode("utf-8")
-                         await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
-                     elif self.client_type == "twilio" or self.client_type == "telenyx":
-                         # TWILIO: {"event": "media", "media": {"payload": "base64..."}}
-                         b64 = base64.b64encode(audio_data).decode("utf-8")
-                         msg = {
-                             "event": "media",
-                             "media": {"payload": b64}
-                         }
-                         if self.client_type == "twilio":
-                             msg["streamSid"] = self.stream_id
-                         elif self.client_type == "telenyx":
-                             msg["stream_id"] = self.stream_id
-                             
-                         await self.websocket.send_text(json.dumps(msg))
+                     await self.send_audio_chunked(audio_data)
             
             # Log
             self.conversation_history.append({"role": "assistant", "content": text})
@@ -423,27 +439,7 @@ class VoiceOrchestrator:
             
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 audio_data = result.audio_data
-                if self.client_type == "twilio" or self.client_type == "telenyx":
-                    # TWILIO STREAMING FORMAT
-                    b64_audio = base64.b64encode(audio_data).decode("utf-8")
-                    msg = {
-                        "event": "media",
-                        "media": {"payload": b64_audio}
-                    }
-                    if self.client_type == "twilio":
-                        msg["streamSid"] = self.stream_id
-                    elif self.client_type == "telenyx":
-                        msg["stream_id"] = self.stream_id
-                        
-                    await self.websocket.send_text(json.dumps(msg))
-                else:
-                    # Browser expects raw bytes or base64? Let's send base64 with a specialized event
-                    b64_audio = base64.b64encode(audio_data).decode("utf-8")
-                    data_hash = hash(b64_audio)
-                    logging.info(f"🔊 SENDING AUDIO PACKET | Hash: {data_hash} | Size: {len(b64_audio)}")
-                    msg = {"type": "audio", "data": b64_audio}
-                    await self.websocket.send_text(json.dumps(msg))
-                    self.last_audio_sent_at = time.time() # Update usage
+                await self.send_audio_chunked(audio_data)
 
 
         # Prepare messages
