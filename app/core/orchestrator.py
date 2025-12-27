@@ -199,7 +199,26 @@ class VoiceOrchestrator:
         if self.response_task:
             self.response_task.cancel()
         if self.recognizer:
-            self.recognizer.stop_continuous_recognition()
+            try:
+                self.recognizer.stop_continuous_recognition()
+            except: pass
+            
+        # TRIGGER DATA EXTRACTION
+        if self.call_db_id:
+            try:
+                logging.info("🔌 Running Post-Call Analysis...")
+                # Construct full transcript for context
+                transcript_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in self.conversation_history if msg['role'] != 'system'])
+                
+                if transcript_text and len(transcript_text) > 10:
+                    logging.info("📊 Extracting data from transcript...")
+                    extracted = await self.llm_provider.extract_data(transcript_text)
+                    logging.info(f"✅ Extraction Result: {extracted}")
+                    await db_service.update_call_extraction(self.call_db_id, extracted)
+                else:
+                    logging.info("⚠️ Transcript too short for extraction.")
+            except Exception as e:
+                logging.error(f"Post-Call Analysis Failed: {e}")
 
     def handle_recognizing(self, evt):
         # Reset Idle Timer also on partial speech to avoid interrupting mid-sentence if slow

@@ -74,3 +74,33 @@ class GroqProvider(AbstractLLM):
         except Exception as e:
             print(f"Groq STT Error: {e}")
             return ""
+
+    async def extract_data(self, transcript: str):
+        """
+        Analyzes the transcript and extracts structured data using JSON Mode.
+        """
+        system_prompt = (
+            "You are a Data Extraction Specialist. Your job is to extract 5 key fields from the call transcript.\n"
+            "Return valid JSON ONLY. No markdown, no commentary.\n\n"
+            "Fields to extract:\n"
+            "- client_name: (string/null) Name of the person spoken to.\n"
+            "- interest_level: (string) 'HIGH', 'MEDIUM', 'LOW' or 'NONE'.\n"
+            "- appointment_date: (string/null) Date/Time if mentioned (ISO format preferred).\n"
+            "- whatsapp_number: (string/null) Phone number if provided.\n"
+            "- key_notes: (string) Concise summary of needs or objections."
+        )
+        
+        try:
+            completion = await self.client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Transcript:\n{transcript}"}
+                ],
+                temperature=0.0,
+                response_format={"type": "json_object"}
+            )
+            return json.loads(completion.choices[0].message.content)
+        except Exception as e:
+            logging.error(f"Extraction Error: {e}")
+            return {"error": str(e)}

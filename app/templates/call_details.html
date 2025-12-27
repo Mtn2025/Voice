@@ -43,6 +43,41 @@
             </div>
         </div>
 
+        {% if call.extracted_data %}
+        <div class="bg-emerald-900/20 rounded-lg shadow-xl border border-emerald-700/50 p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 text-emerald-400">Análisis IA</h2>
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <span class="block text-xs uppercase text-emerald-500 font-semibold mb-1">Cliente</span>
+                    <span class="text-lg text-white">{{ call.extracted_data.get('client_name') or 'N/A' }}</span>
+                </div>
+                <div>
+                    <span class="block text-xs uppercase text-emerald-500 font-semibold mb-1">Interés</span>
+                    <span class="px-2 py-1 rounded text-sm font-bold 
+                        {{ 'bg-green-600 text-white' if call.extracted_data.get('interest_level') == 'HIGH' else 
+                           'bg-yellow-600 text-white' if call.extracted_data.get('interest_level') == 'MEDIUM' else 
+                           'bg-slate-600 text-slate-300' }}">
+                        {{ call.extracted_data.get('interest_level') or 'UNKNOWN' }}
+                    </span>
+                </div>
+                <div>
+                    <span class="block text-xs uppercase text-emerald-500 font-semibold mb-1">Cita / Fecha</span>
+                    <span class="text-slate-200">{{ call.extracted_data.get('appointment_date') or 'No agendada'
+                        }}</span>
+                </div>
+                <div>
+                    <span class="block text-xs uppercase text-emerald-500 font-semibold mb-1">Contacto / Whatsapp</span>
+                    <span class="text-slate-200">{{ call.extracted_data.get('whatsapp_number') or 'No provisto'
+                        }}</span>
+                </div>
+                <div class="col-span-2 bg-slate-800/50 p-3 rounded">
+                    <span class="block text-xs uppercase text-emerald-500 font-semibold mb-1">Notas Clave</span>
+                    <p class="text-slate-300 text-sm">{{ call.extracted_data.get('key_notes') or '...' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="bg-slate-800 rounded-lg shadow-xl border border-slate-700 p-6">
             <h2 class="text-xl font-bold mb-4">Transcripción</h2>
 

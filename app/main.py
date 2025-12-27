@@ -50,6 +50,9 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_end_call BOOLEAN DEFAULT TRUE"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_dial_keypad BOOLEAN DEFAULT FALSE"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS transfer_phone_number VARCHAR"))
+            
+            # Data Extraction
+            await conn.execute(text("ALTER TABLE calls ADD COLUMN IF NOT EXISTS extracted_data JSONB"))
 
         except Exception as e:
             print(f"Migration warning: {e}")

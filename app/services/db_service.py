@@ -76,5 +76,16 @@ class DBService:
             )
             return result.scalars().first()
 
+    async def update_call_extraction(self, call_id: int, extracted_data: dict):
+        async with AsyncSessionLocal() as session:
+            try:
+                result = await session.execute(select(Call).where(Call.id == call_id))
+                call = result.scalars().first()
+                if call:
+                    call.extracted_data = extracted_data
+                    await session.commit()
+            except Exception as e:
+                logging.error(f"DB Error update_call_extraction: {e}")
+
 
 db_service = DBService()
