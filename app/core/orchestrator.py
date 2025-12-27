@@ -70,8 +70,9 @@ class VoiceOrchestrator:
             }
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
-            elif self.client_type == "telenyx":
-                msg["stream_id"] = self.stream_id
+                
+            # Telenyx: Send minimal payload {"event": "media", "media": {"payload": "..."}}
+            # Removing stream_id/track as per search results suggesting strictly simple schema
             
             await self.websocket.send_text(json.dumps(msg))
             
