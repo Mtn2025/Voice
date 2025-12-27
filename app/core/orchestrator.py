@@ -532,7 +532,9 @@ class VoiceOrchestrator:
 
     async def process_audio(self, payload):
         try:
-            # Fix Base64 Padding
+            # Robust Base64 Cleaning
+            payload = payload.strip().replace("\n", "").replace("\r", "").replace(" ", "")
+            
             missing_padding = len(payload) % 4
             if missing_padding:
                 payload += '=' * (4 - missing_padding)
@@ -541,4 +543,4 @@ class VoiceOrchestrator:
             self.push_stream.write(audio_bytes)
             self.user_audio_buffer.extend(audio_bytes)
         except Exception as e:
-            logging.error(f"Error processing audio: {e}")
+            logging.error(f"Error processing audio: {e} (Len: {len(payload) if payload else 0})")
