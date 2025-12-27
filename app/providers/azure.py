@@ -58,7 +58,7 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             "en-US"
         ]
 
-    def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio"):
+    def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio", on_interruption_callback=None, event_loop=None):
         """
         audio_mode: 'twilio' (8khz mulaw) or 'browser' (16khz pcm)
         """
@@ -76,6 +76,19 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             speech_config=self.speech_config, 
             audio_config=audio_config
         )
+
+        # Barge-in Sensitivity Logic
+        if on_interruption_callback and event_loop:
+            import asyncio
+            def recognizing_cb(evt):
+                if evt.result.reason == speechsdk.ResultReason.RecognizingSpeech:
+                    text = evt.result.text
+                    if on_interruption_callback:
+                        event_loop.call_soon_threadsafe(
+                            lambda: asyncio.create_task(on_interruption_callback(text))
+                        )
+            recognizer.recognizing.connect(recognizing_cb)
+
         return recognizer, push_stream
 
     def create_synthesizer(self, voice_name: str, audio_mode: str = "twilio"):

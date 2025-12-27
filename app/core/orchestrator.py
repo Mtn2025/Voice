@@ -160,22 +160,7 @@ class VoiceOrchestrator:
                 }
             }))
 
-        # Initialize Providers
-        self.llm_provider = ServiceFactory.get_llm_provider(self.config.llm_provider)
-        self.stt_provider = ServiceFactory.get_stt_provider(self.config.stt_provider) # Using Factory abstraction if possible
-        
-        # Initialize Azure Speech Service (Direct dependency for Push Stream)
-        from app.services.azure_speech import azure_service
-        self.recognizer, self.push_stream = azure_service.create_push_stream_recognizer(
-            on_interruption_callback=self.handle_interruption, 
-            event_loop=self.loop
-        )
-        
-        # Register Callbacks
-        self.recognizer.recognized.connect(self.handle_input)
-        self.recognizer.session_stopped.connect(self.handle_session_stopped)
-        self.recognizer.canceled.connect(self.handle_canceled)
-        
+
         # Initialize Providers
         self.llm_provider = ServiceFactory.get_llm_provider(self.config)
         self.stt_provider = ServiceFactory.get_stt_provider(self.config)
@@ -185,7 +170,12 @@ class VoiceOrchestrator:
         # Note: In a pure abstract world, we'd wrap these events too, 
         # but for now we know it's Azure underlying.
         language = getattr(self.config, "stt_language", "es-MX") # Fallback if migration hasn't run yet? No, getattr is safe.
-        self.recognizer, self.push_stream = self.stt_provider.create_recognizer(language=language, audio_mode=self.client_type)
+        self.recognizer, self.push_stream = self.stt_provider.create_recognizer(
+            language=language, 
+            audio_mode=self.client_type,
+            on_interruption_callback=self.handle_interruption,
+            event_loop=self.loop
+        )
         
         # Wire up Azure events
         self.recognizer.recognizing.connect(self.handle_recognizing)
