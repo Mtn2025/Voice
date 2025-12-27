@@ -207,19 +207,22 @@ class VoiceOrchestrator:
         
         if first_mode == 'speak-first' and first_msg:
              # VOICE CLIENTS (Twilio/Telenyx): Wait for 'start' event to get StreamSid
-             if self.client_type != "browser":
-                 logging.info("⏳ Waiting for Media Stream START event before greeting...")
-                 for _ in range(50): # Wait up to 5 seconds
-                     if self.stream_id:
-                         logging.info(f"✅ StreamID obtained ({self.stream_id}). Speaking now.")
-                         break
-                     await asyncio.sleep(0.1)
-                 else:
-                     logging.warning("⚠️ Timed out waiting for StreamID. Speaking anyway (might fail).")
+             # CRITICAL: Run this in background to avoid blocking 'routes.py' loop
+             async def delayed_greeting():
+                 if self.client_type != "browser":
+                     logging.info("⏳ Waiting for Media Stream START event before greeting...")
+                     for _ in range(50): # Wait up to 5 seconds
+                         if self.stream_id:
+                             logging.info(f"✅ StreamID obtained ({self.stream_id}). Speaking now.")
+                             break
+                         await asyncio.sleep(0.1)
+                     else:
+                         logging.warning("⚠️ Timed out waiting for StreamID. Speaking anyway (might fail).")
+                 
+                 logging.info(f"🗣️ Triggering First Message: {first_msg}")
+                 await self.speak_direct(first_msg)
 
-             logging.info(f"🗣️ Triggering First Message: {first_msg}")
-             # We use speak_direct to initiate without user input
-             asyncio.create_task(self.speak_direct(first_msg))
+             asyncio.create_task(delayed_greeting())
         elif first_mode == 'speak-first-dynamic':
              # Placeholder for dynamic generation (future)
              pass
