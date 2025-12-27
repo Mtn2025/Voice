@@ -102,6 +102,15 @@ class VoiceOrchestrator:
                      if self.client_type == "browser":
                          b64 = base64.b64encode(audio_data).decode("utf-8")
                          await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
+                     elif self.client_type == "twilio" or self.client_type == "telenyx":
+                         # TWILIO: {"event": "media", "media": {"payload": "base64..."}}
+                         b64 = base64.b64encode(audio_data).decode("utf-8")
+                         msg = {
+                             "event": "media",
+                             "streamSid": self.stream_id,
+                             "media": {"payload": b64}
+                         }
+                         await self.websocket.send_text(json.dumps(msg))
             
             # Log
             self.conversation_history.append({"role": "assistant", "content": text})
@@ -406,9 +415,15 @@ class VoiceOrchestrator:
             
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 audio_data = result.audio_data
-                if self.client_type == "twilio":
-                    # ... twilio logic ...
-                    pass
+                if self.client_type == "twilio" or self.client_type == "telenyx":
+                    # TWILIO STREAMING FORMAT
+                    b64_audio = base64.b64encode(audio_data).decode("utf-8")
+                    msg = {
+                        "event": "media",
+                        "streamSid": self.stream_id,
+                        "media": {"payload": b64_audio}
+                    }
+                    await self.websocket.send_text(json.dumps(msg))
                 else:
                     # Browser expects raw bytes or base64? Let's send base64 with a specialized event
                     b64_audio = base64.b64encode(audio_data).decode("utf-8")
