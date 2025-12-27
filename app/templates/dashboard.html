@@ -47,6 +47,9 @@
                         <button @click.prevent="tab = 'history'"
                             :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
                             class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">History</button>
+                        <button @click.prevent="tab = 'connectivity'"
+                            :class="tab === 'connectivity' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Conexión</button>
                     </div>
 
                     <form action="/api/config/update" method="POST" class="space-y-4">
@@ -379,6 +382,11 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- Tab: Connectivity -->
+                        <div x-show="tab === 'connectivity'" class="space-y-4" style="display: none;">
+                            {% include "partials/connectivity.html" %}
                         </div>
 
                         <div class="pt-4 border-t border-slate-700">

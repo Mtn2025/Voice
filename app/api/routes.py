@@ -21,6 +21,21 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
+@router.post("/telenyx/incoming-call")
+async def incoming_call_telenyx(request: Request):
+    """
+    Webhook for Telenyx (TeXML) to handle incoming calls.
+    Returns TeXML to connect the call to a Media Stream.
+    """
+    host = request.headers.get("host")
+    texml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Connect>
+        <Stream url="wss://{host}/api/v1/ws/media-stream?client=telenyx" />
+    </Connect>
+</Response>"""
+    return Response(content=texml, media_type="application/xml")
+
 from starlette.websockets import WebSocketDisconnect
 from app.api.connection_manager import manager
 from app.services.db_service import db_service

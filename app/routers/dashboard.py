@@ -38,7 +38,9 @@ async def dashboard(request: Request):
         "voice_styles": voice_styles,
         "languages": languages,
         "llm_models": models, # Renamed for clarity in template
-        "history": history # New
+        "history": history, # New
+        "protocol": request.url.scheme,
+        "host": request.url.netloc
     })
 
 @router.post("/api/config/update")
