@@ -48,6 +48,8 @@ class VoiceOrchestrator:
         style = getattr(self.config, 'voice_style', None)
         
         speed = getattr(self.config, 'voice_speed', 1.0)
+        if hasattr(self, 'client_type') and self.client_type != 'browser':
+             speed = getattr(self.config, 'voice_speed_phone', 0.9)
         
         # Build SSML
         ssml_parts = [
@@ -187,12 +189,17 @@ class VoiceOrchestrator:
         # Setup STT (Azure)
         # Note: In a pure abstract world, we'd wrap these events too, 
         # but for now we know it's Azure underlying.
-        language = getattr(self.config, "stt_language", "es-MX") # Fallback if migration hasn't run yet? No, getattr is safe.
+        # Configure Timeouts
+        silence_timeout = getattr(self.config, 'silence_timeout_ms', 500)
+        if self.client_type != "browser":
+             silence_timeout = getattr(self.config, 'silence_timeout_ms_phone', 1200)
+
         self.recognizer, self.push_stream = self.stt_provider.create_recognizer(
             language=language, 
             audio_mode=self.client_type,
             on_interruption_callback=self.handle_interruption,
-            event_loop=self.loop
+            event_loop=self.loop,
+            segmentation_silence_ms=silence_timeout
         )
         
         # Wire up Azure events
@@ -290,7 +297,10 @@ class VoiceOrchestrator:
         logging.info(f"Azure VAD Detected: {text}")
         
         # SMART RESUME: Check for false alarms (noise)
-        threshold = getattr(self.config, 'interruption_threshold', 5)
+        if self.client_type == "browser":
+             threshold = getattr(self.config, 'interruption_threshold', 5)
+        else:
+             threshold = getattr(self.config, 'interruption_threshold_phone', 2)
         
         if self.was_interrupted and len(text) < threshold:
              logging.info(f"🛡️ Smart Resume Triggered! Interruption was likely noise ('{text}'). Resuming speech.")
@@ -349,17 +359,11 @@ class VoiceOrchestrator:
 
     async def handle_interruption(self, text: str = ""):
         # Sensitivity Logic: Ignore short blips (Ambient Noise)
-        threshold = getattr(self.config, 'interruption_threshold', 5) # Default 5 chars to handle "Sí" or "No". 
-        # But wait, "Sí" is < 5 chars. "No" is < 5.
-        # If I set it to 10, I miss short answers.
-        # But short answers usually happen AFTER bot finishes.
-        # Barge-in is usually for "Espera", "No no no".
-        # Let's set default to 4 (length of "Hola"). 
-        # Actually user said "Ambient sounds". Ambient sounds often produce garbage text or nothing.
-        # If Azure detects text, it's usually phonetic.
-        # I will use config value. Default 0 (off) in code if not set, but user asked for tolerance.
-        # I'll default to 0 in arguments, but 10 effectively.
-        
+        if self.client_type == "browser":
+             threshold = getattr(self.config, 'interruption_threshold', 5)
+        else:
+             threshold = getattr(self.config, 'interruption_threshold_phone', 2)
+            
         # Let's use a dynamic logic: Only interrupt if > threshold
         if text and len(text) < threshold:
              return

@@ -11,10 +11,9 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         )
         # Latency optimization
         # InitialSilence: Time to wait for user to START speaking
-        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000")
+        # REMOVED hardcoded: self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000")
         # SegmentationSilence: Time of silence to consider the user has STOPPED speaking (Pause detection)
-        # Increasing to 1000ms helps avoid cutting off users who pause to think.
-        self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, "900")
+        # REMOVED hardcoded: self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, "900")
         
     def get_available_voices(self):
         return [
@@ -58,11 +57,18 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             "en-US"
         ]
 
-    def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio", on_interruption_callback=None, event_loop=None):
+    def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio", 
+                          on_interruption_callback=None, event_loop=None,
+                          initial_silence_ms: int = 5000,
+                          segmentation_silence_ms: int = 1000):
         """
         audio_mode: 'twilio' (8khz mulaw) or 'browser' (16khz pcm)
         """
         self.speech_config.speech_recognition_language = language
+        
+        # Apply Timeouts Dynamically
+        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, str(initial_silence_ms))
+        self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, str(segmentation_silence_ms))
         
         if audio_mode == "browser":
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=16000, bits_per_sample=16, channels=1)

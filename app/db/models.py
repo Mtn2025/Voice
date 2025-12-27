@@ -40,7 +40,8 @@ class AgentConfig(Base):
     llm_provider = Column(String, default="groq")
     llm_model = Column(String, default="llama-3.3-70b-versatile") 
     extraction_model = Column(String, default="llama-3.1-8b-instant")
-    interruption_threshold = Column(Integer, default=5) # Noise Tolerance
+    interruption_threshold = Column(Integer, default=5) # Noise Tolerance (Browser)
+    interruption_threshold_phone = Column(Integer, default=2) # Noise Tolerance (Phone) - Lower default for sharper interruptions
     tts_provider = Column(String, default="azure")
     
     # Parameters
@@ -83,6 +84,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_name = Column(String, default="es-MX-DaliaNeural")
     voice_style = Column(String, nullable=True) # New: Style/Emotion
     voice_speed = Column(Float, default=1.0)
+    voice_speed_phone = Column(Float, default=0.9) # Slower for phone
     temperature = Column(Float, default=0.7)
     background_sound = Column(String, default="none") # none, office, cafe, call_center
     
@@ -103,6 +105,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     
     # VAPI Stage 2: Transcriber & Functions
     silence_timeout_ms = Column(Integer, default=500) # Speech end silence
+    silence_timeout_ms_phone = Column(Integer, default=1200) # Phone silence timeout (Higher for latency)
     segmentation_max_time = Column(Integer, default=30000) # ms (max phrase duration)
     segmentation_strategy = Column(String, default="default") # default, time, semantic
     enable_denoising = Column(Boolean, default=True)

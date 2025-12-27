@@ -48,6 +48,7 @@ async def update_config(
     system_prompt: str = Form(...),
     temperature: float = Form(...), # Restore temperature
     voice_speed: float = Form(...),
+    voice_speed_phone: float = Form(0.9), # New
     voice_name: str = Form("es-MX-DaliaNeural"), 
     voice_style: str = Form(None), # New
     stt_language: str = Form("es-MX"), # New
@@ -56,7 +57,8 @@ async def update_config(
     idle_timeout: float = Form(10.0), # New
     idle_message: str = Form("¿Hola? ¿Sigue ahí?"), # New
     max_duration: int = Form(600), # New
-    interruption_threshold: int = Form(0), # New
+    interruption_threshold: int = Form(5), # New
+    interruption_threshold_phone: int = Form(2), # New
 
     
     # Stage 1: Model & Voice
@@ -69,6 +71,7 @@ async def update_config(
     
     # Stage 2: Transcriber
     silence_timeout_ms: int = Form(500),
+    silence_timeout_ms_phone: int = Form(1200), # New
     segmentation_max_time: int = Form(30000),
     segmentation_strategy: str = Form("default"),
     enable_denoising: bool = Form(True), # Careful with boolean checkbox
@@ -87,6 +90,7 @@ async def update_config(
         system_prompt=system_prompt,
         temperature=temperature,
         voice_speed=voice_speed,
+        voice_speed_phone=voice_speed_phone,
         voice_name=voice_name,
         stt_language=stt_language,
         llm_model=llm_model,
@@ -94,6 +98,7 @@ async def update_config(
         idle_timeout=idle_timeout,
         idle_message=idle_message,
         interruption_threshold=interruption_threshold,
+        interruption_threshold_phone=interruption_threshold_phone,
         max_duration=max_duration,
         # Stage 1
         first_message=first_message,
@@ -105,6 +110,7 @@ async def update_config(
         
         # Stage 2
         silence_timeout_ms=silence_timeout_ms,
+        silence_timeout_ms_phone=silence_timeout_ms_phone,
         segmentation_max_time=segmentation_max_time,
         segmentation_strategy=segmentation_strategy,
         enable_denoising=enable_denoising,
