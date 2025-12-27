@@ -4,6 +4,7 @@ let processor;
 let inputSource;
 let analyser;
 let bgAudio;
+let localStream; // New
 let isCallActive = false;
 
 const startBtn = document.getElementById('start-btn');
@@ -124,13 +125,20 @@ function stopCall() {
     if (audioContext) audioContext.close();
     if (processor) processor.disconnect();
     if (bgAudio) { bgAudio.pause(); bgAudio = null; }
+
+    // Stop Microphone
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+
     statusDiv.innerText = "Llamada Finalizada";
     statusDiv.className = "text-slate-500 font-mono mb-4 text-lg";
 }
 
 async function setupAudioCapture() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    inputSource = audioContext.createMediaStreamSource(stream);
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    inputSource = audioContext.createMediaStreamSource(localStream);
 
     // 1. Analyser for VAD (Direct Mic Connection)
     analyser = audioContext.createAnalyser();

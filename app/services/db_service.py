@@ -1,6 +1,8 @@
 from app.db.database import AsyncSessionLocal
 from app.db.models import Call, Transcript, AgentConfig
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy import desc
 import logging
 
 class DBService:
@@ -60,7 +62,19 @@ class DBService:
                 for key, value in kwargs.items():
                     setattr(config, key, value)
                 await session.commit()
-                return config
+    async def get_recent_calls(self, limit: int = 20):
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(select(Call).order_by(Call.start_time.desc()).limit(limit))
+            return result.scalars().all()
+
+    async def get_call_details(self, call_id: int):
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(Call)
+                .options(selectinload(Call.transcripts))
+                .where(Call.id == call_id)
+            )
+            return result.scalars().first()
 
 
 db_service = DBService()

@@ -44,6 +44,9 @@
                         <button @click.prevent="tab = 'advanced'"
                             :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
                             class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Advanced</button>
+                        <button @click.prevent="tab = 'history'"
+                            :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">History</button>
                     </div>
 
                     <form action="/api/config/update" method="POST" class="space-y-4">
@@ -300,45 +303,90 @@
                     <input type="text" name="idle_message" value="{{ config.idle_message }}"
                         class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                 </div>
-            </div>
+                <!-- Tab: History -->
+                <div x-show="tab === 'history'" class="space-y-4" style="display: none;">
+                    <h3 class="text-lg font-medium text-slate-200">Llamadas Recientes</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-400">
+                            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+                                <tr>
+                                    <th class="px-4 py-2">ID</th>
+                                    <th class="px-4 py-2">Fecha</th>
+                                    <th class="px-4 py-2">Estado</th>
+                                    <th class="px-4 py-2">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for call in history %}
+                                <tr class="bg-slate-800 border-b border-slate-700 hover:bg-slate-700 transition">
+                                    <td class="px-4 py-2 text-white font-medium">{{ call.id }}</td>
+                                    <td class="px-4 py-2">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td class="px-4 py-2">
+                                        <span
+                                            class="px-2 py-1 rounded text-xs {{ 'bg-green-900 text-green-300' if call.status == 'completed' else 'bg-yellow-900 text-yellow-300' }}">
+                                            {{ call.status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <a href="/dashboard/call/{{ call.id }}" target="_blank"
+                                            class="inline-flex items-center space-x-1 text-blue-400 hover:text-blue-300 font-medium">
+                                            <span>Revisar</span>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                                                </path>
+                                            </svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">No se han
+                                        registrado llamadas recientes.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-            <div class="pt-4 border-t border-slate-700">
-                <button type="submit"
-                    class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-medium transition-colors shadow-lg">
-                    Guardar Configuración Completa
+                <div class="pt-4 border-t border-slate-700">
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-medium transition-colors shadow-lg">
+                        Guardar Configuración Completa
+                    </button>
+                </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Simulator Panel -->
+        <div class="lg:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
+                <button id="start-btn" onclick="toggleCall()"
+                    class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
+                    Iniciar Prueba
                 </button>
             </div>
-            </form>
-        </div>
-    </div>
 
-    <!-- Simulator Panel -->
-    <div class="lg:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
-            <button id="start-btn" onclick="toggleCall()"
-                class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
-                Iniciar Prueba
-            </button>
-        </div>
+            <div
+                class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                </div>
 
-        <div
-            class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
-            <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                <!-- Visualizer Canvas -->
+                <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
             </div>
 
-            <!-- Visualizer Canvas -->
-            <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
-        </div>
-
-        <!-- Latest Transcript -->
-        <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
-            <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
-            <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
-                <!-- Messages inserted by JS -->
+            <!-- Latest Transcript -->
+            <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
+                <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
+                <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
+                    <!-- Messages inserted by JS -->
+                </div>
             </div>
         </div>
-    </div>
     </div>
     </div>
 

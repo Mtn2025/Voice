@@ -334,7 +334,8 @@ class VoiceOrchestrator:
             "3. If the prompt contains a script or steps, EXECUTE them, do not describe them.\n"
             "4. Keep responses concise (spoken conversation style).\n"
             "5. Do not use markdown formatting like **bold** or [brackets] in your spoken response.\n"
-            "6. Use the user's name sparingly. Confirm it once if provided, but DO NOT use it in every sentence.\n\n"
+            "6. Use the user's name sparingly. Confirm it once if provided, but DO NOT use it in every sentence.\n"
+            f"{'7. If the user asks to end the call, says goodbye, or indicates they are done, append the token [END_CALL] to the end of your response.' if getattr(self.config, 'enable_end_call', True) else ''}\n\n"
             "### CHARACTER CONFIGURATION ###\n"
             f"{base_prompt}\n"
             "### END CONFIGURATION ###\n\n"
@@ -346,6 +347,8 @@ class VoiceOrchestrator:
         ] + self.conversation_history
         
         sentence_buffer = ""
+        should_hangup = False
+        
         try:
             # Pass selected model (e.g., deepseek-r1-distill-llama-70b)
             async for text_chunk in self.llm_provider.get_stream(
@@ -355,6 +358,12 @@ class VoiceOrchestrator:
                 model=self.config.llm_model
             ):
                 if not self.is_bot_speaking: break
+                
+                # Check for Hangup Token
+                if "[END_CALL]" in text_chunk:
+                    should_hangup = True
+                    text_chunk = text_chunk.replace("[END_CALL]", "")
+                
                 full_response += text_chunk
                 sentence_buffer += text_chunk
                 if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
@@ -363,6 +372,9 @@ class VoiceOrchestrator:
             
             # Process remaining buffer
             if sentence_buffer and self.is_bot_speaking:
+                if "[END_CALL]" in sentence_buffer: # Redundant check
+                     should_hangup = True
+                     sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
                 await process_tts(sentence_buffer)
                 
             if self.stream_id and full_response:
@@ -379,6 +391,11 @@ class VoiceOrchestrator:
             # For Twilio, we assume immediate completion (or handle differently)
             if self.client_type != "browser":
                 self.is_bot_speaking = False
+
+            if should_hangup:
+                logging.info("📞 LLM requested hangup. Waiting 3s for audio then closing.")
+                await asyncio.sleep(3.0)
+                await self.websocket.close()
 
     async def process_audio(self, payload):
         try:

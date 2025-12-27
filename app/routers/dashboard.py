@@ -29,13 +29,16 @@ async def dashboard(request: Request):
     llm_provider = GroqProvider()
     models = await llm_provider.get_available_models()
     
+    history = await db_service.get_recent_calls(limit=10) # New
+    
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
         "config": config,
         "voices": voices,
         "voice_styles": voice_styles,
         "languages": languages,
-        "models": models
+        "models": models,
+        "history": history # New
     })
 
 @router.post("/api/config/update")
