@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     # Telephony
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
+    TELENYX_API_KEY: str = ""
     
     # AI Services
     AZURE_SPEECH_KEY: str
