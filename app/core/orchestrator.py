@@ -76,7 +76,9 @@ class VoiceOrchestrator:
             logging.error(f"Idle/Direct output error: {e}")
         finally:
             self.last_interaction_time = time.time()
-            self.is_bot_speaking = False
+            # For Browser, wait for speech_ended
+            if self.client_type != "browser":
+                self.is_bot_speaking = False
 
     async def monitor_idle(self):
         while True:
@@ -343,8 +345,12 @@ class VoiceOrchestrator:
         except asyncio.CancelledError:
             logging.info("Response generation cancelled.")
         finally:
-            self.last_interaction_time = time.time() # Reset idle timer mostly for the bot's end
-            self.is_bot_speaking = False
+            self.last_interaction_time = time.time() 
+            
+            # For Browser, we wait for 'speech_ended' event to verify playback finished
+            # For Twilio, we assume immediate completion (or handle differently)
+            if self.client_type != "browser":
+                self.is_bot_speaking = False
 
     async def process_audio(self, payload):
         try:
