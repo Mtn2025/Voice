@@ -64,8 +64,6 @@ class VoiceOrchestrator:
             }
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
-            elif self.client_type == "telenyx":
-                msg["stream_id"] = self.stream_id
             
             await self.websocket.send_text(json.dumps(msg))
             # Optional: Tiny yield to let event loop breathe, but usually not needed for 160b
