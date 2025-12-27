@@ -144,8 +144,10 @@
                                 </div>
                             </div>
 
+                            <input type="hidden" id="voice-styles-data"
+                                value="{{ voice_styles | tojson | forceescape }}">
                             <script>
-                                const stylesMap = {{ voice_styles | tojson }};
+                                const stylesMap = JSON.parse(document.getElementById('voice-styles-data').value);
                                 const currentStyle = "{{ config.voice_style or '' }}";
 
                                 function updateStyles() {
@@ -169,9 +171,11 @@
                                 // Init
                                 document.addEventListener('DOMContentLoaded', updateStyles);
                             </script>
-                            <label class="block text-sm font-medium mb-1">Voice Speed</label>
+                            <label class="block text-sm font-medium mb-1">Voice Speed: <span id="speed-val">{{
+                                    config.voice_speed }}</span></label>
                             <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.1"
-                                value="{{ config.voice_speed }}" class="w-full">
+                                value="{{ config.voice_speed }}" class="w-full"
+                                oninput="document.getElementById('speed-val').innerText = this.value">
                             <!-- Removed premature closing div -->
 
                             <div class="border-t border-slate-700 my-4 pt-4">

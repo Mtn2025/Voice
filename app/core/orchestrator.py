@@ -46,6 +46,8 @@ class VoiceOrchestrator:
         voice = getattr(self.config, 'voice_name', 'es-MX-DaliaNeural')
         style = getattr(self.config, 'voice_style', None)
         
+        speed = getattr(self.config, 'voice_speed', 1.0)
+        
         # Build SSML
         ssml_parts = [
             f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" ',
@@ -53,12 +55,18 @@ class VoiceOrchestrator:
             f'<voice name="{voice}">'
         ]
         
+        # Open Prosody (Speed)
+        ssml_parts.append(f'<prosody rate="{speed}">')
+
         if style and style.strip():
             ssml_parts.append(f'<mstts:express-as style="{style}">')
             ssml_parts.append(text)
             ssml_parts.append('</mstts:express-as>')
         else:
             ssml_parts.append(text)
+            
+        # Close Prosody
+        ssml_parts.append('</prosody>')
             
         ssml_parts.append('</voice></speak>')
         

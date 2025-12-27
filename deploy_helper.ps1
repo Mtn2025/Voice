@@ -1,5 +1,4 @@
-$exclude = @("venv", "__pycache__", ".git", ".env", "*.zip")
-$source = Get-Location
+
 $destination = "voice_orchestrator_deploy.zip"
 
 Write-Host "Packaging Voice Orchestrator for VPS Deployment..." -ForegroundColor Green
