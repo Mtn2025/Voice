@@ -157,24 +157,6 @@ class VoiceOrchestrator:
                 }
             }))
 
-        # Initialize Azure (Passing interruptions callback)
-        # Note: We need to update service factory or access shared instance
-        # Actually ServiceFactory returns `AzureSpeechService` instance? No.
-        # `ServiceFactory.get_stt_provider()` returns AbstractSTT?
-        # But `orchestrator` seems to use `self.stt_provider` which is `AzureSpeechProvider` (not the service).
-        # Wait, `orchestrator.py` line 33 `self.recognizer = None`.
-        
-        # Line 169 in orchestrator (original):
-        # self.recognizer, self.push_stream = azure_service.create_push_stream_recognizer()
-        
-        # I need to see where `azure_service` comes from. It's imported globally in `orchestrator.py`?
-        # `from app.services.azure_speech import azure_service`?
-        # Let's check imports.
-        # Line 7 `import azure...`
-        # Line 10 `from app.core.service_factory import ServiceFactory`.
-        
-        # I suspect `orchestrator` uses `ServiceFactory` or imports `azure_service` directly.
-        # Let's check imports in `orchestrator.py` again.
         # Initialize Providers
         self.llm_provider = ServiceFactory.get_llm_provider(self.config.llm_provider)
         self.stt_provider = ServiceFactory.get_stt_provider(self.config.stt_provider) # Using Factory abstraction if possible
@@ -190,14 +172,6 @@ class VoiceOrchestrator:
         self.recognizer.recognized.connect(self.handle_input)
         self.recognizer.session_stopped.connect(self.handle_session_stopped)
         self.recognizer.canceled.connect(self.handle_canceled)
-            
-            await self.websocket.send_text(json.dumps({
-                "type": "config",
-                "config": {
-                    "background_sound": bgs,
-                    "background_sound_url": bgs_url
-                }
-            }))
         
         # Instantiate Providers
         self.stt_provider = ServiceFactory.get_stt_provider(self.config)
