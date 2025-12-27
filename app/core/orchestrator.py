@@ -142,6 +142,9 @@ class VoiceOrchestrator:
 
         # Load Config
         self.config = await db_service.get_agent_config()
+        logging.info(f"DEBUG CONFIG TYPE: {type(self.config)}")
+        logging.info(f"DEBUG CONFIG VAL: {self.config}")
+        
         self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
         
         # BROADCAST CONFIG TO CLIENT (e.g. Background Sound)
