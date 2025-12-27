@@ -206,6 +206,17 @@ class VoiceOrchestrator:
         first_msg = getattr(self.config, 'first_message', "Hola, soy Andrea. ¿En qué puedo ayudarte?")
         
         if first_mode == 'speak-first' and first_msg:
+             # VOICE CLIENTS (Twilio/Telenyx): Wait for 'start' event to get StreamSid
+             if self.client_type != "browser":
+                 logging.info("⏳ Waiting for Media Stream START event before greeting...")
+                 for _ in range(50): # Wait up to 5 seconds
+                     if self.stream_id:
+                         logging.info(f"✅ StreamID obtained ({self.stream_id}). Speaking now.")
+                         break
+                     await asyncio.sleep(0.1)
+                 else:
+                     logging.warning("⚠️ Timed out waiting for StreamID. Speaking anyway (might fail).")
+
              logging.info(f"🗣️ Triggering First Message: {first_msg}")
              # We use speak_direct to initiate without user input
              asyncio.create_task(self.speak_direct(first_msg))
