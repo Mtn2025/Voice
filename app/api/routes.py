@@ -64,8 +64,11 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
             
             # DEEP LOGGING
             event_type = msg.get("event")
-            # Log structure (masking payload for readability)
-            log_msg = msg.copy()
+            
+            # Log structure (masking payload for readability) WITHOUT mutating original msg
+            import copy
+            log_msg = copy.deepcopy(msg)
+            
             if "media" in log_msg and "payload" in log_msg["media"]:
                 log_msg["media"]["payload"] = f"<BASE64 DATA len={len(msg['media']['payload'])}>"
             logging.warning(f"📥 WS RECEIVED | Event: {event_type} | Data: {json.dumps(log_msg)}")
