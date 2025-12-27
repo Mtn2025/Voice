@@ -414,10 +414,10 @@ class VoiceOrchestrator:
                 self.is_bot_speaking = False
 
             if should_hangup:
-                logging.info("📞 LLM requested hangup. Waiting 3s for audio then closing.")
+                logging.info("📞 LLM requested hangup. Waiting 5s for audio completion...")
                 if self.stream_id:
                      await db_service.log_transcript(self.stream_id, "system", "Call ended by AI ([END_CALL] token generated)", call_db_id=self.call_db_id)
-                await asyncio.sleep(3.0)
+                await asyncio.sleep(5.0)
                 await self.websocket.close()
 
     async def process_audio(self, payload):
