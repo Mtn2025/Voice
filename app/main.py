@@ -30,6 +30,8 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_duration INTEGER DEFAULT 600"))
             
             # VAPI Parity Stage 1
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_style VARCHAR"))
+            
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message VARCHAR DEFAULT 'Hola, soy Andrea de Ubrokers. ¿Me escucha bien?'"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_mode VARCHAR DEFAULT 'speak-first'"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_tokens INTEGER DEFAULT 250"))

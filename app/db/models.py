@@ -91,6 +91,7 @@ Si dicen "No me interesa": "Entiendo perfectamente, le agradezco mucho su tiempo
 Si se produce un error en el sistema: "Disculpe, estamos teniendo un momento técnico. ¿Podría darme su WhatsApp y un asesor se contactará con usted en la próxima hora?"
 Si es necesario transferir o terminar: Hazlo en silencio sin notificar al usuario.""")
     voice_name = Column(String, default="es-MX-DaliaNeural")
+    voice_style = Column(String, nullable=True) # New: Style/Emotion
     voice_speed = Column(Float, default=1.0)
     temperature = Column(Float, default=0.7)
     background_sound = Column(String, default="none") # none, office, cafe, call_center

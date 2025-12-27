@@ -20,11 +20,32 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         return [
             "es-MX-DaliaNeural",
             "es-MX-JorgeNeural",
+            "es-MX-BeatrizNeural",
+            "es-MX-CandelaNeural",
+            "es-MX-CarlotaNeural",
+            "es-MX-CecilioNeural",
+            "es-MX-GerardoNeural",
+            "es-MX-LarissaNeural",
+            "es-MX-LibertoNeural",
+            "es-MX-LucianoNeural",
+            "es-MX-MarinaNeural",
+            "es-MX-NurielNeural",
+            "es-MX-PelayoNeural",
+            "es-MX-RenataNeural",
+            "es-MX-YagoNeural",
             "es-ES-ElviraNeural",
-            "es-ES-AlvaroNeural",
             "es-US-PalomaNeural",
             "en-US-JennyNeural"
         ]
+
+    def get_voice_styles(self):
+        """Returns a dict of voice_name -> list of styles"""
+        return {
+            "es-MX-DaliaNeural": ["customerservice", "chat", "cheerful", "calm", "sad", "angry", "fearful", "disgruntled", "serious", "affectionate", "gentle"],
+            "es-MX-JorgeNeural": ["chat", "conversational", "customerservice", "cheerful", "empathetic", "serious"],
+            "es-ES-ElviraNeural": ["customerservice", "empathetic", "cheerful", "calm", "chat"],
+            "en-US-JennyNeural": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"]
+        }
 
     def get_available_languages(self):
         return [

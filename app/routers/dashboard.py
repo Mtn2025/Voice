@@ -22,6 +22,7 @@ async def dashboard(request: Request):
     # Voices
     tts_provider = AzureProvider() # Lightweight init
     voices = tts_provider.get_available_voices()
+    voice_styles = tts_provider.get_voice_styles() # New
     languages = tts_provider.get_available_languages()
     
     # Models
@@ -32,6 +33,7 @@ async def dashboard(request: Request):
         "request": request, 
         "config": config,
         "voices": voices,
+        "voice_styles": voice_styles,
         "languages": languages,
         "models": models
     })
@@ -42,6 +44,7 @@ async def update_config(
     temperature: float = Form(...), # Restore temperature
     voice_speed: float = Form(...),
     voice_name: str = Form("es-MX-DaliaNeural"), 
+    voice_style: str = Form(None), # New
     stt_language: str = Form("es-MX"), # New
     llm_model: str = Form("llama-3.3-70b-versatile"), # New
     background_sound: str = Form("none"), # New

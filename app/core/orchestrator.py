@@ -41,24 +41,28 @@ class VoiceOrchestrator:
 
     def _synthesize_text(self, text):
         """
-        Wraps text in SSML to enforce intonation/style and calls Azure.
-        Blocking call, should be run in executor.
+        Wraps text in SSML with configured voice and style.
         """
         voice = getattr(self.config, 'voice_name', 'es-MX-DaliaNeural')
-        # styles: customerservice, cheerful, chat
-        style = "customerservice" 
+        style = getattr(self.config, 'voice_style', None)
         
-        # Simple SSML wrapper
-        ssml = (
-            f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" '
-            f'xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="es-MX">'
+        # Build SSML
+        ssml_parts = [
+            f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" ',
+            f'xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="es-MX">',
             f'<voice name="{voice}">'
-            f'<mstts:express-as style="{style}">'
-            f'{text}'
-            f'</mstts:express-as>'
-            f'</voice>'
-            f'</speak>'
-        )
+        ]
+        
+        if style and style.strip():
+            ssml_parts.append(f'<mstts:express-as style="{style}">')
+            ssml_parts.append(text)
+            ssml_parts.append('</mstts:express-as>')
+        else:
+            ssml_parts.append(text)
+            
+        ssml_parts.append('</voice></speak>')
+        
+        ssml = "".join(ssml_parts)
         return self.synthesizer.speak_ssml_async(ssml).get()
 
     async def speak_direct(self, text: str):
