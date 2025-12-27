@@ -426,22 +426,18 @@
                                     <th class="px-4 py-2">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                            <tbody hx-get="/dashboard/history-rows" hx-trigger="load, refreshHistory from:body"
-                                hx-target="this">
-                                <!-- Initial load will be handled by HTMX or server-side render fallthrough if needed, 
+
+                            hx-target="this">
+                            <!-- Initial load will be handled by HTMX or server-side render fallthrough if needed, 
                                             but to avoid duplication we'll let HTMX load it or keep static for SEO/Non-JS. 
                                             Actually, let's keep the server-side render for first paint, and HTMX for updates. -->
-                                {% include "partials/history_rows.html" %}
+                            {% include "partials/history_rows.html" %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Tab: Connectivity -->
-                <div x-show="tab === 'connectivity'" class="space-y-4" style="display: none;">
-                    {% include "partials/connectivity.html" %}
-                </div>
+
 
                 <div class="pt-4 border-t border-slate-700">
                     <button type="submit"
