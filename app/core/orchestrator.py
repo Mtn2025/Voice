@@ -195,7 +195,7 @@ class VoiceOrchestrator:
              silence_timeout = getattr(self.config, 'silence_timeout_ms_phone', 1200)
 
         self.recognizer, self.push_stream = self.stt_provider.create_recognizer(
-            language=language, 
+            language=getattr(self.config, 'stt_language', 'es-MX'), 
             audio_mode=self.client_type,
             on_interruption_callback=self.handle_interruption,
             event_loop=self.loop,
