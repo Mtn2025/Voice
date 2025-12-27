@@ -82,8 +82,16 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
             msg = json.loads(data)
             
             if msg["event"] == "start":
-                logging.info(f"Stream started: {msg['start']['streamSid']}")
-                orchestrator.stream_id = msg['start']['streamSid']
+                logging.info(f"Received START event payload: {msg}") # DEBUG Payload
+                start_data = msg.get('start', {})
+                stream_sid = start_data.get('streamSid')
+                if not stream_sid:
+                     # Telenyx sometimes uses 'callSid' or just we generate one
+                     stream_sid = start_data.get('callSid') or start_data.get('call_control_id') or str(uuid.uuid4())
+                     logging.warning(f"streamSid missing. Using fallback: {stream_sid}")
+                
+                logging.info(f"Stream started: {stream_sid}")
+                orchestrator.stream_id = stream_sid
                 if orchestrator.call_db_id is None:
                      # Attempt creation if not done in start (redundancy)
                      logging.info("Creating call DB record from START event...")
