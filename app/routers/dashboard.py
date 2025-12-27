@@ -54,6 +54,7 @@ async def update_config(
     idle_timeout: float = Form(10.0), # New
     idle_message: str = Form("¿Hola? ¿Sigue ahí?"), # New
     max_duration: int = Form(600), # New
+    interruption_threshold: int = Form(0), # New
 
     
     # Stage 1: Model & Voice
@@ -90,6 +91,7 @@ async def update_config(
         background_sound=background_sound,
         idle_timeout=idle_timeout,
         idle_message=idle_message,
+        interruption_threshold=interruption_threshold,
         max_duration=max_duration,
         # Stage 1
         first_message=first_message,
