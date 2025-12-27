@@ -53,6 +53,8 @@ async def lifespan(app: FastAPI):
             
             # Data Extraction
             await conn.execute(text("ALTER TABLE calls ADD COLUMN IF NOT EXISTS extracted_data JSONB"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS extraction_model VARCHAR DEFAULT 'llama-3.1-8b-instant'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold INTEGER DEFAULT 5"))
 
         except Exception as e:
             print(f"Migration warning: {e}")

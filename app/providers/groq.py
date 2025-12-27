@@ -52,7 +52,10 @@ class GroqProvider(AbstractLLM):
                     yield delta
         except Exception as e:
             logging.error(f"Groq Error ({target_model}): {e}")
-            yield f"Error: {str(e)}"
+            if "429" in str(e):
+                yield "Lo siento, mis sistemas están un poco saturados en este momento. Por favor espera unos segundos."
+            else:
+                yield "Disculpa, tuve un problema técnico."
 
     async def transcribe_audio(self, audio_content: bytes, language: str = "es") -> str:
         """
@@ -75,7 +78,7 @@ class GroqProvider(AbstractLLM):
             print(f"Groq STT Error: {e}")
             return ""
 
-    async def extract_data(self, transcript: str):
+    async def extract_data(self, transcript: str, model: str = "llama-3.1-8b-instant"):
         """
         Analyzes the transcript and extracts structured data using JSON Mode.
         """
@@ -92,7 +95,7 @@ class GroqProvider(AbstractLLM):
         
         try:
             completion = await self.client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Transcript:\n{transcript}"}

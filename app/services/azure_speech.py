@@ -14,7 +14,7 @@ class AzureSpeechService:
         # Optimize for low latency
         self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "5000")
         
-    def create_push_stream_recognizer(self):
+    def create_push_stream_recognizer(self, on_interruption_callback=None, event_loop=None):
         """
         Creates a recognizer that accepts a push stream (for incoming audio).
         Returns: (recognizer, push_stream)
@@ -28,6 +28,23 @@ class AzureSpeechService:
             speech_config=self.speech_config, 
             audio_config=audio_config
         )
+
+        # Define the recognizing callback locally to capture on_interruption_callback and event_loop
+        if on_interruption_callback and event_loop:
+            import asyncio # Import asyncio if not already at the top
+
+            def recognizing_cb(evt):
+                if evt.result.reason == speechsdk.ResultReason.RecognizingSpeech:
+                    # logging.info(f"Speech recognizing: {evt.result.text}")
+                    text = evt.result.text
+                    if on_interruption_callback:
+                        # Pass text to handler for sensitivity logic
+                        # Use event_loop.call_soon_threadsafe to schedule the async task
+                        event_loop.call_soon_threadsafe(
+                            lambda: asyncio.create_task(on_interruption_callback(text))
+                        )
+            recognizer.recognizing.connect(recognizing_cb)
+
         return recognizer, push_stream
 
     def create_synthesizer(self):

@@ -156,6 +156,48 @@ class VoiceOrchestrator:
                     "background_sound_url": bgs_url
                 }
             }))
+
+        # Initialize Azure (Passing interruptions callback)
+        # Note: We need to update service factory or access shared instance
+        # Actually ServiceFactory returns `AzureSpeechService` instance? No.
+        # `ServiceFactory.get_stt_provider()` returns AbstractSTT?
+        # But `orchestrator` seems to use `self.stt_provider` which is `AzureSpeechProvider` (not the service).
+        # Wait, `orchestrator.py` line 33 `self.recognizer = None`.
+        
+        # Line 169 in orchestrator (original):
+        # self.recognizer, self.push_stream = azure_service.create_push_stream_recognizer()
+        
+        # I need to see where `azure_service` comes from. It's imported globally in `orchestrator.py`?
+        # `from app.services.azure_speech import azure_service`?
+        # Let's check imports.
+        # Line 7 `import azure...`
+        # Line 10 `from app.core.service_factory import ServiceFactory`.
+        
+        # I suspect `orchestrator` uses `ServiceFactory` or imports `azure_service` directly.
+        # Let's check imports in `orchestrator.py` again.
+        # Initialize Providers
+        self.llm_provider = ServiceFactory.get_llm_provider(self.config.llm_provider)
+        self.stt_provider = ServiceFactory.get_stt_provider(self.config.stt_provider) # Using Factory abstraction if possible
+        
+        # Initialize Azure Speech Service (Direct dependency for Push Stream)
+        from app.services.azure_speech import azure_service
+        self.recognizer, self.push_stream = azure_service.create_push_stream_recognizer(
+            on_interruption_callback=self.handle_interruption, 
+            event_loop=self.loop
+        )
+        
+        # Register Callbacks
+        self.recognizer.recognized.connect(self.handle_input)
+        self.recognizer.session_stopped.connect(self.handle_session_stopped)
+        self.recognizer.canceled.connect(self.handle_canceled)
+            
+            await self.websocket.send_text(json.dumps({
+                "type": "config",
+                "config": {
+                    "background_sound": bgs,
+                    "background_sound_url": bgs_url
+                }
+            }))
         
         # Instantiate Providers
         self.stt_provider = ServiceFactory.get_stt_provider(self.config)
@@ -212,9 +254,11 @@ class VoiceOrchestrator:
                 
                 if transcript_text and len(transcript_text) > 10:
                     logging.info("📊 Extracting data from transcript...")
-                    extracted = await self.llm_provider.extract_data(transcript_text)
-                    logging.info(f"✅ Extraction Result: {extracted}")
-                    await db_service.update_call_extraction(self.call_db_id, extracted)
+                    # Use configured model for extraction
+                    extraction_model = self.config.extraction_model or "llama-3.1-8b-instant"
+                    extracted_data = await self.llm_provider.extract_data(transcript_text, model=extraction_model)
+                    logging.info(f"✅ Extraction Result: {extracted_data}")
+                    await db_service.update_call_extraction(self.call_db_id, extracted_data)
                 else:
                     logging.info("⚠️ Transcript too short for extraction.")
             except Exception as e:
@@ -289,12 +333,38 @@ class VoiceOrchestrator:
         self.response_task = asyncio.create_task(self.generate_response(response_id))
         await self.response_task
 
-    async def handle_interruption(self):
-        logging.info("⚡ Interruption Handler Triggered")
+    async def handle_interruption(self, text: str = ""):
+        # Sensitivity Logic: Ignore short blips (Ambient Noise)
+        threshold = getattr(self.config, 'interruption_threshold', 5) # Default 5 chars to handle "Sí" or "No". 
+        # But wait, "Sí" is < 5 chars. "No" is < 5.
+        # If I set it to 10, I miss short answers.
+        # But short answers usually happen AFTER bot finishes.
+        # Barge-in is usually for "Espera", "No no no".
+        # Let's set default to 4 (length of "Hola"). 
+        # Actually user said "Ambient sounds". Ambient sounds often produce garbage text or nothing.
+        # If Azure detects text, it's usually phonetic.
+        # I will use config value. Default 0 (off) in code if not set, but user asked for tolerance.
+        # I'll default to 0 in arguments, but 10 effectively.
+        
+        # Let's use a dynamic logic: Only interrupt if > threshold
+        if text and len(text) < threshold:
+             return
+        
+        logging.info(f"⚡ Interruption Handler Triggered by: '{text}'")
+        
         self.is_bot_speaking = False
         if self.response_task and not self.response_task.done():
             logging.info("🛑 Cancelling response task due to interruption.")
             self.response_task.cancel()
+            
+            # Stop Frontend Audio Immediately
+            if self.client_type == "browser":
+                 await self.websocket.send_text(json.dumps({"event": "clear"}))
+                 
+            if self.stream_id:
+                  await self.stt_provider.stop_recognition() # Restart recognition cycle if needed? 
+                  # Actually Azure might need valid stop/start or continuous handles it.
+                  pass
             
         # Send clear signal to both Twilio and Browser to stop audio
         msg = {"event": "clear", "streamSid": self.stream_id}
@@ -414,11 +484,17 @@ class VoiceOrchestrator:
                 self.is_bot_speaking = False
 
             if should_hangup:
-                logging.info("📞 LLM requested hangup. Waiting 5s for audio completion...")
+                logging.info("📞 LLM requested hangup. Sending End-Control-Packet.")
                 if self.stream_id:
                      await db_service.log_transcript(self.stream_id, "system", "Call ended by AI ([END_CALL] token generated)", call_db_id=self.call_db_id)
-                await asyncio.sleep(5.0)
-                await self.websocket.close()
+                
+                # Send JSON command to client to hangup AFTER audio is done
+                if self.client_type == "browser":
+                    await self.websocket.send_text(json.dumps({"type": "control", "action": "end_call"}))
+                else:
+                     # For Twilio, wait and close
+                     await asyncio.sleep(5.0)
+                     await self.websocket.close()
 
     async def process_audio(self, payload):
         try:

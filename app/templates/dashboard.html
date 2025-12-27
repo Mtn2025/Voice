@@ -58,14 +58,28 @@
                         <div x-show="tab === 'model'" class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Modelo LLM</label>
+                                    <label class="block text-sm font-medium mb-1">Modelo Cerebral (Conversación)</label>
                                     <select name="llm_model"
                                         class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        {% for model in models %}
-                                        <option value="{{ model }}" {% if config.llm_model==model %}selected{% endif %}>
-                                            {{ model }}</option>
+                                        {% for m in llm_models %}
+                                        <option value="{{ m }}" {% if config.llm_model==m %}selected{% endif %}>
+                                            {{ m }}
+                                        </option>
                                         {% endfor %}
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Modelo de Extracción (Data)</label>
+                                    <select name="extraction_model"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                        {% for m in llm_models %}
+                                        <option value="{{ m }}" {% if config.extraction_model==m %}selected{% endif %}>
+                                            {{ m }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <p class="text-xs text-slate-500 mt-1">Recomendado: 8b-instant (Rápido).</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1">Max Tokens</label>
@@ -321,6 +335,20 @@
                                 <label class="block text-sm font-medium mb-1">Mensaje Idle</label>
                                 <input type="text" name="idle_message" value="{{ config.idle_message }}"
                                     class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Sensibilidad de Interrupción
+                                    (Anti-Ruido)</label>
+                                <input type="range" name="interruption_threshold" min="0" max="30" step="1"
+                                    value="{{ config.interruption_threshold }}"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                    oninput="this.nextElementSibling.value = this.value + ' chars'">
+                                <output class="text-xs text-slate-400 block mt-1">{{ config.interruption_threshold }}
+                                    chars</output>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Ignorar interrupciones menores a X caracteres. Sube esto si Andrea se calla por
+                                    ruido.
+                                </p>
                             </div>
                         </div>
 

@@ -37,7 +37,7 @@ async def dashboard(request: Request):
         "voices": voices,
         "voice_styles": voice_styles,
         "languages": languages,
-        "models": models,
+        "llm_models": models, # Renamed for clarity in template
         "history": history # New
     })
 
@@ -77,7 +77,8 @@ async def update_config(
 
     stt_provider: str = Form(...),
     llm_provider: str = Form(...),
-    tts_provider: str = Form(...)
+    tts_provider: str = Form(...),
+    extraction_model: str = Form("llama-3.1-8b-instant")
 ):
     await db_service.update_agent_config(
         system_prompt=system_prompt,
@@ -107,6 +108,7 @@ async def update_config(
         enable_end_call=enable_end_call,
         enable_dial_keypad=enable_dial_keypad,
         transfer_phone_number=transfer_phone_number,
+        extraction_model=extraction_model, # NEW
 
         stt_provider=stt_provider,
         llm_provider=llm_provider,

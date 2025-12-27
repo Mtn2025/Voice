@@ -6,6 +6,9 @@ let analyser;
 let bgAudio;
 let localStream; // New
 let isCallActive = false;
+let hangupPending = false;
+let activeAudioSources = 0;
+let lastAudioTime = 0;
 
 const startBtn = document.getElementById('start-btn');
 const statusDiv = document.getElementById('status-indicator');
@@ -105,6 +108,10 @@ async function startCall() {
                     bgAudio.volume = 0.1; // 10% volume (Subtle)
                     bgAudio.play().catch(e => console.warn("Background Audio Auto-play blocked (Interact first)?", e));
                 }
+            } else if (msg.type === 'control' && msg.action === 'end_call') {
+                console.log("☎️ Received server request to end call after audio.");
+                hangupPending = true;
+                checkHangup();
             }
         };
 
@@ -196,6 +203,13 @@ async function setupAudioCapture() {
 const activeSources = [];
 let nextStartTime = 0;
 
+function checkHangup() {
+    if (hangupPending && activeSources.length === 0) {
+        console.log("📞 Audio finished. Executing pending hangup.");
+        stopCall(false);
+    }
+}
+
 function playAudioChunk(base64Data) {
     if (!audioContext) return;
 
@@ -224,6 +238,12 @@ function playAudioChunk(base64Data) {
     source.onended = () => {
         const index = activeSources.indexOf(source);
         if (index > -1) activeSources.splice(index, 1);
+
+        // Check if we need to hang up
+        if (hangupPending && activeSources.length === 0) {
+            console.log("📞 Audio finished. Executing pending hangup.");
+            stopCall(false);
+        }
 
         // If queue is empty, notify backend that playback finished
         if (activeSources.length === 0) {
