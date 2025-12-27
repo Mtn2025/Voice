@@ -1,8 +1,14 @@
 from fastapi import APIRouter, WebSocket, Request, Response
 from fastapi.responses import HTMLResponse
+from starlette.websockets import WebSocketDisconnect
 import logging
 import json
+import uuid
+import httpx
 from app.core.orchestrator import VoiceOrchestrator
+from app.api.connection_manager import manager
+from app.core.config import settings
+from app.services.db_service import db_service
 
 router = APIRouter()
 
@@ -22,29 +28,6 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
-@router.api_route("/telenyx/incoming-call", methods=["GET", "POST"])
-async def incoming_call_telenyx(request: Request):
-    """
-    Webhook for Telenyx (TeXML) to handle incoming calls.
-    Returns TeXML to connect the call to a Media Stream.
-    """
-    host = request.headers.get("host")
-    # Strict XML construction
-    texml = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<Response>\n'
-        '    <Connect>\n'
-        f'        <Stream url="wss://{host}/api/v1/ws/media-stream?client=telenyx" />\n'
-        '    </Connect>\n'
-from starlette.websockets import WebSocketDisconnect
-from app.api.connection_manager import manager
-import httpx
-from app.core.config import settings
-from app.services.db_service import db_service
-import uuid
-
-# ... imports ...
-
 @router.post("/telenyx/incoming-call")
 async def incoming_call_telenyx(request: Request):
     """
@@ -57,6 +40,7 @@ async def incoming_call_telenyx(request: Request):
         call_control_id = payload.get("call_control_id")
 
         logging.info(f"📞 TELNYX EVENT: {event_type} | ID: {call_control_id}")
+
 
         if not call_control_id:
             return Response(status_code=200)
