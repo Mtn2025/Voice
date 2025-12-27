@@ -109,9 +109,13 @@ class VoiceOrchestrator:
                          b64 = base64.b64encode(audio_data).decode("utf-8")
                          msg = {
                              "event": "media",
-                             "streamSid": self.stream_id,
                              "media": {"payload": b64}
                          }
+                         if self.client_type == "twilio":
+                             msg["streamSid"] = self.stream_id
+                         elif self.client_type == "telenyx":
+                             msg["stream_id"] = self.stream_id
+                             
                          await self.websocket.send_text(json.dumps(msg))
             
             # Log
@@ -424,9 +428,13 @@ class VoiceOrchestrator:
                     b64_audio = base64.b64encode(audio_data).decode("utf-8")
                     msg = {
                         "event": "media",
-                        "streamSid": self.stream_id,
                         "media": {"payload": b64_audio}
                     }
+                    if self.client_type == "twilio":
+                        msg["streamSid"] = self.stream_id
+                    elif self.client_type == "telenyx":
+                        msg["stream_id"] = self.stream_id
+                        
                     await self.websocket.send_text(json.dumps(msg))
                 else:
                     # Browser expects raw bytes or base64? Let's send base64 with a specialized event

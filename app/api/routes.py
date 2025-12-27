@@ -85,10 +85,14 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 logging.info(f"Received START event payload: {msg}") # DEBUG Payload
                 start_data = msg.get('start', {})
                 stream_sid = start_data.get('streamSid')
+                # Telenyx uses 'stream_id' (snake_case)
                 if not stream_sid:
-                     # Telenyx sometimes uses 'callSid' or just we generate one
+                    stream_sid = start_data.get('stream_id')
+                
+                if not stream_sid:
+                     # Fallback
                      stream_sid = start_data.get('callSid') or start_data.get('call_control_id') or str(uuid.uuid4())
-                     logging.warning(f"streamSid missing. Using fallback: {stream_sid}")
+                     logging.warning(f"streamSid/stream_id missing. Using fallback: {stream_sid}")
                 
                 logging.info(f"Stream started: {stream_sid}")
                 orchestrator.stream_id = stream_sid
