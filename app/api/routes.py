@@ -75,12 +75,11 @@ async def incoming_call_telenyx(request: Request):
                 
                 logging.info(f"🌊 Starting Media Stream to: {stream_url}")
                 resp = await client.post(
-                    f"{telenyx_api_url}/media_start",
+                    f"{telenyx_api_url}/streaming_start",
                     headers=headers,
                     json={
                         "stream_url": stream_url,
                         "stream_track": "inbound_track",
-                        # "media_config": {"input_codec": "PCMU", "output_codec": "PCMU"} # Optional in some versions
                     }
                 )
                 if resp.status_code != 200:
