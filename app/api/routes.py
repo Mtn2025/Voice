@@ -6,11 +6,12 @@ from app.core.orchestrator import VoiceOrchestrator
 
 router = APIRouter()
 
-@router.post("/twilio/incoming-call")
+@router.api_route("/twilio/incoming-call", methods=["GET", "POST"])
 async def incoming_call(request: Request):
     """
     Webhook for Twilio to handle incoming calls.
     Returns TwiML to connect the call to a Media Stream.
+    Supports GET/POST to be robust against redirects (301 POST->GET) or config errors.
     """
     host = request.headers.get("host")
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -21,7 +22,7 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
-@router.post("/telenyx/incoming-call")
+@router.api_route("/telenyx/incoming-call", methods=["GET", "POST"])
 async def incoming_call_telenyx(request: Request):
     """
     Webhook for Telenyx (TeXML) to handle incoming calls.
