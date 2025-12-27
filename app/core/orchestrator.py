@@ -73,7 +73,7 @@ class VoiceOrchestrator:
             
             await self.websocket.send_text(json.dumps(msg))
             
-        logging.info(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
+        logging.warning(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
 
     def _synthesize_text(self, text):
         """
@@ -532,8 +532,11 @@ class VoiceOrchestrator:
 
     async def process_audio(self, payload):
         try:
-            # Twilio sends base64. Browser (if sending binary) might need diff handling
-            # Assuming Browser also sends base64 for consistency via WS
+            # Fix Base64 Padding
+            missing_padding = len(payload) % 4
+            if missing_padding:
+                payload += '=' * (4 - missing_padding)
+            
             audio_bytes = base64.b64decode(payload)
             self.push_stream.write(audio_bytes)
             self.user_audio_buffer.extend(audio_bytes)
