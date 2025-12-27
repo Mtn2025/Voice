@@ -72,9 +72,8 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         
         if audio_mode == "browser":
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=16000, bits_per_sample=16, channels=1)
-        elif audio_mode == "telenyx":
-             format = speechsdk.audio.AudioStreamFormat(samples_per_second=8000, bits_per_sample=8, channels=1, wave_stream_format=speechsdk.AudioStreamWaveFormat.ALAW)
         else:
+             # Default to Mu-Law (Twilio/Telenyx/Telephony standard)
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=8000, bits_per_sample=8, channels=1, wave_stream_format=speechsdk.AudioStreamWaveFormat.MULAW)
 
         push_stream = speechsdk.audio.PushAudioInputStream(stream_format=format)
@@ -104,8 +103,6 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         
         if audio_mode == "browser":
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
-        elif audio_mode == "telenyx":
-            self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoALaw)
         else:
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
         

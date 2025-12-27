@@ -89,6 +89,14 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 log_msg["media"]["payload"] = f"<BASE64 DATA len={len(msg['media']['payload'])}>"
             logging.warning(f"📥 WS RECEIVED | Event: {event_type} | Data: {json.dumps(log_msg)}")
 
+            # STREAM ID RECOVERY (Critical for Telenyx)
+            if not orchestrator.stream_id and "stream_id" in msg:
+                 # Telenyx sends stream_id in every ID
+                 logging.warning(f"🔄 Recovered Stream ID from '{event_type}': {msg['stream_id']}")
+                 orchestrator.stream_id = msg['stream_id']
+                 if orchestrator.call_db_id is None:
+                     orchestrator.call_db_id = await db_service.create_call(orchestrator.stream_id)
+
             if msg["event"] == "start":
                 # Ensure we see the RAW start payload to find the ID
                 logging.warning(f"🔍 START EVENT RAW: {data}") 
