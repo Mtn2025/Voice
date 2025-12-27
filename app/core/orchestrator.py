@@ -39,6 +39,28 @@ class VoiceOrchestrator:
         self.last_interaction_time = time.time()
         self.start_time = time.time()
 
+    def _synthesize_text(self, text):
+        """
+        Wraps text in SSML to enforce intonation/style and calls Azure.
+        Blocking call, should be run in executor.
+        """
+        voice = getattr(self.config, 'voice_name', 'es-MX-DaliaNeural')
+        # styles: customerservice, cheerful, chat
+        style = "customerservice" 
+        
+        # Simple SSML wrapper
+        ssml = (
+            f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" '
+            f'xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="es-MX">'
+            f'<voice name="{voice}">'
+            f'<mstts:express-as style="{style}">'
+            f'{text}'
+            f'</mstts:express-as>'
+            f'</voice>'
+            f'</speak>'
+        )
+        return self.synthesizer.speak_ssml_async(ssml).get()
+
     async def speak_direct(self, text: str):
         """Helper to speak text without LLM generation (e.g. Idle messages)"""
         if not text: return
@@ -60,7 +82,8 @@ class VoiceOrchestrator:
             # Simple fallback for now:
             if self.synthesizer:
                 loop = asyncio.get_running_loop()
-                result = await loop.run_in_executor(None, lambda: self.synthesizer.speak_text_async(text).get())
+                # Use SSML helper
+                result = await loop.run_in_executor(None, lambda: self._synthesize_text(text))
                 if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                      audio_data = result.audio_data
                      if self.client_type == "browser":
@@ -267,7 +290,7 @@ class VoiceOrchestrator:
             # Ideally this logic is inside the provider's synthesize_stream
             # Wrapper for non-blocking execution of blocking Azure SDK call
             def synthesize_blocking():
-                return self.synthesizer.speak_text_async(text_chunk).get()
+                return self._synthesize_text(text_chunk)
 
             # Run in thread pool to avoid blocking asyncio loop
             try:
