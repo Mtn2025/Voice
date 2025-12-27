@@ -28,69 +28,6 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
-@router.post("/telenyx/incoming-call")
-async def incoming_call_telenyx(request: Request):
-    """
-    Handle Telenyx Call Control Webhooks (Native).
-    """
-    try:
-        data = await request.json()
-        event_type = data.get("data", {}).get("event_type")
-        payload = data.get("data", {}).get("payload", {})
-        call_control_id = payload.get("call_control_id")
-
-        logging.info(f"📞 TELNYX EVENT: {event_type} | ID: {call_control_id}")
-
-
-        if not call_control_id:
-            return Response(status_code=200)
-
-        telenyx_api_url = f"https://api.telnyx.com/v2/calls/{call_control_id}/actions"
-        headers = {
-            "Authorization": f"Bearer {settings.TELENYX_API_KEY}",
-            "Content-Type": "application/json"
-        }
-
-        async with httpx.AsyncClient() as client:
-            if event_type == "call.initiated":
-                # ANSWER THE CALL
-                logging.info(f"⚡ Answering Call {call_control_id}")
-                resp = await client.post(
-                    f"{telenyx_api_url}/answer",
-                    headers=headers,
-                    json={"stream_track": "both_tracks"} # Ensure we hear both? Usually inbound.
-                )
-                if resp.status_code != 200:
-                    logging.error(f"Failed to answer: {resp.text}")
-
-            elif event_type == "call.answered":
-                # START MEDIA STREAM
-                protocol = request.url.scheme.replace("http", "ws")
-                host = request.url.netloc
-                # Hardcode WSS if behind proxy?
-                if "localhost" not in host and "127.0.0.1" not in host:
-                    protocol = "wss" # Force secure in prod
-                
-                stream_url = f"{protocol}://{host}/api/v1/ws/media-stream?client=telenyx"
-                
-                logging.info(f"🌊 Starting Media Stream to: {stream_url}")
-                resp = await client.post(
-                    f"{telenyx_api_url}/streaming_start",
-                    headers=headers,
-                    json={
-                        "stream_url": stream_url,
-                        "stream_track": "inbound_track",
-                    }
-                )
-                if resp.status_code != 200:
-                    logging.error(f"Failed to start media: {resp.text}")
-
-        return Response(status_code=200)
-
-    except Exception as e:
-        logging.error(f"Error handling Telenyx webhook: {e}")
-        return Response(status_code=500)
-
 @router.websocket("/ws/media-stream")
 async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: str = None):
     logging.info(f"Hit media_stream endpoint. Client: {client}, ID: {client_id}")

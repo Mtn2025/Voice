@@ -73,7 +73,7 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         if audio_mode == "browser":
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=16000, bits_per_sample=16, channels=1)
         else:
-             # Default to Mu-Law (Twilio/Telenyx/Telephony standard)
+             # Default to Mu-Law (Twilio standard)
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=8000, bits_per_sample=8, channels=1, wave_stream_format=speechsdk.AudioStreamWaveFormat.MULAW)
 
         push_stream = speechsdk.audio.PushAudioInputStream(stream_format=format)
