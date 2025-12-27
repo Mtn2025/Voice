@@ -38,6 +38,7 @@ class VoiceOrchestrator:
         # Flow Control State
         self.last_interaction_time = time.time()
         self.start_time = time.time()
+        self.was_interrupted = False # Track if last stop was due to interruption
 
     def _synthesize_text(self, text):
         """
@@ -186,7 +187,7 @@ class VoiceOrchestrator:
         )
         
         # Wire up Azure events
-        self.recognizer.recognizing.connect(self.handle_recognizing)
+        # connect(self.handle_recognizing) removed to avoid duplicate interruption handling
         self.recognizer.recognized.connect(self.handle_recognized)
         
         # Setup TTS
@@ -265,6 +266,21 @@ class VoiceOrchestrator:
     async def _handle_recognized_async(self, text, audio_data=None):
         logging.info(f"Azure VAD Detected: {text}")
         
+        # SMART RESUME: Check for false alarms (noise)
+        threshold = getattr(self.config, 'interruption_threshold', 5)
+        
+        if self.was_interrupted and len(text) < threshold:
+             logging.info(f"🛡️ Smart Resume Triggered! Interruption was likely noise ('{text}'). Resuming speech.")
+             self.was_interrupted = False 
+             
+             # Polite resumption
+             resume_msg = "Como le decía..."
+             asyncio.create_task(self.speak_direct(resume_msg)) 
+             # We assume the user didn't mean to interrupt, so we don't process this text as input.
+             return
+
+        self.was_interrupted = False # Reset if valid speech
+        
         # QUALITY UPGRADE: Re-transcribe with Groq Whisper if audio available
         if audio_data and len(audio_data) > 0:
             logging.info("📝 Sending audio to Groq Whisper for better transcription...")
@@ -328,6 +344,8 @@ class VoiceOrchestrator:
         logging.info(f"⚡ Interruption Handler Triggered by: '{text}'")
         
         self.is_bot_speaking = False
+        self.was_interrupted = True # Mark as interrupted
+        
         if self.response_task and not self.response_task.done():
             logging.info("🛑 Cancelling response task due to interruption.")
             self.response_task.cancel()
