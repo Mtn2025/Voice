@@ -54,8 +54,14 @@ class VoiceOrchestrator:
         # MuLaw 8kHz = 8000 bytes/sec. 20ms = 160 bytes.
         CHUNK_SIZE = 160 
         
+        chunk_count = 0
+        total_bytes = 0
+        
         for i in range(0, len(audio_data), CHUNK_SIZE):
             chunk = audio_data[i : i + CHUNK_SIZE]
+            chunk_count += 1
+            total_bytes += len(chunk)
+            
             b64_audio = base64.b64encode(chunk).decode("utf-8")
             
             msg = {
@@ -66,8 +72,8 @@ class VoiceOrchestrator:
                 msg["streamSid"] = self.stream_id
             
             await self.websocket.send_text(json.dumps(msg))
-            # Optional: Tiny yield to let event loop breathe, but usually not needed for 160b
-            # await asyncio.sleep(0) 
+            
+        logging.info(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
 
     def _synthesize_text(self, text):
         """
