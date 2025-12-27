@@ -29,13 +29,15 @@ async def incoming_call_telenyx(request: Request):
     Returns TeXML to connect the call to a Media Stream.
     """
     host = request.headers.get("host")
-    texml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Say>Conexión de prueba exitosa. Conectando al asistente.</Say>
-    <Connect>
-        <Stream url="wss://{host}/api/v1/ws/media-stream?client=telenyx" />
-    </Connect>
-</Response>"""
+    # Strict XML construction
+    texml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<Response>\n'
+        '    <Connect>\n'
+        f'        <Stream url="wss://{host}/api/v1/ws/media-stream?client=telenyx" />\n'
+        '    </Connect>\n'
+        '</Response>'
+    )
     return Response(content=texml, media_type="application/xml")
 
 from starlette.websockets import WebSocketDisconnect
