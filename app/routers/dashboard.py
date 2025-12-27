@@ -113,3 +113,14 @@ async def update_config(
         tts_provider=tts_provider
     )
     return RedirectResponse(url="/dashboard", status_code=303)
+
+@router.get("/dashboard/call/{call_id}", response_class=HTMLResponse)
+async def call_details(request: Request, call_id: int):
+    call = await db_service.get_call_details(call_id)
+    if not call:
+        raise HTTPException(status_code=404, detail="Call not found")
+    
+    return templates.TemplateResponse("call_details.html", {
+        "request": request,
+        "call": call
+    })
