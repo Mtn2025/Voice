@@ -23,23 +23,21 @@ async function toggleCall() {
 
 async function startCall() {
     try {
+        // Clear Transcript for new call
+        transcriptBox.innerHTML = "";
+
         // Enforce single connection
         if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
             console.log("Closing existing socket before starting new one.");
             socket.close();
-            // Wait a tiny bit for cleanup?
         }
         clearAudio(); // Stop any pending audio
 
         // 1. Initialize Audio Context (16kHz for consistency)
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
-        // Get persistent ID for this tab/session
-        let clientId = sessionStorage.getItem("voice_client_id");
-        if (!clientId) {
-            clientId = crypto.randomUUID();
-            sessionStorage.setItem("voice_client_id", clientId);
-        }
+        // ALWAYS generate a new ID for each call to ensure unique DB entries
+        let clientId = crypto.randomUUID();
 
         // 2. Connect WebSocket
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
