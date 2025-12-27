@@ -117,6 +117,8 @@ class VoiceOrchestrator:
                 max_dur = getattr(self.config, 'max_duration', 600)
                 if now - self.start_time > max_dur:
                      logging.info("🛑 Max duration reached. Ending call.")
+                     if self.stream_id:
+                         await db_service.log_transcript(self.stream_id, "system", "Call ended by System (Max Duration Reached)", call_db_id=self.call_db_id)
                      if self.client_type == "browser":
                          await self.websocket.close()
                      break
@@ -334,7 +336,7 @@ class VoiceOrchestrator:
             "3. If the prompt contains a script or steps, EXECUTE them, do not describe them.\n"
             "4. Keep responses concise (spoken conversation style).\n"
             "5. Do not use markdown formatting like **bold** or [brackets] in your spoken response.\n"
-            "6. Use the user's name sparingly. Confirm it once if provided, but DO NOT use it in every sentence.\n"
+            "6. NAME CONSTRAINT: Do NOT use the user's name in every response. Use it ONLY in the first greeting. Refer to them as 'usted' or implicitly. Repetitive naming is forbidden.\n"
             f"{'7. If the user asks to end the call, says goodbye, or indicates they are done, append the token [END_CALL] to the end of your response.' if getattr(self.config, 'enable_end_call', True) else ''}\n\n"
             "### CHARACTER CONFIGURATION ###\n"
             f"{base_prompt}\n"
@@ -394,6 +396,8 @@ class VoiceOrchestrator:
 
             if should_hangup:
                 logging.info("📞 LLM requested hangup. Waiting 3s for audio then closing.")
+                if self.stream_id:
+                     await db_service.log_transcript(self.stream_id, "system", "Call ended by AI ([END_CALL] token generated)", call_db_id=self.call_db_id)
                 await asyncio.sleep(3.0)
                 await self.websocket.close()
 
