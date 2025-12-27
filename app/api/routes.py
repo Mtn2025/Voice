@@ -70,27 +70,16 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 log_msg["media"]["payload"] = f"<BASE64 DATA len={len(msg['media']['payload'])}>"
             logging.warning(f"📥 WS RECEIVED | Event: {event_type} | Data: {json.dumps(log_msg)}")
 
-            # STREAM ID RECOVERY (Critical for Telenyx)
-            if not orchestrator.stream_id and "stream_id" in msg:
-                 # Telenyx sends stream_id in every ID
-                 logging.warning(f"🔄 Recovered Stream ID from '{event_type}': {msg['stream_id']}")
-                 orchestrator.stream_id = msg['stream_id']
-                 if orchestrator.call_db_id is None:
-                     orchestrator.call_db_id = await db_service.create_call(orchestrator.stream_id)
-
             if msg["event"] == "start":
                 # Ensure we see the RAW start payload to find the ID
                 logging.warning(f"🔍 START EVENT RAW: {data}") 
                 start_data = msg.get('start', {})
                 stream_sid = start_data.get('streamSid')
-                # Telenyx uses 'stream_id' (snake_case)
-                if not stream_sid:
-                    stream_sid = start_data.get('stream_id')
                 
                 if not stream_sid:
                      # Fallback
-                     stream_sid = start_data.get('callSid') or start_data.get('call_control_id') or str(uuid.uuid4())
-                     logging.warning(f"streamSid/stream_id missing. Using fallback: {stream_sid}")
+                     stream_sid = start_data.get('callSid') or str(uuid.uuid4())
+                     logging.warning(f"streamSid missing. Using fallback: {stream_sid}")
                 
                 logging.info(f"Stream started: {stream_sid}")
                 orchestrator.stream_id = stream_sid
