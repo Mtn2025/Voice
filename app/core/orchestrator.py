@@ -303,7 +303,7 @@ class VoiceOrchestrator:
         
         # Wire up Azure events
         # connect(self.handle_recognizing) removed to avoid duplicate interruption handling
-        self.recognizer.recognized.connect(self.handle_recognized)
+        self.recognizer.recognized.connect(self.handle_recognition_event)
         self.recognizer.canceled.connect(self.handle_canceled)
         self.recognizer.session_stopped.connect(self.handle_session_stopped)
         
