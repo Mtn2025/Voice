@@ -161,8 +161,10 @@ class VoiceOrchestrator:
                  logging.info("🕒 [BROWSER] Waiting for speech_ended (Response Task Done).")
 
     async def monitor_idle(self):
+        logging.warning("🏁 [MONITOR] Starting monitor_idle loop...")
         while True:
             await asyncio.sleep(1.0)
+            logging.warning("⏰ [MONITOR] Tick.") 
             try:
                 now = time.time()
                 
@@ -254,7 +256,9 @@ class VoiceOrchestrator:
             
         # Start background idle monitor
         # Start background idle monitor
+        logging.warning("🚀 [START] Creating monitor_idle task...")
         self.monitor_task = asyncio.create_task(self.monitor_idle())
+        logging.warning("🚀 [START] monitor_idle task created.")
             
         self.recognizer.start_continuous_recognition()
         
