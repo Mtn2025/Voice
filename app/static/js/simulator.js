@@ -1,12 +1,15 @@
-let socket;
-let audioContext;
-let processor;
-let inputSource;
-let analyser;
-let bgAudio;
-let localStream; // New
+// --- Global State ---
 let isCallActive = false;
+let socket = null;
+let audioContext = null;
+let processor = null;
+let inputSource = null;
+let analyser = null;
+let audioWorkletNode = null;
+let bgAudio = null;
+let localStream = null;
 let hangupPending = false;
+let allowInterruption = false; // DEAF MODE: Start false (Greeting), set true on first speech_ended
 let activeAudioSources = 0;
 let lastAudioTime = 0;
 
@@ -35,6 +38,11 @@ async function startCall() {
             socket.close();
         }
         clearAudio(); // Stop any pending audio
+
+        // Reset State
+        hangupPending = false;
+        allowInterruption = false; // Reset to Safe Mode
+        transcriptBox.innerHTML = "";
 
         // 1. Initialize Audio Context (16kHz for consistency)
         audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
@@ -112,6 +120,9 @@ async function startCall() {
                 console.log("☎️ Received server request to end call after audio.");
                 hangupPending = true;
                 checkHangup();
+            } else if (msg.event === 'mark' && msg.mark === 'speech_ended') {
+                console.log("👂 [SAFE MODE OFF] Greeting finished. Enabling interruptions.");
+                allowInterruption = true;
             }
         };
 
@@ -486,7 +497,7 @@ function startVisualizer() {
             speechFrames = 0;
         }
 
-        if (speechFrames > 8) { // ~130ms of sustained voice
+        if (allowInterruption && speechFrames > 8) { // ~130ms of sustained voice
             // console.log(`🎤 VAD Triggered (Voice Score: ${currentVoiceScore.toFixed(0)})...`);
             clearAudio(true);
             speechFrames = 0;
