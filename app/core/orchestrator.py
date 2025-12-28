@@ -381,10 +381,16 @@ class VoiceOrchestrator:
              logging.info(f"🛡️ Smart Resume Triggered! Interruption was likely noise ('{text}'). Resuming speech.")
              self.was_interrupted = False 
              
-             # Polite resumption
+             # Logic: 
+             # 1. We cancelled the previous task, so we MUST start a new one to continue speaking.
+             # 2. We use 'intro_text' to say "Como le decía..." first.
+             # 3. We insert a fake User prompt to tell the LLM to continue.
+             
              resume_msg = "Como le decía..."
-             asyncio.create_task(self.speak_direct(resume_msg)) 
-             # We assume the user didn't mean to interrupt, so we don't process this text as input.
+             self.conversation_history.append({"role": "user", "content": "(Hubo ruido de fondo, por favor continúa exactamente donde te quedaste)"})
+             
+             response_id = str(uuid.uuid4())[:8]
+             self.response_task = asyncio.create_task(self.generate_response(response_id, intro_text=resume_msg))
              return
 
         self.was_interrupted = False # Reset if valid speech
@@ -497,7 +503,7 @@ class VoiceOrchestrator:
         msg = {"event": "clear", "streamSid": self.stream_id}
         await self.websocket.send_text(json.dumps(msg))
 
-    async def generate_response(self, response_id: str):
+    async def generate_response(self, response_id: str, intro_text: str = None):
         self.is_bot_speaking = True
         full_response = ""
         logging.info(f"📝 Generating response {response_id}...")
@@ -528,6 +534,11 @@ class VoiceOrchestrator:
                 audio_data = result.audio_data
                 await self.send_audio_chunked(audio_data)
 
+
+        # 0. Speak Intro (Smart Resume)
+        if intro_text:
+             logging.info(f"🗣️ Speaking Intro: {intro_text}")
+             await process_tts(intro_text)
 
         # Prepare messages
         base_prompt = self.config.system_prompt or "You are a helpful assistant."
@@ -596,8 +607,22 @@ class VoiceOrchestrator:
         finally:
             self.last_interaction_time = time.time() 
             
-            # For Browser, we wait for 'speech_ended' event to verify playback finished
-            # For Twilio, we assume immediate completion (or handle differently)
+            # CRITICAL FIX: Save partial response to history so context isn't lost
+            if full_response and self.conversation_history[-1]["content"] != full_response:
+                 pass # Already handled by specific check below
+
+            # Update history if not already updated (Normal path updates at line 592/591)
+            # Logic: If we are here, and full_response > 0, check if it's in history.
+            is_already_saved = (len(self.conversation_history) > 0 and 
+                                self.conversation_history[-1]["role"] == "assistant" and 
+                                self.conversation_history[-1]["content"] == full_response)
+            
+            if not is_already_saved and full_response:
+                 logging.info(f"💾 Saving partial response to history: {full_response[:50]}...")
+                 self.conversation_history.append({"role": "assistant", "content": full_response})
+                 if self.stream_id: 
+                     await db_service.log_transcript(self.stream_id, "assistant", full_response + " [INTERRUPTED]", call_db_id=self.call_db_id)
+
             # For Browser, wait for speech_ended
             # For Twilio, we assume immediate completion (or handle differently)
             if self.client_type.lower() != "browser":
