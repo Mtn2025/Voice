@@ -10,20 +10,20 @@
 </head>
 
 <body class="bg-slate-900 text-slate-100 min-h-screen">
-    <div class="container mx-auto p-6">
-        <header class="mb-8 flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+    <div class="container mx-auto p-4 max-w-[1600px]"> <!-- Wider container -->
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
                 Orquestador de Voz Nativo
             </h1>
-            <div class="px-3 py-1 bg-slate-800 rounded-full text-sm">
+            <div class="px-3 py-1 bg-slate-800 rounded-full text-xs font-mono">
                 Estado: <span class="text-emerald-400">● En Línea</span>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Configuration Panel -->
-            <div class="lg:col-span-1 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
-                <h2 class="text-xl font-semibold mb-4 text-blue-300">Configuración del Agente</h2>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 relative">
+            <!-- Configuration Panel (Left, Scrollable naturally) -->
+            <div class="md:col-span-5 lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+                <h2 class="text-lg font-semibold mb-3 text-blue-300">Configuración</h2>
                 <script src="//unpkg.com/alpinejs" defer></script>
 
                 <div x-data="{ 
@@ -33,34 +33,38 @@
                     silencePhone: {{ config.silence_timeout_ms_phone or 1200 }}
                 }">
                     <!-- Tabs Header -->
-                    <div class="flex space-x-1 border-b border-slate-700 mb-6 overflow-x-auto">
+                    <div class="flex space-x-1 border-b border-slate-700 mb-4 overflow-x-auto pb-1 custom-scrollbar">
+                        <!-- ... unchanged tab buttons logic, just styling tweaks if needed ... -->
+                        <!-- Abbreviated for diff simplicity, keeping same logic -->
                         <button @click.prevent="tab = 'model'"
                             :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Modelo</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Modelo</button>
                         <button @click.prevent="tab = 'voice'"
                             :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Voz</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Voz</button>
                         <button @click.prevent="tab = 'transcriber'"
                             :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Transcriptor</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Transcriptor</button>
                         <button @click.prevent="tab = 'functions'"
                             :class="tab === 'functions' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Funciones</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Funciones</button>
                         <button @click.prevent="tab = 'advanced'"
                             :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Avanzado</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Avanzado</button>
                         <button @click.prevent="tab = 'history'"
                             :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Historial</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Historial</button>
                         <button @click.prevent="tab = 'connectivity'"
                             :class="tab === 'connectivity' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Conexión</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Conexión</button>
                     </div>
 
                     <form action="/api/config/update" method="POST" class="space-y-4">
+                        <!-- HIDDEN INPUTS AND FORM CONTENT SAME AS BEFORE (RELYING ON CONTEXT MATCH) -->
                         <input type="hidden" name="stt_provider" value="azure">
                         <input type="hidden" name="llm_provider" value="groq">
                         <input type="hidden" name="tts_provider" value="azure">
+
 
                         <!-- Tab: Model -->
                         <div x-show="tab === 'model'" class="space-y-4">
@@ -476,30 +480,33 @@
             </div>
         </div>
 
-        <!-- Simulator Panel -->
-        <div class="lg:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
-                <button id="start-btn" onclick="toggleCall()"
-                    class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
-                    Iniciar Prueba
-                </button>
-            </div>
-
-            <div
-                class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
-                <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+        <!-- Simulator Panel (Sticky, Right Side) -->
+        <div class="md:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
+                    <button id="start-btn" onclick="toggleCall()"
+                        class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
+                        Iniciar Prueba
+                    </button>
                 </div>
 
-                <!-- Visualizer Canvas -->
-                <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
-            </div>
+                <div
+                    class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                    <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                    </div>
 
-            <!-- Latest Transcript -->
-            <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
-                <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
-                <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
-                    <!-- Messages inserted by JS -->
+                    <!-- Visualizer Canvas -->
+                    <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
+                </div>
+
+                <!-- Latest Transcript -->
+                <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
+                    <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
+
+                    <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
+                        <!-- Messages inserted by JS -->
+                    </div>
                 </div>
             </div>
         </div>
