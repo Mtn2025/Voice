@@ -384,9 +384,11 @@ function startVisualizer() {
         }
 
         if (speechFrames > 10) {
-            console.log(`🎤 VAD Triggered (Sustained): Level ${average.toFixed(1)} for ${speechFrames} frames`);
-            clearAudio();
-            speechFrames = 0; // Reset after trigger to prevent spam
+            // console.log(`🎤 VAD Triggered (Sustained)...`);
+            // REMOVED: Do not stop audio locally. Let Server decide via 'clear' event.
+            // This prevents Echo from killing the playback.
+            // clearAudio(); 
+            speechFrames = 0;
         }
         // -----------------------------
         // -----------------------------

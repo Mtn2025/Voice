@@ -145,6 +145,7 @@ class VoiceOrchestrator:
             # Log
             self.conversation_history.append({"role": "assistant", "content": text})
             if self.stream_id:
+               logging.info(f"💾 [LOG-DB] ASSISTANT: {text}")
                await db_service.log_transcript(self.stream_id, "assistant", text + " [IDLE]", call_db_id=self.call_db_id)
 
         except Exception as e:
@@ -302,7 +303,7 @@ class VoiceOrchestrator:
         # TRIGGER DATA EXTRACTION
         if self.call_db_id:
             try:
-                logging.info("🔌 Running Post-Call Analysis...")
+                # logging.info("🔌 Running Post-Call Analysis...")
                 # Construct full transcript for context
                 transcript_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in self.conversation_history if msg['role'] != 'system'])
                 
@@ -329,9 +330,8 @@ class VoiceOrchestrator:
              logging.error(f"   Reason: {evt.result.cancellation_details.reason}")
 
     def handle_session_stopped(self, evt):
-        logging.warning("⚠️ Azure STT Session Stopped. Restarting?")
-        # Ideally we should restart if call is active?
-        # But 'continuous' usually runs until stop() called.
+        # Only log if relevant
+        # logging.warning("⚠️ Azure STT Session Stopped.")
         pass
         
         if len(evt.result.text.strip()) > 2 and self.is_bot_speaking:
@@ -404,7 +404,7 @@ class VoiceOrchestrator:
                 
                 groq_text = await self.llm_provider.transcribe_audio(wav_data, language=lang_code)
                 if groq_text and len(groq_text.strip()) > 0:
-                    logging.info(f"✅ Groq Whisper Result: {groq_text}")
+                    logging.info(f"🗣️ [IN] USER TEXT (Groq): {groq_text}")
                     text = groq_text
                 else:
                     logging.warning("Groq transcription empty, falling back to Azure.")
@@ -548,6 +548,7 @@ class VoiceOrchestrator:
                 full_response += text_chunk
                 sentence_buffer += text_chunk
                 if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
+                    logging.info(f"🔊 [OUT] TTS SENTENCE: {sentence_buffer}")
                     await process_tts(sentence_buffer)
                     sentence_buffer = ""
             
