@@ -111,6 +111,10 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                  # Trigger interruption logic in Orchestrator to cancel speech and reset state
                  # We pass a placeholder text to indicate source
                  await orchestrator.handle_interruption(text="[LOCAL_VAD_INTERRUPTION]")
+            
+            elif msg["event"] == "vad_stats":
+                 rms = msg.get("rms", 0.0)
+                 orchestrator.update_vad_stats(rms)
                 
     except WebSocketDisconnect:
         logging.info(f"WebSocket disconnected: {client} (ID: {client_id})")

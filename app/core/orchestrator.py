@@ -11,6 +11,52 @@ from fastapi import WebSocket
 from app.services.db_service import db_service
 from app.core.service_factory import ServiceFactory
 
+class AdaptiveInputFilter:
+    """
+    Self-calibrating VAD filter.
+    Learns user's RMS profile to distinguish Voice vs Noise.
+    """
+    def __init__(self):
+        self.samples = 0
+        self.avg_rms = 0.0
+        self.min_rms = 1.0 # Floor
+        self.max_rms = 0.0
+        self.ready = False
+        
+    def update_profile(self, rms: float):
+        if rms <= 0: return
+        self.samples += 1
+        # Simple moving average (Welford-like but simpler for now)
+        # Weight recent samples more? No, long term average is better for "User's Voice"
+        # First 50 samples: Fast learn.
+        if self.samples < 50:
+            self.avg_rms = (self.avg_rms * (self.samples - 1) + rms) / self.samples
+        else:
+            # Slow drift update (alpha=0.01)
+            self.avg_rms = (self.avg_rms * 0.99) + (rms * 0.01)
+            self.ready = True
+            
+        if rms > self.max_rms: self.max_rms = rms
+        
+    def should_filter(self, text: str, current_turn_rms: float) -> tuple[bool, str]:
+        """
+        Returns (should_filter, reason)
+        """
+        if not self.ready and self.samples < 5:
+            return False, "LEARNING_PHASE"
+
+        # 1. IMPACT NOISE FILTER (Loud but Short)
+        # Coughs, slams usually < 4 chars (e.g. empty or "A") but High RMS
+        if len(text) < 4 and current_turn_rms > (self.avg_rms * 0.8):
+             return True, "IMPACT_NOISE (Loud but Short)"
+             
+        # 2. INTENSITY FILTER (Too Quiet)
+        # If signal is < 40% of average user voice -> Ambient Noise
+        if current_turn_rms < (self.avg_rms * 0.4):
+             return True, f"TOO_QUIET (RMS {current_turn_rms:.3f} < {self.avg_rms * 0.4:.3f})"
+             
+        return False, "VALID"
+
 class VoiceOrchestrator:
     def __init__(self, websocket: WebSocket, client_type: str = "twilio"):
         """
@@ -41,7 +87,13 @@ class VoiceOrchestrator:
         # Flow Control State
         self.last_interaction_time = time.time()
         self.start_time = time.time()
+        self.last_interaction_time = time.time()
+        self.start_time = time.time()
         self.was_interrupted = False # Track if last stop was due to interruption
+        
+        # Adaptive VAD
+        self.vad_filter = AdaptiveInputFilter()
+        self.current_turn_max_rms = 0.0
 
     async def send_audio_chunked(self, audio_data: bytes):
         """
@@ -114,6 +166,13 @@ class VoiceOrchestrator:
         
         ssml = "".join(ssml_parts)
         return self.synthesizer.speak_ssml_async(ssml).get()
+
+    def update_vad_stats(self, rms: float):
+        """Called by routes.py when client sends VAD stats."""
+        # Update self-calibration profile
+        self.vad_filter.update_profile(rms)
+        self.current_turn_max_rms = rms
+        logging.info(f"📊 [VAD STATS] RMS: {rms:.4f} | Avg: {self.vad_filter.avg_rms:.4f} | Samples: {self.vad_filter.samples}")
 
     async def speak_direct(self, text: str):
         """Helper to speak text without LLM generation (e.g. Idle messages)"""
@@ -433,6 +492,16 @@ class VoiceOrchestrator:
             except Exception as e:
                 logging.error(f"Groq Transcription Failed: {e}")
 
+        # --- ADAPTIVE FILTERING ---
+        should_filter, reason = self.vad_filter.should_filter(text, self.current_turn_max_rms)
+        if should_filter:
+             logging.warning(f"🛡️ [ADAPTIVE FILTER] Ignored input '{text}'. Reason: {reason}")
+             return
+
+        # Explicit Clarification Check? 
+        # If valid but low confidence (e.g. just barely passed or very short text), assume it's ambiguous?
+        # For now, let's trust the 'should_filter' result.
+        
         logging.info(f"FINAL USER TEXT: {text}")        
 
         # ------------------------------------------------------------------
