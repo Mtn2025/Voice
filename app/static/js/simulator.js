@@ -507,19 +507,22 @@ function startVisualizer() {
         const voiceThresh = parseFloat(document.getElementById('vad-voice-threshold').value);
 
         // Logic: ONLY interrupt if VoiceScore is high enough.
-        // We use a slightly higher threshold for **Interruption** than for **Transmission** 
+        // TUNING: We use a slightly higher threshold for **Interruption** than for **Transmission** 
         // to avoid "Clipping" the bot for minor noises.
-        const interruptionThreshold = voiceThresh;
+        // UPDATE: Lowered for responsiveness as per user request.
+        const interruptionThreshold = voiceThresh * 0.9; // 10% more sensitive than gate
 
         if (currentVoiceScore > interruptionThreshold && activeSources.length > 0) {
             speechFrames++;
         } else {
+            // Decay faster instead of hard reset? No, keep it crisp.
             speechFrames = 0;
         }
 
-        if (allowInterruption && speechFrames > 8) { // ~130ms of sustained voice
-            // console.log(`🎤 VAD Triggered (Voice Score: ${currentVoiceScore.toFixed(0)})...`);
-            clearAudio(true);
+        // TUNING: Reduced from 8 (~130ms) to 4 (~60ms) for faster reaction
+        if (allowInterruption && speechFrames > 3) {
+            console.log(`🎤 [INTERRUPTION] Voice Score: ${currentVoiceScore.toFixed(0)} > ${interruptionThreshold}`);
+            clearAudio(true); // Stop IMMEDIATELY
             speechFrames = 0;
         }
         // -----------------------------
