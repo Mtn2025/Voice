@@ -34,6 +34,7 @@ class VoiceOrchestrator:
         self.push_stream = None
         self.synthesizer = None
         self.response_task = None # Track current generation task
+        self.monitor_task = None # Track idle monitor task
         
         # Flow Control State
         self.last_interaction_time = time.time()
@@ -241,7 +242,8 @@ class VoiceOrchestrator:
             self.call_db_id = await db_service.create_call(self.stream_id)
             
         # Start background idle monitor
-        asyncio.create_task(self.monitor_idle())
+        # Start background idle monitor
+        self.monitor_task = asyncio.create_task(self.monitor_idle())
             
         self.recognizer.start_continuous_recognition()
         
@@ -272,8 +274,24 @@ class VoiceOrchestrator:
              pass
 
     async def stop(self):
+        # 1. Cancel Response Task
         if self.response_task:
             self.response_task.cancel()
+            try:
+                await self.response_task
+            except asyncio.CancelledError:
+                pass
+            self.response_task = None
+
+        # 2. Cancel Monitor Task
+        if self.monitor_task:
+            self.monitor_task.cancel()
+            try:
+                await self.monitor_task
+            except asyncio.CancelledError:
+                pass
+            self.monitor_task = None
+
         if self.recognizer:
             try:
                 self.recognizer.stop_continuous_recognition()
