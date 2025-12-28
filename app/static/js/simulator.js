@@ -349,7 +349,12 @@ function playAudioChunk(base64Data) {
 
 function clearAudio(isVAD = false) {
     if (isVAD) {
-        suppressEndMark = true; // Prevent telling server we stopped
+        suppressEndMark = true; // Prevent telling server we stopped naturally
+        // NOTIFY SERVER of interruption (Fix for State Desync)
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log("⚡ Sending 'client_interruption' to Server (Local VAD).");
+            socket.send(JSON.stringify({ event: "client_interruption" }));
+        }
     }
 
     activeSources.forEach(src => {

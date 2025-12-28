@@ -365,7 +365,8 @@ class VoiceOrchestrator:
         logging.info(f"Azure VAD Detected: {text}")
         
         # FILTER: Minimum Characters (Noise Reduction)
-        min_chars = getattr(self.config, 'input_min_characters', 3)
+        # Fix: Lowered to 1 to allow "Sí", "No", "Ok"
+        min_chars = 1 
         if len(text.strip()) < min_chars:
              logging.info(f"🔇 Ignoring short input ('{text}') < {min_chars} chars.")
              return

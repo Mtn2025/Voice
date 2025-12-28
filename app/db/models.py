@@ -100,7 +100,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     
     voice_id_manual = Column(String, nullable=True) # Override standard list
     background_sound_url = Column(String, nullable=True) # External URL for ambient noise
-    input_min_characters = Column(Integer, default=3)
+    input_min_characters = Column(Integer, default=1)
     punctuation_boundaries = Column(String, nullable=True)
     
     # VAPI Stage 2: Transcriber & Functions
