@@ -230,6 +230,8 @@ class VoiceOrchestrator:
         # Wire up Azure events
         # connect(self.handle_recognizing) removed to avoid duplicate interruption handling
         self.recognizer.recognized.connect(self.handle_recognized)
+        self.recognizer.canceled.connect(self.handle_canceled)
+        self.recognizer.session_stopped.connect(self.handle_session_stopped)
         
         # Setup TTS
         self.synthesizer = self.tts_provider.create_synthesizer(voice_name=self.config.voice_name, audio_mode=self.client_type)
@@ -299,6 +301,18 @@ class VoiceOrchestrator:
         # Reset Idle Timer also on partial speech to avoid interrupting mid-sentence if slow
         self.last_interaction_time = time.time()
         
+    def handle_canceled(self, evt):
+        logging.error(f"❌ Azure STT Canceled: {evt.result.reason}")
+        if evt.result.cancellation_details:
+             logging.error(f"   Details: {evt.result.cancellation_details.error_details}")
+             logging.error(f"   Reason: {evt.result.cancellation_details.reason}")
+
+    def handle_session_stopped(self, evt):
+        logging.warning("⚠️ Azure STT Session Stopped. Restarting?")
+        # Ideally we should restart if call is active?
+        # But 'continuous' usually runs until stop() called.
+        pass
+        
         if len(evt.result.text.strip()) > 2 and self.is_bot_speaking:
             logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
@@ -320,6 +334,13 @@ class VoiceOrchestrator:
 
     async def _handle_recognized_async(self, text, audio_data=None):
         logging.info(f"Azure VAD Detected: {text}")
+        
+        # FILTER: Minimum Characters (Noise Reduction)
+        min_chars = getattr(self.config, 'input_min_characters', 3)
+        if len(text.strip()) < min_chars:
+             logging.info(f"🔇 Ignoring short input ('{text}') < {min_chars} chars.")
+             return
+
         
         # SMART RESUME: Check for false alarms (noise)
         if self.client_type == "browser":

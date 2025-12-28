@@ -164,7 +164,15 @@ function stopCall(immediate = true) {
 }
 
 async function setupAudioCapture() {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    localStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 16000
+        }
+    });
     inputSource = audioContext.createMediaStreamSource(localStream);
 
     // 1. Analyser for VAD (Direct Mic Connection)
