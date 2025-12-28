@@ -66,9 +66,15 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         """
         self.speech_config.speech_recognition_language = language
         
-        # Apply Timeouts Dynamically
-        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, str(initial_silence_ms))
+        # Apply Timeouts Dynamically - Set to "Infinity" to let Orchestrator manage state
+        # 1. InitialSilence: Time before user *starts* speaking (Default is often 5s). 
+        #    If greeting is long, this kills the session. Set to 20 days.
+        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "1728000000") 
+        # 2. EndSilence: Time after speech to consider "phrase" done. 
+        #    We want short latency, but let's stick to the config if valid, else 1000ms.
         self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, str(segmentation_silence_ms))
+        # 3. Connection Silence: Keepalive.
+        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_RecognitionEndpointVersion, "1")
         
         if audio_mode == "browser":
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=16000, bits_per_sample=16, channels=1)
