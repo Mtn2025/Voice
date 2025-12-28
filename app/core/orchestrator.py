@@ -413,9 +413,25 @@ class VoiceOrchestrator:
 
         logging.info(f"FINAL USER TEXT: {text}")        
 
-        # Overlap Detection Logic
+        # ------------------------------------------------------------------
+        # SMART INTERRUPTION LOGIC
+        # If Bot is speaking, we must be strict about what counts as "New Input"
+        # to avoid Echo triggering a new turn.
+        # ------------------------------------------------------------------
         if self.is_bot_speaking:
-            logging.warning(f"⚠️ OVERLAP DETECTED: User spoke while Bot was speaking. Current task will be cancelled.")
+            # Check Threshold
+            if self.client_type == "browser":
+                 threshold = getattr(self.config, 'interruption_threshold', 10)
+            else:
+                 threshold = getattr(self.config, 'interruption_threshold_phone', 5)
+            
+            if len(text) < threshold:
+                 logging.info(f"🛡️ IGNORED ECHO/NOISE: '{text}' (Length {len(text)} < Threshold {threshold}) while Bot speaking.")
+                 # Do NOT cancel current task. Do NOT start new task.
+                 # Just treat this as noise.
+                 return
+
+            logging.warning(f"⚠️ OVERLAP DETECTED: User spoke ('{text}') while Bot was speaking. Cancelling current speech.")
         
         # Cancel any ongoing response generation (e.g. overlapping turns or fragmented speech)
         if self.response_task and not self.response_task.done():

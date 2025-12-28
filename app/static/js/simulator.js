@@ -207,9 +207,9 @@ async function setupAudioCapture() {
         // We raise the gate threshold to block it.
         // Thresholds: 
         // - 0.01: Base noise floor (Silence)
-        // - 0.05: Moderate Echo / Ambient
+        // - 0.10: Moderate Echo / Ambient (Raised from 0.05)
         // - 0.1+: Active Speech
-        const gateThreshold = (activeSources.length > 0) ? 0.05 : 0.01;
+        const gateThreshold = (activeSources.length > 0) ? 0.10 : 0.01;
 
         // Convert Float32 to Int16
         const buffer = new ArrayBuffer(inputData.length * 2);
