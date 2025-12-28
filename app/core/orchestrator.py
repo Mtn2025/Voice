@@ -433,7 +433,10 @@ class VoiceOrchestrator:
             else:
                  threshold = getattr(self.config, 'interruption_threshold_phone', 5)
             
-            if len(text) < threshold:
+            # STOP WORD BYPASS (If user says "Espera", "Para", etc. interrupt immediately)
+            is_stop_command = any(word in text.lower() for word in ["espera", "para", "alto", "stop", "oye", "disculpa", "perdona"])
+            
+            if len(text) < threshold and not is_stop_command:
                  logging.info(f"🛡️ IGNORED ECHO/NOISE: '{text}' (Length {len(text)} < Threshold {threshold}) while Bot speaking.")
                  # Do NOT cancel current task. Do NOT start new task.
                  # Just treat this as noise.
