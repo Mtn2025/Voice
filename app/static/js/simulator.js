@@ -381,6 +381,36 @@ function arrayBufferToBase64(buffer) {
     return window.btoa(binary);
 }
 
+// --- Persistence & Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Load Saved Values
+    const savedSens = localStorage.getItem('vad-sensitivity');
+    const savedVoice = localStorage.getItem('vad-voice-threshold');
+
+    if (savedSens) {
+        const el = document.getElementById('vad-sensitivity');
+        if (el) {
+            el.value = savedSens;
+            document.getElementById('vad-sens-val').innerText = savedSens;
+        }
+    }
+    if (savedVoice) {
+        const el = document.getElementById('vad-voice-threshold');
+        if (el) {
+            el.value = savedVoice;
+            document.getElementById('vad-voice-val').innerText = savedVoice;
+        }
+    }
+
+    // Attach Save Listeners
+    document.getElementById('vad-sensitivity')?.addEventListener('input', (e) => {
+        localStorage.setItem('vad-sensitivity', e.target.value);
+    });
+    document.getElementById('vad-voice-threshold')?.addEventListener('input', (e) => {
+        localStorage.setItem('vad-voice-threshold', e.target.value);
+    });
+});
+
 function startVisualizer() {
     if (!analyser) return;
 
@@ -402,31 +432,40 @@ function startVisualizer() {
         let x = 0;
 
         // --- Local VAD (Barge-In) ---
-        let speechSum = 0;
-        let speechBins = 0;
-
-        // FFT Size 2048 @ 16kHz = ~7.8Hz per bin
-        // Range: 80Hz (Bin 10) to 1500Hz (Bin 200)
-        const startBin = 10;
-        const endBin = 200;
-
-        for (let i = startBin; i < endBin; i++) {
-            speechSum += dataArray[i];
-            speechBins++;
+        // Calculate Voice Score (Same logic as onaudioprocess)
+        // Range: 80Hz (Bin 10) to 1500Hz (Bin 195)
+        let voiceSum = 0;
+        let voiceBins = 0;
+        for (let i = 10; i < 195; i++) {
+            voiceSum += dataArray[i];
+            voiceBins++;
         }
-        const average = speechSum / speechBins;
+        const currentVoiceScore = voiceSum / voiceBins;
 
-        // Threshold tuning
-        if (average > 35 && activeSources.length > 0) {
+        // Approximate RMS from Freq Data (Not perfect but fast)
+        // Actually, let's use the Voice Score as the main trigger for barge-in
+        // It's safer than raw volume.
+
+        // Read Current Thresholds
+        const micSens = parseFloat(document.getElementById('vad-sensitivity').value) * 255 * 2; // Rough mapping to 0-255 scale? No, keep separate.
+        // Actually we don't have RMS here easily without re-calculating from time domain or passing it.
+        // But we can trust VoiceScore for "Speech" detection.
+
+        const voiceThresh = parseFloat(document.getElementById('vad-voice-threshold').value);
+
+        // Logic: ONLY interrupt if VoiceScore is high enough.
+        // We use a slightly higher threshold for **Interruption** than for **Transmission** 
+        // to avoid "Clipping" the bot for minor noises.
+        const interruptionThreshold = voiceThresh;
+
+        if (currentVoiceScore > interruptionThreshold && activeSources.length > 0) {
             speechFrames++;
         } else {
             speechFrames = 0;
         }
 
-        if (speechFrames > 10) {
-            // console.log(`🎤 VAD Triggered (Sustained)...`);
-            // ENABLED: Stop audio locally immediately.
-            // FLAG: True (Suppress 'speech_ended' to allowing server streaming to continue if echo)
+        if (speechFrames > 8) { // ~130ms of sustained voice
+            // console.log(`🎤 VAD Triggered (Voice Score: ${currentVoiceScore.toFixed(0)})...`);
             clearAudio(true);
             speechFrames = 0;
         }
