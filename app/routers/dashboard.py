@@ -62,7 +62,9 @@ async def update_config(
 
 
 
+
     # 🔒 LOCKED: MODEL & CORE ARGS (DO NOT EDIT)
+    # (Includes Voice Settings above)
     # Stage 1: Model & Voice
     first_message: str = Form("Hola, soy Andrea..."),
     first_message_mode: str = Form("speak-first"),
@@ -95,6 +97,7 @@ async def update_config(
         voice_speed=voice_speed,
         voice_speed_phone=voice_speed_phone,
         voice_name=voice_name,
+        voice_style=voice_style, # FIXED: Was missing
         stt_language=stt_language,
         llm_model=llm_model,
         background_sound=background_sound,

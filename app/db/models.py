@@ -116,8 +116,6 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     transfer_phone_number = Column(String, nullable=True)
     
     # Flow Control (Legacy/Simple)
-    idle_timeout = Column(Float, default=10.0) 
-    idle_message = Column(String, default="¿Hola? ¿Sigue ahí?")
-    max_duration = Column(Integer, default=600)
+
     
     is_active = Column(Boolean, default=True)
