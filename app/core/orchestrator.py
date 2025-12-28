@@ -445,6 +445,12 @@ class VoiceOrchestrator:
         self.last_interaction_time = time.time()
         logging.warning(f"✅ [VALID INPUT] '{text}' passed filter ({len(text)} chars). Timer Reset.")
 
+        # CRITICAL FIX: TRIGGER INTERRUPTION IF BOT IS SPEAKING
+        if self.is_bot_speaking:
+            logging.warning(f"⚡ [INTERRUPTION] User spoke while bot was speaking. Stopping audio.")
+            # We treat this as a server-side interruption event
+            await self.handle_interruption(text)
+
         
         # SMART RESUME: Check for false alarms (noise)
         if self.client_type == "browser":
