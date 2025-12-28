@@ -109,6 +109,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     segmentation_max_time = Column(Integer, default=30000) # ms (max phrase duration)
     segmentation_strategy = Column(String, default="default") # default, time, semantic
     enable_denoising = Column(Boolean, default=True)
+    initial_silence_timeout_ms = Column(Integer, default=5000) # Time to wait for start of speech
     
     enable_end_call = Column(Boolean, default=True)
     enable_dial_keypad = Column(Boolean, default=False)

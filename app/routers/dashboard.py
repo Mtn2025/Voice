@@ -75,6 +75,7 @@ async def update_config(
     segmentation_max_time: int = Form(30000),
     segmentation_strategy: str = Form("default"),
     enable_denoising: bool = Form(True), # Careful with boolean checkbox
+    initial_silence_timeout_ms: int = Form(5000), # New
     
     # Stage 2: Functions
     enable_end_call: bool = Form(True),
@@ -114,6 +115,7 @@ async def update_config(
         segmentation_max_time=segmentation_max_time,
         segmentation_strategy=segmentation_strategy,
         enable_denoising=enable_denoising,
+        initial_silence_timeout_ms=initial_silence_timeout_ms,
         
         enable_end_call=enable_end_call,
         enable_dial_keypad=enable_dial_keypad,

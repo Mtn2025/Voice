@@ -224,6 +224,7 @@ class VoiceOrchestrator:
             audio_mode=self.client_type,
             on_interruption_callback=self.handle_interruption,
             event_loop=self.loop,
+            initial_silence_ms=getattr(self.config, 'initial_silence_timeout_ms', 5000),
             segmentation_silence_ms=silence_timeout
         )
         
