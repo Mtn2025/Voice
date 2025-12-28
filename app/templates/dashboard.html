@@ -370,11 +370,15 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium mb-1">Límites de Puntuación</label>
-                                        <input type="text" name="punctuation_boundaries"
-                                            value="{{ config.punctuation_boundaries or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"
-                                            placeholder="Ej: . ? !">
-                                        <p class="text-xs text-slate-500 mt-1">Opcional. Segmentar por puntuación.</p>
+                                    </div>
+                                    <div class="mt-4 border-t border-slate-700 pt-4">
+                                        <label class="block text-sm font-medium mb-1">Filtro de Ruido (Min.
+                                            Caracteres)</label>
+                                        <input type="number" id="form-input-min-chars" name="input_min_characters"
+                                            value="{{ config.input_min_characters or 1 }}" min="0" max="50"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                        <p class="text-xs text-slate-500 mt-1">Ignora frases con menos de X caracteres
+                                            (Ruido corto).</p>
                                     </div>
                                 </div>
                             </div>
