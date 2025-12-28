@@ -352,8 +352,8 @@ class VoiceOrchestrator:
 
     def handle_recognized(self, evt):
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            self.last_interaction_time = time.time() # Reset Idle Timer ONLY on valid speech
-            logging.warning(f"🗣️ [RECOGNIZED] Valid Speech Detected. Timer Reset.")
+            # self.last_interaction_time = time.time() # MOVED TO ASYNC HANDLER (Only reset if valid length)
+            # logging.warning(f"🗣️ [RECOGNIZED] Valid Speech Detected. Timer Reset.")
             # Azure Text (Fast but maybe inaccurate)
             azure_text = evt.result.text
             if not azure_text: return
@@ -369,11 +369,14 @@ class VoiceOrchestrator:
         logging.info(f"Azure VAD Detected: {text}")
         
         # FILTER: Minimum Characters (Noise Reduction)
-        # Fix: Lowered to 1 to allow "Sí", "No", "Ok"
-        min_chars = 1 
+        min_chars = getattr(self.config, 'input_min_characters', 1) 
         if len(text.strip()) < min_chars:
              logging.info(f"🔇 Ignoring short input ('{text}') < {min_chars} chars.")
              return
+        
+        # VALID INPUT - RESET IDLE TIMER HERE
+        self.last_interaction_time = time.time()
+        logging.warning(f"✅ [VALID INPUT] '{text}' passed filter ({len(text)} chars). Timer Reset.")
 
         
         # SMART RESUME: Check for false alarms (noise)
