@@ -304,8 +304,10 @@ class VoiceOrchestrator:
         # Wire up Azure events
         # connect(self.handle_recognizing) removed to avoid duplicate interruption handling
         self.recognizer.recognized.connect(self.handle_recognition_event)
+        self.recognizer.recognizing.connect(self.handle_recognition_event) # Connect Recognizing too for debugging
         self.recognizer.canceled.connect(self.handle_canceled)
         self.recognizer.session_stopped.connect(self.handle_session_stopped)
+        self.recognizer.session_started.connect(lambda evt: logging.warning("🟢 [AZURE] Session Started"))
         
         # Setup TTS
         self.synthesizer = self.tts_provider.create_synthesizer(voice_name=self.config.voice_name, audio_mode=self.client_type)
@@ -761,10 +763,9 @@ class VoiceOrchestrator:
             
             audio_bytes = base64.b64decode(payload)
             
-            # VERBOSE AUDIO LOGGING (Requested by User)
+            # log to warning to ensure visibility
             if len(audio_bytes) > 0:
-                 # SPAM WARNING: Logging every packet as requested
-                 logging.info(f"🎤 [AUDIO IN] Processed {len(audio_bytes)} bytes -> Azure PushStream")
+                 logging.warning(f"🎤 [AUDIO IN] Processed {len(audio_bytes)} bytes -> Azure PushStream")
             
             self.push_stream.write(audio_bytes)
             self.user_audio_buffer.extend(audio_bytes)
