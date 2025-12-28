@@ -44,7 +44,8 @@
                     {% endif %}
                 </div>
                 <div>
-                    <span class="font-semibold text-slate-300">Estado:</span> {{ call.status }}
+                    <span class="font-semibold text-slate-300">Estado:</span> {{ 'Completada' if call.status ==
+                    'completed' else 'En Curso' if call.status == 'in-progress' else call.status }}
                 </div>
             </div>
         </div>
@@ -63,7 +64,9 @@
                         {{ 'bg-green-600 text-white' if call.extracted_data.get('interest_level') == 'HIGH' else 
                            'bg-yellow-600 text-white' if call.extracted_data.get('interest_level') == 'MEDIUM' else 
                            'bg-slate-600 text-slate-300' }}">
-                        {{ call.extracted_data.get('interest_level') or 'UNKNOWN' }}
+                        {% set interest = call.extracted_data.get('interest_level') %}
+                        {{ 'ALTO' if interest == 'HIGH' else 'MEDIO' if interest == 'MEDIUM' else 'BAJO' if interest ==
+                        'LOW' else 'DESCONOCIDO' }}
                     </span>
                 </div>
                 <div>

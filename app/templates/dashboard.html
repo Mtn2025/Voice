@@ -181,7 +181,7 @@
                                 // Init
                                 document.addEventListener('DOMContentLoaded', updateStyles);
                             </script>
-                            <label class="block text-sm font-medium mb-1">Voice Speed: <span id="speed-val">{{
+                            <label class="block text-sm font-medium mb-1">Velocidad de Voz: <span id="speed-val">{{
                                     config.voice_speed }}</span></label>
                             <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
                                 value="{{ config.voice_speed }}" class="w-full"
@@ -190,15 +190,16 @@
                             <div class="border-t border-slate-700 my-4 pt-4">
 
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Manual Voice ID (Override)</label>
+                                    <label class="block text-sm font-medium mb-1">ID de Voz Manual
+                                        (Sobrescribir)</label>
                                     <input type="text" name="voice_id_manual" value="{{ config.voice_id_manual or '' }}"
                                         class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
-                                        placeholder="e.g. en-US-DavisNeural">
+                                        placeholder="ej. en-US-DavisNeural">
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Background Sound</label>
+                                        <label class="block text-sm font-medium mb-1">Sonido de Fondo</label>
                                         <select name="background_sound"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
                                             <option value="none" {% if config.background_sound=='none' %}selected{%
@@ -215,7 +216,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Input Min Characters</label>
+                                        <label class="block text-sm font-medium mb-1">Mínimo Caracteres Entrada</label>
                                         <input type="number" name="input_min_characters"
                                             value="{{ config.input_min_characters }}"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
@@ -223,12 +224,12 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Background Sound URL
-                                        (External)</label>
+                                    <label class="block text-sm font-medium mb-1">URL Sonido de Fondo
+                                        (Externo)</label>
                                     <input type="text" name="background_sound_url"
                                         value="{{ config.background_sound_url or '' }}"
                                         class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
-                                        placeholder="https://example.com/ambience.mp3">
+                                        placeholder="https://example.com/ambiente.mp3">
                                 </div>
                             </div>
                         </div>
@@ -351,13 +352,13 @@
 
                         <!-- Tab: Functions -->
                         <div x-show="tab === 'functions'" class="space-y-4" style="display: none;">
-                            <h3 class="text-sm font-semibold text-blue-300">Predefined Functions</h3>
+                            <h3 class="text-sm font-semibold text-blue-300">Funciones Predefinidas</h3>
 
                             <div
                                 class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
                                 <div>
-                                    <h4 class="font-medium">Enable End Call Function</h4>
-                                    <p class="text-xs text-slate-400">Allows assistant to hang up.</p>
+                                    <h4 class="font-medium">Habilitar Función "Colgar"</h4>
+                                    <p class="text-xs text-slate-400">Permite al asistente terminar la llamada.</p>
                                 </div>
                                 <div class="flex items-center">
                                     <input type="hidden" name="enable_end_call" value="false">
@@ -370,8 +371,8 @@
                             <div
                                 class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
                                 <div>
-                                    <h4 class="font-medium">Enable Dial Keypad</h4>
-                                    <p class="text-xs text-slate-400">Allows dialing digits.</p>
+                                    <h4 class="font-medium">Habilitar Teclado Numérico</h4>
+                                    <p class="text-xs text-slate-400">Permite marcar extensiones o números.</p>
                                 </div>
                                 <div class="flex items-center">
                                     <input type="hidden" name="enable_dial_keypad" value="false">
@@ -382,20 +383,20 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium mb-1">Transfer Phone Number</label>
+                                <label class="block text-sm font-medium mb-1">Número para Transferencia</label>
                                 <input type="text" name="transfer_phone_number"
                                     value="{{ config.transfer_phone_number or '' }}"
                                     class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
-                                    placeholder="+1...">
+                                    placeholder="+52...">
                             </div>
                         </div>
 
                         <!-- Tab: Advanced -->
                         <div x-show="tab === 'advanced'" class="space-y-4" style="display: none;">
-                            <h3 class="text-sm font-semibold text-blue-300">Control de Flujo (Legacy)</h3>
+                            <h3 class="text-sm font-semibold text-blue-300">Control de Flujo (Heredado)</h3>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Idle Timeout (s)</label>
+                                    <label class="block text-sm font-medium mb-1">Tiempo Espera Inactividad (s)</label>
                                     <input type="number" name="idle_timeout" step="0.5"
                                         value="{{ config.idle_timeout }}"
                                         class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
@@ -407,7 +408,7 @@
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Mensaje Idle</label>
+                                <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
                                 <input type="text" name="idle_message" value="{{ config.idle_message }}"
                                     class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                             </div>
