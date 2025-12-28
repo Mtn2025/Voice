@@ -153,8 +153,12 @@ class VoiceOrchestrator:
         finally:
             self.last_interaction_time = time.time()
             # For Browser, wait for speech_ended
-            if self.client_type != "browser":
+            # For Browser, wait for speech_ended
+            # For Twilio, we assume immediate completion (or handle differently)
+            if self.client_type.lower() != "browser":
                 self.is_bot_speaking = False
+            else:
+                 logging.info("🕒 [BROWSER] Waiting for speech_ended (Response Task Done).")
 
     async def monitor_idle(self):
         while True:
@@ -174,6 +178,10 @@ class VoiceOrchestrator:
                 
                 # Idle Check (Only if not speaking)
                 idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
+                # Idle Check (Only if not speaking)
+                idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
+                # logging.info(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | Type: {self.client_type}")
+                
                 if not self.is_bot_speaking and (now - self.last_interaction_time > idle_timeout):
                      logging.info(f"💤 Idle timeout ({idle_timeout}s) reached. Triggering prompt.")
                      msg = getattr(self.config, 'idle_message', "¿Hola? ¿Sigue ahí?")
@@ -587,8 +595,12 @@ class VoiceOrchestrator:
             
             # For Browser, we wait for 'speech_ended' event to verify playback finished
             # For Twilio, we assume immediate completion (or handle differently)
-            if self.client_type != "browser":
+            # For Browser, wait for speech_ended
+            # For Twilio, we assume immediate completion (or handle differently)
+            if self.client_type.lower() != "browser":
                 self.is_bot_speaking = False
+            else:
+                 logging.info("🕒 [BROWSER] Waiting for speech_ended (Response Task Done).")
 
             if should_hangup:
                 logging.info("📞 LLM requested hangup. Sending End-Control-Packet.")
