@@ -525,7 +525,8 @@
                                     <span id="vad-sens-val" class="text-emerald-400">0.05</span>
                                 </label>
                                 <input type="range" id="vad-sensitivity" min="0.005" max="0.2" step="0.005" value="0.05"
-                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                    oninput="document.getElementById('vad-sens-val').innerText = this.value">
                                 <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-rms"
                                         class="font-mono text-blue-400">0.00</span> | Mínimo ruido</p>
                             </div>
@@ -535,7 +536,8 @@
                                     <span id="vad-voice-val" class="text-emerald-400">45</span>
                                 </label>
                                 <input type="range" id="vad-voice-threshold" min="0" max="100" step="5" value="45"
-                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                    oninput="document.getElementById('vad-voice-val').innerText = this.value">
                                 <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-voice"
                                         class="font-mono text-blue-400">0</span> | Calidad Voz</p>
                             </div>
