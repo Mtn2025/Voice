@@ -80,7 +80,9 @@ async def update_config(
     segmentation_strategy: str = Form("default"),
     enable_denoising: bool = Form(True), # Careful with boolean checkbox
     initial_silence_timeout_ms: int = Form(5000), # New
+    punctuation_boundaries: str = Form(None), # New - FIXED
     
+    # 🔒 LOCKED: TRANSCRIBING & FUNCTIONS (DO NOT EDIT)
     # Stage 2: Functions
     enable_end_call: bool = Form(True),
     enable_dial_keypad: bool = Form(False),
@@ -121,6 +123,7 @@ async def update_config(
         segmentation_strategy=segmentation_strategy,
         enable_denoising=enable_denoising,
         initial_silence_timeout_ms=initial_silence_timeout_ms,
+        punctuation_boundaries=punctuation_boundaries, # FIXED
         
         enable_end_call=enable_end_call,
         enable_dial_keypad=enable_dial_keypad,
