@@ -525,14 +525,21 @@ class VoiceOrchestrator:
             # Note: We are using the Azure SDK directly here via the provider
             # Ideally this logic is inside the provider's synthesize_stream
             # Wrapper for non-blocking execution of blocking Azure SDK call
+            # Wrapper for non-blocking execution of blocking Azure SDK call
             def synthesize_blocking():
-                return self._synthesize_text(text_chunk)
+                try:
+                    return self._synthesize_text(text_chunk)
+                except Exception as e:
+                    logging.error(f"TTS Synthesis Failed: {e}")
+                    return None
 
             # Run in thread pool to avoid blocking asyncio loop
             try:
                 result = await asyncio.to_thread(synthesize_blocking)
             except asyncio.CancelledError:
                 return
+            
+            if not result: return
 
             # CRITICAL: Check if we were interrupted DURING synthesis
             if not self.is_bot_speaking: 
@@ -586,21 +593,36 @@ class VoiceOrchestrator:
             ):
                 if not self.is_bot_speaking: break
                 
-                # Check for Hangup Token
-                if "[END_CALL]" in text_chunk:
-                    should_hangup = True
-                    text_chunk = text_chunk.replace("[END_CALL]", "")
-                
                 full_response += text_chunk
                 sentence_buffer += text_chunk
+
+                # ROBUST TOKEN DETECTION: Check buffer, not just chunk
+                if "[END_CALL]" in sentence_buffer:
+                    should_hangup = True
+                    sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                
+                # Logic: Flush on punctuation, but keep a small buffer (tail) if we suspect a split token?
+                # Simpler: Just check split. If [END is at the end, don't flush yet?
+                # For now, the replacement above handles the case where it fully arrived.
+                # To handle split e.g. "Bye [END", we should wait.
+                
+                # Check if buffer ends with partial token
+                if sentence_buffer.endswith("[") or sentence_buffer.endswith("[END") or sentence_buffer.endswith("[END_"):
+                     continue # Wait for next chunk
+
                 if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
+                    # Safety clean again just in case
+                    if "[END_CALL]" in sentence_buffer:
+                         should_hangup = True
+                         sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                         
                     logging.info(f"🔊 [OUT] TTS SENTENCE: {sentence_buffer}")
                     await process_tts(sentence_buffer)
                     sentence_buffer = ""
             
             # Process remaining buffer
             if sentence_buffer and self.is_bot_speaking:
-                if "[END_CALL]" in sentence_buffer: # Redundant check
+                if "[END_CALL]" in sentence_buffer: 
                      should_hangup = True
                      sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
                 await process_tts(sentence_buffer)
@@ -612,6 +634,8 @@ class VoiceOrchestrator:
             
         except asyncio.CancelledError:
             logging.info("Response generation cancelled.")
+        except Exception as e:
+            logging.error(f"Generate Response Critical Error: {e}", exc_info=True)
         finally:
             self.last_interaction_time = time.time() 
             
