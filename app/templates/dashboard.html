@@ -36,22 +36,22 @@
                     <div class="flex space-x-1 border-b border-slate-700 mb-6 overflow-x-auto">
                         <button @click.prevent="tab = 'model'"
                             :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Model</button>
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Modelo</button>
                         <button @click.prevent="tab = 'voice'"
                             :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Voice</button>
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Voz</button>
                         <button @click.prevent="tab = 'transcriber'"
                             :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Transcriber</button>
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Transcriptor</button>
                         <button @click.prevent="tab = 'functions'"
                             :class="tab === 'functions' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Functions</button>
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Funciones</button>
                         <button @click.prevent="tab = 'advanced'"
                             :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Advanced</button>
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Avanzado</button>
                         <button @click.prevent="tab = 'history'"
                             :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">History</button>
+                            class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Historial</button>
                         <button @click.prevent="tab = 'connectivity'"
                             :class="tab === 'connectivity' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
                             class="px-4 py-2 border-b-2 font-medium focus:outline-none transition-colors whitespace-nowrap">Conexión</button>
@@ -64,6 +64,7 @@
 
                         <!-- Tab: Model -->
                         <div x-show="tab === 'model'" class="space-y-4">
+                            <!-- ... existing model content ... -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium mb-1">Modelo Cerebral (Conversación)</label>
@@ -97,19 +98,19 @@
                             </div>
 
                             <div class="border border-slate-700 rounded p-3 bg-slate-800/50">
-                                <label class="block text-sm font-medium mb-2">First Message Mode</label>
+                                <label class="block text-sm font-medium mb-2">Modo del Primer Mensaje</label>
                                 <select name="first_message_mode"
                                     class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 mb-3">
                                     <option value="speak-first" {% if config.first_message_mode=='speak-first'
-                                        %}selected{% endif %}>Assistant Speaks First (Default)</option>
+                                        %}selected{% endif %}>Asistente Habla Primero (Default)</option>
                                     <option value="wait-for-user" {% if config.first_message_mode=='wait-for-user'
-                                        %}selected{% endif %}>Assistant Waits for User</option>
+                                        %}selected{% endif %}>Asistente Espera al Usuario</option>
                                     <option value="speak-first-dynamic" {% if
-                                        config.first_message_mode=='speak-first-dynamic' %}selected{% endif %}>Assistant
-                                        Speaks First (Dynamic Generated)</option>
+                                        config.first_message_mode=='speak-first-dynamic' %}selected{% endif %}>Asistente
+                                        Habla Primero (Generado Dinámicamente)</option>
                                 </select>
 
-                                <label class="block text-sm font-medium mb-1">First Message Content</label>
+                                <label class="block text-sm font-medium mb-1">Contenido del Primer Mensaje</label>
                                 <input type="text" name="first_message" value="{{ config.first_message }}"
                                     class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
                                     placeholder="Hola...">
@@ -131,6 +132,7 @@
 
                         <!-- Tab: Voice -->
                         <div x-show="tab === 'voice'" class="space-y-4" style="display: none;">
+                            <!-- ... existing voice content ... -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium mb-1">Voz (TTS)</label>
@@ -184,7 +186,6 @@
                             <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
                                 value="{{ config.voice_speed }}" class="w-full"
                                 oninput="document.getElementById('speed-val').innerText = this.value">
-                            <!-- Removed premature closing div -->
 
                             <div class="border-t border-slate-700 my-4 pt-4">
 
@@ -230,9 +231,9 @@
                                         placeholder="https://example.com/ambience.mp3">
                                 </div>
                             </div>
-                        </div> <!-- Added closing div for Voice Tab -->
+                        </div>
 
-                        <!-- Tab: Transcriber -->
+                        <!-- Tab: Transcriber (Updated with Segmentation) -->
                         <div x-show="tab === 'transcriber'" class="space-y-4" style="display: none;">
                             <div>
                                 <label class="block text-sm font-medium mb-1">Idioma de Transcripción</label>
@@ -246,10 +247,48 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
-                                <label class="block text-sm font-medium mb-1">Segmentation Silence Timeout
-                                    (ms)</label>
-                                <input type="number" name="silence_timeout_ms" value="{{ config.silence_timeout_ms }}"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Silence Timeout (General) (ms)</label>
+                                    <input type="number" name="silence_timeout_ms"
+                                        value="{{ config.silence_timeout_ms }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Segmentation Max Time (ms)</label>
+                                    <input type="number" name="segmentation_max_time"
+                                        value="{{ config.segmentation_max_time }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                </div>
+                            </div>
+
+                            <!-- Moved from Connectivity -->
+                            <div class="space-y-4 pt-4 border-t border-slate-700 mt-4">
+                                <h4 class="text-sm font-medium text-slate-300">Configuración Avanzada de Audio</h4>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Estrategia de Segmentación</label>
+                                    <select name="segmentation_strategy"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                        <option value="default" {% if config.segmentation_strategy=='default'
+                                            %}selected{% endif %}>
+                                            Default (Best Guess)</option>
+                                        <option value="time" {% if config.segmentation_strategy=='time' %}selected{%
+                                            endif %}>
+                                            Basada en Tiempo
+                                        </option>
+                                        <option value="semantic" {% if config.segmentation_strategy=='semantic'
+                                            %}selected{% endif %}>
+                                            Semántica (NLP)</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex items-center pt-2">
+                                    <input type="hidden" name="enable_denoising" value="false">
+                                    <input type="checkbox" name="enable_denoising" value="true"
+                                        class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
+                                        config.enable_denoising %}checked{% endif %}>
+                                    <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido
+                                        (Denoising)</label>
+                                </div>
                             </div>
                         </div>
 
@@ -306,42 +345,6 @@
                                             (Recomendado: 1000-1500ms)
                                         </p>
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Segmentation & Denoising (Now correctly inside Connectivity) -->
-                            <div class="space-y-4 pt-4 border-t border-slate-700 mt-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Segmentation Max Time (ms)</label>
-                                    <input type="number" name="segmentation_max_time"
-                                        value="{{ config.segmentation_max_time }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Segmentation Strategy</label>
-                                    <select name="segmentation_strategy"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        <option value="default" {% if config.segmentation_strategy=='default'
-                                            %}selected{% endif %}>
-                                            Default (Best Guess)</option>
-                                        <option value="time" {% if config.segmentation_strategy=='time' %}selected{%
-                                            endif %}>
-                                            Time
-                                            Based
-                                        </option>
-                                        <option value="semantic" {% if config.segmentation_strategy=='semantic'
-                                            %}selected{% endif %}>
-                                            Semantic (NLP)</option>
-                                    </select>
-                                </div>
-
-                                <div class="flex items-center pt-2">
-                                    <input type="hidden" name="enable_denoising" value="false">
-                                    <input type="checkbox" name="enable_denoising" value="true"
-                                        class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
-                                        config.enable_denoising %}checked{% endif %}>
-                                    <label class="text-sm font-medium ml-2">Enable Background Denoising</label>
                                 </div>
                             </div>
                         </div>
