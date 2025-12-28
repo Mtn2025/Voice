@@ -446,6 +446,10 @@ class VoiceOrchestrator:
         logging.warning(f"✅ [VALID INPUT] '{text}' passed filter ({len(text)} chars). Timer Reset.")
 
         # CRITICAL FIX: TRIGGER INTERRUPTION IF BOT IS SPEAKING
+        # ALSO: Force clear client audio regardless of server state (Barge-in for buffered audio)
+        if self.client_type == "browser":
+             await self.websocket.send_text(json.dumps({"event": "clear"}))
+        
         if self.is_bot_speaking:
             logging.warning(f"⚡ [INTERRUPTION] User spoke while bot was speaking. Stopping audio.")
             # We treat this as a server-side interruption event
