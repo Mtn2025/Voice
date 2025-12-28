@@ -250,6 +250,9 @@ function checkHangup() {
     }
 }
 
+// --- Global Flag for Suppression ---
+let suppressEndMark = false;
+
 function playAudioChunk(base64Data) {
     if (!audioContext) return;
 
@@ -287,9 +290,20 @@ function playAudioChunk(base64Data) {
 
         // If queue is empty, notify backend that playback finished
         if (activeSources.length === 0) {
-            console.log("🔊 Playback Finished. Notifying Backend.");
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ event: "mark", mark: "speech_ended" }));
+            console.log("🔊 Playback Finished. Resetting UI.");
+
+            // UI UPDATE: Confirm listening state
+            statusDiv.innerText = "Escuchando...";
+            statusDiv.className = "text-emerald-400 font-mono mb-4 text-lg animate-pulse";
+
+            // LOGIC UPDATE: Only send 'speech_ended' if NOT suppressed (i.e. Natural End)
+            if (!suppressEndMark) {
+                console.log("✅ Sending 'speech_ended' mark to Server.");
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ event: "mark", mark: "speech_ended" }));
+                }
+            } else {
+                console.log("🤫 'speech_ended' suppressed (Local VAD / Echo Recovery).");
             }
         }
     };
@@ -306,12 +320,21 @@ function playAudioChunk(base64Data) {
     nextStartTime += audioBuf.duration;
 }
 
-function clearAudio() {
+function clearAudio(isVAD = false) {
+    if (isVAD) {
+        suppressEndMark = true; // Prevent telling server we stopped
+    }
+
     activeSources.forEach(src => {
         try { src.stop(); } catch (e) { }
     });
     activeSources.length = 0;
     nextStartTime = 0;
+
+    // Reset flag after a short delay to ensure onended handlers fired
+    setTimeout(() => {
+        suppressEndMark = false;
+    }, 100);
 }
 
 function updateUI(active) {
@@ -352,19 +375,13 @@ function startVisualizer() {
         let x = 0;
 
         // --- Local VAD (Barge-In) ---
-        let sum = 0;
-        // --- Local VAD (Barge-In) 2.0: Band-Pass & Debounce ---
         let speechSum = 0;
         let speechBins = 0;
 
         // FFT Size 2048 @ 16kHz = ~7.8Hz per bin
-        // Human Voice Fundamental: ~85Hz to ~255Hz
-        // Harmonics up to 3000Hz typically dominant.
-        // Range: 80Hz (Bin 10) to 1000Hz (Bin 128) for robust detection
-        // Focusing on lower partials avoids high-pitch hiss (fans) and low rumble (<80Hz)
-
-        const startBin = 10;  // ~80Hz
-        const endBin = 200;   // ~1500Hz (Strong voice detection range)
+        // Range: 80Hz (Bin 10) to 1500Hz (Bin 200)
+        const startBin = 10;
+        const endBin = 200;
 
         for (let i = startBin; i < endBin; i++) {
             speechSum += dataArray[i];
@@ -372,24 +389,20 @@ function startVisualizer() {
         }
         const average = speechSum / speechBins;
 
-        // Tuning: 
-        // Threshold: 35 (Higher than floor noise, sensitive to voice)
-        // Persistence: 10 consecutive frames (~160ms) to trigger
-        // This validates "Sustained" speech vs "Transient" noise (coughs, clicks).
-
+        // Threshold tuning
         if (average > 35 && activeSources.length > 0) {
             speechFrames++;
         } else {
-            speechFrames = 0; // Strict reset: sound must be continuous
+            speechFrames = 0;
         }
 
         if (speechFrames > 10) {
             // console.log(`🎤 VAD Triggered (Sustained)...`);
-            // ENABLED: Stop audio locally immediately for responsiveness.
-            clearAudio();
+            // ENABLED: Stop audio locally immediately.
+            // FLAG: True (Suppress 'speech_ended' to allowing server streaming to continue if echo)
+            clearAudio(true);
             speechFrames = 0;
         }
-        // -----------------------------
         // -----------------------------
 
         for (let i = 0; i < bufferLength; i++) {
