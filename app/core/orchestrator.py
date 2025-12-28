@@ -181,10 +181,10 @@ class VoiceOrchestrator:
                 # Idle Check (Only if not speaking)
                 idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
                 idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
-                logging.info(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | Type: {self.client_type}")
+                logging.warning(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | StartDelta: {now - self.start_time:.2f}")
                 
                 if not self.is_bot_speaking and (now - self.last_interaction_time > idle_timeout):
-                     logging.info(f"💤 Idle timeout ({idle_timeout}s) reached. Triggering prompt.")
+                     logging.warning(f"💤 Idle timeout ({idle_timeout}s) reached. Triggering prompt.")
                      msg = getattr(self.config, 'idle_message', "¿Hola? ¿Sigue ahí?")
                      if msg:
                         self.last_interaction_time = now # Reset to prevent spam
