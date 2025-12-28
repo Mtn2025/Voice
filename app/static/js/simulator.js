@@ -407,14 +407,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Attach Save Listeners
-    document.getElementById('vad-sensitivity')?.addEventListener('input', (e) => {
-        localStorage.setItem('vad-sensitivity', e.target.value);
-    });
     document.getElementById('vad-voice-threshold')?.addEventListener('input', (e) => {
         localStorage.setItem('vad-voice-threshold', e.target.value);
     });
 });
+
+async function updateServerConfig(key, value) {
+    console.log(`🔧 Updating Server Config: ${key} = ${value}`);
+    try {
+        const payload = {};
+        payload[key] = value;
+        // Assuming there is an endpoint for partial update, or we use the existing one
+        // Check routers/dashboard.py for /api/config/update
+        const response = await fetch('/api/config/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (response.ok) {
+            console.log("✅ Config updated successfully.");
+        } else {
+            console.warn("⚠️ Config update failed:", response.status);
+        }
+    } catch (e) {
+        console.error("❌ Error updating config:", e);
+    }
+}
 
 function startVisualizer() {
     if (!analyser) return;

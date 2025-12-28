@@ -542,6 +542,18 @@
                                         class="font-mono text-blue-400">0</span> | Calidad Voz</p>
                             </div>
                         </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-700">
+                            <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
+                                <span>Filtro de Palabras Cortas (Letras)</span>
+                                <span id="min-chars-val" class="text-orange-400">1</span>
+                            </label>
+                            <input type="range" id="input-min-chars" min="0" max="10" step="1" value="1"
+                                class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                oninput="document.getElementById('min-chars-val').innerText = this.value; updateServerConfig('input_min_characters', this.value)">
+                            <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras (Ej: 1 = acepta
+                                "Si")</p>
+                        </div>
                     </div>
 
                     <!-- Latest Transcript -->

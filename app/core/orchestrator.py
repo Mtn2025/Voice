@@ -178,9 +178,8 @@ class VoiceOrchestrator:
                 
                 # Idle Check (Only if not speaking)
                 idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
-                # Idle Check (Only if not speaking)
                 idle_timeout = getattr(self.config, 'idle_timeout', 10.0)
-                # logging.info(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | Type: {self.client_type}")
+                logging.info(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | Type: {self.client_type}")
                 
                 if not self.is_bot_speaking and (now - self.last_interaction_time > idle_timeout):
                      logging.info(f"💤 Idle timeout ({idle_timeout}s) reached. Triggering prompt.")
