@@ -10,6 +10,7 @@ let bgAudio = null;
 let localStream = null;
 let hangupPending = false;
 let allowInterruption = false; // DEAF MODE: Start false (Greeting), set true on first speech_ended
+let ignoreAudio = false; // FLAG: Drop packets after interruption to clear buffer
 let activeAudioSources = 0;
 let lastAudioTime = 0;
 
@@ -77,10 +78,14 @@ async function startCall() {
             const msg = JSON.parse(event.data);
             if (msg.type === 'audio') {
                 // Play audio from server
-                console.log(`🔊 PLAYING AUDIO PACKET | Size: ${msg.data.length}`);
-                playAudioChunk(msg.data);
-                statusDiv.innerText = "Andrea está hablando...";
-                statusDiv.className = "text-blue-400 font-mono mb-4 text-lg";
+                if (ignoreAudio) {
+                    console.warn(`🛑 Dropping Audio Packet (Interruption Active) | Size: ${msg.data.length}`);
+                } else {
+                    console.log(`🔊 PLAYING AUDIO PACKET | Size: ${msg.data.length}`);
+                    playAudioChunk(msg.data);
+                    statusDiv.innerText = "Andrea está hablando...";
+                    statusDiv.className = "text-blue-400 font-mono mb-4 text-lg";
+                }
             } else if (msg.type === 'transcript') {
                 // Append transcript
                 const p = document.createElement('p');
@@ -379,6 +384,7 @@ function playAudioChunk(base64Data) {
 }
 
 function clearAudio(isVAD = false) {
+    ignoreAudio = true; // STARVE THE BUFFER immediately
     if (isVAD) {
         suppressEndMark = true; // Prevent telling server we stopped naturally
         // NOTIFY SERVER of interruption (Fix for State Desync)
@@ -397,7 +403,8 @@ function clearAudio(isVAD = false) {
     // Reset flag after a short delay to ensure onended handlers fired
     setTimeout(() => {
         suppressEndMark = false;
-    }, 100);
+        ignoreAudio = false; // Resume listening to server audio
+    }, 1000); // 1s Drop Window to clear in-flight packets
 }
 
 function updateUI(active) {
