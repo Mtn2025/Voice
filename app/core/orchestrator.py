@@ -4,6 +4,8 @@ import base64
 import logging
 import uuid
 import time
+import wave
+import io
 import azure.cognitiveservices.speech as speechsdk
 from fastapi import WebSocket
 from app.services.db_service import db_service
@@ -379,15 +381,28 @@ class VoiceOrchestrator:
 
         self.was_interrupted = False # Reset if valid speech
         
+
+        
         # QUALITY UPGRADE: Re-transcribe with Groq Whisper if audio available
         if audio_data and len(audio_data) > 0:
             logging.info("📝 Sending audio to Groq Whisper for better transcription...")
             try:
+                # Wrap raw bytes in WAV container (Required by Groq/Whisper)
+                # Assuming PCM 16kHz 16-bit for Browser (Simulator uses this default)
+                # Logic can be refined for Twilio (8kHz MuLaw) later if needed
+                wav_io = io.BytesIO()
+                with wave.open(wav_io, 'wb') as wav_file:
+                    wav_file.setnchannels(1)
+                    wav_file.setsampwidth(2) # 16-bit
+                    wav_file.setframerate(16000)
+                    wav_file.writeframes(audio_data)
+                wav_data = wav_io.getvalue()
+                
                 lang_code = "es"
                 if self.config and hasattr(self.config, "stt_language"):
                     lang_code = self.config.stt_language.split('-')[0]
                 
-                groq_text = await self.llm_provider.transcribe_audio(audio_data, language=lang_code)
+                groq_text = await self.llm_provider.transcribe_audio(wav_data, language=lang_code)
                 if groq_text and len(groq_text.strip()) > 0:
                     logging.info(f"✅ Groq Whisper Result: {groq_text}")
                     text = groq_text
