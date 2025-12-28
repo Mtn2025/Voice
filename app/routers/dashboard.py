@@ -144,8 +144,43 @@ async def patch_config(request: Request):
     """
     try:
         data = await request.json()
-        await db_service.update_agent_config(**data)
-        return {"status": "success", "updated": data}
+        
+        # Type Conversion Helper
+        # Ensure we cast known int/float fields to avoid DB errors (AsyncPG is strict)
+        int_fields = [
+            "input_min_characters", "max_tokens", "silence_timeout_ms", 
+            "initial_silence_timeout_ms", "segmentation_max_time", 
+            "interruption_threshold", "interruption_threshold_phone",
+            "silence_timeout_ms_phone", "max_duration"
+        ]
+        float_fields = [
+            "temperature", "voice_speed", "voice_speed_phone", "idle_timeout"
+        ]
+        bool_fields = [
+             "enable_denoising", "enable_end_call", "enable_dial_keypad"
+        ]
+
+        cleaned_data = {}
+        for k, v in data.items():
+            if v is None:
+                cleaned_data[k] = None
+                continue
+                
+            if k in int_fields:
+                cleaned_data[k] = int(v)
+            elif k in float_fields:
+                cleaned_data[k] = float(v)
+            elif k in bool_fields:
+                # Handle JS booleans or strings "true"/"false"
+                if isinstance(v, bool):
+                    cleaned_data[k] = v
+                else:
+                    cleaned_data[k] = str(v).lower() == 'true'
+            else:
+                cleaned_data[k] = v
+
+        await db_service.update_agent_config(**cleaned_data)
+        return {"status": "success", "updated": cleaned_data}
     except Exception as e:
         logging.error(f"Config Patch Failed: {e}")
         return {"status": "error", "message": str(e)}
