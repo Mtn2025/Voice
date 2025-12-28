@@ -20,9 +20,9 @@
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 relative">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-6 relative">
             <!-- Configuration Panel (Left, Scrollable naturally) -->
-            <div class="md:col-span-5 lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+            <div class="sm:col-span-5 lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
                 <h2 class="text-lg font-semibold mb-3 text-blue-300">Configuración</h2>
                 <script src="//unpkg.com/alpinejs" defer></script>
 
@@ -295,222 +295,229 @@
                                     </div>
                                 </div>
                             </div>
+
+
+                            <!-- Moved from Connectivity -->
+                            <!-- Configuración Avanzada de Audio y Telefonía -->
+                            <div class="space-y-4 pt-4 border-t border-slate-700 mt-4">
+                                <h4 class="text-sm font-medium text-slate-300">Configuración Avanzada de Audio</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Estrategia de Segmentación</label>
+                                        <select name="segmentation_strategy"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            <option value="default" {% if config.segmentation_strategy=='default'
+                                                %}selected{% endif %}>Default</option>
+                                            <option value="time" {% if config.segmentation_strategy=='time' %}selected{%
+                                                endif %}>Tiempo</option>
+                                            <option value="semantic" {% if config.segmentation_strategy=='semantic'
+                                                %}selected{% endif %}>Semántica</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center pt-6">
+                                        <input type="hidden" name="enable_denoising" value="false">
+                                        <input type="checkbox" name="enable_denoising" value="true"
+                                            class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
+                                            config.enable_denoising %}checked{% endif %}>
+                                        <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido</label>
+                                    </div>
+                                </div>
+
+                                <h4 class="text-sm font-medium text-slate-300 pt-4 border-t border-slate-700">
+                                    Sensibilidad y
+                                    Control de Interrupciones</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 flex justify-between">
+                                            <span>Sensibilidad Interrupción (Navegador)</span>
+                                            <span class="text-xs text-slate-400">{{ config.interruption_threshold }}
+                                                chars</span>
+                                        </label>
+                                        <input type="range" name="interruption_threshold" min="0" max="30" step="1"
+                                            value="{{ config.interruption_threshold }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                            oninput="this.previousElementSibling.lastElementChild.innerText = this.value + ' chars'">
+                                        <p class="text-xs text-slate-500 mt-1">Ignora ruidos menores a X caracteres.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 flex justify-between">
+                                            <span>Sensibilidad Interrupción (Teléfono)</span>
+                                            <span class="text-xs text-slate-400"
+                                                x-text="interruptionPhone + ' chars'"></span>
+                                        </label>
+                                        <input type="range" name="interruption_threshold_phone" min="0" max="20"
+                                            step="1" x-model="interruptionPhone"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                        <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible (2-4 rec).</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mt-2">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 flex justify-between">
+                                            <span>Tiempo de Silencio (Teléfono)</span>
+                                            <span class="text-xs text-slate-400" x-text="silencePhone + ' ms'"></span>
+                                        </label>
+                                        <input type="range" name="silence_timeout_ms_phone" min="500" max="3000"
+                                            step="100" x-model="silencePhone"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                        <p class="text-xs text-slate-500 mt-1">Silencio para fin de turno en teléfono.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Límites de Puntuación</label>
+                                        <input type="text" name="punctuation_boundaries"
+                                            value="{{ config.punctuation_boundaries or '' }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"
+                                            placeholder="Ej: . ? !">
+                                        <p class="text-xs text-slate-500 mt-1">Opcional. Segmentar por puntuación.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Moved from Connectivity -->
-                        <!-- Configuración Avanzada de Audio y Telefonía -->
-                        <div class="space-y-4 pt-4 border-t border-slate-700 mt-4">
-                            <h4 class="text-sm font-medium text-slate-300">Configuración Avanzada de Audio</h4>
+
+                        <!-- Tab: Connectivity -->
+                        <div x-show="tab === 'connectivity'" class="space-y-4" style="display: none;">
+                            {% include 'partials/connectivity.html' %}
+                        </div>
+
+                        <!-- Tab: Functions -->
+                        <div x-show="tab === 'functions'" class="space-y-4" style="display: none;">
+                            <h3 class="text-sm font-semibold text-blue-300">Funciones Predefinidas</h3>
+
+                            <div
+                                class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
+                                <div>
+                                    <h4 class="font-medium">Habilitar Función "Colgar"</h4>
+                                    <p class="text-xs text-slate-400">Permite al asistente terminar la llamada.</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="hidden" name="enable_end_call" value="false">
+                                    <input type="checkbox" name="enable_end_call" value="true"
+                                        class="w-6 h-6 rounded bg-slate-700 border-slate-600 text-green-500" {% if
+                                        config.enable_end_call %}checked{% endif %}>
+                                </div>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
+                                <div>
+                                    <h4 class="font-medium">Habilitar Teclado Numérico</h4>
+                                    <p class="text-xs text-slate-400">Permite marcar extensiones o números.</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="hidden" name="enable_dial_keypad" value="false">
+                                    <input type="checkbox" name="enable_dial_keypad" value="true"
+                                        class="w-6 h-6 rounded bg-slate-700 border-slate-600 text-green-500" {% if
+                                        config.enable_dial_keypad %}checked{% endif %}>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Número para Transferencia</label>
+                                <input type="text" name="transfer_phone_number"
+                                    value="{{ config.transfer_phone_number or '' }}"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
+                                    placeholder="+52...">
+                            </div>
+                        </div>
+
+                        <!-- Tab: Advanced -->
+                        <div x-show="tab === 'advanced'" class="space-y-4" style="display: none;">
+                            <h3 class="text-sm font-semibold text-blue-300">Control de Flujo (Heredado)</h3>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Estrategia de Segmentación</label>
-                                    <select name="segmentation_strategy"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        <option value="default" {% if config.segmentation_strategy=='default'
-                                            %}selected{% endif %}>Default</option>
-                                        <option value="time" {% if config.segmentation_strategy=='time' %}selected{%
-                                            endif %}>Tiempo</option>
-                                        <option value="semantic" {% if config.segmentation_strategy=='semantic'
-                                            %}selected{% endif %}>Semántica</option>
-                                    </select>
+                                    <label class="block text-sm font-medium mb-1">Tiempo Espera Inactividad (s)</label>
+                                    <input type="number" name="idle_timeout" step="0.5"
+                                        value="{{ config.idle_timeout }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                                 </div>
-                                <div class="flex items-center pt-6">
-                                    <input type="hidden" name="enable_denoising" value="false">
-                                    <input type="checkbox" name="enable_denoising" value="true"
-                                        class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
-                                        config.enable_denoising %}checked{% endif %}>
-                                    <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido</label>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Duración Máx (s)</label>
+                                    <input type="number" name="max_duration" value="{{ config.max_duration }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                                 </div>
                             </div>
-
-                            <h4 class="text-sm font-medium text-slate-300 pt-4 border-t border-slate-700">Sensibilidad y
-                                Control de Interrupciones</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1 flex justify-between">
-                                        <span>Sensibilidad Interrupción (Navegador)</span>
-                                        <span class="text-xs text-slate-400">{{ config.interruption_threshold }}
-                                            chars</span>
-                                    </label>
-                                    <input type="range" name="interruption_threshold" min="0" max="30" step="1"
-                                        value="{{ config.interruption_threshold }}"
-                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                        oninput="this.previousElementSibling.lastElementChild.innerText = this.value + ' chars'">
-                                    <p class="text-xs text-slate-500 mt-1">Ignora ruidos menores a X caracteres.</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1 flex justify-between">
-                                        <span>Sensibilidad Interrupción (Teléfono)</span>
-                                        <span class="text-xs text-slate-400"
-                                            x-text="interruptionPhone + ' chars'"></span>
-                                    </label>
-                                    <input type="range" name="interruption_threshold_phone" min="0" max="20" step="1"
-                                        x-model="interruptionPhone"
-                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                    <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible (2-4 rec).</p>
-                                </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
+                                <input type="text" name="idle_message" value="{{ config.idle_message }}"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mt-2">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1 flex justify-between">
-                                        <span>Tiempo de Silencio (Teléfono)</span>
-                                        <span class="text-xs text-slate-400" x-text="silencePhone + ' ms'"></span>
-                                    </label>
-                                    <input type="range" name="silence_timeout_ms_phone" min="500" max="3000" step="100"
-                                        x-model="silencePhone"
-                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                    <p class="text-xs text-slate-500 mt-1">Silencio para fin de turno en teléfono.</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Límites de Puntuación</label>
-                                    <input type="text" name="punctuation_boundaries"
-                                        value="{{ config.punctuation_boundaries or '' }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"
-                                        placeholder="Ej: . ? !">
-                                    <p class="text-xs text-slate-500 mt-1">Opcional. Segmentar por puntuación.</p>
-                                </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
+                                <input type="text" name="idle_message" value="{{ config.idle_message }}"
+                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                             </div>
                         </div>
-                </div>
 
+                        <!-- Tab: History -->
+                        <div x-show="tab === 'history'" class="space-y-4" style="display: none;">
+                            <h3 class="text-lg font-medium text-slate-200">Llamadas Recientes</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left text-slate-400">
+                                    <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+                                        <tr>
+                                            <th class="px-4 py-2">ID</th>
+                                            <th class="px-4 py-2">Fecha</th>
+                                            <th class="px-4 py-2">Estado</th>
+                                            <th class="px-4 py-2">Acción</th>
+                                        </tr>
+                                    </thead>
 
-                <!-- Tab: Connectivity -->
-                <div x-show="tab === 'connectivity'" class="space-y-4" style="display: none;">
-                    {% include 'partials/connectivity.html' %}
-                </div>
-
-                <!-- Tab: Functions -->
-                <div x-show="tab === 'functions'" class="space-y-4" style="display: none;">
-                    <h3 class="text-sm font-semibold text-blue-300">Funciones Predefinidas</h3>
-
-                    <div class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
-                        <div>
-                            <h4 class="font-medium">Habilitar Función "Colgar"</h4>
-                            <p class="text-xs text-slate-400">Permite al asistente terminar la llamada.</p>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="hidden" name="enable_end_call" value="false">
-                            <input type="checkbox" name="enable_end_call" value="true"
-                                class="w-6 h-6 rounded bg-slate-700 border-slate-600 text-green-500" {% if
-                                config.enable_end_call %}checked{% endif %}>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between bg-slate-800 p-3 rounded border border-slate-700">
-                        <div>
-                            <h4 class="font-medium">Habilitar Teclado Numérico</h4>
-                            <p class="text-xs text-slate-400">Permite marcar extensiones o números.</p>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="hidden" name="enable_dial_keypad" value="false">
-                            <input type="checkbox" name="enable_dial_keypad" value="true"
-                                class="w-6 h-6 rounded bg-slate-700 border-slate-600 text-green-500" {% if
-                                config.enable_dial_keypad %}checked{% endif %}>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Número para Transferencia</label>
-                        <input type="text" name="transfer_phone_number" value="{{ config.transfer_phone_number or '' }}"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2" placeholder="+52...">
-                    </div>
-                </div>
-
-                <!-- Tab: Advanced -->
-                <div x-show="tab === 'advanced'" class="space-y-4" style="display: none;">
-                    <h3 class="text-sm font-semibold text-blue-300">Control de Flujo (Heredado)</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Tiempo Espera Inactividad (s)</label>
-                            <input type="number" name="idle_timeout" step="0.5" value="{{ config.idle_timeout }}"
-                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Duración Máx (s)</label>
-                            <input type="number" name="max_duration" value="{{ config.max_duration }}"
-                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
-                        <input type="text" name="idle_message" value="{{ config.idle_message }}"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
-                        <input type="text" name="idle_message" value="{{ config.idle_message }}"
-                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                    </div>
-                </div>
-
-                <!-- Tab: History -->
-                <div x-show="tab === 'history'" class="space-y-4" style="display: none;">
-                    <h3 class="text-lg font-medium text-slate-200">Llamadas Recientes</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-slate-400">
-                            <thead class="text-xs text-slate-200 uppercase bg-slate-700">
-                                <tr>
-                                    <th class="px-4 py-2">ID</th>
-                                    <th class="px-4 py-2">Fecha</th>
-                                    <th class="px-4 py-2">Estado</th>
-                                    <th class="px-4 py-2">Acción</th>
-                                </tr>
-                            </thead>
-
-                            <tbody hx-get="/dashboard/history-rows" hx-trigger="load, refreshHistory from:body"
-                                hx-target="this">
-                                <!-- Initial load will be handled by HTMX or server-side render fallthrough if needed, 
+                                    <tbody hx-get="/dashboard/history-rows" hx-trigger="load, refreshHistory from:body"
+                                        hx-target="this">
+                                        <!-- Initial load will be handled by HTMX or server-side render fallthrough if needed, 
                                             but to avoid duplication we'll let HTMX load it or keep static for SEO/Non-JS. 
                                             Actually, let's keep the server-side render for first paint, and HTMX for updates. -->
-                                {% include "partials/history_rows.html" %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                        {% include "partials/history_rows.html" %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
 
 
-                <div class="pt-4 border-t border-slate-700">
-                    <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-medium transition-colors shadow-lg">
-                        Guardar Configuración Completa
-                    </button>
-                </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Simulator Panel (Sticky, Right Side) -->
-        <div class="md:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
-            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
-                    <button id="start-btn" onclick="toggleCall()"
-                        class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
-                        Iniciar Prueba
-                    </button>
-                </div>
-
-                <div
-                    class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
-                    <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
-                    </div>
-
-                    <!-- Visualizer Canvas -->
-                    <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
-                </div>
-
-                <!-- Latest Transcript -->
-                <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
-                    <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
-
-                    <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
-                        <!-- Messages inserted by JS -->
-                    </div>
+                        <div class="pt-4 border-t border-slate-700">
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-medium transition-colors shadow-lg">
+                                Guardar Configuración Completa
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
+
+            <!-- Simulator Panel (Sticky, Right Side) -->
+            <div class="sm:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
+                        <button id="start-btn" onclick="toggleCall()"
+                            class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
+                            Iniciar Prueba
+                        </button>
+                    </div>
+
+                    <div
+                        class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                        <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                        </div>
+
+                        <!-- Visualizer Canvas -->
+                        <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
+                    </div>
+
+                    <!-- Latest Transcript -->
+                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
+
+                        <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
+                            <!-- Messages inserted by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
     </div>
 
     <script src="/static/js/simulator.js"></script>
