@@ -385,9 +385,8 @@ function startVisualizer() {
 
         if (speechFrames > 10) {
             // console.log(`🎤 VAD Triggered (Sustained)...`);
-            // REMOVED: Do not stop audio locally. Let Server decide via 'clear' event.
-            // This prevents Echo from killing the playback.
-            // clearAudio(); 
+            // ENABLED: Stop audio locally immediately for responsiveness.
+            clearAudio();
             speechFrames = 0;
         }
         // -----------------------------
