@@ -134,7 +134,6 @@ async def update_config(
         llm_provider=llm_provider,
         tts_provider=tts_provider
     )
-    )
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @router.post("/api/config/patch")
