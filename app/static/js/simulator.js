@@ -202,22 +202,49 @@ async function setupAudioCapture() {
         }
         const rms = Math.sqrt(sum / inputData.length);
 
-        // 2. Dynamic Noise Gate (Corrected for Echo)
-        // If Bot is speaking (activeSources > 0), we assume incoming audio might be Echo.
-        // We raise the gate threshold to block it.
-        // Thresholds: 
-        // - 0.01: Base noise floor (Silence)
-        // - 0.10: Moderate Echo / Ambient (Raised from 0.05)
-        // - 0.1+: Active Speech
-        const gateThreshold = (activeSources.length > 0) ? 0.10 : 0.01;
+        // 2. Frequency Analysis (Voice vs Noise)
+        // Get FFT Data from Analyser
+        const bufferLength = analyser.frequencyBinCount; // 1024 for fftSize 2048
+        const dataArray = new Uint8Array(bufferLength);
+        analyser.getByteFrequencyData(dataArray);
+
+        // Calculate Voice Score (Avg intensity in 80Hz - 1500Hz range)
+        // Bin Size = 16000 / 2048 = ~7.8Hz
+        // 80Hz ~= Bin 10
+        // 1500Hz ~= Bin 192
+        let voiceSum = 0;
+        let voiceBins = 0;
+        for (let i = 10; i < 195; i++) {
+            voiceSum += dataArray[i];
+            voiceBins++;
+        }
+        const voiceScore = voiceSum / voiceBins; // 0 - 255
+
+        // 3. UI Updates (Throttle)
+        if (Math.random() < 0.1) { // Update ~10% of frames to save DOM
+            document.getElementById('cur-rms').innerText = rms.toFixed(3);
+            document.getElementById('cur-voice').innerText = voiceScore.toFixed(0);
+        }
+
+        // 4. Dynamic Gate Logic
+        // Read Sliders (Live)
+        const micSens = parseFloat(document.getElementById('vad-sensitivity').value);
+        const voiceThresh = parseFloat(document.getElementById('vad-voice-threshold').value);
+
+        // Update Slider Labels
+        document.getElementById('vad-sens-val').innerText = micSens.toFixed(3);
+        document.getElementById('vad-voice-val').innerText = voiceThresh;
+
+        // Condition: Must be Loud Enough (RMS) AND Sound like Voice (Freq)
+        // Exception: If RMS is extremely high (> 0.5), pass anyway (Screaming/Close mic exception)
+        const isVoice = (rms > micSens && voiceScore > voiceThresh) || (rms > 0.5);
 
         // Convert Float32 to Int16
         const buffer = new ArrayBuffer(inputData.length * 2);
         const view = new DataView(buffer);
 
-        if (rms < gateThreshold) {
-            // SILENCE / ECHO SUPPRESSION: Send Zeros
-            // This prevents the server from processing Echo as User Speech
+        if (!isVoice) {
+            // SILENCE / NOISE SUPPRESSION: Send Zeros
             for (let i = 0; i < inputData.length; i++) {
                 view.setInt16(i * 2, 0, true);
             }
