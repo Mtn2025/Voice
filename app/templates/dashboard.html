@@ -237,7 +237,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium mb-1">Mínimo Caracteres Entrada</label>
-                                        <input type="number" name="input_min_characters"
+                                        <input type="number" name="input_min_characters" id="form-input-min-chars"
                                             value="{{ config.input_min_characters }}"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
                                     </div>
@@ -545,14 +545,14 @@
 
                         <div class="mt-4 pt-4 border-t border-slate-700">
                             <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                <span>Filtro de Palabras Cortas (Letras)</span>
+                                <span>Filtro de Ruido (Min Letras)</span>
                                 <span id="min-chars-val" class="text-orange-400">1</span>
                             </label>
-                            <input type="range" id="input-min-chars" min="0" max="10" step="1" value="1"
+                            <input type="range" id="input-min-chars" min="0" max="50" step="1" value="1"
                                 class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                oninput="document.getElementById('min-chars-val').innerText = this.value; updateServerConfig('input_min_characters', this.value)">
-                            <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras (Ej: 1 = acepta
-                                "Si")</p>
+                                oninput="document.getElementById('min-chars-val').innerText = this.value; document.getElementById('form-input-min-chars').value = this.value; updateServerConfig('input_min_characters', this.value)">
+                            <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras. (Recomendado:
+                                20-30 para ambientes ruidosos)</p>
                         </div>
                     </div>
 

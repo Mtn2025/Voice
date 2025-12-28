@@ -134,7 +134,22 @@ async def update_config(
         llm_provider=llm_provider,
         tts_provider=tts_provider
     )
+    )
     return RedirectResponse(url="/dashboard", status_code=303)
+
+@router.post("/api/config/patch")
+async def patch_config(request: Request):
+    """
+    Accepts JSON payload to update specific config fields.
+    Example: {"input_min_characters": 30}
+    """
+    try:
+        data = await request.json()
+        await db_service.update_agent_config(**data)
+        return {"status": "success", "updated": data}
+    except Exception as e:
+        logging.error(f"Config Patch Failed: {e}")
+        return {"status": "error", "message": str(e)}
 
 @router.get("/dashboard/history-rows", response_class=HTMLResponse)
 async def history_rows(request: Request):

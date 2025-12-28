@@ -417,9 +417,8 @@ async function updateServerConfig(key, value) {
     try {
         const payload = {};
         payload[key] = value;
-        // Assuming there is an endpoint for partial update, or we use the existing one
-        // Check routers/dashboard.py for /api/config/update
-        const response = await fetch('/api/config/update', {
+        // Use PATCH endpoint for partial updates
+        const response = await fetch('/api/config/patch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
