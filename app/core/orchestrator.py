@@ -409,7 +409,13 @@ class VoiceOrchestrator:
             logging.info(f"Interruption detected (Text: '{evt.result.text}')! Stopping audio.")
             asyncio.create_task(self.handle_interruption())
 
-    def handle_recognized(self, evt):
+    def handle_recognition_event(self, evt: speechsdk.SpeechRecognitionEventArgs):
+        """
+        Event handler for Azure STT events.
+        """
+        logging.info(f"🎤 [AZURE RAW] EventType: {evt.result.reason} | Text: {evt.result.text} | Duration: {evt.result.duration}")
+        
+        # Only process RecognizedSpeech
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             # self.last_interaction_time = time.time() # MOVED TO ASYNC HANDLER (Only reset if valid length)
             # logging.warning(f"🗣️ [RECOGNIZED] Valid Speech Detected. Timer Reset.")

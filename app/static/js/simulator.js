@@ -250,6 +250,32 @@ async function setupAudioCapture() {
         // Exception: If RMS is extremely high (> 0.5), pass anyway (Screaming/Close mic exception)
         const isVoice = (rms > micSens && voiceScore > voiceThresh) || (rms > 0.5);
 
+        // DEBUG: Log VAD Decision occasionally
+        if (Math.random() < 0.01) {
+            console.log(`🎤 [VAD CHECK] RMS: ${rms.toFixed(4)} | Score: ${voiceScore.toFixed(0)} | Thresh: ${voiceThresh} | Passing: ${isVoice}`);
+        }
+
+        // --- VAD STATS (Adaptive) ---
+        // Track Max RMS for this "turn"
+        if (window.currentTurnMaxRMS === undefined) window.currentTurnMaxRMS = 0;
+        if (rms > window.currentTurnMaxRMS) window.currentTurnMaxRMS = rms;
+
+        // Send stats periodically (every ~1 sec = ~20 chunks of 4096 samples @ 44.1/16k?)
+        // 4096 samples @ 16kHz = 256ms. So 4 chunks ~= 1 sec.
+        if (window.statsCounter === undefined) window.statsCounter = 0;
+        window.statsCounter++;
+        if (window.statsCounter > 10) {
+            socket.send(JSON.stringify({
+                event: "vad_stats",
+                rms: window.currentTurnMaxRMS
+            }));
+            window.statsCounter = 0;
+            // Don't reset max yet? Or do we? The server tracks "current_turn". 
+            // Best to send "Max observed so far since silence" or "Max in this window"?
+            // Let's send "Max in this window" to be safe, server profile can smooth it.
+            window.currentTurnMaxRMS = 0;
+        }
+
         // Convert Float32 to Int16
         const buffer = new ArrayBuffer(inputData.length * 2);
         const view = new DataView(buffer);
