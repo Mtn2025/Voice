@@ -280,17 +280,11 @@ async function setupAudioCapture() {
         const buffer = new ArrayBuffer(inputData.length * 2);
         const view = new DataView(buffer);
 
-        if (!isVoice) {
-            // SILENCE / NOISE SUPPRESSION: Send Zeros
-            for (let i = 0; i < inputData.length; i++) {
-                view.setInt16(i * 2, 0, true);
-            }
-        } else {
-            // VALID SPEECH: Convert normally
-            for (let i = 0; i < inputData.length; i++) {
-                let s = Math.max(-1, Math.min(1, inputData[i]));
-                view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-            }
+        // FORCE TRANSMISSION: Always send audio (Let Server VAD decide)
+        // We only use isVoice for "Gate" visualization or local Interruption logic elsewhere
+        for (let i = 0; i < inputData.length; i++) {
+            let s = Math.max(-1, Math.min(1, inputData[i]));
+            view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
         }
 
         // Send as base64

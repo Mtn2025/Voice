@@ -73,8 +73,8 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         # 2. EndSilence: Time after speech to consider "phrase" done. 
         #    We want short latency, but let's stick to the config if valid, else 1000ms.
         self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, str(segmentation_silence_ms))
-        # 3. Connection Silence: Keepalive.
-        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_RecognitionEndpointVersion, "1")
+        # 3. Connection Silence: Keepalive (REMOVED due to AttributeError)
+        # self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_RecognitionEndpointVersion, "1")
         
         if audio_mode == "browser":
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=16000, bits_per_sample=16, channels=1)
