@@ -181,11 +181,24 @@
                                 // Init
                                 document.addEventListener('DOMContentLoaded', updateStyles);
                             </script>
-                            <label class="block text-sm font-medium mb-1">Velocidad de Voz: <span id="speed-val">{{
-                                    config.voice_speed }}</span></label>
-                            <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
-                                value="{{ config.voice_speed }}" class="w-full"
-                                oninput="document.getElementById('speed-val').innerText = this.value">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Velocidad de Voz (Navegador): <span
+                                            id="speed-val">{{ config.voice_speed }}</span></label>
+                                    <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
+                                        value="{{ config.voice_speed }}" class="w-full"
+                                        oninput="document.getElementById('speed-val').innerText = this.value">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Velocidad de Voz (Teléfono): <span
+                                            id="speed-val-phone" x-text="voiceSpeedPhone + 'x'"></span></label>
+                                    <input type="range" name="voice_speed_phone" min="0.5" max="2.0" step="0.05"
+                                        x-model="voiceSpeedPhone" class="w-full"
+                                        oninput="document.getElementById('speed-val-phone').innerText = this.value + 'x'">
+                                    <p class="text-xs text-slate-500 mt-1">Más lento ayuda en telefonía (0.9
+                                        recomendado).</p>
+                                </div>
+                            </div>
 
                             <div class="border-t border-slate-700 my-4 pt-4">
 
@@ -281,32 +294,77 @@
                         </div>
 
                         <!-- Moved from Connectivity -->
+                        <!-- Configuración Avanzada de Audio y Telefonía -->
                         <div class="space-y-4 pt-4 border-t border-slate-700 mt-4">
                             <h4 class="text-sm font-medium text-slate-300">Configuración Avanzada de Audio</h4>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Estrategia de Segmentación</label>
-                                <select name="segmentation_strategy"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                    <option value="default" {% if config.segmentation_strategy=='default' %}selected{%
-                                        endif %}>
-                                        Default (Best Guess)</option>
-                                    <option value="time" {% if config.segmentation_strategy=='time' %}selected{% endif
-                                        %}>
-                                        Basada en Tiempo
-                                    </option>
-                                    <option value="semantic" {% if config.segmentation_strategy=='semantic' %}selected{%
-                                        endif %}>
-                                        Semántica (NLP)</option>
-                                </select>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Estrategia de Segmentación</label>
+                                    <select name="segmentation_strategy"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                        <option value="default" {% if config.segmentation_strategy=='default'
+                                            %}selected{% endif %}>Default</option>
+                                        <option value="time" {% if config.segmentation_strategy=='time' %}selected{%
+                                            endif %}>Tiempo</option>
+                                        <option value="semantic" {% if config.segmentation_strategy=='semantic'
+                                            %}selected{% endif %}>Semántica</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center pt-6">
+                                    <input type="hidden" name="enable_denoising" value="false">
+                                    <input type="checkbox" name="enable_denoising" value="true"
+                                        class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
+                                        config.enable_denoising %}checked{% endif %}>
+                                    <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido</label>
+                                </div>
                             </div>
 
-                            <div class="flex items-center pt-2">
-                                <input type="hidden" name="enable_denoising" value="false">
-                                <input type="checkbox" name="enable_denoising" value="true"
-                                    class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
-                                    config.enable_denoising %}checked{% endif %}>
-                                <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido
-                                    (Denoising)</label>
+                            <h4 class="text-sm font-medium text-slate-300 pt-4 border-t border-slate-700">Sensibilidad y
+                                Control de Interrupciones</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 flex justify-between">
+                                        <span>Sensibilidad Interrupción (Navegador)</span>
+                                        <span class="text-xs text-slate-400">{{ config.interruption_threshold }}
+                                            chars</span>
+                                    </label>
+                                    <input type="range" name="interruption_threshold" min="0" max="30" step="1"
+                                        value="{{ config.interruption_threshold }}"
+                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                        oninput="this.previousElementSibling.lastElementChild.innerText = this.value + ' chars'">
+                                    <p class="text-xs text-slate-500 mt-1">Ignora ruidos menores a X caracteres.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 flex justify-between">
+                                        <span>Sensibilidad Interrupción (Teléfono)</span>
+                                        <span class="text-xs text-slate-400"
+                                            x-text="interruptionPhone + ' chars'"></span>
+                                    </label>
+                                    <input type="range" name="interruption_threshold_phone" min="0" max="20" step="1"
+                                        x-model="interruptionPhone"
+                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                    <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible (2-4 rec).</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-2">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 flex justify-between">
+                                        <span>Tiempo de Silencio (Teléfono)</span>
+                                        <span class="text-xs text-slate-400" x-text="silencePhone + ' ms'"></span>
+                                    </label>
+                                    <input type="range" name="silence_timeout_ms_phone" min="500" max="3000" step="100"
+                                        x-model="silencePhone"
+                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                    <p class="text-xs text-slate-500 mt-1">Silencio para fin de turno en teléfono.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Límites de Puntuación</label>
+                                    <input type="text" name="punctuation_boundaries"
+                                        value="{{ config.punctuation_boundaries or '' }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"
+                                        placeholder="Ej: . ? !">
+                                    <p class="text-xs text-slate-500 mt-1">Opcional. Segmentar por puntuación.</p>
+                                </div>
                             </div>
                         </div>
                 </div>
@@ -315,56 +373,6 @@
                 <!-- Tab: Connectivity -->
                 <div x-show="tab === 'connectivity'" class="space-y-4" style="display: none;">
                     {% include 'partials/connectivity.html' %}
-
-                    <div class="mt-6 border-t border-slate-700 pt-4">
-                        <h3 class="text-lg font-medium mb-4 text-purple-400">Configuración Específica de
-                            Telefonía</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-1 flex justify-between">
-                                    <span>Sensibilidad de Interrupción (Teléfono)</span>
-                                    <span class="text-xs text-slate-400" x-text="interruptionPhone + ' chars'"></span>
-                                </label>
-                                <input type="range" name="interruption_threshold_phone" min="0" max="20" step="1"
-                                    x-model="interruptionPhone"
-                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                <p class="text-xs text-slate-500 mt-1">
-                                    Umbral de caracteres para interrumpir en llamadas. (Recomendado: 2-4)
-                                </p>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium mb-1 flex justify-between">
-                                    <span>Velocidad de Voz (Teléfono)</span>
-                                    <span class="text-xs text-slate-400" x-text="voiceSpeedPhone + 'x'"></span>
-                                </label>
-                                <input type="range" name="voice_speed_phone" min="0.5" max="2.0" step="0.05"
-                                    x-model="voiceSpeedPhone"
-                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                <p class="text-xs text-slate-500 mt-1">
-                                    Velocidad más lenta ayuda a la inteligibilidad en redes móviles.
-                                    (Recomendado: 0.85
-                                    - 0.95)
-                                </p>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium mb-1 flex justify-between">
-                                    <span>Silence Timeout (Teléfono)</span>
-                                    <span class="text-xs text-slate-400" x-text="silencePhone + ' ms'"></span>
-                                </label>
-                                <input type="range" name="silence_timeout_ms_phone" min="500" max="3000" step="100"
-                                    x-model="silencePhone"
-                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                <p class="text-xs text-slate-500 mt-1">
-                                    Tiempo de silencio para considerar fin de frase. Aumentar si corta al
-                                    usuario.
-                                    (Recomendado: 1000-1500ms)
-                                </p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Tab: Functions -->
@@ -425,18 +433,9 @@
                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-1">Sensibilidad de Interrupción
-                            (Anti-Ruido)</label>
-                        <input type="range" name="interruption_threshold" min="0" max="30" step="1"
-                            value="{{ config.interruption_threshold }}"
-                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                            oninput="this.nextElementSibling.value = this.value + ' chars'">
-                        <output class="text-xs text-slate-400 block mt-1">{{ config.interruption_threshold }}
-                            chars</output>
-                        <p class="text-xs text-slate-500 mt-1">
-                            Ignorar interrupciones menores a X caracteres. Sube esto si Andrea se calla por
-                            ruido.
-                        </p>
+                        <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
+                        <input type="text" name="idle_message" value="{{ config.idle_message }}"
+                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                     </div>
                 </div>
 
