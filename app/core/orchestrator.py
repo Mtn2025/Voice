@@ -351,9 +351,9 @@ class VoiceOrchestrator:
             asyncio.create_task(self.handle_interruption())
 
     def handle_recognized(self, evt):
-        self.last_interaction_time = time.time() # Reset Idle Timer
-        
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
+            self.last_interaction_time = time.time() # Reset Idle Timer ONLY on valid speech
+            logging.warning(f"🗣️ [RECOGNIZED] Valid Speech Detected. Timer Reset.")
             # Azure Text (Fast but maybe inaccurate)
             azure_text = evt.result.text
             if not azure_text: return
