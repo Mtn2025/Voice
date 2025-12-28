@@ -55,6 +55,11 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE calls ADD COLUMN IF NOT EXISTS extracted_data JSONB"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS extraction_model VARCHAR DEFAULT 'llama-3.1-8b-instant'"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold INTEGER DEFAULT 5"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold_phone INTEGER DEFAULT 2"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms_phone INTEGER DEFAULT 1200"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS initial_silence_timeout_ms INTEGER DEFAULT 5000"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_speed_phone FLOAT DEFAULT 0.9"))
+
 
         except Exception as e:
             print(f"Migration warning: {e}")
