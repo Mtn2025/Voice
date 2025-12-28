@@ -60,7 +60,9 @@ async def update_config(
     interruption_threshold: int = Form(5), # New
     interruption_threshold_phone: int = Form(2), # New
 
-    
+    interruption_threshold_phone: int = Form(2), # New
+
+    # 🔒 LOCKED: MODEL & CORE ARGS (DO NOT EDIT)
     # Stage 1: Model & Voice
     first_message: str = Form("Hola, soy Andrea..."),
     first_message_mode: str = Form("speak-first"),
