@@ -195,12 +195,38 @@ async function setupAudioCapture() {
 
         const inputData = e.inputBuffer.getChannelData(0);
 
+        // 1. Calculate RMS (Volume Level)
+        let sum = 0;
+        for (let i = 0; i < inputData.length; i++) {
+            sum += inputData[i] * inputData[i];
+        }
+        const rms = Math.sqrt(sum / inputData.length);
+
+        // 2. Dynamic Noise Gate (Corrected for Echo)
+        // If Bot is speaking (activeSources > 0), we assume incoming audio might be Echo.
+        // We raise the gate threshold to block it.
+        // Thresholds: 
+        // - 0.01: Base noise floor (Silence)
+        // - 0.05: Moderate Echo / Ambient
+        // - 0.1+: Active Speech
+        const gateThreshold = (activeSources.length > 0) ? 0.05 : 0.01;
+
         // Convert Float32 to Int16
         const buffer = new ArrayBuffer(inputData.length * 2);
         const view = new DataView(buffer);
-        for (let i = 0; i < inputData.length; i++) {
-            let s = Math.max(-1, Math.min(1, inputData[i]));
-            view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+
+        if (rms < gateThreshold) {
+            // SILENCE / ECHO SUPPRESSION: Send Zeros
+            // This prevents the server from processing Echo as User Speech
+            for (let i = 0; i < inputData.length; i++) {
+                view.setInt16(i * 2, 0, true);
+            }
+        } else {
+            // VALID SPEECH: Convert normally
+            for (let i = 0; i < inputData.length; i++) {
+                let s = Math.max(-1, Math.min(1, inputData[i]));
+                view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
         }
 
         // Send as base64
