@@ -127,6 +127,9 @@ class VoiceOrchestrator:
             }
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
+            elif self.client_type == "telnyx":
+                # Telnyx Media Object usually just needs payload, but we can pass other metadata if needed
+                pass
             
             try:
                 await self.websocket.send_text(json.dumps(msg))
@@ -271,39 +274,49 @@ class VoiceOrchestrator:
         logging.info(f"DEBUG CONFIG TYPE: {type(self.config)}")
         logging.info(f"DEBUG CONFIG VAL: {self.config}")
         
-        # ---------------- PROFILE OVERLAY (PHONE) ----------------
+        # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         if self.client_type != "browser":
-             logging.info("📱 [ORCHESTRATOR] Applying PHONE Profile Configuration (Overlay)")
-             # We overwrite the standard 'active' keys with the _phone specific values
+             logging.info(f"📱 [ORCHESTRATOR] Applying Profile Configuration for: {self.client_type}")
+             
+             # SUFFIX DETERMINATION
+             suffix = "_phone" # Default to Twilio/Phone
+             if self.client_type == "telnyx":
+                 suffix = "_telnyx"
+             
+             # HELPER: Apply override if exists
+             def apply(attr, fallback=None):
+                 key = f"{attr}{suffix}"
+                 val = getattr(self.config, key, None)
+                 if val is not None:
+                     setattr(self.config, attr, val)
              
              # LLM & Persona
-             if self.config.llm_model_phone: self.config.llm_model = self.config.llm_model_phone
-             if self.config.llm_provider_phone: self.config.llm_provider = self.config.llm_provider_phone
-             if self.config.system_prompt_phone: self.config.system_prompt = self.config.system_prompt_phone
-             if self.config.max_tokens_phone: self.config.max_tokens = self.config.max_tokens_phone
-             if self.config.first_message_phone: self.config.first_message = self.config.first_message_phone
-             if self.config.first_message_mode_phone: self.config.first_message_mode = self.config.first_message_mode_phone
-             if self.config.temperature_phone is not None: self.config.temperature = self.config.temperature_phone
+             apply("llm_model")
+             apply("llm_provider")
+             apply("system_prompt")
+             apply("max_tokens")
+             apply("first_message")
+             apply("first_message_mode")
+             apply("temperature")
              
              # Voice / TTS
-             if self.config.voice_name_phone: self.config.voice_name = self.config.voice_name_phone
-             if self.config.voice_style_phone: self.config.voice_style = self.config.voice_style_phone
-             if self.config.voice_speed_phone: self.config.voice_speed = self.config.voice_speed_phone
+             apply("voice_name")
+             apply("voice_style")
+             apply("voice_speed")
+             apply("voice_pacing_ms")
              
              # Transcriber / VAD / Audio
-             # Crucial: This allows swapping Providers (Azure <-> Deepgram) for Phone!
-             if self.config.stt_provider_phone: self.config.stt_provider = self.config.stt_provider_phone
-             if self.config.stt_language_phone: self.config.stt_language = self.config.stt_language_phone
+             apply("stt_provider")
+             apply("stt_language")
              
-             if self.config.silence_timeout_ms_phone: self.config.silence_timeout_ms = self.config.silence_timeout_ms_phone
-             if self.config.initial_silence_timeout_ms_phone: self.config.initial_silence_timeout_ms = self.config.initial_silence_timeout_ms_phone
-             if self.config.interruption_threshold_phone is not None: self.config.interruption_threshold = self.config.interruption_threshold_phone
-             if self.config.input_min_characters_phone: self.config.input_min_characters = self.config.input_min_characters_phone
-             
-             if hasattr(self.config, 'enable_denoising_phone') and self.config.enable_denoising_phone is not None:
-                 self.config.enable_denoising = self.config.enable_denoising_phone
+             apply("silence_timeout_ms")
+             apply("initial_silence_timeout_ms")
+             apply("interruption_threshold")
+             apply("input_min_characters")
+             apply("enable_denoising")
+             apply("hallucination_blacklist")
                  
-             logging.info(f"📱 [PROFILE APPLIED] Voice: {self.config.voice_name} | Speed: {self.config.voice_speed} | STT: {self.config.stt_provider}")
+             logging.info(f"📱 [PROFILE APPLIED] Client: {self.client_type} | Voice: {self.config.voice_name} | STT: {self.config.stt_provider}")
         # ---------------------------------------------------------
         
         self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
@@ -843,9 +856,9 @@ class VoiceOrchestrator:
             audio_bytes = base64.b64decode(payload)
             
             # ------------------------------------------------------------------
-            # MANUAL DECODE: Convert Twilio MuLaw (8k) -> PCM (8k 16-bit) for Azure
+            # MANUAL DECODE: Convert Twilio/Telnyx MuLaw (8k) -> PCM (8k 16-bit) for Azure
             # ------------------------------------------------------------------
-            if self.client_type == "twilio":
+            if self.client_type in ["twilio", "telnyx"]:
                  try:
                      # μ-law to linear PCM (width=2 means 16-bit)
                      audio_bytes = audioop.ulaw2lin(audio_bytes, 2)

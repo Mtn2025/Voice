@@ -46,14 +46,17 @@ async def telnyx_incoming_call(request: Request):
         host = request.headers.get("host")
         
         # Construct TexML response
+        # Detect scheme (handle behind proxy like Coolify)
+        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+        ws_scheme = "wss" if scheme == "https" else "ws"
+        
         # Telnyx <Stream> is compatible with Twilio <Stream> structure mostly
-        # We pass client=telnyx as a query parameter or custom parameter if supported
-        # But for WebSocket URL query params allow us to identify client type in 'connect'
+        # We pass client=telnyx as a query parameter
         
         texml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Connect>
-        <Stream url="wss://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}">
+        <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}">
         </Stream>
     </Connect>
 </Response>"""
