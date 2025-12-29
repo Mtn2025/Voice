@@ -250,7 +250,7 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20):
         if total is None: total = 0
         total_pages = (total + limit - 1) // limit if limit > 0 else 1
         
-        return templates.TemplateResponse("partials/history_rows.html", {
+        return templates.TemplateResponse("partials/history_panel.html", {
             "request": request,
             "history": history,
             "page": page,

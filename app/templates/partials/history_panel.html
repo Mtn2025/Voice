@@ -1,0 +1,116 @@
+<div class="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
+    <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-400">Mostrar</span>
+            <select id="history-limit" name="limit"
+                class="bg-slate-900 border border-slate-600 text-xs rounded px-2 py-1" hx-get="/dashboard/history-rows"
+                hx-include="[name='limit']" hx-target="#history-panel">
+                <option value="10" {% if limit==10 %}selected{% endif %}>10</option>
+                <option value="20" {% if limit==20 %}selected{% endif %}>20</option>
+                <option value="50" {% if limit==50 %}selected{% endif %}>50</option>
+            </select>
+        </div>
+        <span class="text-xs text-slate-500">
+            Total: <span id="total-items-badge" class="font-mono text-slate-300">{{ total_items }}</span>
+        </span>
+    </div>
+
+    <div class="flex items-center space-x-2">
+        <button id="btn-delete-selected" onclick="deleteSelectedCalls()" style="display: none;"
+            class="text-xs bg-red-900/80 hover:bg-red-800 text-red-200 px-3 py-1 rounded border border-red-700 transition flex items-center gap-1">
+            <span>🗑️</span> Borrar Seleccionados
+        </button>
+
+        <form action="/api/history/clear" method="POST"
+            onsubmit="return confirm('¿Seguro que deseas eliminar TOOOODO el historial? Esta acción es irreversible.');">
+            <button type="submit"
+                class="text-xs bg-red-900/30 hover:bg-red-900/50 text-red-400 hover:text-red-200 px-3 py-1 rounded border border-red-800/50 transition">
+                Limpiar Todo
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="overflow-x-auto rounded-lg border border-slate-700">
+    <table class="w-full text-sm text-left text-slate-400">
+        <thead class="text-xs text-slate-200 uppercase bg-slate-700">
+            <tr>
+                <th class="px-4 py-3 w-4">
+                    <input type="checkbox" onclick="toggleAllHistory(this)"
+                        class="rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-offset-slate-800">
+                </th>
+                <th class="px-4 py-3">ID</th>
+                <th class="px-4 py-3">Fecha</th>
+                <th class="px-4 py-3">Estado</th>
+                <th class="px-4 py-3 text-right">Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for call in history %}
+            <tr class="bg-slate-800 border-b border-slate-700 hover:bg-slate-700 transition">
+                <td class="px-4 py-2 w-4">
+                    <input type="checkbox" value="{{ call.id }}"
+                        class="history-checkbox rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-offset-slate-800"
+                        onclick="updateDeleteButton()">
+                </td>
+                <td class="px-4 py-2 text-white font-medium">{{ call.id }}</td>
+                <td class="px-4 py-2">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="px-4 py-2">
+                    <span
+                        class="px-2 py-1 rounded text-xs {{ 'bg-green-900 text-green-300' if call.status == 'completed' else 'bg-yellow-900 text-yellow-300' }}">
+                        {{ 'Completada' if call.status == 'completed' else 'En Curso' if call.status == 'in-progress'
+                        else
+                        call.status }}
+                    </span>
+                </td>
+                <td class="px-4 py-2 text-right">
+                    <div class="flex justify-end space-x-2">
+                        <a href="/dashboard/call/{{ call.id }}"
+                            class="inline-flex items-center space-x-1 text-blue-400 hover:text-blue-300 font-medium">
+                            <span>Revisar</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                                </path>
+                            </svg>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">No se han registrado llamadas
+                    recientes.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="history-pagination" class="flex justify-between items-center pt-2">
+    <span class="text-xs text-slate-500 p-2">
+        Página <span class="text-white">{{ page }}</span> de <span class="text-white">{{ total_pages }}</span>
+        (Total: {{ total_items }})
+    </span>
+    <div class="space-x-2">
+        {% if page > 1 %}
+        <button hx-get="/dashboard/history-rows?page={{ page - 1 }}" hx-include="[name='limit']"
+            hx-target="#history-panel"
+            class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">
+            &larr; Anterior
+        </button>
+        {% endif %}
+
+        {% if page < total_pages %} <button hx-get="/dashboard/history-rows?page={{ page + 1 }}"
+            hx-include="[name='limit']" hx-target="#history-panel"
+            class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition">
+            Siguiente &rarr;
+            </button>
+            {% endif %}
+    </div>
+</div>
+
+<script>
+    // Re-initialize checkbox listeners after swap
+    if (typeof updateDeleteButton === 'function') updateDeleteButton();
+</script>
