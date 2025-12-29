@@ -821,10 +821,39 @@ class VoiceOrchestrator:
                      logging.error(f"Audio Conversion Error: {e_conv}")
             # ------------------------------------------------------------------
             
-            # log to warning to ensure visibility
-            if len(audio_bytes) > 0:
-                 logging.warning(f"🎤 [AUDIO IN] Processed {len(audio_bytes)} bytes -> Azure PushStream")
+            # ------------------------------------------------------------------
             
+            # DIAGNOSTICS: Calculate Volume Metrics
+            try:
+                # RMS (Average Volume) - Good for silence vs background vs voice
+                rms = audioop.rms(audio_bytes, 2) 
+                # Max (Peak Volume) - Good for sudden spikes (clacks, pops)
+                max_val = audioop.max(audio_bytes, 2)
+                
+                # Dynamic Logging: Only log meaningful changes or Periodic
+                # For Audit: Log everything in a compact format
+                # Thresholds (Approx for 16-bit PCM):
+                # < 500: Silence
+                # 500-2000: Background Noise
+                # > 2000: Likely Speech
+                
+                log_level = logging.DEBUG
+                classification = "🔇 Silence"
+                if rms > 2000: 
+                    log_level = logging.WARNING # Force visibility
+                    classification = "🗣️ VOICE"
+                elif rms > 500:
+                    log_level = logging.INFO
+                    classification = "🔊 Noise"
+                elif max_val > 10000:
+                    log_level = logging.WARNING
+                    classification = "💥 SPIKE"
+
+                logging.log(log_level, f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
+                
+            except Exception as e_metric:
+                 logging.error(f"Error calculating metrics: {e_metric}")
+
             self.push_stream.write(audio_bytes)
             self.user_audio_buffer.extend(audio_bytes)
         except Exception as e:
