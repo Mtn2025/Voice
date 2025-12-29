@@ -138,11 +138,20 @@
                                         class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Temperatura: <span
-                                            x-text="temperature"></span></label>
-                                    <input type="range" name="temperature" min="0" max="1" step="0.1"
-                                        value="{{ config.temperature }}"
-                                        class="w-full bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                    <label class="block text-sm font-medium mb-1">Temperatura</label>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                            <span>Min: 0</span>
+                                            <span>Max: 1</span>
+                                        </div>
+                                        <input type="range" name="temperature" min="0" max="1" step="0.1"
+                                            value="{{ config.temperature }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                            oninput="document.getElementById('temp-val').innerText = this.value">
+                                        <div class="text-right text-xs text-blue-400 font-bold">
+                                            Actual: <span id="temp-val">{{ config.temperature }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -204,9 +213,19 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1">Temperatura (Teléfono)</label>
-                                    <input type="range" name="temperature_phone" min="0" max="1" step="0.1"
-                                        value="{{ config.temperature_phone }}"
-                                        class="w-full bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                            <span>Min: 0</span>
+                                            <span>Max: 1</span>
+                                        </div>
+                                        <input type="range" name="temperature_phone" min="0" max="1" step="0.1"
+                                            value="{{ config.temperature_phone }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                            oninput="document.getElementById('temp-phone-val').innerText = this.value">
+                                        <div class="text-right text-xs text-emerald-400 font-bold">
+                                            Actual: <span id="temp-phone-val">{{ config.temperature_phone }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -269,18 +288,36 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Velocidad (Navegador): <span
-                                            id="speed-val">{{ config.voice_speed }}</span></label>
-                                    <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
-                                        value="{{ config.voice_speed }}" class="w-full"
-                                        oninput="document.getElementById('speed-val').innerText = this.value">
+                                    <label class="block text-sm font-medium mb-1">Velocidad (Navegador)</label>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                            <span>Min: 0.5x</span>
+                                            <span>Max: 2.0x</span>
+                                        </div>
+                                        <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
+                                            value="{{ config.voice_speed }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                            oninput="document.getElementById('speed-val').innerText = this.value">
+                                        <div class="text-right text-xs text-blue-400 font-bold">
+                                            Actual: <span id="speed-val">{{ config.voice_speed }}</span>x
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Ritmo de Voz (Pacing): <span
-                                            id="pacing-val">{{ config.voice_pacing_ms }}</span> ms</label>
-                                    <input type="range" name="voice_pacing_ms" min="0" max="2000" step="50"
-                                        value="{{ config.voice_pacing_ms }}" class="w-full"
-                                        oninput="document.getElementById('pacing-val').innerText = this.value">
+                                    <label class="block text-sm font-medium mb-1">Ritmo de Voz (Pacing)</label>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                            <span>Min: 0ms</span>
+                                            <span>Max: 2000ms</span>
+                                        </div>
+                                        <input type="range" name="voice_pacing_ms" min="0" max="2000" step="50"
+                                            value="{{ config.voice_pacing_ms }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                            oninput="document.getElementById('pacing-val').innerText = this.value">
+                                        <div class="text-right text-xs text-blue-400 font-bold">
+                                            Actual: <span id="pacing-val">{{ config.voice_pacing_ms }}</span> ms
+                                        </div>
+                                    </div>
                                     <p class="text-xs text-slate-500">Retraso antes de hablar (Naturalidad).</p>
                                 </div>
                             </div>
@@ -311,13 +348,22 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Velocidad (Teléfono): <span
-                                            x-text="voiceSpeedPhone + 'x'"></span></label>
-                                    <input type="range" name="voice_speed_phone" min="0.5" max="2.0" step="0.05"
-                                        x-model="voiceSpeedPhone" class="w-full"
-                                        oninput="document.getElementById('speed-val-phone').innerText = this.value + 'x'">
-                                    <p class="text-xs text-slate-500 mt-1">Más lento ayuda en telefonía (0.9
-                                        recomendado).</p>
+                                    <label class="block text-sm font-medium mb-1">Velocidad (Teléfono)</label>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                            <span>Min: 0.5x</span>
+                                            <span>Max: 2.0x</span>
+                                        </div>
+                                        <input type="range" name="voice_speed_phone" min="0.5" max="2.0" step="0.05"
+                                            value="{{ config.voice_speed_phone }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                            oninput="document.getElementById('speed-phone-val').innerText = this.value">
+                                        <div class="text-right text-xs text-emerald-400 font-bold">
+                                            Actual: <span id="speed-phone-val">{{ config.voice_speed_phone }}</span>x
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1">Más lento ayuda en telefonía (0.9
+                                            recomendado).</p>
+                                    </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1">Ritmo de Voz (Teléfono): <span
@@ -420,10 +466,22 @@
                                             <span class="text-xs text-slate-400">{{ config.interruption_threshold }}
                                                 chars</span>
                                         </label>
-                                        <input type="range" name="interruption_threshold" min="0" max="30" step="1"
-                                            value="{{ config.interruption_threshold }}"
-                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                            oninput="this.previousElementSibling.lastElementChild.innerText = this.value + ' chars'">
+                                        <label class="block text-sm font-medium mb-1">Sensibilidad Interrupción
+                                            (Web)</label>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                                <span>Min: 0 (Instant)</span>
+                                                <span>Max: 30 chars</span>
+                                            </div>
+                                            <input type="range" name="interruption_threshold" min="0" max="30" step="1"
+                                                value="{{ config.interruption_threshold }}"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                                oninput="document.getElementById('int-val').innerText = this.value">
+                                            <div class="text-right text-xs text-blue-400 font-bold">
+                                                Actual: <span id="int-val">{{ config.interruption_threshold }}</span>
+                                                chars
+                                            </div>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium mb-1">Filtro Ruido (Min. Letras)</label>
@@ -484,19 +542,41 @@
                                             <span class="text-xs text-slate-400"
                                                 x-text="interruptionPhone + ' chars'"></span>
                                         </label>
-                                        <input type="range" name="interruption_threshold_phone" min="0" max="20"
-                                            step="1" x-model="interruptionPhone"
-                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                        <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible.</p>
+                                        <label class="block text-sm font-medium mb-1">Sensibilidad Interrupción
+                                            (Tel)</label>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                                <span>Min: 0</span>
+                                                <span>Max: 20 chars</span>
+                                            </div>
+                                            <input type="range" name="interruption_threshold_phone" min="0" max="20"
+                                                step="1" value="{{ config.interruption_threshold_phone }}"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                                oninput="document.getElementById('int-phone-val').innerText = this.value">
+                                            <div class="text-right text-xs text-emerald-400 font-bold">
+                                                Actual: <span id="int-phone-val">{{ config.interruption_threshold_phone
+                                                    }}</span> chars
+                                            </div>
+                                            <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible.</p>
+                                        </div>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 flex justify-between">
-                                            <span>Silencio Fin de Turno (Tel)</span>
-                                            <span class="text-xs text-slate-400" x-text="silencePhone + ' ms'"></span>
-                                        </label>
-                                        <input type="range" name="silence_timeout_ms_phone" min="500" max="3000"
-                                            step="100" x-model="silencePhone"
-                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                        <label class="block text-sm font-medium mb-1">Silencio Fin de Turno
+                                            (Tel)</label>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-xs text-slate-500 font-mono">
+                                                <span>Min: 500ms</span>
+                                                <span>Max: 3000ms</span>
+                                            </div>
+                                            <input type="range" name="silence_timeout_ms_phone" min="500" max="3000"
+                                                step="100" value="{{ config.silence_timeout_ms_phone }}"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                                oninput="document.getElementById('sil-phone-val').innerText = this.value">
+                                            <div class="text-right text-xs text-emerald-400 font-bold">
+                                                Actual: <span id="sil-phone-val">{{ config.silence_timeout_ms_phone
+                                                    }}</span> ms
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 pt-2">

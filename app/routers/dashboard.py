@@ -60,6 +60,34 @@ async def update_config(
     interruption_threshold: int = Form(5), # New
     interruption_threshold_phone: int = Form(2), # New
 
+    # Audit Fixes Round 2 & 3
+    hallucination_blacklist: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
+    hallucination_blacklist_phone: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
+    voice_pacing_ms: int = Form(300),
+    voice_pacing_ms_phone: int = Form(500),
+    voice_name_phone: str = Form(None),
+    voice_style_phone: str = Form(None),
+    input_min_characters_phone: int = Form(4),
+    
+    # Phone Model & Prompt
+    system_prompt_phone: str = Form(None),
+    first_message_phone: str = Form(None),
+    first_message_mode_phone: str = Form("speak-first"),
+    max_tokens_phone: int = Form(250),
+    llm_provider_phone: str = Form("groq"),
+    llm_model_phone: str = Form(None),
+    stt_provider_phone: str = Form("azure"),
+    stt_language_phone: str = Form("es-US"),
+    temperature_phone: float = Form(0.7),
+    
+    # Twilio Specific
+    enable_denoising_phone: bool = Form(True),
+    twilio_machine_detection: str = Form("Enable"),
+    twilio_record: bool = Form(False),
+    twilio_recording_channels: str = Form("dual"),
+    twilio_trim_silence: bool = Form(True),
+    initial_silence_timeout_ms_phone: int = Form(5000),
+
 
 
 
@@ -107,6 +135,34 @@ async def update_config(
         idle_message=idle_message,
         interruption_threshold=interruption_threshold,
         interruption_threshold_phone=interruption_threshold_phone,
+        
+        # New Audit Fields
+        hallucination_blacklist=hallucination_blacklist,
+        hallucination_blacklist_phone=hallucination_blacklist_phone,
+        voice_pacing_ms=voice_pacing_ms,
+        voice_pacing_ms_phone=voice_pacing_ms_phone,
+        voice_name_phone=voice_name_phone,
+        voice_style_phone=voice_style_phone,
+        input_min_characters_phone=input_min_characters_phone,
+        
+        system_prompt_phone=system_prompt_phone,
+        first_message_phone=first_message_phone,
+        first_message_mode_phone=first_message_mode_phone,
+        max_tokens_phone=max_tokens_phone,
+        llm_provider_phone=llm_provider_phone,
+        llm_model_phone=llm_model_phone,
+        stt_provider_phone=stt_provider_phone,
+        stt_language_phone=stt_language_phone,
+        temperature_phone=temperature_phone,
+        
+        # Twilio
+        enable_denoising_phone=enable_denoising_phone,
+        twilio_machine_detection=twilio_machine_detection,
+        twilio_record=twilio_record,
+        twilio_recording_channels=twilio_recording_channels,
+        twilio_trim_silence=twilio_trim_silence,
+        initial_silence_timeout_ms_phone=initial_silence_timeout_ms_phone,
+
         max_duration=max_duration,
         # Stage 1
         first_message=first_message,
