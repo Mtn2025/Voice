@@ -71,6 +71,27 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms INTEGER DEFAULT 300"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms_phone INTEGER DEFAULT 500"))
             
+            # Telnyx Expansion
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS stt_provider_telnyx VARCHAR DEFAULT 'azure'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS stt_language_telnyx VARCHAR DEFAULT 'es-MX'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_provider_telnyx VARCHAR DEFAULT 'groq'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_model_telnyx VARCHAR DEFAULT 'llama-3.3-70b-versatile'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS system_prompt_telnyx TEXT"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_name_telnyx VARCHAR DEFAULT 'es-MX-DaliaNeural'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_style_telnyx VARCHAR"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS temperature_telnyx FLOAT DEFAULT 0.7"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_telnyx VARCHAR DEFAULT 'Hola, soy Andrea de Ubrokers. ¿Me escucha bien?'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_mode_telnyx VARCHAR DEFAULT 'speak-first'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_tokens_telnyx INTEGER DEFAULT 250"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS initial_silence_timeout_ms_telnyx INTEGER DEFAULT 5000"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters_telnyx INTEGER DEFAULT 4"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_denoising_telnyx BOOLEAN DEFAULT TRUE"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms_telnyx INTEGER DEFAULT 500"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms_telnyx INTEGER DEFAULT 1200"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold_telnyx INTEGER DEFAULT 2"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS hallucination_blacklist_telnyx VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_speed_telnyx FLOAT DEFAULT 0.9"))
+            
             await conn.commit()
 
         except Exception as e:

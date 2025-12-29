@@ -88,6 +88,30 @@ async def update_config(
     twilio_trim_silence: bool = Form(True),
     initial_silence_timeout_ms_phone: int = Form(5000),
 
+    # Twilio (Renamed in UI, kept here for backend compatibility if needed, but mostly 'phone' suffixes covers it)
+    # The 'phone' fields above map to Twilio.
+    
+    # Telnyx Specific
+    stt_provider_telnyx: str = Form("azure"),
+    stt_language_telnyx: str = Form("es-MX"),
+    llm_provider_telnyx: str = Form("groq"),
+    llm_model_telnyx: str = Form("llama-3.3-70b-versatile"),
+    system_prompt_telnyx: str = Form(None),
+    voice_name_telnyx: str = Form("es-MX-DaliaNeural"),
+    voice_style_telnyx: str = Form(None),
+    temperature_telnyx: float = Form(0.7),
+    first_message_telnyx: str = Form("Hola, soy Andrea de Ubrokers. ¿Me escucha bien?"),
+    first_message_mode_telnyx: str = Form("speak-first"),
+    max_tokens_telnyx: int = Form(250),
+    initial_silence_timeout_ms_telnyx: int = Form(5000),
+    input_min_characters_telnyx: int = Form(4),
+    enable_denoising_telnyx: bool = Form(True),
+    voice_pacing_ms_telnyx: int = Form(500),
+    silence_timeout_ms_telnyx: int = Form(1200),
+    interruption_threshold_telnyx: int = Form(2),
+    hallucination_blacklist_telnyx: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
+    voice_speed_telnyx: float = Form(0.9),
+
 
 
 
@@ -162,6 +186,27 @@ async def update_config(
         twilio_recording_channels=twilio_recording_channels,
         twilio_trim_silence=twilio_trim_silence,
         initial_silence_timeout_ms_phone=initial_silence_timeout_ms_phone,
+        
+        # Telnyx
+        stt_provider_telnyx=stt_provider_telnyx,
+        stt_language_telnyx=stt_language_telnyx,
+        llm_provider_telnyx=llm_provider_telnyx,
+        llm_model_telnyx=llm_model_telnyx,
+        system_prompt_telnyx=system_prompt_telnyx,
+        voice_name_telnyx=voice_name_telnyx,
+        voice_style_telnyx=voice_style_telnyx,
+        temperature_telnyx=temperature_telnyx,
+        first_message_telnyx=first_message_telnyx,
+        first_message_mode_telnyx=first_message_mode_telnyx,
+        max_tokens_telnyx=max_tokens_telnyx,
+        initial_silence_timeout_ms_telnyx=initial_silence_timeout_ms_telnyx,
+        input_min_characters_telnyx=input_min_characters_telnyx,
+        enable_denoising_telnyx=enable_denoising_telnyx,
+        voice_pacing_ms_telnyx=voice_pacing_ms_telnyx,
+        silence_timeout_ms_telnyx=silence_timeout_ms_telnyx,
+        interruption_threshold_telnyx=interruption_threshold_telnyx,
+        hallucination_blacklist_telnyx=hallucination_blacklist_telnyx,
+        voice_speed_telnyx=voice_speed_telnyx,
 
         max_duration=max_duration,
         # Stage 1
@@ -207,13 +252,17 @@ async def patch_config(request: Request):
             "input_min_characters", "max_tokens", "silence_timeout_ms", 
             "initial_silence_timeout_ms", "segmentation_max_time", 
             "interruption_threshold", "interruption_threshold_phone",
-            "silence_timeout_ms_phone", "max_duration"
+            "silence_timeout_ms_phone", "max_duration",
+            "max_tokens_telnyx", "initial_silence_timeout_ms_telnyx", "input_min_characters_telnyx",
+            "voice_pacing_ms_telnyx", "silence_timeout_ms_telnyx", "interruption_threshold_telnyx"
         ]
         float_fields = [
-            "temperature", "voice_speed", "voice_speed_phone", "idle_timeout"
+            "temperature", "voice_speed", "voice_speed_phone", "idle_timeout",
+            "temperature_telnyx", "voice_speed_telnyx"
         ]
         bool_fields = [
-             "enable_denoising", "enable_end_call", "enable_dial_keypad"
+             "enable_denoising", "enable_end_call", "enable_dial_keypad",
+             "enable_denoising_telnyx"
         ]
 
         cleaned_data = {}

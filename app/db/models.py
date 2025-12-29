@@ -144,6 +144,33 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     enable_denoising = Column(Boolean, default=True)
     initial_silence_timeout_ms = Column(Integer, default=5000) # Time to wait for start of speech
     
+    # ---------------- TELNYX PROFILE ----------------
+    # Cloned configs for independent tuning
+    stt_provider_telnyx = Column(String, default="azure")
+    stt_language_telnyx = Column(String, default="es-MX")
+    llm_provider_telnyx = Column(String, default="groq")
+    llm_model_telnyx = Column(String, default="llama-3.3-70b-versatile")
+    system_prompt_telnyx = Column(Text, default=None)
+
+    voice_name_telnyx = Column(String, default="es-MX-DaliaNeural")
+    voice_style_telnyx = Column(String, nullable=True)
+    temperature_telnyx = Column(Float, default=0.7)
+
+    first_message_telnyx = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
+    first_message_mode_telnyx = Column(String, default="speak-first")
+    max_tokens_telnyx = Column(Integer, default=250)
+
+    initial_silence_timeout_ms_telnyx = Column(Integer, default=5000)
+    input_min_characters_telnyx = Column(Integer, default=4)
+    enable_denoising_telnyx = Column(Boolean, default=True)
+    
+    voice_pacing_ms_telnyx = Column(Integer, default=500)
+    silence_timeout_ms_telnyx = Column(Integer, default=1200)
+    interruption_threshold_telnyx = Column(Integer, default=2)
+    hallucination_blacklist_telnyx = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.")
+    voice_speed_telnyx = Column(Float, default=0.9)
+    # ------------------------------------------------
+    
     enable_end_call = Column(Boolean, default=True)
     enable_dial_keypad = Column(Boolean, default=False)
     transfer_phone_number = Column(String, nullable=True)
