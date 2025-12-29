@@ -56,6 +56,25 @@ async function startCall() {
         // Check for globally set client type (from Dashboard toggle), default to browser
         const clientType = window.simulatorClientType || 'browser';
         console.log(`🔌 Connecting Simulator as Client Type: ${clientType}`);
+
+        // --- BACKGROUND AUDIO ---
+        if (window.simulatorConfig) {
+            let bgUrl = window.simulatorConfig.backgroundUrl;
+            if (!bgUrl && window.simulatorConfig.backgroundAudio === 'office') {
+                bgUrl = '/static/sounds/office.MP3';
+            }
+            // Add other cases here if files exist
+
+            if (bgUrl && bgUrl.length > 5 && window.simulatorConfig.backgroundAudio !== 'none') {
+                console.log(`🎵 Starting Background Audio: ${bgUrl}`);
+                bgAudio = new Audio(bgUrl);
+                bgAudio.loop = true;
+                bgAudio.volume = 0.15; // Low volume
+                bgAudio.play().catch(e => console.warn("Background Audio Auto-play blocked:", e));
+            }
+        }
+        // -------------------------
+
         socket = new WebSocket(`${protocol}//${window.location.host}/api/v1/ws/media-stream?client=${clientType}&client_id=${clientId}`);
 
         socket.onopen = () => {

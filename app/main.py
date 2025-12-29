@@ -70,7 +70,8 @@ async def lifespan(app: FastAPI):
             # Audit Fixes Round 3: Pacing
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms INTEGER DEFAULT 300"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms_phone INTEGER DEFAULT 500"))
-
+            
+            await conn.commit()
 
         except Exception as e:
             print(f"Migration warning: {e}")
