@@ -128,7 +128,12 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     
     voice_id_manual = Column(String, nullable=True) # Override standard list
     background_sound_url = Column(String, nullable=True) # External URL for ambient noise
-    input_min_characters = Column(Integer, default=1)
+    input_min_characters = Column(Integer, default=10) # Minimum chars to be valid (Updated default)
+    input_min_characters_phone = Column(Integer, default=4) # Phone usually needs lower
+    hallucination_blacklist = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.") # Browser Blacklist
+    hallucination_blacklist_phone = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.") # Phone Blacklist
+    voice_pacing_ms = Column(Integer, default=300) # Response Delay (Browser)
+    voice_pacing_ms_phone = Column(Integer, default=500) # Response Delay (Phone)
     punctuation_boundaries = Column(String, nullable=True)
     
     # VAPI Stage 2: Transcriber & Functions

@@ -39,7 +39,7 @@ class AdaptiveInputFilter:
             
         if rms > self.max_rms: self.max_rms = rms
         
-    def should_filter(self, text: str, current_turn_rms: float) -> tuple[bool, str]:
+    def should_filter(self, text: str, current_turn_rms: float, min_chars: int = 4) -> tuple[bool, str]:
         """
         Returns (should_filter, reason)
         """
@@ -48,7 +48,7 @@ class AdaptiveInputFilter:
 
         # 1. IMPACT NOISE FILTER (Loud but Short)
         # Coughs, slams usually < 4 chars (e.g. empty or "A") but High RMS
-        if len(text) < 4 and current_turn_rms > (self.avg_rms * 0.8):
+        if len(text) < min_chars and current_turn_rms > (self.avg_rms * 0.8):
              return True, "IMPACT_NOISE (Loud but Short)"
              
         # 2. INTENSITY FILTER (Too Quiet)
@@ -128,7 +128,14 @@ class VoiceOrchestrator:
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
             
-            await self.websocket.send_text(json.dumps(msg))
+            try:
+                await self.websocket.send_text(json.dumps(msg))
+            except RuntimeError as e:
+                logging.warning(f"⚠️ Connection Closed during Audio Send: {e}")
+                return # Stop sending remaining chunks
+            except Exception as e:
+                logging.error(f"Error sending chunk: {e}")
+                return
             
         logging.warning(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
 
@@ -546,8 +553,25 @@ class VoiceOrchestrator:
             except Exception as e:
                 logging.error(f"Groq Transcription Failed: {e}")
 
+        # --- HALLUCINATION BLOCKLIST ---
+        blacklist_str = getattr(self.config, 'hallucination_blacklist', "Pero.,Y...,Mm.")
+        if self.client_type != 'browser':
+             blacklist_str = getattr(self.config, 'hallucination_blacklist_phone', "Pero.,Y...,Mm.")
+        
+        blacklist = [w.strip() for w in blacklist_str.split(',') if w.strip()]
+        clean_text = text.strip()
+        # Case insensitive exact match (hallucinations are usually exact phrases)
+        if any(clean_text.lower() == blocked.lower() for blocked in blacklist):
+             logging.warning(f"🛡️ [BLOCKLIST] Ignored hallucination '{clean_text}' found in blacklist.")
+             return
+
         # --- ADAPTIVE FILTERING ---
-        should_filter, reason = self.vad_filter.should_filter(text, self.current_turn_max_rms)
+        # Get Min Chars from Config
+        min_chars = getattr(self.config, 'input_min_characters', 4)
+        if self.client_type != 'browser':
+             min_chars = getattr(self.config, 'input_min_characters_phone', 2)
+
+        should_filter, reason = self.vad_filter.should_filter(text, self.current_turn_max_rms, min_chars=min_chars)
         if should_filter:
              logging.warning(f"🛡️ [ADAPTIVE FILTER] Ignored input '{text}'. Reason: {reason}")
              return
@@ -670,6 +694,15 @@ class VoiceOrchestrator:
             
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 audio_data = result.audio_data
+                
+                # --- PACING: Natural Delay ---
+                # Configurable delay to avoid "Machine Gun" effect
+                pacing_ms = getattr(self.config, 'voice_pacing_ms', 300)
+                if self.client_type != 'browser':
+                     pacing_ms = getattr(self.config, 'voice_pacing_ms_phone', 500)
+                
+                await asyncio.sleep(pacing_ms / 1000.0)
+                
                 await self.send_audio_chunked(audio_data)
 
 

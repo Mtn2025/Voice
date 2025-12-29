@@ -275,6 +275,14 @@
                                         value="{{ config.voice_speed }}" class="w-full"
                                         oninput="document.getElementById('speed-val').innerText = this.value">
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Ritmo de Voz (Pacing): <span
+                                            id="pacing-val">{{ config.voice_pacing_ms }}</span> ms</label>
+                                    <input type="range" name="voice_pacing_ms" min="0" max="2000" step="50"
+                                        value="{{ config.voice_pacing_ms }}" class="w-full"
+                                        oninput="document.getElementById('pacing-val').innerText = this.value">
+                                    <p class="text-xs text-slate-500">Retraso antes de hablar (Naturalidad).</p>
+                                </div>
                             </div>
 
                             <!-- PHONE PROFILE -->
@@ -310,6 +318,14 @@
                                         oninput="document.getElementById('speed-val-phone').innerText = this.value + 'x'">
                                     <p class="text-xs text-slate-500 mt-1">Más lento ayuda en telefonía (0.9
                                         recomendado).</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Ritmo de Voz (Teléfono): <span
+                                            id="pacing-phone-val">{{ config.voice_pacing_ms_phone }}</span> ms</label>
+                                    <input type="range" name="voice_pacing_ms_phone" min="0" max="2000" step="50"
+                                        value="{{ config.voice_pacing_ms_phone }}" class="w-full"
+                                        oninput="document.getElementById('pacing-phone-val').innerText = this.value">
+                                    <p class="text-xs text-slate-500">Retraso antes de hablar (Naturalidad).</p>
                                 </div>
                             </div>
 
@@ -416,6 +432,15 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
                                     </div>
                                 </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Lista Negra de Alucinaciones (Separar
+                                        por comas)</label>
+                                    <textarea name="hallucination_blacklist" rows="2"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs placeholder-slate-600"
+                                        placeholder="Ej: Pero., Y..., Mm., Oye.">{{ config.hallucination_blacklist or 'Pero.,Y...,Mm.,Oye.,Ah.' }}</textarea>
+                                    <p class="text-xs text-slate-500">Si el texto es IGUAL a uno de estos, se ignora
+                                        como ruido.</p>
+                                </div>
                                 <div class="flex items-center pt-2">
                                     <input type="hidden" name="enable_denoising" value="false">
                                     <input type="checkbox" name="enable_denoising" value="true"
@@ -480,6 +505,12 @@
                                         <input type="number" name="input_min_characters_phone"
                                             value="{{ config.input_min_characters_phone or 1 }}"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Lista Negra (Teléfono)</label>
+                                        <textarea name="hallucination_blacklist_phone" rows="2"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs placeholder-slate-600"
+                                            placeholder="Ej: Pero., Y..., Mm., Oye.">{{ config.hallucination_blacklist_phone or 'Pero.,Y...,Mm.,Oye.,Ah.' }}</textarea>
                                     </div>
                                     <div class="flex items-center pt-6">
                                         <input type="hidden" name="enable_denoising_phone" value="false">

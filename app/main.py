@@ -59,6 +59,17 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms_phone INTEGER DEFAULT 1200"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS initial_silence_timeout_ms INTEGER DEFAULT 5000"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_speed_phone FLOAT DEFAULT 0.9"))
+            
+            # Audit Fixes Round 2
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS extra_settings_phone JSONB"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS hallucination_blacklist VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS hallucination_blacklist_phone VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters_phone INTEGER DEFAULT 4"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_name_phone VARCHAR"))
+            
+            # Audit Fixes Round 3: Pacing
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms INTEGER DEFAULT 300"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms_phone INTEGER DEFAULT 500"))
 
 
         except Exception as e:
