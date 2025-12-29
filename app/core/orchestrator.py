@@ -878,15 +878,19 @@ class VoiceOrchestrator:
             audio_bytes = base64.b64decode(payload)
             
             # ------------------------------------------------------------------
-            # MANUAL DECODE: Convert Twilio/Telnyx MuLaw (8k) -> PCM (8k 16-bit) for Azure
+            # MANUAL DECODE: Convert Twilio/Telnyx Audio -> PCM (16-bit)
             # ------------------------------------------------------------------
             if self.client_type in ["twilio", "telnyx"]:
                  try:
-                     # μ-law to linear PCM (width=2 means 16-bit)
-                     audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
-                     # No resampling needed if Azure is configured for 8kHz PCM (which we did in azure.py)
+                     encoding = getattr(self, 'audio_encoding', 'pcmu').lower()
+                     
+                     if 'pcma' in encoding: # A-Law
+                         audio_bytes = audioop.alaw2lin(audio_bytes, 2)
+                     else: # Default to Mu-Law (Twilio standard / PCMU)
+                         audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
+                         
                  except Exception as e_conv:
-                     logging.error(f"Audio Conversion Error: {e_conv}")
+                     logging.error(f"Audio Conversion Error ({encoding}): {e_conv}")
             # ------------------------------------------------------------------
             
             # ------------------------------------------------------------------

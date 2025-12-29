@@ -131,6 +131,13 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 
                 logging.info(f"Stream started: {stream_sid}")
                 orchestrator.stream_id = stream_sid
+                
+                # Extract Audio Encoding (Telnyx PCMA vs Twilio PCMU)
+                media_format = start_data.get('media_format', {})
+                encoding = media_format.get('encoding', 'PCMU')
+                orchestrator.audio_encoding = encoding
+                logging.info(f"🎧 Media Encoding: {encoding}")
+                
                 if orchestrator.call_db_id is None:
                      # Attempt creation if not done in start (redundancy)
                      logging.info("Creating call DB record from START event...")
