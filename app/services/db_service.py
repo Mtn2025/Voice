@@ -65,6 +65,21 @@ class DBService:
                 for key, value in kwargs.items():
                     setattr(config, key, value)
                 await session.commit()
+
+    async def end_call(self, call_id: int):
+        async with AsyncSessionLocal() as session:
+            try:
+                result = await session.execute(select(Call).where(Call.id == call_id))
+                call = result.scalars().first()
+                if call:
+                    import datetime
+                    call.end_time = datetime.datetime.utcnow()
+                    call.status = "completed"
+                    await session.commit()
+                    logging.info(f"✅ Call {call_id} marked as completed.")
+            except Exception as e:
+                logging.error(f"❌ DB Error end_call: {e}")
+
     async def get_recent_calls(self, limit: int = 20, offset: int = 0):
         async with AsyncSessionLocal() as session:
             result = await session.execute(

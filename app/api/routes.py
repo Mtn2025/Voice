@@ -124,6 +124,12 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
     finally:
         manager.disconnect(client_id, websocket)
         await orchestrator.stop()
+        
+        # Ensure call is saved/ended in DB
+        if orchestrator.call_db_id:
+            logging.info(f"Saving call end state for ID: {orchestrator.call_db_id}")
+            await db_service.end_call(orchestrator.call_db_id)
+            
         try:
             await websocket.close()
         except RuntimeError:
