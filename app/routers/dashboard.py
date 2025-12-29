@@ -242,20 +242,48 @@ async def patch_config(request: Request):
         return {"status": "error", "message": str(e)}
 
 @router.get("/dashboard/history-rows", response_class=HTMLResponse)
-async def history_rows(request: Request):
-    history = await db_service.get_recent_calls(limit=10)
+async def history_rows(request: Request, page: int = 1, limit: int = 20):
+    offset = (page - 1) * limit
+    history = await db_service.get_recent_calls(limit=limit, offset=offset)
+    total = await db_service.get_total_calls()
+    total_pages = (total + limit - 1) // limit if limit > 0 else 1
+    
     return templates.TemplateResponse("partials/history_rows.html", {
         "request": request,
-        "history": history
+        "history": history,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+        "total_items": total
     })
+
+@router.post("/api/history/delete-selected")
+async def delete_selected(request: Request):
+    data = await request.json()
+    call_ids = data.get("call_ids", [])
+    if not call_ids:
+        return {"status": "error", "message": "No IDs provided"}
+    
+    success = await db_service.delete_calls(call_ids)
+    if success:
+        return {"status": "success"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to delete calls")
 
 @router.get("/dashboard/call/{call_id}", response_class=HTMLResponse)
 async def call_details(request: Request, call_id: int):
     call = await db_service.get_call_details(call_id)
     if not call:
         raise HTTPException(status_code=404, detail="Call not found")
-    
+
     return templates.TemplateResponse("call_details.html", {
         "request": request,
         "call": call
     })
+
+@router.post("/api/history/clear")
+async def clear_history():
+    success = await db_service.clear_all_history()
+    if not success:
+         raise HTTPException(status_code=500, detail="Failed to clear history")
+    return RedirectResponse(url="/dashboard", status_code=303)

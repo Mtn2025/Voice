@@ -4,7 +4,7 @@ import logging
 import traceback
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy import desc
+from sqlalchemy import desc, delete, func
 import logging
 
 class DBService:
@@ -65,10 +65,35 @@ class DBService:
                 for key, value in kwargs.items():
                     setattr(config, key, value)
                 await session.commit()
-    async def get_recent_calls(self, limit: int = 20):
+    async def get_recent_calls(self, limit: int = 20, offset: int = 0):
         async with AsyncSessionLocal() as session:
-            result = await session.execute(select(Call).order_by(Call.start_time.desc()).limit(limit))
+            result = await session.execute(
+                select(Call)
+                .order_by(Call.start_time.desc())
+                .limit(limit)
+                .offset(offset)
+            )
             return result.scalars().all()
+
+    async def get_total_calls(self):
+        async with AsyncSessionLocal() as session:
+             # Count query
+             result = await session.execute(select(func.count(Call.id)))
+             return result.scalar()
+
+    async def delete_calls(self, call_ids: list[int]):
+        async with AsyncSessionLocal() as session:
+            try:
+                # Delete Transcripts first
+                await session.execute(delete(Transcript).where(Transcript.call_id.in_(call_ids)))
+                # Delete Calls
+                await session.execute(delete(Call).where(Call.id.in_(call_ids)))
+                await session.commit()
+                return True
+            except Exception as e:
+                logging.error(f"DB Error delete_calls: {e}")
+                await session.rollback()
+                return False
 
     async def get_call_details(self, call_id: int):
         async with AsyncSessionLocal() as session:
@@ -89,6 +114,20 @@ class DBService:
                     await session.commit()
             except Exception as e:
                 logging.error(f"DB Error update_call_extraction: {e}")
+
+    async def clear_all_history(self):
+        async with AsyncSessionLocal() as session:
+            try:
+                # Delete Transcripts first (FK dependency)
+                await session.execute(delete(Transcript))
+                # Delete Calls
+                await session.execute(delete(Call))
+                await session.commit()
+                return True
+            except Exception as e:
+                logging.error(f"DB Error clear_all_history: {e}")
+                await session.rollback()
+                return False
 
 
 db_service = DBService()

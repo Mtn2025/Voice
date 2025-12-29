@@ -717,28 +717,116 @@
                         <!-- Tab: History -->
                         <!-- 🔒 LOCKED SECTION: PANEL HISTORIAL (DO NOT EDIT WITHOUT AUTH) -->
                         <div x-show="tab === 'history'" class="space-y-4" style="display: none;">
-                            <h3 class="text-lg font-medium text-slate-200">Llamadas Recientes</h3>
-                            <div class="overflow-x-auto">
+                            <!-- Toolbar -->
+                            <div
+                                class="flex justify-between items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs text-slate-400">Mostrar</span>
+                                        <select id="history-limit" name="limit"
+                                            class="bg-slate-900 border border-slate-600 text-xs rounded px-2 py-1"
+                                            hx-get="/dashboard/history-rows" hx-include="[name='limit']"
+                                            hx-target="#history-body">
+                                            <option value="10" selected>10</option>
+                                            <option value="20">20</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+                                    <span class="text-xs text-slate-500">
+                                        Total: <span id="total-items-badge" class="font-mono text-slate-300">...</span>
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center space-x-2">
+                                    <button id="btn-delete-selected" onclick="deleteSelectedCalls()"
+                                        style="display: none;"
+                                        class="text-xs bg-red-900/80 hover:bg-red-800 text-red-200 px-3 py-1 rounded border border-red-700 transition flex items-center gap-1">
+                                        <span>🗑️</span> Borrar Seleccionados
+                                    </button>
+
+                                    <form action="/api/history/clear" method="POST"
+                                        onsubmit="return confirm('¿Seguro que deseas eliminar TOOOODO el historial? Esta acción es irreversible.');">
+                                        <button type="submit"
+                                            class="text-xs bg-red-900/30 hover:bg-red-900/50 text-red-400 hover:text-red-200 px-3 py-1 rounded border border-red-800/50 transition">
+                                            Limpiar Todo
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="overflow-x-auto rounded-lg border border-slate-700">
                                 <table class="w-full text-sm text-left text-slate-400">
                                     <thead class="text-xs text-slate-200 uppercase bg-slate-700">
                                         <tr>
-                                            <th class="px-4 py-2">ID</th>
-                                            <th class="px-4 py-2">Fecha</th>
-                                            <th class="px-4 py-2">Estado</th>
-                                            <th class="px-4 py-2">Acción</th>
+                                            <th class="px-4 py-3 w-4">
+                                                <input type="checkbox" onclick="toggleAllHistory(this)"
+                                                    class="rounded border-slate-600 bg-slate-800 text-blue-600 focus:ring-offset-slate-800">
+                                            </th>
+                                            <th class="px-4 py-3">ID</th>
+                                            <th class="px-4 py-3">Fecha</th>
+                                            <th class="px-4 py-3">Estado</th>
+                                            <th class="px-4 py-3 text-right">Acción</th>
                                         </tr>
                                     </thead>
-
-                                    <tbody hx-get="/dashboard/history-rows" hx-trigger="load, refreshHistory from:body"
-                                        hx-target="this">
-                                        <!-- Initial load will be handled by HTMX or server-side render fallthrough if needed, 
-                                            but to avoid duplication we'll let HTMX load it or keep static for SEO/Non-JS. 
-                                            Actually, let's keep the server-side render for first paint, and HTMX for updates. -->
-                                        {% include "partials/history_rows.html" %}
+                                    <tbody id="history-body" hx-get="/dashboard/history-rows"
+                                        hx-trigger="load, refreshHistory from:body" hx-target="this"
+                                        hx-include="[name='limit']">
+                                        <!-- Content loaded via HTMX -->
                                     </tbody>
                                 </table>
                             </div>
+
+                            <!-- Pagination Footer -->
+                            <div id="history-pagination" class="flex justify-between items-center pt-2">
+                                <!-- Loaded via OOB -->
+                            </div>
                         </div>
+
+                        <script>
+                            function toggleAllHistory(source) {
+                                const checkboxes = document.querySelectorAll('.history-checkbox');
+                                checkboxes.forEach(cb => cb.checked = source.checked);
+                                updateDeleteButton();
+                            }
+
+                            function updateDeleteButton() {
+                                const checked = document.querySelectorAll('.history-checkbox:checked').length;
+                                const btn = document.getElementById('btn-delete-selected');
+                                if (checked > 0) {
+                                    btn.style.display = 'inline-flex';
+                                    btn.innerHTML = `<span>🗑️</span> Borrar (${checked})`;
+                                } else {
+                                    btn.style.display = 'none';
+                                }
+                            }
+
+                            async function deleteSelectedCalls() {
+                                if (!confirm('¿Borrar llamadas seleccionadas?')) return;
+
+                                const checkedBoxes = document.querySelectorAll('.history-checkbox:checked');
+                                const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+                                try {
+                                    const res = await fetch('/api/history/delete-selected', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ call_ids: ids })
+                                    });
+
+                                    if (res.ok) {
+                                        htmx.trigger('#history-body', 'refreshHistory');
+                                        document.querySelector('thead input[type="checkbox"]').checked = false;
+                                        updateDeleteButton();
+                                    } else {
+                                        alert('Error al borrar');
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                    alert('Error de conexión');
+                                }
+                            }
+                        </script>
                         <!-- 🔒 END LOCKED SECTION -->
 
 
