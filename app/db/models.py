@@ -94,9 +94,37 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     max_duration = Column(Integer, default=600) # Max call seconds
     
     # VAPI Stage 1: Model & Voice
+    # VAPI Stage 1: Model & Voice (Browser Defaults)
     first_message = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
     first_message_mode = Column(String, default="speak-first") # speak-first, wait-for-user, speak-first-dynamic
     max_tokens = Column(Integer, default=250)
+    
+    # ---------------- PHONE PROFILE (TWILIO) ----------------
+    # Cloned configs for independent tuning
+    stt_provider_phone = Column(String, default="azure")
+    stt_language_phone = Column(String, default="es-MX")
+    llm_provider_phone = Column(String, default="groq")
+    llm_model_phone = Column(String, default="llama-3.3-70b-versatile")
+    system_prompt_phone = Column(Text, default=None) # If None, fallback to system_prompt
+    
+    voice_name_phone = Column(String, default="es-MX-DaliaNeural")
+    voice_style_phone = Column(String, nullable=True)
+    temperature_phone = Column(Float, default=0.7)
+    
+    first_message_phone = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
+    first_message_mode_phone = Column(String, default="speak-first")
+    max_tokens_phone = Column(Integer, default=250)
+    
+    initial_silence_timeout_ms_phone = Column(Integer, default=5000)
+    input_min_characters_phone = Column(Integer, default=1)
+    enable_denoising_phone = Column(Boolean, default=True)
+    
+    # TWILIO SPECIFIC (Platform Capabilities)
+    twilio_machine_detection = Column(String, default="Enable") # Enable, Disable, DetectMessageEnd
+    twilio_record = Column(Boolean, default=False)
+    twilio_recording_channels = Column(String, default="dual")
+    twilio_trim_silence = Column(Boolean, default=True)
+    # ---------------------------------------------------------
     
     voice_id_manual = Column(String, nullable=True) # Override standard list
     background_sound_url = Column(String, nullable=True) # External URL for ambient noise

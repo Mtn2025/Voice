@@ -7,6 +7,7 @@ import time
 import wave
 import io
 import azure.cognitiveservices.speech as speechsdk
+import audioop
 from fastapi import WebSocket
 from app.services.db_service import db_service
 from app.core.service_factory import ServiceFactory
@@ -262,6 +263,41 @@ class VoiceOrchestrator:
         self.config = await db_service.get_agent_config()
         logging.info(f"DEBUG CONFIG TYPE: {type(self.config)}")
         logging.info(f"DEBUG CONFIG VAL: {self.config}")
+        
+        # ---------------- PROFILE OVERLAY (PHONE) ----------------
+        if self.client_type != "browser":
+             logging.info("📱 [ORCHESTRATOR] Applying PHONE Profile Configuration (Overlay)")
+             # We overwrite the standard 'active' keys with the _phone specific values
+             
+             # LLM & Persona
+             if self.config.llm_model_phone: self.config.llm_model = self.config.llm_model_phone
+             if self.config.llm_provider_phone: self.config.llm_provider = self.config.llm_provider_phone
+             if self.config.system_prompt_phone: self.config.system_prompt = self.config.system_prompt_phone
+             if self.config.max_tokens_phone: self.config.max_tokens = self.config.max_tokens_phone
+             if self.config.first_message_phone: self.config.first_message = self.config.first_message_phone
+             if self.config.first_message_mode_phone: self.config.first_message_mode = self.config.first_message_mode_phone
+             if self.config.temperature_phone is not None: self.config.temperature = self.config.temperature_phone
+             
+             # Voice / TTS
+             if self.config.voice_name_phone: self.config.voice_name = self.config.voice_name_phone
+             if self.config.voice_style_phone: self.config.voice_style = self.config.voice_style_phone
+             if self.config.voice_speed_phone: self.config.voice_speed = self.config.voice_speed_phone
+             
+             # Transcriber / VAD / Audio
+             # Crucial: This allows swapping Providers (Azure <-> Deepgram) for Phone!
+             if self.config.stt_provider_phone: self.config.stt_provider = self.config.stt_provider_phone
+             if self.config.stt_language_phone: self.config.stt_language = self.config.stt_language_phone
+             
+             if self.config.silence_timeout_ms_phone: self.config.silence_timeout_ms = self.config.silence_timeout_ms_phone
+             if self.config.initial_silence_timeout_ms_phone: self.config.initial_silence_timeout_ms = self.config.initial_silence_timeout_ms_phone
+             if self.config.interruption_threshold_phone is not None: self.config.interruption_threshold = self.config.interruption_threshold_phone
+             if self.config.input_min_characters_phone: self.config.input_min_characters = self.config.input_min_characters_phone
+             
+             if hasattr(self.config, 'enable_denoising_phone') and self.config.enable_denoising_phone is not None:
+                 self.config.enable_denoising = self.config.enable_denoising_phone
+                 
+             logging.info(f"📱 [PROFILE APPLIED] Voice: {self.config.voice_name} | Speed: {self.config.voice_speed} | STT: {self.config.stt_provider}")
+        # ---------------------------------------------------------
         
         self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
         
@@ -772,6 +808,18 @@ class VoiceOrchestrator:
                 payload += '=' * (4 - missing_padding)
             
             audio_bytes = base64.b64decode(payload)
+            
+            # ------------------------------------------------------------------
+            # MANUAL DECODE: Convert Twilio MuLaw (8k) -> PCM (8k 16-bit) for Azure
+            # ------------------------------------------------------------------
+            if self.client_type == "twilio":
+                 try:
+                     # μ-law to linear PCM (width=2 means 16-bit)
+                     audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
+                     # No resampling needed if Azure is configured for 8kHz PCM (which we did in azure.py)
+                 except Exception as e_conv:
+                     logging.error(f"Audio Conversion Error: {e_conv}")
+            # ------------------------------------------------------------------
             
             # log to warning to ensure visibility
             if len(audio_bytes) > 0:

@@ -28,6 +28,7 @@
 
                 <div x-data="{ 
                     tab: 'model', 
+                    activeProfile: 'browser',
                     interruptionPhone: {{ config.interruption_threshold_phone or 2 }},
                     voiceSpeedPhone: {{ config.voice_speed_phone or 0.9 }},
                     silencePhone: {{ config.silence_timeout_ms_phone or 1200 }}
@@ -59,6 +60,20 @@
                             class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap">Conexión</button>
                     </div>
 
+                    <!-- GLOBAL PROFILE TOGGLE -->
+                    <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 mb-4 border border-slate-700">
+                        <button type="button" @click="activeProfile = 'browser'"
+                            :class="{'bg-blue-600 text-white shadow-lg': activeProfile === 'browser', 'text-slate-400 hover:text-white': activeProfile !== 'browser'}"
+                            class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
+                            <span>🌐</span> Simulador
+                        </button>
+                        <button type="button" @click="activeProfile = 'phone'"
+                            :class="{'bg-emerald-600 text-white shadow-lg': activeProfile === 'phone', 'text-slate-400 hover:text-white': activeProfile !== 'phone'}"
+                            class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
+                            <span>📱</span> Teléfono
+                        </button>
+                    </div>
+
                     <form action="/api/config/update" method="POST" class="space-y-4">
                         <!-- HIDDEN INPUTS AND FORM CONTENT SAME AS BEFORE (RELYING ON CONTEXT MATCH) -->
                         <input type="hidden" name="stt_provider" value="azure">
@@ -66,72 +81,130 @@
                         <input type="hidden" name="tts_provider" value="azure">
 
 
-                        <!-- Tab: Model -->
-                        <!-- 🔒 SECTION LOCKED: PANEL MODELO (DO NOT EDIT WITHOUT AUTH) -->
+                        <!-- Tab: Model (Split Profiles) -->
                         <div x-show="tab === 'model'" class="space-y-4">
-                            <!-- ... existing model content ... -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Modelo Cerebral (Conversación)</label>
-                                    <select name="llm_model"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        {% for m in llm_models %}
-                                        <option value="{{ m }}" {% if config.llm_model==m %}selected{% endif %}>
-                                            {{ m }}
-                                        </option>
-                                        {% endfor %}
+
+                            <!-- BROWSER PROFILE -->
+                            <div x-show="activeProfile === 'browser'" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Modelo Cerebral
+                                            (Conversación)</label>
+                                        <select name="llm_model"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            {% for m in llm_models %}
+                                            <option value="{{ m }}" {% if config.llm_model==m %}selected{% endif %}>{{ m
+                                                }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Modelo de Extracción</label>
+                                        <select name="extraction_model"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            {% for m in llm_models %}
+                                            <option value="{{ m }}" {% if config.extraction_model==m %}selected{% endif
+                                                %}>{{ m }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Max Tokens</label>
+                                        <input type="number" name="max_tokens" value="{{ config.max_tokens }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                    </div>
+                                </div>
+
+                                <div class="border border-slate-700 rounded p-3 bg-slate-800/50">
+                                    <label class="block text-sm font-medium mb-2">Modo del Primer Mensaje</label>
+                                    <select name="first_message_mode"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 mb-3">
+                                        <option value="speak-first" {% if config.first_message_mode=='speak-first'
+                                            %}selected{% endif %}>Asistente Habla Primero</option>
+                                        <option value="wait-for-user" {% if config.first_message_mode=='wait-for-user'
+                                            %}selected{% endif %}>Asistente Espera al Usuario</option>
                                     </select>
+                                    <label class="block text-sm font-medium mb-1">Contenido del Primer Mensaje</label>
+                                    <input type="text" name="first_message" value="{{ config.first_message }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Modelo de Extracción (Data)</label>
-                                    <select name="extraction_model"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        {% for m in llm_models %}
-                                        <option value="{{ m }}" {% if config.extraction_model==m %}selected{% endif %}>
-                                            {{ m }}
-                                        </option>
-                                        {% endfor %}
+                                    <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
+                                    <textarea name="system_prompt" rows="6"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Temperatura: <span
+                                            x-text="temperature"></span></label>
+                                    <input type="range" name="temperature" min="0" max="1" step="0.1"
+                                        value="{{ config.temperature }}"
+                                        class="w-full bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                </div>
+                            </div>
+
+                            <!-- PHONE PROFILE -->
+                            <div x-show="activeProfile === 'phone'" class="space-y-4">
+                                <div class="bg-emerald-900/30 p-2 rounded border border-emerald-700/50 mb-2">
+                                    <p class="text-xs text-emerald-300">📱 Configuración Específica para Llamadas
+                                        Telefónicas</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Modelo (Teléfono)</label>
+                                        <select name="llm_model_phone"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            {% for m in llm_models %}
+                                            <option value="{{ m }}" {% if config.llm_model_phone==m %}selected{% endif
+                                                %}>{{ m }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Proveedor LLM</label>
+                                        <select name="llm_provider_phone"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            <option value="groq" {% if config.llm_provider_phone=='groq' %}selected{%
+                                                endif %}>Groq (Rápido)</option>
+                                            <option value="openai" {% if config.llm_provider_phone=='openai'
+                                                %}selected{% endif %}>OpenAI</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Max Tokens (Teléfono)</label>
+                                        <input type="number" name="max_tokens_phone"
+                                            value="{{ config.max_tokens_phone }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                    </div>
+                                </div>
+
+                                <div class="border border-slate-700 rounded p-3 bg-slate-800/50">
+                                    <label class="block text-sm font-medium mb-2">Modo Primer Mensaje (Teléfono)</label>
+                                    <select name="first_message_mode_phone"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 mb-3">
+                                        <option value="speak-first" {% if config.first_message_mode_phone=='speak-first'
+                                            %}selected{% endif %}>Hablar Primero</option>
+                                        <option value="wait-for-user" {% if
+                                            config.first_message_mode_phone=='wait-for-user' %}selected{% endif %}>
+                                            Esperar Usuario</option>
                                     </select>
-                                    <p class="text-xs text-slate-500 mt-1">Recomendado: 8b-instant (Rápido).</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Max Tokens</label>
-                                    <input type="number" name="max_tokens" value="{{ config.max_tokens }}"
+                                    <label class="block text-sm font-medium mb-1">Mensaje Inicial (Teléfono)</label>
+                                    <input type="text" name="first_message_phone"
+                                        value="{{ config.first_message_phone }}"
                                         class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
                                 </div>
-                            </div>
 
-                            <div class="border border-slate-700 rounded p-3 bg-slate-800/50">
-                                <label class="block text-sm font-medium mb-2">Modo del Primer Mensaje</label>
-                                <select name="first_message_mode"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 mb-3">
-                                    <option value="speak-first" {% if config.first_message_mode=='speak-first'
-                                        %}selected{% endif %}>Asistente Habla Primero (Default)</option>
-                                    <option value="wait-for-user" {% if config.first_message_mode=='wait-for-user'
-                                        %}selected{% endif %}>Asistente Espera al Usuario</option>
-                                    <option value="speak-first-dynamic" {% if
-                                        config.first_message_mode=='speak-first-dynamic' %}selected{% endif %}>Asistente
-                                        Habla Primero (Generado Dinámicamente)</option>
-                                </select>
-
-                                <label class="block text-sm font-medium mb-1">Contenido del Primer Mensaje</label>
-                                <input type="text" name="first_message" value="{{ config.first_message }}"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2"
-                                    placeholder="Hola...">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Prompt del Sistema</label>
-                                <textarea name="system_prompt" rows="6"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt }}</textarea>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Temperatura: <span id="temp-val">{{
-                                        config.temperature }}</span></label>
-                                <input type="range" name="temperature" min="0" max="1" step="0.1"
-                                    value="{{ config.temperature }}" class="w-full"
-                                    oninput="document.getElementById('temp-val').innerText = this.value">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Prompt del Sistema (Teléfono)</label>
+                                    <textarea name="system_prompt_phone" rows="6"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-sm">{{ config.system_prompt_phone or '' }}</textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Temperatura (Teléfono)</label>
+                                    <input type="range" name="temperature_phone" min="0" max="1" step="0.1"
+                                        value="{{ config.temperature_phone }}"
+                                        class="w-full bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                                </div>
                             </div>
                         </div>
                         <!-- 🔒 END LOCKED SECTION -->
@@ -139,37 +212,17 @@
                         <!-- Tab: Voice -->
                         <!-- 🔒 LOCKED SECTION: PANEL VOZ (DO NOT EDIT WITHOUT AUTH) -->
                         <div x-show="tab === 'voice'" class="space-y-4" style="display: none;">
-                            <!-- ... existing voice content ... -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Voz (TTS)</label>
-                                    <select name="voice_name" id="voiceSelect" onchange="updateStyles()"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        {% for voice in voices %}
-                                        <option value="{{ voice }}" {% if config.voice_name==voice %}selected{% endif
-                                            %}>{{ voice }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Estilo / Emoción</label>
-                                    <select name="voice_style" id="styleSelect"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                        <option value="">(Estándar)</option>
-                                        <!-- Populated by JS -->
-                                    </select>
-                                </div>
-                            </div>
 
                             <input type="hidden" id="voice-styles-data"
                                 value="{{ voice_styles | tojson | forceescape }}">
                             <script>
-                                const stylesMap = JSON.parse(document.getElementById('voice-styles-data').value);
-                                const currentStyle = "{{ config.voice_style or '' }}";
+                                function updateStyles(voiceId, styleId, currentStyle) {
+                                    const stylesMap = JSON.parse(document.getElementById('voice-styles-data').value);
+                                    const voiceSelect = document.getElementById(voiceId);
+                                    const styleSelect = document.getElementById(styleId);
+                                    if (!voiceSelect || !styleSelect) return;
 
-                                function updateStyles() {
-                                    const voice = document.getElementById('voiceSelect').value;
-                                    const styleSelect = document.getElementById('styleSelect');
+                                    const voice = voiceSelect.value;
                                     const styles = stylesMap[voice] || [];
 
                                     styleSelect.innerHTML = '<option value="">(Estándar)</option>';
@@ -178,27 +231,77 @@
                                         const opt = document.createElement('option');
                                         opt.value = s;
                                         opt.innerText = s;
-                                        if (s === currentStyle && voice === "{{ config.voice_name }}") {
+                                        if (s === currentStyle && voice === (voiceId === 'voiceSelect' ? "{{ config.voice_name }}" : "{{ config.voice_name_phone }}")) {
                                             opt.selected = true;
                                         }
-                                        styleSelect.appendChild(opt);
                                     });
                                 }
 
-                                // Init
-                                document.addEventListener('DOMContentLoaded', updateStyles);
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    updateStyles('voiceSelect', 'styleSelect', "{{ config.voice_style or '' }}");
+                                    updateStyles('voiceSelectPhone', 'styleSelectPhone', "{{ config.voice_style_phone or '' }}");
+                                });
                             </script>
-                            <div class="grid grid-cols-2 gap-4">
+
+                            <!-- BROWSER PROFILE -->
+                            <div x-show="activeProfile === 'browser'" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Voz (Navegador)</label>
+                                        <select name="voice_name" id="voiceSelect"
+                                            onchange="updateStyles('voiceSelect', 'styleSelect', '')"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            {% for voice in voices %}
+                                            <option value="{{ voice }}" {% if config.voice_name==voice %}selected{%
+                                                endif %}>{{ voice }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Estilo / Emoción</label>
+                                        <select name="voice_style" id="styleSelect"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            <option value="">(Estándar)</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Velocidad de Voz (Navegador): <span
+                                    <label class="block text-sm font-medium mb-1">Velocidad (Navegador): <span
                                             id="speed-val">{{ config.voice_speed }}</span></label>
                                     <input type="range" name="voice_speed" min="0.5" max="2.0" step="0.05"
                                         value="{{ config.voice_speed }}" class="w-full"
                                         oninput="document.getElementById('speed-val').innerText = this.value">
                                 </div>
+                            </div>
+
+                            <!-- PHONE PROFILE -->
+                            <div x-show="activeProfile === 'phone'" class="space-y-4">
+                                <div class="bg-emerald-900/30 p-2 rounded border border-emerald-700/50 mb-2">
+                                    <p class="text-xs text-emerald-300">📱 Voz para Telefonía (Audio 8kHz)</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Voz (Teléfono)</label>
+                                        <select name="voice_name_phone" id="voiceSelectPhone"
+                                            onchange="updateStyles('voiceSelectPhone', 'styleSelectPhone', '')"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            {% for voice in voices %}
+                                            <option value="{{ voice }}" {% if config.voice_name_phone==voice
+                                                %}selected{% endif %}>{{ voice }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Estilo / Emoción</label>
+                                        <select name="voice_style_phone" id="styleSelectPhone"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                            <option value="">(Estándar)</option>
+                                        </select>
+                                    </div>
+                                </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-1">Velocidad de Voz (Teléfono): <span
-                                            id="speed-val-phone" x-text="voiceSpeedPhone + 'x'"></span></label>
+                                    <label class="block text-sm font-medium mb-1">Velocidad (Teléfono): <span
+                                            x-text="voiceSpeedPhone + 'x'"></span></label>
                                     <input type="range" name="voice_speed_phone" min="0.5" max="2.0" step="0.05"
                                         x-model="voiceSpeedPhone" class="w-full"
                                         oninput="document.getElementById('speed-val-phone').innerText = this.value + 'x'">
@@ -258,83 +361,43 @@
                         <!-- Tab: Transcriber (Updated with Segmentation) -->
                         <!-- 🔒 LOCKED SECTION: PANEL TRANSCRIPTOR (DO NOT EDIT WITHOUT AUTH) -->
                         <div x-show="tab === 'transcriber'" class="space-y-4" style="display: none;">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">Idioma de Transcripción</label>
-                                <select name="stt_language"
-                                    class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                    {% for lang in languages %}
-                                    <option value="{{ lang }}" {% if config.stt_language==lang %}selected{% endif %}>{{
-                                        lang }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
 
-                            <div class="grid grid-cols-2 gap-4">
+                            <!-- BROWSER PROFILE -->
+                            <div x-show="activeProfile === 'browser'" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Idioma de Transcripción</label>
+                                    <select name="stt_language"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                                        {% for lang in languages %}
+                                        <option value="{{ lang }}" {% if config.stt_language==lang %}selected{% endif
+                                            %}>{{ lang }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <h4 class="text-sm font-medium text-slate-300 pt-2 border-t border-slate-700">VAD
+                                    (Browser Voice Activity Detection)</h4>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Tiempo de Silencio (General)
-                                            (ms)</label>
+                                        <label class="block text-sm font-medium mb-1">Tiempo de Silencio (Fin
+                                            Turno)</label>
                                         <input type="number" name="silence_timeout_ms"
                                             value="{{ config.silence_timeout_ms }}"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                        <p class="text-xs text-slate-500 mt-1">Espera X ms de silencio para saber que
-                                            terminaste de hablar.</p>
+                                        <p class="text-xs text-slate-500 mt-1">Espera X ms para considerar fin de frase.
+                                        </p>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Tiempo de Silencio Inicial
-                                            (ms)</label>
-                                        <input type="number" name="initial_silence_timeout_ms"
-                                            value="{{ config.initial_silence_timeout_ms or 5000 }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                        <p class="text-xs text-slate-500 mt-1">Si nadie habla al inicio por X ms, se
-                                            cancela/reinicia el reconocimiento.</p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Tiempo Máx. Segmentación
-                                            (ms)</label>
+                                        <label class="block text-sm font-medium mb-1">Tiempo Máx. Segmentación</label>
                                         <input type="number" name="segmentation_max_time"
                                             value="{{ config.segmentation_max_time }}"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                        <p class="text-xs text-slate-500 mt-1">Corta el audio a los X ms si hay ruido
-                                            continuo.</p>
                                     </div>
                                 </div>
-                            </div>
-
-
-                            <!-- Moved from Connectivity -->
-                            <!-- Configuración Avanzada de Audio y Telefonía -->
-                            <div class="space-y-4 pt-4 border-t border-slate-700 mt-4">
-                                <h4 class="text-sm font-medium text-slate-300">Configuración Avanzada de Audio</h4>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Estrategia de Segmentación</label>
-                                        <select name="segmentation_strategy"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                                            <option value="default" {% if config.segmentation_strategy=='default'
-                                                %}selected{% endif %}>Default</option>
-                                            <option value="time" {% if config.segmentation_strategy=='time' %}selected{%
-                                                endif %}>Tiempo</option>
-                                            <option value="semantic" {% if config.segmentation_strategy=='semantic'
-                                                %}selected{% endif %}>Semántica</option>
-                                        </select>
-                                    </div>
-                                    <div class="flex items-center pt-6">
-                                        <input type="hidden" name="enable_denoising" value="false">
-                                        <input type="checkbox" name="enable_denoising" value="true"
-                                            class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
-                                            config.enable_denoising %}checked{% endif %}>
-                                        <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido</label>
-                                    </div>
-                                </div>
-
-                                <h4 class="text-sm font-medium text-slate-300 pt-4 border-t border-slate-700">
-                                    Sensibilidad y
-                                    Control de Interrupciones</h4>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium mb-1 flex justify-between">
-                                            <span>Sensibilidad Interrupción (Navegador)</span>
+                                            <span>Sensibilidad Interrupción (Web)</span>
                                             <span class="text-xs text-slate-400">{{ config.interruption_threshold }}
                                                 chars</span>
                                         </label>
@@ -342,43 +405,119 @@
                                             value="{{ config.interruption_threshold }}"
                                             class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
                                             oninput="this.previousElementSibling.lastElementChild.innerText = this.value + ' chars'">
-                                        <p class="text-xs text-slate-500 mt-1">Ignora ruidos menores a X caracteres.</p>
                                     </div>
                                     <div>
+                                        <label class="block text-sm font-medium mb-1">Filtro Ruido (Min. Letras)</label>
+                                        <input type="number" name="input_min_characters"
+                                            value="{{ config.input_min_characters }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                    </div>
+                                </div>
+                                <div class="flex items-center pt-2">
+                                    <input type="hidden" name="enable_denoising" value="false">
+                                    <input type="checkbox" name="enable_denoising" value="true"
+                                        class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-blue-600" {% if
+                                        config.enable_denoising %}checked{% endif %}>
+                                    <label class="text-sm font-medium ml-2">Habilitar Reducción de Ruido (Web)</label>
+                                </div>
+                            </div>
+
+                            <!-- PHONE PROFILE -->
+                            <div x-show="activeProfile === 'phone'" class="space-y-4">
+                                <div class="bg-emerald-900/30 p-2 rounded border border-emerald-700/50 mb-2">
+                                    <p class="text-xs text-emerald-300">📱 Recolección de Audio y STT (Twilio)</p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Proveedor STT (Escucha)</label>
+                                        <select name="stt_provider_phone"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                            <option value="azure" {% if config.stt_provider_phone=='azure' %}selected{%
+                                                endif %}>Azure (Recomendado)</option>
+                                            <option value="deepgram" {% if config.stt_provider_phone=='deepgram'
+                                                %}selected{% endif %}>Deepgram</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Idioma STT (Teléfono)</label>
+                                        <input type="text" name="stt_language_phone"
+                                            value="{{ config.stt_language_phone or 'es-MX' }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                    </div>
+                                </div>
+
+                                <h4 class="text-sm font-medium text-emerald-400 pt-4 border-t border-slate-700">
+                                    Detección de Actividad de Voz (VAD)</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
                                         <label class="block text-sm font-medium mb-1 flex justify-between">
-                                            <span>Sensibilidad Interrupción (Teléfono)</span>
+                                            <span>Sensibilidad Interrupción (Tel)</span>
                                             <span class="text-xs text-slate-400"
                                                 x-text="interruptionPhone + ' chars'"></span>
                                         </label>
                                         <input type="range" name="interruption_threshold_phone" min="0" max="20"
                                             step="1" x-model="interruptionPhone"
                                             class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                        <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible (2-4 rec).</p>
+                                        <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible.</p>
                                     </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4 mt-2">
                                     <div>
                                         <label class="block text-sm font-medium mb-1 flex justify-between">
-                                            <span>Tiempo de Silencio (Teléfono)</span>
+                                            <span>Silencio Fin de Turno (Tel)</span>
                                             <span class="text-xs text-slate-400" x-text="silencePhone + ' ms'"></span>
                                         </label>
                                         <input type="range" name="silence_timeout_ms_phone" min="500" max="3000"
                                             step="100" x-model="silencePhone"
                                             class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                                        <p class="text-xs text-slate-500 mt-1">Silencio para fin de turno en teléfono.
-                                        </p>
                                     </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 pt-2">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Límites de Puntuación</label>
-                                    </div>
-                                    <div class="mt-4 border-t border-slate-700 pt-4">
-                                        <label class="block text-sm font-medium mb-1">Filtro de Ruido (Min.
-                                            Caracteres)</label>
-                                        <input type="number" id="form-input-min-chars" name="input_min_characters"
-                                            value="{{ config.input_min_characters or 1 }}" min="0" max="50"
+                                        <label class="block text-sm font-medium mb-1">Filtro Ruido (Min. Letras)</label>
+                                        <input type="number" name="input_min_characters_phone"
+                                            value="{{ config.input_min_characters_phone or 1 }}"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                        <p class="text-xs text-slate-500 mt-1">Ignora frases con menos de X caracteres
-                                            (Ruido corto).</p>
+                                    </div>
+                                    <div class="flex items-center pt-6">
+                                        <input type="hidden" name="enable_denoising_phone" value="false">
+                                        <input type="checkbox" name="enable_denoising_phone" value="true"
+                                            class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-600" {% if
+                                            config.enable_denoising_phone %}checked{% endif %}>
+                                        <label class="text-sm font-medium ml-2">Reducción de Ruido (Tel)</label>
+                                    </div>
+                                </div>
+
+                                <h4 class="text-sm font-medium text-emerald-400 pt-4 border-t border-slate-700">Control
+                                    de Llamada (Twilio)</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Detección Contestadora</label>
+                                        <select name="twilio_machine_detection"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                            <option value="Enable" {% if config.twilio_machine_detection=='Enable'
+                                                %}selected{% endif %}>Activar (Recomendado)</option>
+                                            <option value="Disable" {% if config.twilio_machine_detection=='Disable'
+                                                %}selected{% endif %}>Desactivar</option>
+                                            <option value="DetectMessageEnd" {% if
+                                                config.twilio_machine_detection=='DetectMessageEnd' %}selected{% endif
+                                                %}>Detectar Fin Mensaje</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col space-y-2 pt-4">
+                                        <div class="flex items-center">
+                                            <input type="hidden" name="twilio_record" value="false">
+                                            <input type="checkbox" name="twilio_record" value="true"
+                                                class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-600"
+                                                {% if config.twilio_record %}checked{% endif %}>
+                                            <label class="text-sm font-medium ml-2">Grabar Llamada</label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input type="hidden" name="twilio_trim_silence" value="false">
+                                            <input type="checkbox" name="twilio_trim_silence" value="true"
+                                                class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-emerald-600"
+                                                {% if config.twilio_trim_silence %}checked{% endif %}>
+                                            <label class="text-sm font-medium ml-2">Recortar Silencio (Trim)</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
