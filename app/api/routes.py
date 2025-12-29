@@ -33,28 +33,36 @@ async def telnyx_incoming_call(request: Request):
     """
     Webhook for Telnyx to handle incoming calls.
     Returns TexML (Telnyx XML) to connect the call to a Media Stream.
+    Critically: Requires a "TexML Application" in Telnyx, NOT "Call Control".
     """
     try:
-        # Telnyx sends JSON payload for webhooks
-        data = await request.json()
-        logging.info(f"📞 Telnyx Incoming Webhook: {json.dumps(data)}")
+        # Detect Payload Type (JSON = Call Control, Form = TexML)
+        content_type = request.headers.get("content-type", "")
+        call_leg_id = "unknown"
         
-        # Extract Call Control ID for reference (optional usage in stream)
-        plugin_data = data.get("data", {})
-        call_leg_id = plugin_data.get("payload", {}).get("call_leg_id")
+        if "application/json" in content_type:
+             # Call Control Payload (JSON) - This means Wrong App Type, but we try to respond anyway
+             data = await request.json()
+             logging.warning(f"⚠️ Telnyx sent JSON (Call Control). XML response might be ignored. Payload: {json.dumps(data)}")
+             plugin_data = data.get("data", {})
+             call_leg_id = plugin_data.get("payload", {}).get("call_leg_id") or "json_id"
+        else:
+             # TexML Payload (Form Data) - Correct for XML response
+             form_data = await request.form()
+             logging.info(f"📞 Telnyx TexML Webhook: {form_data}")
+             call_leg_id = form_data.get("CallSid") or form_data.get("CallControlId") or "form_id"
         
         host = request.headers.get("host")
         
-        # Construct TexML response
         # Detect scheme (handle behind proxy like Coolify)
         scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
         ws_scheme = "wss" if scheme == "https" else "ws"
         
-        # Telnyx <Stream> is compatible with Twilio <Stream> structure mostly
-        # We pass client=telnyx as a query parameter
-        
+        # TexML Response
+        # <Answer> is crucial to ensure call state moves from Parked to Active
         texml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
+    <Answer/>
     <Connect>
         <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}">
         </Stream>
