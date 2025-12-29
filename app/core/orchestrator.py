@@ -851,6 +851,18 @@ class VoiceOrchestrator:
 
                 logging.log(log_level, f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
                 
+                # ------------------------------------------------------------------
+                # LOCAL VAD (CALIBRATION): Reset Idle Timer on Voice Activity
+                # ------------------------------------------------------------------
+                # If we hear loud audio (RMS > 1000), we know the user is there.
+                # Don't wait for Azure to confirm "SpeechStarted" (which might lag).
+                # This prevents "Are you there?" interruptions while user is speaking.
+                if rms > 1000:
+                    self.last_interaction_time = time.time()
+                    # Optional: Log rare resets to avoid spam, or just trust the RMS log above covers it.
+                    # logging.debug("🔄 Local VAD: Interaction timer reset.")
+                # ------------------------------------------------------------------
+                
             except Exception as e_metric:
                  logging.error(f"Error calculating metrics: {e_metric}")
 
