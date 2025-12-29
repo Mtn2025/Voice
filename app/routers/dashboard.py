@@ -243,19 +243,25 @@ async def patch_config(request: Request):
 
 @router.get("/dashboard/history-rows", response_class=HTMLResponse)
 async def history_rows(request: Request, page: int = 1, limit: int = 20):
-    offset = (page - 1) * limit
-    history = await db_service.get_recent_calls(limit=limit, offset=offset)
-    total = await db_service.get_total_calls()
-    total_pages = (total + limit - 1) // limit if limit > 0 else 1
-    
-    return templates.TemplateResponse("partials/history_rows.html", {
-        "request": request,
-        "history": history,
-        "page": page,
-        "limit": limit,
-        "total_pages": total_pages,
-        "total_items": total
-    })
+    try:
+        offset = (page - 1) * limit
+        history = await db_service.get_recent_calls(limit=limit, offset=offset)
+        total = await db_service.get_total_calls()
+        if total is None: total = 0
+        total_pages = (total + limit - 1) // limit if limit > 0 else 1
+        
+        return templates.TemplateResponse("partials/history_rows.html", {
+            "request": request,
+            "history": history,
+            "page": page,
+            "limit": limit,
+            "total_pages": total_pages,
+            "total_items": total
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return HTMLResponse(content=f"<tr><td colspan='5' class='p-4 text-center text-red-400 font-bold'>Error cargando historial: {e}</td></tr>")
 
 @router.post("/api/history/delete-selected")
 async def delete_selected(request: Request):
