@@ -28,6 +28,40 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
+@router.api_route("/telnyx/incoming-call", methods=["POST"])
+async def telnyx_incoming_call(request: Request):
+    """
+    Webhook for Telnyx to handle incoming calls.
+    Returns TexML (Telnyx XML) to connect the call to a Media Stream.
+    """
+    try:
+        # Telnyx sends JSON payload for webhooks
+        data = await request.json()
+        logging.info(f"📞 Telnyx Incoming Webhook: {json.dumps(data)}")
+        
+        # Extract Call Control ID for reference (optional usage in stream)
+        plugin_data = data.get("data", {})
+        call_leg_id = plugin_data.get("payload", {}).get("call_leg_id")
+        
+        host = request.headers.get("host")
+        
+        # Construct TexML response
+        # Telnyx <Stream> is compatible with Twilio <Stream> structure mostly
+        # We pass client=telnyx as a query parameter or custom parameter if supported
+        # But for WebSocket URL query params allow us to identify client type in 'connect'
+        
+        texml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Connect>
+        <Stream url="wss://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}">
+        </Stream>
+    </Connect>
+</Response>"""
+        return Response(content=texml, media_type="application/xml")
+    except Exception as e:
+        logging.error(f"❌ Telnyx Webhook Error: {e}")
+        return Response(content="<Response><Hangup/></Response>", media_type="application/xml")
+
 @router.websocket("/ws/media-stream")
 async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: str = None):
     logging.info(f"Hit media_stream endpoint. Client: {client}, ID: {client_id}")
