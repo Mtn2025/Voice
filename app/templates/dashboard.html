@@ -62,19 +62,22 @@
 
                     <!-- GLOBAL PROFILE TOGGLE -->
                     <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 mb-4 border border-slate-700">
-                        <button type="button" @click="activeProfile = 'browser'"
+                        <button type="button"
+                            @click="activeProfile = 'browser'; document.getElementById('sim-mode-text').innerText = 'Navegador'; document.getElementById('sim-mode-text').className = 'text-blue-400'; window.simulatorClientType = 'browser';"
                             :class="{'bg-blue-600 text-white shadow-lg': activeProfile === 'browser', 'text-slate-400 hover:text-white': activeProfile !== 'browser'}"
                             class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
                             <span>🌐</span> Simulador
                         </button>
-                        <button type="button" @click="activeProfile = 'phone'"
+                        <button type="button"
+                            @click="activeProfile = 'phone'; document.getElementById('sim-mode-text').innerText = 'Teléfono'; document.getElementById('sim-mode-text').className = 'text-emerald-400'; window.simulatorClientType = 'twilio';"
                             :class="{'bg-emerald-600 text-white shadow-lg': activeProfile === 'phone', 'text-slate-400 hover:text-white': activeProfile !== 'phone'}"
                             class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
                             <span>📱</span> Teléfono
                         </button>
                     </div>
 
-                    <form action="/api/config/update" method="POST" class="space-y-4">
+                    <form action="/api/config/update" method="POST" class="space-y-4"
+                        onsubmit="event.preventDefault(); saveConfig();">
                         <!-- HIDDEN INPUTS AND FORM CONTENT SAME AS BEFORE (RELYING ON CONTEXT MATCH) -->
                         <input type="hidden" name="stt_provider" value="azure">
                         <input type="hidden" name="llm_provider" value="groq">
@@ -630,22 +633,75 @@
 
 
                         <div class="pt-4 border-t border-slate-700">
-                            <button type="submit"
-                                class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-medium transition-colors shadow-lg">
-                                Guardar Configuración Completa
+                            <button type="button" onclick="saveConfig()"
+                                class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2">
+                                <span>💾</span> Guardar Configuración Completa
                             </button>
                         </div>
                     </form>
-                </div>
+
+                    <script>
+                        async function saveConfig() {
+                            const btn = document.querySelector('button[onclick="saveConfig()"]');
+                            const originalText = btn.innerHTML;
+                            btn.innerHTML = '<span>⏳</span> Guardando...';
+                            btn.disabled = true;
+
+                            const form = document.querySelector('form[action="/api/config/update"]');
+                            const formData = new FormData(form);
+
+                            try {
+                                const response = await fetch('/api/config/update', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+
+                                if (response.ok) {
+                                    btn.innerHTML = '<span>✅</span> ¡Guardado!';
+                                    btn.classList.add('bg-green-600');
+                                    setTimeout(() => {
+                                        btn.innerHTML = originalText;
+                                        btn.classList.remove('bg-green-600');
+                                        btn.disabled = false;
+                                    }, 2000);
+
+                                    // Notify Simulator of potentially new settings (e.g. VAD sliders)
+                                    if (typeof window.updateSimulatorConfig === 'function') {
+                                        // window.updateSimulatorConfig(); // Optional: reload sim config
+                                    }
+                                } else {
+                                    throw new Error('Error en respuesta');
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                btn.innerHTML = '<span>❌</span> Error al Guardar';
+                                btn.classList.add('bg-red-600');
+                                setTimeout(() => {
+                                    btn.innerHTML = originalText;
+                                    btn.classList.remove('bg-red-600');
+                                    btn.disabled = false;
+                                }, 3000);
+                            }
+                        }
+                    </script>
+                </div> <!-- End x-data -->
             </div>
 
             <!-- Simulator Panel (Sticky, Right Side) -->
             <div class="sm:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-emerald-300">Simulador de Llamada</h2>
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex flex-col">
+                            <h2 class="text-xl font-semibold text-emerald-300 flex items-center gap-2">
+                                <span>🧪</span> Simulador
+                            </h2>
+                            <!-- Client Type Indicator -->
+                            <div id="sim-client-wrapper" class="text-[10px] font-mono mt-1 text-slate-400">
+                                Perfil: <span id="sim-mode-text" class="text-blue-400 font-bold">Navegador</span>
+                            </div>
+                        </div>
                         <button id="start-btn" onclick="toggleCall()"
-                            class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all">
+                            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all text-sm">
                             Iniciar Prueba
                         </button>
                     </div>

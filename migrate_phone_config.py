@@ -49,13 +49,17 @@ async def run_migration():
         
         for col_name, type_def in columns_to_add:
             try:
-                logger.info(f"Adding column: {col_name}...")
-                await session.execute(text(f"ALTER TABLE agent_configs ADD COLUMN {col_name} {type_def}"))
-                logger.info(f"✅ Added {col_name}")
+                # Use nested transaction (SAVEPOINT) to isolate errors
+                # This prevents the main transaction from aborting if one column already exists
+                async with session.begin_nested():
+                     logger.info(f"Adding column: {col_name}...")
+                     await session.execute(text(f"ALTER TABLE agent_configs ADD COLUMN {col_name} {type_def}"))
+                     logger.info(f"✅ Added {col_name}")
             except Exception as e:
-                # Check for "already exists" error in a generic way or just log warning
+                # If error occurs, the nested transaction rolls back automatically
+                # preventing the "current transaction is aborted" error for the next loop.
                 err_str = str(e).lower()
-                if "already exists" in err_str:
+                if "already exists" in err_str or "duplicate column" in err_str:
                      logger.warning(f"⚠️ Column {col_name} already exists. Skipping.")
                 else:
                      logger.error(f"❌ Error adding {col_name}: {e}")

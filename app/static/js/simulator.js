@@ -53,7 +53,10 @@ async function startCall() {
 
         // 2. Connect WebSocket
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        socket = new WebSocket(`${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser&client_id=${clientId}`);
+        // Check for globally set client type (from Dashboard toggle), default to browser
+        const clientType = window.simulatorClientType || 'browser';
+        console.log(`🔌 Connecting Simulator as Client Type: ${clientType}`);
+        socket = new WebSocket(`${protocol}//${window.location.host}/api/v1/ws/media-stream?client=${clientType}&client_id=${clientId}`);
 
         socket.onopen = () => {
             isCallActive = true;
