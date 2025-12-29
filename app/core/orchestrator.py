@@ -275,48 +275,70 @@ class VoiceOrchestrator:
         logging.info(f"DEBUG CONFIG VAL: {self.config}")
         
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
+        # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
+        if self.client_type == "telnyx":
+             logging.info("📱 [ORCHESTRATOR] Applying TELNYX Profile Configuration")
+             # Explicitly map TELNYX fields
+             conf = self.config
+             
+             # LLM
+             if conf.llm_model_telnyx: conf.llm_model = conf.llm_model_telnyx
+             if conf.llm_provider_telnyx: conf.llm_provider = conf.llm_provider_telnyx
+             if conf.system_prompt_telnyx: conf.system_prompt = conf.system_prompt_telnyx
+             if conf.max_tokens_telnyx: conf.max_tokens = conf.max_tokens_telnyx
+             if conf.first_message_telnyx: conf.first_message = conf.first_message_telnyx
+             if conf.first_message_mode_telnyx: conf.first_message_mode = conf.first_message_mode_telnyx
+             if conf.temperature_telnyx is not None: conf.temperature = conf.temperature_telnyx
+             
+             # VAD / Audio IN
+             if conf.stt_provider_telnyx: conf.stt_provider = conf.stt_provider_telnyx
+             if conf.stt_language_telnyx: conf.stt_language = conf.stt_language_telnyx
+             if conf.silence_timeout_ms_telnyx: conf.silence_timeout_ms = conf.silence_timeout_ms_telnyx
+             if conf.initial_silence_timeout_ms_telnyx: conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_telnyx
+             if conf.interruption_threshold_telnyx is not None: conf.interruption_threshold = conf.interruption_threshold_telnyx
+             if conf.input_min_characters_telnyx: conf.input_min_characters = conf.input_min_characters_telnyx
+             if conf.enable_denoising_telnyx is not None: conf.enable_denoising = conf.enable_denoising_telnyx
+             if conf.hallucination_blacklist_telnyx: conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
+             
+             # Voice / Audio OUT
+             if conf.voice_name_telnyx: conf.voice_name = conf.voice_name_telnyx
+             if conf.voice_style_telnyx: conf.voice_style = conf.voice_style_telnyx
+             if conf.voice_speed_telnyx: conf.voice_speed = conf.voice_speed_telnyx
+             if conf.voice_pacing_ms_telnyx: conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
+
+        elif self.client_type == "twilio" or (self.client_type != "browser" and self.client_type != "telnyx"): 
+             # Default fallback for "phone" matches Twilio behavior
+             logging.info("📱 [ORCHESTRATOR] Applying TWILIO/PHONE Profile Configuration")
+             conf = self.config
+             
+             # LLM
+             if conf.llm_model_phone: conf.llm_model = conf.llm_model_phone
+             if conf.llm_provider_phone: conf.llm_provider = conf.llm_provider_phone
+             if conf.system_prompt_phone: conf.system_prompt = conf.system_prompt_phone
+             if conf.max_tokens_phone: conf.max_tokens = conf.max_tokens_phone
+             if conf.first_message_phone: conf.first_message = conf.first_message_phone
+             if conf.first_message_mode_phone: conf.first_message_mode = conf.first_message_mode_phone
+             if conf.temperature_phone is not None: conf.temperature = conf.temperature_phone
+             
+             # VAD / Audio IN
+             if conf.stt_provider_phone: conf.stt_provider = conf.stt_provider_phone
+             if conf.stt_language_phone: conf.stt_language = conf.stt_language_phone
+             if conf.silence_timeout_ms_phone: conf.silence_timeout_ms = conf.silence_timeout_ms_phone
+             if conf.initial_silence_timeout_ms_phone: conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_phone
+             if conf.interruption_threshold_phone is not None: conf.interruption_threshold = conf.interruption_threshold_phone
+             if conf.input_min_characters_phone: conf.input_min_characters = conf.input_min_characters_phone
+             if getattr(conf, 'enable_denoising_phone', None) is not None: conf.enable_denoising = conf.enable_denoising_phone
+             if getattr(conf, 'hallucination_blacklist_phone', None): conf.hallucination_blacklist = conf.hallucination_blacklist_phone
+             
+             # Voice / Audio OUT
+             if conf.voice_name_phone: conf.voice_name = conf.voice_name_phone
+             if conf.voice_style_phone: conf.voice_style = conf.voice_style_phone
+             if conf.voice_speed_phone: conf.voice_speed = conf.voice_speed_phone
+             # Note: voice_pacing_ms might not be on phone model yet, check if needed
+             
         if self.client_type != "browser":
-             logging.info(f"📱 [ORCHESTRATOR] Applying Profile Configuration for: {self.client_type}")
-             
-             # SUFFIX DETERMINATION
-             suffix = "_phone" # Default to Twilio/Phone
-             if self.client_type == "telnyx":
-                 suffix = "_telnyx"
-             
-             # HELPER: Apply override if exists
-             def apply(attr, fallback=None):
-                 key = f"{attr}{suffix}"
-                 val = getattr(self.config, key, None)
-                 if val is not None:
-                     setattr(self.config, attr, val)
-             
-             # LLM & Persona
-             apply("llm_model")
-             apply("llm_provider")
-             apply("system_prompt")
-             apply("max_tokens")
-             apply("first_message")
-             apply("first_message_mode")
-             apply("temperature")
-             
-             # Voice / TTS
-             apply("voice_name")
-             apply("voice_style")
-             apply("voice_speed")
-             apply("voice_pacing_ms")
-             
-             # Transcriber / VAD / Audio
-             apply("stt_provider")
-             apply("stt_language")
-             
-             apply("silence_timeout_ms")
-             apply("initial_silence_timeout_ms")
-             apply("interruption_threshold")
-             apply("input_min_characters")
-             apply("enable_denoising")
-             apply("hallucination_blacklist")
-                 
              logging.info(f"📱 [PROFILE APPLIED] Client: {self.client_type} | Voice: {self.config.voice_name} | STT: {self.config.stt_provider}")
+        # ---------------------------------------------------------
         # ---------------------------------------------------------
         
         self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
