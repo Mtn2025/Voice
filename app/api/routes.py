@@ -28,7 +28,7 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
-@router.api_route("/telnyx/incoming-call", methods=["POST"])
+@router.api_route("/telnyx/incoming-call", methods=["GET", "POST"])
 async def telnyx_incoming_call(request: Request):
     """
     Webhook for Telnyx to handle incoming calls.
