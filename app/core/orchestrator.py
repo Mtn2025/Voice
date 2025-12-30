@@ -107,54 +107,54 @@ class VoiceOrchestrator:
              logging.info(f"🔊 [AUDIO OUT] Sent {len(audio_data)} bytes to Browser")
              return
 
-    # For Telephony (Twilio/Telenyx)
-    # Target: 20ms chunks.
-    # MuLaw/ALaw (8kHz, 8-bit) -> 160 bytes.
-    # PCM (8kHz, 16-bit) -> 320 bytes.
-    
-    encoding = getattr(self, 'audio_encoding', 'pcmu').lower()
-    needs_encoding = ('pcma' in encoding) and (self.client_type == 'telnyx')
-    
-    # If we are Telnyx (PCMA), we configured Azure to output PCM 16-bit.
-    # So we chunk 320 bytes, convert -> 160 bytes.
-    # If Twilio, Azure outputs Mu-Law 8-bit. We chunk 160 bytes.
-    CHUNK_SIZE = 320 if needs_encoding else 160
-    
-    chunk_count = 0
-    total_bytes = 0
-    
-    for i in range(0, len(audio_data), CHUNK_SIZE):
-        chunk = audio_data[i : i + CHUNK_SIZE]
-        if needs_encoding:
-            # Convert PCM 16-bit -> A-Law 8-bit
+        # For Telephony (Twilio/Telenyx)
+        # Target: 20ms chunks.
+        # MuLaw/ALaw (8kHz, 8-bit) -> 160 bytes.
+        # PCM (8kHz, 16-bit) -> 320 bytes.
+        
+        encoding = getattr(self, 'audio_encoding', 'pcmu').lower()
+        needs_encoding = ('pcma' in encoding) and (self.client_type == 'telnyx')
+        
+        # If we are Telnyx (PCMA), we configured Azure to output PCM 16-bit.
+        # So we chunk 320 bytes, convert -> 160 bytes.
+        # If Twilio, Azure outputs Mu-Law 8-bit. We chunk 160 bytes.
+        CHUNK_SIZE = 320 if needs_encoding else 160
+        
+        chunk_count = 0
+        total_bytes = 0
+        
+        for i in range(0, len(audio_data), CHUNK_SIZE):
+            chunk = audio_data[i : i + CHUNK_SIZE]
+            if needs_encoding:
+                # Convert PCM 16-bit -> A-Law 8-bit
+                try:
+                    chunk = audioop.lin2alaw(chunk, 2)
+                except Exception as e_enc:
+                    logging.error(f"Encoding Error: {e_enc}")
+                    continue
+                    
+            chunk_count += 1
+            total_bytes += len(chunk)
+            
+            b64_audio = base64.b64encode(chunk).decode("utf-8")
+            
+            msg = {
+                "event": "media",
+                "media": {"payload": b64_audio}
+            }
+            if self.client_type == "twilio":
+                msg["streamSid"] = self.stream_id
+            # Telnyx: No streamSid in "media" event, just payload (correct).
+            
             try:
-                chunk = audioop.lin2alaw(chunk, 2)
-            except Exception as e_enc:
-                logging.error(f"Encoding Error: {e_enc}")
-                continue
-                
-        chunk_count += 1
-        total_bytes += len(chunk)
-        
-        b64_audio = base64.b64encode(chunk).decode("utf-8")
-        
-        msg = {
-            "event": "media",
-            "media": {"payload": b64_audio}
-        }
-        if self.client_type == "twilio":
-            msg["streamSid"] = self.stream_id
-        # Telnyx: No streamSid in "media" event, just payload (correct).
-        
-        try:
-            await self.websocket.send_text(json.dumps(msg))
-        except RuntimeError as e:
-             # Stop loudly but safely
-            logging.warning(f"⚠️ Connection Closed during Audio Send: {e}")
-            return
-        except Exception as e:
-            logging.error(f"Error sending chunk: {e}")
-            return
+                await self.websocket.send_text(json.dumps(msg))
+            except RuntimeError as e:
+                 # Stop loudly but safely
+                logging.warning(f"⚠️ Connection Closed during Audio Send: {e}")
+                return
+            except Exception as e:
+                logging.error(f"Error sending chunk: {e}")
+                return
             
         logging.warning(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
 
