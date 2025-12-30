@@ -122,7 +122,13 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 # Ensure we see the RAW start payload to find the ID
                 logging.warning(f"🔍 START EVENT RAW: {data}") 
                 start_data = msg.get('start', {})
+                
+                # Robust Stream ID Extraction
+                # 1. Twilio: 'streamSid' inside 'start'
                 stream_sid = start_data.get('streamSid')
+                # 2. Telnyx: 'stream_id' at ROOT level
+                if not stream_sid:
+                     stream_sid = msg.get('stream_id')
                 
                 if not stream_sid:
                      # Fallback
