@@ -144,6 +144,10 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     enable_denoising = Column(Boolean, default=True)
     initial_silence_timeout_ms = Column(Integer, default=5000) # Time to wait for start of speech
     
+    # VAD Sensitivity (Lower = More Sensitive)
+    voice_sensitivity = Column(Integer, default=500) 
+    voice_sensitivity_phone = Column(Integer, default=200) # Phone audio is often quieter/noisier
+    
     # ---------------- TELNYX PROFILE ----------------
     # Cloned configs for independent tuning
     stt_provider_telnyx = Column(String, default="azure")

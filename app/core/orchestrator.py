@@ -144,7 +144,6 @@ class VoiceOrchestrator:
             }
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
-            # Telnyx: No streamSid in "media" event, just payload (correct).
             
             try:
                 await self.websocket.send_text(json.dumps(msg))
@@ -155,6 +154,10 @@ class VoiceOrchestrator:
             except Exception as e:
                 logging.error(f"Error sending chunk: {e}")
                 return
+            
+            # Pacing: Simple sleep to prevent flooding the socket
+            # 20ms audio = 0.02s. We sleep slightly less to stay ahead.
+            await asyncio.sleep(0.018)
             
         logging.warning(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
 
@@ -927,19 +930,20 @@ class VoiceOrchestrator:
                 # Max (Peak Volume) - Good for sudden spikes (clacks, pops)
                 max_val = audioop.max(audio_bytes, 2)
                 
-                # Dynamic Logging: Only log meaningful changes or Periodic
-                # For Audit: Log everything in a compact format
-                # Thresholds (Approx for 16-bit PCM):
-                # < 500: Silence
-                # 500-2000: Background Noise
-                # > 2000: Likely Speech
-                
+                # Dynamic Thresholds
+                if self.client_type in ["twilio", "telnyx"]:
+                    vad_threshold = getattr(self.config, 'voice_sensitivity_phone', 200)
+                else:
+                    vad_threshold = getattr(self.config, 'voice_sensitivity', 500)
+
                 log_level = logging.DEBUG
                 classification = "🔇 Silence"
-                if rms > 2000: 
+                
+                # Check VAD
+                if rms > vad_threshold: 
                     log_level = logging.WARNING # Force visibility
                     classification = "🗣️ VOICE"
-                elif rms > 500:
+                elif rms > (vad_threshold / 2):
                     log_level = logging.INFO
                     classification = "🔊 Noise"
                 elif max_val > 10000:
