@@ -110,7 +110,11 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         
         if audio_mode == "browser":
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
+        elif audio_mode == "telnyx":
+             # Telnyx negotiates PCMA (A-Law)
+             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoALaw)
         else:
+            # Twilio Default (Mu-Law)
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
         
         # IMPORTANT: In Docker (headless), we must not use default speaker (audio_config=None)
