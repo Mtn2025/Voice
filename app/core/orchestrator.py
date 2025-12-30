@@ -155,7 +155,6 @@ class VoiceOrchestrator:
         except Exception as e:
             logging.error(f"Error sending chunk: {e}")
             return
-                return
             
         logging.warning(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
 
