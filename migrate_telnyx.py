@@ -25,7 +25,9 @@ async def patch():
             ("silence_timeout_ms_telnyx", "INTEGER DEFAULT 1200"),
             ("interruption_threshold_telnyx", "INTEGER DEFAULT 2"),
             ("hallucination_blacklist_telnyx", "VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"),
-            ("voice_speed_telnyx", "FLOAT DEFAULT 0.9")
+            ("voice_speed_telnyx", "FLOAT DEFAULT 0.9"),
+            ("voice_sensitivity", "INTEGER DEFAULT 500"),
+            ("voice_sensitivity_phone", "INTEGER DEFAULT 200")
         ]
 
         for col, dtype in columns:

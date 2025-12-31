@@ -47,6 +47,10 @@ async def lifespan(app: FastAPI):
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS segmentation_strategy VARCHAR DEFAULT 'default'"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_denoising BOOLEAN DEFAULT TRUE"))
             
+            # Auto-Migration for VAD Sensitivity (Telnyx Fix)
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_sensitivity INTEGER DEFAULT 500"))
+            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_sensitivity_phone INTEGER DEFAULT 200"))
+            
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_end_call BOOLEAN DEFAULT TRUE"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_dial_keypad BOOLEAN DEFAULT FALSE"))
             await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS transfer_phone_number VARCHAR"))
