@@ -144,7 +144,10 @@ class VoiceOrchestrator:
             }
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
-            
+            elif self.client_type == "telnyx":
+                # Telnyx often requires stream_id to route media correctly
+                msg["stream_id"] = self.stream_id
+
             try:
                 await self.websocket.send_text(json.dumps(msg))
             except RuntimeError as e:
