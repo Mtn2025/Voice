@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.api import routes
 from app.routers import dashboard
 
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load resources
     print("Starting Voice Orchestrator...")
