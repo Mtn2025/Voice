@@ -277,9 +277,17 @@ class VoiceOrchestrator:
         self.loop = asyncio.get_running_loop()
 
         # Load Config
-        self.config = await db_service.get_agent_config()
-        logging.info(f"DEBUG CONFIG TYPE: {type(self.config)}")
-        logging.info(f"DEBUG CONFIG VAL: {self.config}")
+        try:
+            logging.warning("⚙️ [CONFIG] Attempting to load agent config from DB...")
+            self.config = await db_service.get_agent_config()
+            logging.warning(f"✅ [CONFIG] Loaded successfully: {type(self.config)}")
+            logging.info(f"DEBUG CONFIG TYPE: {type(self.config)}")
+            logging.info(f"DEBUG CONFIG VAL: {self.config}")
+        except Exception as e:
+            logging.error(f"❌❌❌ CRITICAL: Config loading failed: {e}")
+            import traceback
+            logging.error(f"Traceback: {traceback.format_exc()}")
+            raise
         
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
