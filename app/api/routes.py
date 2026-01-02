@@ -62,11 +62,13 @@ async def telnyx_incoming_call(request: Request):
         import asyncio
         asyncio.create_task(start_telnyx_stream(call_control_id, ws_url))
         
-        # 4. Return minimal TexML: Just answer the call
-        # Stream will be initiated by REST API call above
+        # 4. Return TexML: Answer and keep call alive with Pause
+        # Stream will be initiated by REST API call (background task above)
+        # Pause keeps the call active while stream initializes
         texml = """<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Answer/>
+    <Pause length="60"/>
 </Response>"""
         return Response(content=texml, media_type="application/xml")
     
@@ -83,9 +85,9 @@ async def start_telnyx_stream(call_control_id: str, stream_url: str):
     import httpx
     from app.core.config import settings
     
-    # Small delay to ensure call is fully answered
+    # Minimal delay to ensure call is answered (reduced to avoid timeout)
     import asyncio
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(0.1)
     
     api_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
     # Robust Key Loading with extensive debugging
