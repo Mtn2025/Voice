@@ -54,9 +54,10 @@ async def telnyx_call_control(request: Request):
         # DEBUG: Print entire raw payload
         logging.warning(f"🔍 RAW PAYLOAD: {json.dumps(event, indent=2)}")
         
-        # Extract according to official docs structure
-        event_type = event.get("event_type")
-        payload = event.get("payload", {})
+        # CORRECT STRUCTURE: Telnyx wraps in "data" object
+        data = event.get("data", {})
+        event_type = data.get("event_type")
+        payload = data.get("payload", {})
         call_control_id = payload.get("call_control_id")
         
         logging.warning(f"📞 PARSED | Type: {event_type} | ID: {call_control_id}")
