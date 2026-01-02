@@ -435,8 +435,10 @@ class VoiceOrchestrator:
         # First Message Logic (VAPI Style)
         first_mode = getattr(self.config, 'first_message_mode', 'speak-first')
         first_msg = getattr(self.config, 'first_message', "Hola, soy Andrea. ¿En qué puedo ayudarte?")
+        logging.warning(f"🎤 [FIRST_MSG] Mode='{first_mode}', Msg='{first_msg}', Check={first_mode == 'speak-first' and bool(first_msg)}")
         
         if first_mode == 'speak-first' and first_msg:
+             logging.warning("🎤 [FIRST_MSG] ✅ CREATING delayed_greeting task...")
              # VOICE CLIENTS (Twilio/Telenyx): Wait for 'start' event to get StreamSid
              # CRITICAL: Run this in background to avoid blocking 'routes.py' loop
              async def delayed_greeting():
