@@ -146,7 +146,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     
     # VAD Sensitivity (Lower = More Sensitive)
     voice_sensitivity = Column(Integer, default=500) 
-    voice_sensitivity_phone = Column(Integer, default=200) # Phone audio is often quieter/noisier
+    voice_sensitivity_phone = Column(Integer, default=3000) # Phone: Higher threshold to filter noise
     
     # ---------------- TELNYX PROFILE ----------------
     # Cloned configs for independent tuning
@@ -173,6 +173,11 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     interruption_threshold_telnyx = Column(Integer, default=2)
     hallucination_blacklist_telnyx = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.")
     voice_speed_telnyx = Column(Float, default=0.9)
+    
+    # Telnyx Native Features
+    voice_sensitivity_telnyx = Column(Integer, default=3000)  # Voice activation threshold (RMS)
+    enable_krisp_telnyx = Column(Boolean, default=True)       # Krisp noise suppression (native)
+    enable_vad_telnyx = Column(Boolean, default=True)         # Voice Activity Detection (native)
     # ------------------------------------------------
     
     enable_end_call = Column(Boolean, default=True)

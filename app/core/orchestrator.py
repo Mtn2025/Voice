@@ -318,6 +318,7 @@ class VoiceOrchestrator:
                   if conf.input_min_characters_telnyx: conf.input_min_characters = conf.input_min_characters_telnyx
                   if conf.enable_denoising_telnyx is not None: conf.enable_denoising = conf.enable_denoising_telnyx
                   if conf.hallucination_blacklist_telnyx: conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
+                  if conf.voice_sensitivity_telnyx: conf.voice_sensitivity = conf.voice_sensitivity_telnyx  # Voice activation threshold
                   
                   # Voice / Audio OUT
                   if conf.voice_name_telnyx: conf.voice_name = conf.voice_name_telnyx

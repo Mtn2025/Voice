@@ -203,11 +203,20 @@ async def start_streaming(call_control_id: str, request: Request):
         json.dumps(client_state_data).encode()
     ).decode()
     
+    # Get Krisp configuration from DB
+    try:
+        config = await db_service.get_agent_config()
+        enable_krisp = getattr(config, 'enable_krisp_telnyx', True)
+    except Exception as e:
+        logging.warning(f"Could not load Krisp config, using default: {e}")
+        enable_krisp = True
+    
     stream_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
     payload = {
         "stream_url": ws_url,
         "stream_track": "both_tracks",
-        "stream_bidirectional_mode": "rtp",  # Enable RTP ingestion for outbound audio
+        "stream_bidirectional_mode": "rtp",
+        "enable_krisp": enable_krisp,  # Telnyx native noise suppression
         "client_state": client_state
     }
     
@@ -325,6 +334,17 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str = N
             elif msg["event"] == "client_interruption":
                 logging.warning("⚡ Client Interruption (Local VAD)")
                 await orchestrator.handle_interruption(text="[LOCAL_VAD_INTERRUPTION]")
+            
+            elif msg["event"] == "vad":
+                # Telnyx Voice Activity Detection (Native)
+                vad_data = msg.get("vad", {})
+                is_speech = vad_data.get("is_speech", False)
+                confidence = vad_data.get("confidence", 0.0)
+                
+                logging.info(f"🎤 VAD | Speech: {is_speech} | Confidence: {confidence:.2f}")
+                
+                if not is_speech or confidence < 0.7:
+                    logging.info("⚠️ VAD: Low confidence, likely background noise")
             
             elif msg["event"] == "clear":
                 logging.info("🧹 Clear Buffer Command")
