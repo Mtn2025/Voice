@@ -40,7 +40,13 @@ async def telnyx_incoming_call(request: Request):
         content_type = request.headers.get("content-type", "")
         call_leg_id = "unknown"
         
-        if "application/json" in content_type:
+        if request.method == "GET":
+             # TexML Payload (Query Params) - Standard for GET Webhooks
+             params = request.query_params
+             logging.info(f"📞 Telnyx TexML Webhook (GET): {params}")
+             call_leg_id = params.get("CallSid") or params.get("CallControlId") or "get_param_missing"
+        
+        elif "application/json" in content_type:
              # Call Control Payload (JSON) - This means Wrong App Type, but we try to respond anyway
              data = await request.json()
              logging.warning(f"⚠️ Telnyx sent JSON (Call Control). XML response might be ignored. Payload: {json.dumps(data)}")
@@ -49,7 +55,7 @@ async def telnyx_incoming_call(request: Request):
         else:
              # TexML Payload (Form Data) - Correct for XML response
              form_data = await request.form()
-             logging.info(f"📞 Telnyx TexML Webhook: {form_data}")
+             logging.info(f"📞 Telnyx TexML Webhook (POST): {form_data}")
              call_leg_id = form_data.get("CallSid") or form_data.get("CallControlId") or "form_id"
         
         host = request.headers.get("host")
