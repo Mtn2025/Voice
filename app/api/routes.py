@@ -44,13 +44,22 @@ async def telnyx_call_control(request: Request):
     Handles all call lifecycle events per official Telnyx documentation.
     https://developers.telnyx.com/docs/v2/call-control
     """
+    # Log raw request info BEFORE try block
+    logging.warning(f"🔍 WEBHOOK RECEIVED | Method: {request.method} | Path: {request.url.path}")
+    
     try:
-        # Parse webhook payload (CORRECTED per official docs)
+        # Parse webhook payload
         event = await request.json()
+        
+        # DEBUG: Print entire raw payload
+        logging.warning(f"🔍 RAW PAYLOAD: {json.dumps(event, indent=2)}")
+        
+        # Extract according to official docs structure
         event_type = event.get("event_type")
         payload = event.get("payload", {})
         call_control_id = payload.get("call_control_id")
         
+        logging.warning(f"📞 PARSED | Type: {event_type} | ID: {call_control_id}")
         logging.info(f"📞 Telnyx Event: {event_type} | Call: {call_control_id}")
         
         # Handle call.initiated - Answer call (step 1 of 2)
