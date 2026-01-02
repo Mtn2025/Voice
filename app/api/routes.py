@@ -51,19 +51,26 @@ async def telnyx_incoming_call(request: Request):
         ws_scheme = "wss" if scheme == "https" else "ws"
         
         # 2. Return TexML
-        # Strict Config: bidirectionalCodec="pcmu" (Mu-Law is default/standard)
+        # CRITICAL: Using <Start> (asynchronous) instead of <Connect> (synchronous)
+        # <Connect> blocks call flow waiting for stream completion = Hangup if WS fails
+        # <Start> runs stream in parallel = Call continues even if stream fails
+        # Strict Config: bidirectionalCodec="pc
+
+mu" (Mu-Law is default/standard)
         # track="both_tracks" (Critical for bidirectional)
         # bidirectionalMode="rtp" (Real-time)
         texml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Answer/>
-    <Connect>
+    <Start>
         <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}" 
                 track="both_tracks" 
                 bidirectionalMode="rtp" 
                 bidirectionalCodec="pcmu">
         </Stream>
-    </Connect>
+    </Start>
+    <Say voice="alice" language="es-MX">Un momento por favor, conectando con el asistente.</Say>
+    <Pause length="60"/>
 </Response>"""
         return Response(content=texml, media_type="application/xml")
     
@@ -75,6 +82,7 @@ async def telnyx_incoming_call(request: Request):
 async def media_stream(websocket: WebSocket, client: str = "twilio", id: str = None):
     # 'id' matches the query param we set in the TexML response (...&id={call_leg_id})
     client_id = id
+    logging.warning(f"🔌 WS CONNECTION ATTEMPT | Client: {client}, ID: {client_id}")
     logging.info(f"Hit media_stream endpoint. Client: {client}, ID: {client_id}")
     
     if not client_id:
