@@ -82,15 +82,18 @@ async def telnyx_call_control(request: Request):
             # Answer call only (don't stream yet)
             asyncio.create_task(answer_call(call_control_id, request))
         
-        # Handle call.answered - Start streaming (step 2 of 2)
+        # Handle call.answered - Answer call and start streaming
         elif event_type == "call.answered":
-            logging.info(f"✅ Call Answered: {call_control_id}")
+            logging.info(f"📱 Call Answered: {call_control_id}")
             
             if call_control_id in active_calls:
                 active_calls[call_control_id]["state"] = "answered"
                 active_calls[call_control_id]["answered_at"] = time.time()
                 # NOW start streaming (event-driven, not hardcoded delay)
-                asyncio.create_task(start_streaming(call_control_id, request))
+                await start_streaming(call_control_id, request)
+                
+                # Start noise suppression after call is answered
+                asyncio.create_task(start_noise_suppression(call_control_id))
         
         # Handle streaming.started - Streaming is ready
         elif event_type == "streaming.started":
@@ -203,20 +206,11 @@ async def start_streaming(call_control_id: str, request: Request):
         json.dumps(client_state_data).encode()
     ).decode()
     
-    # Get Krisp configuration from DB
-    try:
-        config = await db_service.get_agent_config()
-        enable_krisp = getattr(config, 'enable_krisp_telnyx', True)
-    except Exception as e:
-        logging.warning(f"Could not load Krisp config, using default: {e}")
-        enable_krisp = True
-    
     stream_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
     payload = {
         "stream_url": ws_url,
         "stream_track": "both_tracks",
         "stream_bidirectional_mode": "rtp",
-        "enable_krisp": enable_krisp,  # Telnyx native noise suppression
         "client_state": client_state
     }
     
@@ -240,6 +234,46 @@ async def start_streaming(call_control_id: str, request: Request):
                     logging.error(f"❌ Streaming Retry Failed: {retry_response.text}")
     except Exception as e:
         logging.error(f"❌ Streaming Exception: {e}")
+
+
+async def start_noise_suppression(call_control_id: str):
+    """
+    Enable Telnyx native noise suppression (Krisp) on a call.
+    Official docs: https://developers.telnyx.com/docs/api/v2/call-control/Noise-Suppression
+    """
+    headers = {
+        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    # Load suppression config from DB
+    try:
+        config = await db_service.get_agent_config()
+        enable_suppression = getattr(config, 'enable_krisp_telnyx', True)
+    except Exception as e:
+        logging.warning(f"Could not load noise suppression config: {e}")
+        enable_suppression = True
+    
+    if not enable_suppression:
+        logging.info("🔇 Noise suppression disabled in config")
+        return
+    
+    suppression_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/suppression_start"
+    payload = {
+        "direction": "both"  # inbound, outbound, or both
+    }
+    
+    try:
+        logging.info(f"🔇 Starting noise suppression: {call_control_id}")
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(suppression_url, headers=headers, json=payload)
+        
+        if response.status_code == 200:
+            logging.info(f"✅ Noise Suppression Enabled (both directions)")
+        else:
+            logging.warning(f"⚠️ Noise Suppression Failed: {response.status_code} - {response.text}")
+    except Exception as e:
+        logging.warning(f"⚠️ Noise Suppression Exception: {e}")
 
 
 @router.websocket("/ws/media-stream")
