@@ -383,10 +383,13 @@ class VoiceOrchestrator:
             }))
 
 
+
         # Initialize Providers
+        logging.warning("🔧 [TRACE] About to initialize providers (STT/LLM/TTS)...")
         self.llm_provider = ServiceFactory.get_llm_provider(self.config)
         self.stt_provider = ServiceFactory.get_stt_provider(self.config)
         self.tts_provider = ServiceFactory.get_tts_provider(self.config)  # Using Factory abstraction if possible
+        logging.warning("✅ [TRACE] Providers initialized successfully")
         
         # Setup STT (Azure)
         # Note: In a pure abstract world, we'd wrap these events too, 
