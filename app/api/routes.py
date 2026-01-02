@@ -28,128 +28,130 @@ async def incoming_call(request: Request):
 </Response>"""
     return Response(content=twiml, media_type="application/xml")
 
-@router.api_route("/telnyx/incoming-call", methods=["GET", "POST"])
-async def telnyx_incoming_call(request: Request):
+
+@router.post("/telnyx/call-control")
+async def telnyx_call_control(request: Request):
     """
-    Webhook for Telnyx (Hybrid Approach).
-    - TexML: Instant call answer with <Answer/>
-    - REST API: Initiate streaming via Call Control API
+    Call Control webhook for Telnyx.
+    Receives JSON events and responds with REST API commands.
     
-    Why: Telnyx ignores <Start><Stream> in webhook responses.
-    Solution: Use REST API to start stream after answering.
+    Migration from TeXML: Now using pure Call Control API for full compatibility.
     """
     try:
-        # 1. Extract Call Control ID / Call SID
-        if request.method == "GET":
-             params = request.query_params
-             call_control_id = params.get("CallSid") or params.get("CallControlId") or "unknown_get"
-             logging.info(f"📞 Telnyx Webhook (GET): ID={call_control_id}")
-        else:
-             form_data = await request.form()
-             call_control_id = form_data.get("CallSid") or form_data.get("CallControlId") or "unknown_post"
-             logging.info(f"📞 Telnyx Webhook (POST): ID={call_control_id}")
-
-        # 2. Build WebSocket URL for stream API
-        host = request.headers.get("host")
-        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
-        ws_scheme = "wss" if scheme == "https" else "ws"
+        # Parse JSON event from Telnyx
+        event = await request.json()
         
-        from urllib.parse import quote
-        encoded_call_id = quote(call_control_id, safe='')
-        ws_url = f"{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&id={encoded_call_id}"
+        event_type = event.get("data", {}).get("event_type")
+        payload = event.get("data", {}).get("payload", {})
+        call_control_id = payload.get("call_control_id")
         
-        # 3. Start background task to initiate streaming via REST API
-        import asyncio
-        asyncio.create_task(start_telnyx_stream(call_control_id, ws_url))
+        logging.info(f"📞 Telnyx CC Event: {event_type} | ID: {call_control_id}")
         
-        # 4. Return TexML: Answer and keep call alive with Pause
-        # Stream will be initiated by REST API call (background task above)
-        # Pause keeps the call active while stream initializes
-        texml = """<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Answer/>
-    <Pause length="60"/>
-</Response>"""
-        return Response(content=texml, media_type="application/xml")
+        # Handle call.initiated event (new incoming call)
+        if event_type == "call.initiated":
+            from_number = payload.get("from")
+            to_number = payload.get("to")
+            logging.info(f"   From: {from_number} → To: {to_number}")
+            
+            # Answer call and start streaming via REST API
+            import asyncio
+            asyncio.create_task(answer_and_stream_call(call_control_id, request))
+        
+        elif event_type == "call.answered":
+            logging.info(f"✅ Call Answered | ID: {call_control_id}")
+        
+        elif event_type == "streaming.started":
+            logging.info(f"🎙️ Streaming Started | ID: {call_control_id}")
+        
+        elif event_type == "streaming.stopped":
+            logging.info(f"🛑 Streaming Stopped | ID: {call_control_id}")
+        
+        elif event_type == "call.hangup":
+            logging.info(f"📴 Call Hangup | ID: {call_control_id}")
+        
+        # Acknowledge receipt (Call Control expects 200 OK)
+        return {"status": "received", "event_type": event_type}
     
     except Exception as e:
-        logging.error(f"❌ Telnyx Webhook Error: {e}")
-        return Response(content="<Response><Hangup/></Response>", media_type="application/xml")
+        logging.error(f"❌ Call Control Error: {e}")
+        import traceback
+        logging.error(traceback.format_exc())
+        return {"status": "error", "message": str(e)}
 
-async def start_telnyx_stream(call_control_id: str, stream_url: str):
+async def answer_and_stream_call(call_control_id: str, request: Request):
     """
-    Initiate media streaming via Telnyx Call Control API.
+    Answer call and immediately start streaming via Call Control API.
     
-    Includes retry logic for "call not answered yet" errors.
-    Docs: https://developers.telnyx.com/docs/api/v2/call-control/Call-Commands#callControlStreamingStart
+    Two-step process:
+    1. Send 'answer' command
+    2. Send 'streaming_start' command
     """
     import httpx
     from app.core.config import settings
-    
-    # Wait for call to be fully answered (SIP signaling takes time)
     import asyncio
-    await asyncio.sleep(1.5)
     
-    api_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
-    # Robust Key Loading with extensive debugging
-    import os
+    # Build WebSocket URL
+    host = request.headers.get("host")
+    scheme = request.headers.get("x-forwarded-proto", "https")
+    ws_scheme = "wss" if scheme == "https" else "ws"
     
-    # Log what we're seeing
-    logging.warning(f"🔍 DEBUG: settings.TELNYX_API_KEY = '{settings.TELNYX_API_KEY[:20] if settings.TELNYX_API_KEY else 'EMPTY'}...'")
-    logging.warning(f"🔍 DEBUG: os.getenv('TELNYX_API_KEY') = '{os.getenv('TELNYX_API_KEY', 'NOT_FOUND')[:20] if os.getenv('TELNYX_API_KEY') else 'NOT_FOUND'}...'")
+    from urllib.parse import quote
+    encoded_id = quote(call_control_id, safe='')
+    ws_url = f"{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&id={encoded_id}"
     
-    api_key = settings.TELNYX_API_KEY or os.getenv("TELNYX_API_KEY", "")
-    
-    if not api_key:
-        logging.error("❌ CRITICAL: TELNYX_API_KEY is missing!")
-        logging.error(f"   settings.TELNYX_API_KEY type: {type(settings.TELNYX_API_KEY)}, value: '{settings.TELNYX_API_KEY}'")
-        logging.error(f"   os.getenv result: '{os.getenv('TELNYX_API_KEY')}'")
-        return
-        
-    logging.info(f"🔑 Using API Key: {api_key[:4]}...{api_key[-4:]}")
-
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
         "Content-Type": "application/json"
     }
-    payload = {
-        "stream_url": stream_url,
-        "stream_track": "both_tracks",
-        "enable_dialogflow": False
+    
+    # Step 1: Answer the call
+    answer_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/answer"
+    
+    try:
+        logging.info(f"📞 Answering call via API: {call_control_id}")
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(answer_url, headers=headers, json={})
+        
+        if response.status_code == 200:
+            logging.info(f"✅ Call Answered via API | ID: {call_control_id}")
+        else:
+            logging.error(f"❌ Answer Failed: {response.status_code} - {response.text}")
+            return
+    except Exception as e:
+        logging.error(f"❌ Answer Exception: {e}")
+        return
+    
+    # Step 2: Wait briefly for call to be fully established
+    await asyncio.sleep(0.5)
+    
+    # Step 3: Start streaming
+    stream_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
+    stream_payload = {
+        "stream_url": ws_url,
+        "stream_track": "both_tracks"
     }
     
-    # Retry logic for "call not answered yet" (code 90034)
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(api_url, headers=headers, json=payload)
-            
-            if response.status_code == 200:
-                logging.info(f"✅ Telnyx Stream Started (API) | Call: {call_control_id}")
-                return
-            elif response.status_code == 422:
-                error_data = response.json()
-                error_code = error_data.get("errors", [{}])[0].get("code")
-                
-                # If call not answered yet, retry
-                if error_code == "90034" and attempt < max_retries - 1:
-                    wait_time = 0.5 * (attempt + 1)  # Exponential backoff
-                    logging.warning(f"⏳ Call not answered yet, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})...")
-                    await asyncio.sleep(wait_time)
-                    continue
-                else:
-                    logging.error(f"❌ Telnyx Stream API Failed: {response.status_code} - {response.text}")
-                    return
-            else:
-                logging.error(f"❌ Telnyx Stream API Failed: {response.status_code} - {response.text}")
-                return
-        except Exception as e:
-            logging.error(f"❌ Telnyx Stream API Exception: {e}")
-            if attempt < max_retries - 1:
-                await asyncio.sleep(0.5 * (attempt + 1))
-                continue
-            return
+    try:
+        logging.info(f"🎙️ Starting stream via API: {call_control_id}")
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(stream_url, headers=headers, json=stream_payload)
+        
+        if response.status_code == 200:
+            logging.info(f"✅ Streaming Started via API | ID: {call_control_id}")
+        else:
+            logging.error(f"❌ Streaming Failed: {response.status_code} - {response.text}")
+    except Exception as e:
+        logging.error(f"❌ Streaming Exception: {e}")
+
+# Legacy TeXML endpoint (kept for backward compatibility during migration)
+@router.api_route("/telnyx/incoming-call", methods=["GET", "POST"])
+async def telnyx_incoming_call_legacy(request: Request):
+    """
+    LEGACY: TeXML webhook (deprecated).
+    Use /telnyx/call-control for new Call Control API.
+    """
+    logging.warning("⚠️ Legacy TeXML endpoint called. Migrate to /telnyx/call-control")
+    return Response(content="<Response><Reject/></Response>", media_type="application/xml")
 
 @router.api_route("/telnyx/events", methods=["GET", "POST"])
 async def telnyx_events(request: Request):
