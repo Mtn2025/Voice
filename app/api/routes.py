@@ -72,7 +72,9 @@ async def telnyx_incoming_call(request: Request):
         return Response(content="<Response><Hangup/></Response>", media_type="application/xml")
 
 @router.websocket("/ws/media-stream")
-async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: str = None):
+async def media_stream(websocket: WebSocket, client: str = "twilio", id: str = None):
+    # 'id' matches the query param we set in the TexML response (...&id={call_leg_id})
+    client_id = id
     logging.info(f"Hit media_stream endpoint. Client: {client}, ID: {client_id}")
     
     if not client_id:
@@ -124,7 +126,9 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", client_id: 
                 # Robust Stream ID Extraction
                 # 1. Twilio: 'streamSid' inside 'start'
                 stream_sid = start_data.get('streamSid')
-                # 2. Telnyx: 'stream_id' at ROOT level
+                # 2. Telnyx: 'stream_id' inside 'start' (Standard) or Root (Legacy/Variations)
+                if not stream_sid:
+                     stream_sid = start_data.get('stream_id')
                 if not stream_sid:
                      stream_sid = msg.get('stream_id')
                 
