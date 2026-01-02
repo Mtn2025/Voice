@@ -289,6 +289,7 @@ class VoiceOrchestrator:
             logging.error(f"Traceback: {traceback.format_exc()}")
             raise
         
+        logging.warning("🎯 [TRACE] Config loaded, starting profile overlay...")
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         if self.client_type == "telnyx":
