@@ -80,14 +80,15 @@ async def start_telnyx_stream(call_control_id: str, stream_url: str):
     """
     Initiate media streaming via Telnyx Call Control API.
     
+    Includes retry logic for "call not answered yet" errors.
     Docs: https://developers.telnyx.com/docs/api/v2/call-control/Call-Commands#callControlStreamingStart
     """
     import httpx
     from app.core.config import settings
     
-    # Minimal delay to ensure call is answered (reduced to avoid timeout)
+    # Wait for call to be fully answered (SIP signaling takes time)
     import asyncio
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(1.5)
     
     api_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
     # Robust Key Loading with extensive debugging
@@ -117,16 +118,38 @@ async def start_telnyx_stream(call_control_id: str, stream_url: str):
         "enable_dialogflow": False
     }
     
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(api_url, headers=headers, json=payload)
-        
-        if response.status_code == 200:
-            logging.info(f"✅ Telnyx Stream Started (API) | Call: {call_control_id}")
-        else:
-            logging.error(f"❌ Telnyx Stream API Failed: {response.status_code} - {response.text}")
-    except Exception as e:
-        logging.error(f"❌ Telnyx Stream API Exception: {e}")
+    # Retry logic for "call not answered yet" (code 90034)
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(api_url, headers=headers, json=payload)
+            
+            if response.status_code == 200:
+                logging.info(f"✅ Telnyx Stream Started (API) | Call: {call_control_id}")
+                return
+            elif response.status_code == 422:
+                error_data = response.json()
+                error_code = error_data.get("errors", [{}])[0].get("code")
+                
+                # If call not answered yet, retry
+                if error_code == "90034" and attempt < max_retries - 1:
+                    wait_time = 0.5 * (attempt + 1)  # Exponential backoff
+                    logging.warning(f"⏳ Call not answered yet, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})...")
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    logging.error(f"❌ Telnyx Stream API Failed: {response.status_code} - {response.text}")
+                    return
+            else:
+                logging.error(f"❌ Telnyx Stream API Failed: {response.status_code} - {response.text}")
+                return
+        except Exception as e:
+            logging.error(f"❌ Telnyx Stream API Exception: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(0.5 * (attempt + 1))
+                continue
+            return
 
 @router.api_route("/telnyx/events", methods=["GET", "POST"])
 async def telnyx_events(request: Request):
