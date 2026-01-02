@@ -207,6 +207,7 @@ async def start_streaming(call_control_id: str, request: Request):
     payload = {
         "stream_url": ws_url,
         "stream_track": "both_tracks",
+        "stream_bidirectional_mode": "rtp",  # Enable RTP ingestion for outbound audio
         "client_state": client_state
     }
     
