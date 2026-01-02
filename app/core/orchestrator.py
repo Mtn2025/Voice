@@ -292,7 +292,9 @@ class VoiceOrchestrator:
         logging.warning("🎯 [TRACE] Config loaded, starting profile overlay...")
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
+        logging.warning(f"🔍 [TRACE] About to check client_type condition: '{self.client_type}' == 'telnyx' ? {self.client_type == 'telnyx'}")
         if self.client_type == "telnyx":
+             logging.warning("📱 [TELNYX] ENTERED Telnyx profile overlay block")
              logging.info("📱 [ORCHESTRATOR] Applying TELNYX Profile Configuration")
              # Explicitly map TELNYX fields
              conf = self.config
