@@ -430,6 +430,8 @@ class VoiceOrchestrator:
             
         self.recognizer.start_continuous_recognition()
         
+        
+        logging.warning("🎤 [TRACE] About to process first message logic...")
         # First Message Logic (VAPI Style)
         first_mode = getattr(self.config, 'first_message_mode', 'speak-first')
         first_msg = getattr(self.config, 'first_message', "Hola, soy Andrea. ¿En qué puedo ayudarte?")
