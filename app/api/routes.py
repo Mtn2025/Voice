@@ -50,6 +50,10 @@ async def telnyx_incoming_call(request: Request):
         scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
         ws_scheme = "wss" if scheme == "https" else "ws"
         
+        # URL-encode the call_leg_id to handle special characters (colons, etc.)
+        from urllib.parse import quote
+        encoded_call_leg_id = quote(call_leg_id, safe='')
+        
         # 2. Return TexML
         # CRITICAL: Using <Start> (asynchronous) instead of <Connect> (synchronous)
         # <Connect> blocks call flow waiting for stream completion = Hangup if WS fails
@@ -61,7 +65,7 @@ async def telnyx_incoming_call(request: Request):
 <Response>
     <Answer/>
     <Start>
-        <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}" 
+        <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={encoded_call_leg_id}" 
                 track="both_tracks" 
                 bidirectionalMode="rtp" 
                 bidirectionalCodec="pcmu">
