@@ -461,9 +461,9 @@ class VoiceOrchestrator:
                       import traceback
                       logging.error(f"Traceback: {traceback.format_exc()}")
 
-              # Store task reference to prevent garbage collection and handle errors
-              self.greeting_task = asyncio.create_task(delayed_greeting())
-              logging.warning(f"🎤 [FIRST_MSG] ✅ Task created: {self.greeting_task}")
+             # Store task reference to prevent garbage collection and handle errors
+             self.greeting_task = asyncio.create_task(delayed_greeting())
+             logging.warning(f"🎤 [FIRST_MSG] ✅ Task created: {self.greeting_task}")
         elif first_mode == 'speak-first-dynamic':
              # Placeholder for dynamic generation (future)
              pass
