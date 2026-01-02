@@ -97,7 +97,7 @@ async def answer_and_stream_call(call_control_id: str, request: Request):
     
     from urllib.parse import quote
     encoded_id = quote(call_control_id, safe='')
-    ws_url = f"{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&id={encoded_id}"
+    ws_url = f"{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&call_control_id={encoded_id}"
     
     headers = {
         "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
@@ -142,16 +142,6 @@ async def answer_and_stream_call(call_control_id: str, request: Request):
             logging.error(f"❌ Streaming Failed: {response.status_code} - {response.text}")
     except Exception as e:
         logging.error(f"❌ Streaming Exception: {e}")
-
-# Legacy TeXML endpoint (kept for backward compatibility during migration)
-@router.api_route("/telnyx/incoming-call", methods=["GET", "POST"])
-async def telnyx_incoming_call_legacy(request: Request):
-    """
-    LEGACY: TeXML webhook (deprecated).
-    Use /telnyx/call-control for new Call Control API.
-    """
-    logging.warning("⚠️ Legacy TeXML endpoint called. Migrate to /telnyx/call-control")
-    return Response(content="<Response><Reject/></Response>", media_type="application/xml")
 
 @router.api_route("/telnyx/events", methods=["GET", "POST"])
 async def telnyx_events(request: Request):

@@ -442,20 +442,28 @@ class VoiceOrchestrator:
              # VOICE CLIENTS (Twilio/Telenyx): Wait for 'start' event to get StreamSid
              # CRITICAL: Run this in background to avoid blocking 'routes.py' loop
              async def delayed_greeting():
-                 if self.client_type != "browser":
-                     logging.info("⏳ Waiting for Media Stream START event before greeting...")
-                     for _ in range(50): # Wait up to 5 seconds
-                         if self.stream_id:
-                             logging.info(f"✅ StreamID obtained ({self.stream_id}). Speaking now.")
-                             break
-                         await asyncio.sleep(0.1)
-                     else:
-                         logging.warning("⚠️ Timed out waiting for StreamID. Speaking anyway (might fail).")
-                 
-                 logging.info(f"🗣️ Triggering First Message: {first_msg}")
-                 await self.speak_direct(first_msg)
+                  try:
+                      logging.warning("🔔 [GREETING] Function started")
+                      if self.client_type != "browser":
+                          logging.info("⏳ Waiting for Media Stream START event before greeting...")
+                          for _ in range(50): # Wait up to 5 seconds
+                              if self.stream_id:
+                                  logging.info(f"✅ StreamID obtained ({self.stream_id}). Speaking now.")
+                                  break
+                              await asyncio.sleep(0.1)
+                          else:
+                              logging.warning("⚠️ Timed out waiting for StreamID. Speaking anyway (might fail).")
+                      
+                      logging.info(f"🗣️ Triggering First Message: {first_msg}")
+                      await self.speak_direct(first_msg)
+                  except Exception as e:
+                      logging.error(f"❌ Error in delayed_greeting: {e}")
+                      import traceback
+                      logging.error(f"Traceback: {traceback.format_exc()}")
 
-             asyncio.create_task(delayed_greeting())
+              # Store task reference to prevent garbage collection and handle errors
+              self.greeting_task = asyncio.create_task(delayed_greeting())
+              logging.warning(f"🎤 [FIRST_MSG] ✅ Task created: {self.greeting_task}")
         elif first_mode == 'speak-first-dynamic':
              # Placeholder for dynamic generation (future)
              pass
