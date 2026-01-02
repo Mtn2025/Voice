@@ -80,6 +80,28 @@ async def telnyx_incoming_call(request: Request):
         logging.error(f"❌ Telnyx Webhook Error: {e}")
         return Response(content="<Response><Hangup/></Response>", media_type="application/xml")
 
+@router.api_route("/telnyx/events", methods=["GET", "POST"])
+async def telnyx_events(request: Request):
+    """
+    Webhook for Telnyx call progress events (stream-started, stream-stopped, etc.)
+    """
+    try:
+        if request.method == "GET":
+            params = dict(request.query_params)
+        else:
+            # POST sends JSON
+            params = await request.json()
+        
+        event_type = params.get("event_type", "unknown")
+        logging.warning(f"🔔 TELNYX EVENT | Type: {event_type} | Data: {params}")
+        
+        # Respond with 200 to acknowledge receipt
+        return {"status": "received", "event_type": event_type}
+    
+    except Exception as e:
+        logging.error(f"❌ Telnyx Event Error: {e}")
+        return {"status": "error"}
+
 @router.websocket("/ws/media-stream")
 async def media_stream(websocket: WebSocket, client: str = "twilio", id: str = None):
     # 'id' matches the query param we set in the TexML response (...&id={call_leg_id})
