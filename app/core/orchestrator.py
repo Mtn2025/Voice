@@ -293,36 +293,43 @@ class VoiceOrchestrator:
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
         logging.warning(f"🔍 [TRACE] About to check client_type condition: '{self.client_type}' == 'telnyx' ? {self.client_type == 'telnyx'}")
-        if self.client_type == "telnyx":
-             logging.warning("📱 [TELNYX] ENTERED Telnyx profile overlay block")
-             logging.info("📱 [ORCHESTRATOR] Applying TELNYX Profile Configuration")
-             # Explicitly map TELNYX fields
-             conf = self.config
-             
-             # LLM
-             if conf.llm_model_telnyx: conf.llm_model = conf.llm_model_telnyx
-             if conf.llm_provider_telnyx: conf.llm_provider = conf.llm_provider_telnyx
-             if conf.system_prompt_telnyx: conf.system_prompt = conf.system_prompt_telnyx
-             if conf.max_tokens_telnyx: conf.max_tokens = conf.max_tokens_telnyx
-             if conf.first_message_telnyx: conf.first_message = conf.first_message_telnyx
-             if conf.first_message_mode_telnyx: conf.first_message_mode = conf.first_message_mode_telnyx
-             if conf.temperature_telnyx is not None: conf.temperature = conf.temperature_telnyx
-             
-             # VAD / Audio IN
-             if conf.stt_provider_telnyx: conf.stt_provider = conf.stt_provider_telnyx
-             if conf.stt_language_telnyx: conf.stt_language = conf.stt_language_telnyx
-             if conf.silence_timeout_ms_telnyx: conf.silence_timeout_ms = conf.silence_timeout_ms_telnyx
-             if conf.initial_silence_timeout_ms_telnyx: conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_telnyx
-             if conf.interruption_threshold_telnyx is not None: conf.interruption_threshold = conf.interruption_threshold_telnyx
-             if conf.input_min_characters_telnyx: conf.input_min_characters = conf.input_min_characters_telnyx
-             if conf.enable_denoising_telnyx is not None: conf.enable_denoising = conf.enable_denoising_telnyx
-             if conf.hallucination_blacklist_telnyx: conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
-             
-             # Voice / Audio OUT
-             if conf.voice_name_telnyx: conf.voice_name = conf.voice_name_telnyx
-             if conf.voice_style_telnyx: conf.voice_style = conf.voice_style_telnyx
-             if conf.voice_speed_telnyx: conf.voice_speed = conf.voice_speed_telnyx
-             if conf.voice_pacing_ms_telnyx: conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
+        try:
+            if self.client_type == "telnyx":
+                 logging.warning("📱 [TELNYX] ENTERED Telnyx profile overlay block")
+                 logging.warning("📱 [ORCHESTRATOR] Applying TELNYX Profile Configuration")
+                 # Explicitly map TELNYX fields
+                 conf = self.config
+                 
+                 # LLM
+                 if conf.llm_model_telnyx: conf.llm_model = conf.llm_model_telnyx
+                 if conf.llm_provider_telnyx: conf.llm_provider = conf.llm_provider_telnyx
+                 if conf.system_prompt_telnyx: conf.system_prompt = conf.system_prompt_telnyx
+                 if conf.max_tokens_telnyx: conf.max_tokens = conf.max_tokens_telnyx
+                 if conf.first_message_telnyx: conf.first_message = conf.first_message_telnyx
+                 if conf.first_message_mode_telnyx: conf.first_message_mode = conf.first_message_mode_telnyx
+                 if conf.temperature_telnyx is not None: conf.temperature = conf.temperature_telnyx
+                 
+                 # VAD / Audio IN
+                 if conf.stt_provider_telnyx: conf.stt_provider = conf.stt_provider_telnyx
+                 if conf.stt_language_telnyx: conf.stt_language = conf.stt_language_telnyx
+                 if conf.silence_timeout_ms_telnyx: conf.silence_timeout_ms = conf.silence_timeout_ms_telnyx
+                 if conf.initial_silence_timeout_ms_telnyx: conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_telnyx
+                 if conf.interruption_threshold_telnyx is not None: conf.interruption_threshold = conf.interruption_threshold_telnyx
+                 if conf.input_min_characters_telnyx: conf.input_min_characters = conf.input_min_characters_telnyx
+                 if conf.enable_denoising_telnyx is not None: conf.enable_denoising = conf.enable_denoising_telnyx
+                 if conf.hallucination_blacklist_telnyx: conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
+                 
+                 # Voice / Audio OUT
+                 if conf.voice_name_telnyx: conf.voice_name = conf.voice_name_telnyx
+                 if conf.voice_style_telnyx: conf.voice_style = conf.voice_style_telnyx
+                 if conf.voice_speed_telnyx: conf.voice_speed = conf.voice_speed_telnyx
+                 if conf.voice_pacing_ms_telnyx: conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
+                 
+                 logging.warning("✅ [TELNYX] Profile overlay completed successfully")
+        except Exception as e:
+            logging.error(f"❌❌❌ EXCEPTION in Telnyx profile overlay: {e}")
+            import traceback
+            logging.error(f"Traceback: {traceback.format_exc()}")
 
         elif self.client_type == "twilio" or (self.client_type != "browser" and self.client_type != "telnyx"): 
              # Default fallback for "phone" matches Twilio behavior
