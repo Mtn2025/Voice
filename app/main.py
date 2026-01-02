@@ -5,10 +5,24 @@ from app.core.config import settings
 from app.api import routes
 from app.routers import dashboard
 
-@asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load resources
     print("Starting Voice Orchestrator...")
+    
+    # DEBUG: Print all environment variables related to Telnyx
+    import os
+    print("=" * 60)
+    print("ENVIRONMENT VARIABLES DEBUG:")
+    print(f"TELNYX_API_KEY (os.getenv): {os.getenv('TELNYX_API_KEY', 'NOT_FOUND')[:20] if os.getenv('TELNYX_API_KEY') else 'NOT_FOUND'}...")
+    print(f"TELNYX_API_BASE (os.getenv): {os.getenv('TELNYX_API_BASE', 'NOT_FOUND')}")
+    print(f"settings.TELNYX_API_KEY: {settings.TELNYX_API_KEY[:20] if settings.TELNYX_API_KEY else 'EMPTY'}...")
+    print(f"settings.TELNYX_API_BASE: {settings.TELNYX_API_BASE}")
+    print("All env vars starting with 'TELNYX':")
+    for key, value in os.environ.items():
+        if 'TELNYX' in key.upper() or 'TELENYX' in key.upper():
+            print(f"  {key}: {value[:20]}..." if value else f"  {key}: EMPTY")
+    print("=" * 60)
+
     
     # Init DB Tables
     from app.db.database import engine
