@@ -64,7 +64,11 @@ async def telnyx_incoming_call(request: Request):
 <Response>
     <Answer/>
     <Connect>
-        <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}" track="both_tracks">
+    <Connect>
+        <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}" 
+                track="both_tracks" 
+                bidirectionalMode="rtp" 
+                bidirectionalCodec="pcma">
         </Stream>
     </Connect>
 </Response>"""
