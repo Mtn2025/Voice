@@ -88,8 +88,18 @@ async def start_telnyx_stream(call_control_id: str, stream_url: str):
     await asyncio.sleep(0.5)
     
     api_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
+    # Robust Key Loading
+    import os
+    api_key = settings.TELNYX_API_KEY or os.getenv("TELNYX_API_KEY", "")
+    
+    if not api_key:
+        logging.error("❌ CRITICAL: TELNYX_API_KEY is missing!")
+        return
+        
+    logging.info(f"🔑 Using API Key: {api_key[:4]}...{api_key[-4:]}")
+
     headers = {
-        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     payload = {
