@@ -271,6 +271,7 @@ class VoiceOrchestrator:
 
     async def start(self):
         logging.warning("🦄🦄🦄 CANARY TEST: SI ESTO SALE, EL CODIGO ES NUEVO 🦄🦄🦄")
+        logging.warning(f"DEBUG CLIENT_TYPE: self.client_type = '{self.client_type}'")
         # ... (no change to start) ...
         # Capture the current event loop to schedule tasks from sync callbacks
         self.loop = asyncio.get_running_loop()
