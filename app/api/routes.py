@@ -89,10 +89,15 @@ async def telnyx_events(request: Request):
         if request.method == "GET":
             params = dict(request.query_params)
         else:
-            # POST sends JSON
-            params = await request.json()
+            # Try JSON first (standard webhooks), fall back to Form (TeXML callbacks)
+            try:
+                params = await request.json()
+            except Exception:
+                form_data = await request.form()
+                params = dict(form_data)
         
         event_type = params.get("event_type", "unknown")
+        # Log everything to debug
         logging.warning(f"🔔 TELNYX EVENT | Type: {event_type} | Data: {params}")
         
         # Respond with 200 to acknowledge receipt
