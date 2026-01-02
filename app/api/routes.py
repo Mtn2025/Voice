@@ -65,7 +65,8 @@ async def telnyx_incoming_call(request: Request):
 <Response>
     <Answer/>
     <Start>
-        <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={encoded_call_leg_id}" 
+        <Stream name="ai-assistant-stream"
+                url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={encoded_call_leg_id}" 
                 track="both_tracks" 
                 bidirectionalMode="rtp" 
                 bidirectionalCodec="pcmu">
