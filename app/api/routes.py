@@ -280,7 +280,9 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str = N
             log_msg = copy.deepcopy(msg)
             if "media" in log_msg and "payload" in log_msg["media"]:
                 log_msg["media"]["payload"] = f"<BASE64 DATA len={len(msg['media']['payload'])}>"
-            logging.warning(f"📥 WS Event: {event_type} | Data: {json.dumps(log_msg)}")
+            # Only log non-media events to reduce spam (media events happen every 20ms)
+            if event_type != "media":
+                logging.warning(f"📥 WS Event: {event_type} | Data: {json.dumps(log_msg)}")
             
             if msg["event"] == "connected":
                 logging.info(f"🔗 WebSocket Connected")
