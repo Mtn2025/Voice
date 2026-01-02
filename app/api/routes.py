@@ -54,9 +54,7 @@ async def telnyx_incoming_call(request: Request):
         # CRITICAL: Using <Start> (asynchronous) instead of <Connect> (synchronous)
         # <Connect> blocks call flow waiting for stream completion = Hangup if WS fails
         # <Start> runs stream in parallel = Call continues even if stream fails
-        # Strict Config: bidirectionalCodec="pc
-
-mu" (Mu-Law is default/standard)
+        # Strict Config: bidirectionalCodec="pcmu" (Mu-Law is default/standard)
         # track="both_tracks" (Critical for bidirectional)
         # bidirectionalMode="rtp" (Real-time)
         texml = f"""<?xml version="1.0" encoding="UTF-8"?>
