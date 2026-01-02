@@ -110,11 +110,9 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         
         if audio_mode == "browser":
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
-        elif audio_mode == "telnyx":
-             # Telnyx: Generate PCM 16-bit 8kHz -> Manual A-Law encode in Orchestrator
-             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz16BitMonoPcm)
         else:
-            # Twilio Default (Mu-Law)
+            # Telephony Default (Twilio/Telnyx) -> Mu-Law 8kHz
+            # This is the standard telephony format, removing need for custom transcoding in Orchestrator.
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
         
         # IMPORTANT: In Docker (headless), we must not use default speaker (audio_config=None)

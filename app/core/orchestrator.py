@@ -107,32 +107,16 @@ class VoiceOrchestrator:
              logging.info(f"🔊 [AUDIO OUT] Sent {len(audio_data)} bytes to Browser")
              return
 
-        # For Telephony (Twilio/Telenyx)
-        # Target: 20ms chunks.
-        # MuLaw/ALaw (8kHz, 8-bit) -> 160 bytes.
-        # PCM (8kHz, 16-bit) -> 320 bytes.
-        
-        encoding = getattr(self, 'audio_encoding', 'pcmu').lower()
-        needs_encoding = ('pcma' in encoding) and (self.client_type == 'telnyx')
-        
-        # If we are Telnyx (PCMA), we configured Azure to output PCM 16-bit.
-        # So we chunk 320 bytes, convert -> 160 bytes.
-        # If Twilio, Azure outputs Mu-Law 8-bit. We chunk 160 bytes.
-        CHUNK_SIZE = 320 if needs_encoding else 160
+        # For Telephony (Twilio/Telnyx)
+        # MuLaw 8kHz -> 160 bytes = 20ms
+        CHUNK_SIZE = 160
         
         chunk_count = 0
         total_bytes = 0
         
         for i in range(0, len(audio_data), CHUNK_SIZE):
             chunk = audio_data[i : i + CHUNK_SIZE]
-            if needs_encoding:
-                # Convert PCM 16-bit -> A-Law 8-bit
-                try:
-                    chunk = audioop.lin2alaw(chunk, 2)
-                except Exception as e_enc:
-                    logging.error(f"Encoding Error: {e_enc}")
-                    continue
-                    
+            
             chunk_count += 1
             total_bytes += len(chunk)
             
@@ -142,6 +126,7 @@ class VoiceOrchestrator:
                 "event": "media",
                 "media": {"payload": b64_audio}
             }
+            # Common protocol for Twilio/Telnyx often requires identifying the stream
             if self.client_type == "twilio":
                 msg["streamSid"] = self.stream_id
             elif self.client_type == "telnyx":
@@ -911,16 +896,14 @@ class VoiceOrchestrator:
             # MANUAL DECODE: Convert Twilio/Telnyx Audio -> PCM (16-bit)
             # ------------------------------------------------------------------
             if self.client_type in ["twilio", "telnyx"]:
-                 try:
-                     encoding = getattr(self, 'audio_encoding', 'pcmu').lower()
-                     
-                     if 'pcma' in encoding: # A-Law
-                         audio_bytes = audioop.alaw2lin(audio_bytes, 2)
-                     else: # Default to Mu-Law (Twilio standard / PCMU)
-                         audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
-                         
-                 except Exception as e_conv:
-                     logging.error(f"Audio Conversion Error ({encoding}): {e_conv}")
+                  try:
+                      # Telephony (Twilio/Telnyx) defaults to Mu-Law (PCMU)
+                      # We decode Mu-Law -> Linear PCM for VAD and Azure PushStream
+                      audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
+                          
+                  except Exception as e_conv:
+                      logging.error(f"Audio Conversion Error (PCMU): {e_conv}")
+                      return
             # ------------------------------------------------------------------
             
             # ------------------------------------------------------------------

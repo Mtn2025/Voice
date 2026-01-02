@@ -31,41 +31,29 @@ async def incoming_call(request: Request):
 @router.api_route("/telnyx/incoming-call", methods=["GET", "POST"])
 async def telnyx_incoming_call(request: Request):
     """
-    Webhook for Telnyx to handle incoming calls.
-    Returns TexML (Telnyx XML) to connect the call to a Media Stream.
-    Critically: Requires a "TexML Application" in Telnyx, NOT "Call Control".
+    Webhook for Telnyx (TexML).
+    Strict implementation: Defaults to PCMU (Mu-Law) and RTP.
     """
     try:
-        # Detect Payload Type (JSON = Call Control, Form = TexML)
-        content_type = request.headers.get("content-type", "")
-        call_leg_id = "unknown"
-        
+        # 1. Extract Call Control ID / Call SID
+        # Telnyx GETs use Query Params. POSTs use Form Data.
         if request.method == "GET":
-             # TexML Payload (Query Params) - Standard for GET Webhooks
              params = request.query_params
-             logging.info(f"📞 Telnyx TexML Webhook (GET): {params}")
-             call_leg_id = params.get("CallSid") or params.get("CallControlId") or "get_param_missing"
-        
-        elif "application/json" in content_type:
-             # Call Control Payload (JSON) - This means Wrong App Type, but we try to respond anyway
-             data = await request.json()
-             logging.warning(f"⚠️ Telnyx sent JSON (Call Control). XML response might be ignored. Payload: {json.dumps(data)}")
-             plugin_data = data.get("data", {})
-             call_leg_id = plugin_data.get("payload", {}).get("call_leg_id") or "json_id"
+             call_leg_id = params.get("CallSid") or params.get("CallControlId") or "unknown_get"
+             logging.info(f"📞 Telnyx Webhook (GET): ID={call_leg_id}")
         else:
-             # TexML Payload (Form Data) - Correct for XML response
              form_data = await request.form()
-             logging.info(f"📞 Telnyx TexML Webhook (POST): {form_data}")
-             call_leg_id = form_data.get("CallSid") or form_data.get("CallControlId") or "form_id"
-        
+             call_leg_id = form_data.get("CallSid") or form_data.get("CallControlId") or "unknown_post"
+             logging.info(f"📞 Telnyx Webhook (POST): ID={call_leg_id}")
+
         host = request.headers.get("host")
-        
-        # Detect scheme (handle behind proxy like Coolify)
         scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
         ws_scheme = "wss" if scheme == "https" else "ws"
         
-        # TexML Response
-        # <Answer> is crucial to ensure call state moves from Parked to Active
+        # 2. Return TexML
+        # Strict Config: bidirectionalCodec="pcmu" (Mu-Law is default/standard)
+        # track="both_tracks" (Critical for bidirectional)
+        # bidirectionalMode="rtp" (Real-time)
         texml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Answer/>
@@ -73,11 +61,12 @@ async def telnyx_incoming_call(request: Request):
         <Stream url="{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&amp;id={call_leg_id}" 
                 track="both_tracks" 
                 bidirectionalMode="rtp" 
-                bidirectionalCodec="pcma">
+                bidirectionalCodec="pcmu">
         </Stream>
     </Connect>
 </Response>"""
         return Response(content=texml, media_type="application/xml")
+    
     except Exception as e:
         logging.error(f"❌ Telnyx Webhook Error: {e}")
         return Response(content="<Response><Hangup/></Response>", media_type="application/xml")
