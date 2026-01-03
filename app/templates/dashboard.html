@@ -37,6 +37,7 @@
                     interruptionTelnyx: {{ config.interruption_threshold_telnyx or 2 }},
                     voiceSpeedTelnyx: {{ config.voice_speed_telnyx or 0.9 }},
                     silenceTelnyx: {{ config.silence_timeout_ms_telnyx or 1200 }},
+                    voicePacingTelnyx: {{ config.voice_pacing_ms_telnyx or 500 }},
 
                     /* History State */
                     historyFilter: 'all'
@@ -49,11 +50,10 @@
                             class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
                             title="Auditando...">Modelo</button>
 
-                        <!-- Voice (Disabled/Hidden) -->
+                        <!-- Voice (RESTORED) -->
                         <button @click.prevent="tab = 'voice'"
                             :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
-                            title="Auditando...">Voz</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Voz</button>
 
                         <!-- Transcriber (Disabled/Hidden) -->
                         <!-- Transcriber (RESTORED) -->
@@ -156,13 +156,7 @@
                             <input type="hidden" name="voice_pacing_ms_phone"
                                 value="{{ config.voice_pacing_ms_phone }}">
 
-                            <!-- VOICE TELNYX -->
-                            <input type="hidden" name="voice_name_telnyx" value="{{ config.voice_name_telnyx }}">
-                            <input type="hidden" name="voice_style_telnyx"
-                                value="{{ config.voice_style_telnyx or '' }}">
-                            <input type="hidden" name="voice_speed_telnyx" value="{{ config.voice_speed_telnyx }}">
-                            <input type="hidden" name="voice_pacing_ms_telnyx"
-                                value="{{ config.voice_pacing_ms_telnyx }}">
+                            <!-- VOICE TELNYX (MOVED TO UI) -->
 
 
                             <!-- VOICE EXTRAS -->
@@ -232,6 +226,75 @@
                                 value="{{ config.segmentation_strategy }}">
                             <input type="hidden" name="twilio_recording_channels"
                                 value="{{ config.twilio_recording_channels }}">
+                        </div>
+
+                        <!-- Tab: Voice (Telnyx) -->
+                        <div x-show="tab === 'voice'" class="space-y-4" style="display: none;">
+                            <h3 class="text-sm font-semibold text-emerald-300">Configuración de Voz (TTS)</h3>
+
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                <!-- Voice Identity -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
+                                            (Azure)</label>
+                                        <input type="text" name="voice_name_telnyx"
+                                            value="{{ config.voice_name_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                                            placeholder="es-MX-DaliaNeural">
+                                        <p class="text-[10px] text-slate-500 mt-1">Ej: es-MX-JorgeNeural,
+                                            es-MX-DaliaNeural</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo de
+                                            Voz</label>
+                                        <input type="text" name="voice_style_telnyx"
+                                            value="{{ config.voice_style_telnyx or '' }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 outline-none"
+                                            placeholder="cheerful, sad, empathy...">
+                                        <p class="text-[10px] text-slate-500 mt-1">Opcional (Solo voces soportadas)</p>
+                                    </div>
+                                </div>
+
+                                <!-- Speed Control -->
+                                <div class="bg-slate-900/50 p-3 rounded border border-slate-700/50">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-300 uppercase tracking-wider">Velocidad
+                                            de Habla</label>
+                                        <span
+                                            class="text-xs font-mono bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800"
+                                            x-text="voiceSpeedTelnyx + 'x'"></span>
+                                    </div>
+                                    <input type="range" name="voice_speed_telnyx" x-model="voiceSpeedTelnyx" min="0.5"
+                                        max="1.5" step="0.05"
+                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                        <span>0.5x (Lento)</span>
+                                        <span>1.0x (Normal)</span>
+                                        <span>1.5x (Rápido)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Pacing Control -->
+                                <div class="bg-slate-900/50 p-3 rounded border border-slate-700/50">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Ritmo
+                                            (Pacing)</label>
+                                        <span
+                                            class="text-xs font-mono bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded border border-purple-800"
+                                            x-text="voicePacingTelnyx + ' ms'"></span>
+                                    </div>
+                                    <input type="range" name="voice_pacing_ms_telnyx" x-model="voicePacingTelnyx"
+                                        min="0" max="2000" step="100"
+                                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                        <span>0 ms (Inmediato)</span>
+                                        <span>Latencia añadida para naturalidad</span>
+                                        <span>2000 ms</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Tab: Transcriber -->
