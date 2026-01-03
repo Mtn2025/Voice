@@ -262,31 +262,69 @@
                                     </select>
                                 </div>
                                 <!-- Sensitivity -->
+                                <!-- Sensitivity (RMS) -->
                                 <div>
-                                    <label class="flex justify-between text-sm font-medium mb-1">
-                                        Sensibilidad de Voz (RMS)
-                                        <span class="text-emerald-400">{{ config.voice_sensitivity_telnyx }}</span>
-                                    </label>
-                                    <input type="range" name="voice_sensitivity_telnyx" min="100" max="10000" step="100"
-                                        value="{{ config.voice_sensitivity_telnyx }}"
-                                        class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                        oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value">
-                                    <p class="text-[10px] text-slate-500 mt-1">Óptimo: 2000-3000. Menos es más sensible.
+                                    <div class="flex justify-between items-end mb-1">
+                                        <label class="text-sm font-medium text-slate-300">Umbral de Activación
+                                            (RMS)</label>
+                                        <span class="text-emerald-400 font-mono font-bold text-sm" id="val-rms">{{
+                                            config.voice_sensitivity_telnyx }}</span>
+                                    </div>
+                                    <div class="relative w-full">
+                                        <input type="range" name="voice_sensitivity_telnyx" min="100" max="8000"
+                                            step="100" value="{{ config.voice_sensitivity_telnyx }}"
+                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                            oninput="document.getElementById('val-rms').innerText = this.value">
+                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                                            <span>100 (Muy Sensible)</span>
+                                            <span>8000 (Poco Sensible)</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-blue-400/80 mt-1 italic">Valor recomendado: 2000 - 3000
                                     </p>
                                 </div>
-                                <!-- Silence & Interruption -->
-                                <div class="grid grid-cols-2 gap-4">
+
+                                <!-- Silence & Interruption (Sliders) -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Silence Timeout -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Silencio (ms)</label>
-                                        <input type="number" name="silence_timeout_ms_telnyx"
-                                            value="{{ config.silence_timeout_ms_telnyx }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <label class="text-sm font-medium text-slate-300">Silencio Fin de Turno
+                                                (ms)</label>
+                                            <span class="text-emerald-400 font-mono font-bold text-sm"
+                                                id="val-silence">{{ config.silence_timeout_ms_telnyx }} ms</span>
+                                        </div>
+                                        <div class="relative w-full">
+                                            <input type="range" name="silence_timeout_ms_telnyx" min="500" max="3000"
+                                                step="100" value="{{ config.silence_timeout_ms_telnyx }}"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                                oninput="document.getElementById('val-silence').innerText = this.value + ' ms'">
+                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                                                <span>500ms (Rápido)</span>
+                                                <span>3000ms (Lento)</span>
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    <!-- Interruption Threshold -->
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Interrupción (Palabras)</label>
-                                        <input type="number" name="interruption_threshold_telnyx"
-                                            value="{{ config.interruption_threshold_telnyx }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <label class="text-sm font-medium text-slate-300">Sensibilidad
+                                                Interrupción</label>
+                                            <span class="text-emerald-400 font-mono font-bold text-sm"
+                                                id="val-interrupt">{{ config.interruption_threshold_telnyx }}
+                                                palabras</span>
+                                        </div>
+                                        <div class="relative w-full">
+                                            <input type="range" name="interruption_threshold_telnyx" min="0" max="10"
+                                                step="1" value="{{ config.interruption_threshold_telnyx }}"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                                                oninput="document.getElementById('val-interrupt').innerText = this.value + ' palabras'">
+                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                                                <span>0 (Inmediato)</span>
+                                                <span>10 (Tolera ruido)</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- Noise & Features -->
