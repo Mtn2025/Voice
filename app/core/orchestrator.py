@@ -957,10 +957,14 @@ class VoiceOrchestrator:
                   try:
                       # Telephony (Twilio/Telnyx) defaults to Mu-Law (PCMU)
                       # We decode Mu-Law -> Linear PCM for VAD and Azure PushStream
-                      audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
+                      if hasattr(self, 'audio_encoding') and self.audio_encoding == 'PCMA':
+                          audio_bytes = audioop.alaw2lin(audio_bytes, 2)
+                      else:
+                          # Default to PCMU (Mu-Law)
+                          audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
                           
                   except Exception as e_conv:
-                      logging.error(f"Audio Conversion Error (PCMU): {e_conv}")
+                      logging.error(f"Audio Conversion Error (Legacy): {e_conv}")
                       return
             # ------------------------------------------------------------------
             
