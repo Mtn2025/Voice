@@ -431,6 +431,11 @@ class VoiceOrchestrator:
             
         self.recognizer.start_continuous_recognition()
         
+        # DIAGNOSTIC: Verify Azure STT state
+        logging.warning(f"🔍 [AZURE-DIAG] Recognizer started successfully")
+        logging.warning(f"🔍 [AZURE-DIAG] Language: {getattr(self.config, 'stt_language', 'UNKNOWN')}")
+        logging.warning(f"🔍 [AZURE-DIAG] Client type: {self.client_type}")
+        
         
         logging.warning("🎤 [TRACE] About to process first message logic...")
         # First Message Logic (VAPI Style)
@@ -989,11 +994,19 @@ class VoiceOrchestrator:
             except Exception as e_metric:
                  logging.error(f"Error calculating metrics: {e_metric}")
 
-            # DEBUG: Log before sending to Azure STT
-            logging.warning(f"🔊 [DEBUG] Sending {len(audio_bytes)} bytes to Azure STT push_stream")
+            # DEBUG: Log before sending to Azure STT (reduced verbosity)
+            if not hasattr(self, '_audio_chunk_count'):
+                self._audio_chunk_count = 0
+            self._audio_chunk_count += 1
+            
+            # Only log every 50 chunks to reduce noise
+            if self._audio_chunk_count % 50 == 1:
+                logging.info(f"🔊 [AUDIO] Chunk #{self._audio_chunk_count}: Sending {len(audio_bytes)} bytes to Azure STT")
+            
             try:
                 self.push_stream.write(audio_bytes)
-                logging.warning(f"✅ [DEBUG] Audio sent to Azure STT successfully")
+                if self._audio_chunk_count % 50 == 1:
+                    logging.info(f"✅ [AUDIO] Successfully sent chunk #{self._audio_chunk_count}")
             except Exception as e_push:
                 logging.error(f"❌ [DEBUG] Failed to write to Azure STT push_stream: {e_push}")
                 
