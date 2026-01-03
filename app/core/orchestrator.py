@@ -502,6 +502,8 @@ class VoiceOrchestrator:
         silence_timeout = getattr(self.config, 'silence_timeout_ms', 500)
         if self.client_type != "browser":
              silence_timeout = getattr(self.config, 'silence_timeout_ms_phone', 2000)
+        
+        logging.warning(f"⚙️ [CONFIG] STT Silence Timeout: {silence_timeout}ms")
 
         # -----------------------------------------------------
         # LOAD BACKGROUND AUDIO (If enabled)
@@ -709,7 +711,7 @@ class VoiceOrchestrator:
         """
         Event handler for Azure STT events.
         """
-        logging.info(f"🎤 [AZURE RAW] EventType: {evt.result.reason} | Text: {evt.result.text} | Duration: {evt.result.duration}")
+        logging.warning(f"🎤 [AZURE RAW] Reason: {evt.result.reason} | Text: {evt.result.text} | Dur: {evt.result.duration}")
         
         # Only process RecognizedSpeech
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
@@ -1167,6 +1169,11 @@ class VoiceOrchestrator:
             
             # ------------------------------------------------------------------
             
+            # Initialize chunk counter if missing
+            if not hasattr(self, '_audio_chunk_count'):
+                self._audio_chunk_count = 0
+            self._audio_chunk_count += 1
+
             # DIAGNOSTICS: Calculate Volume Metrics
             try:
                 # RMS (Average Volume) - Good for silence vs background vs voice
@@ -1199,10 +1206,16 @@ class VoiceOrchestrator:
                 # ------------------------------------------------------------------
                 enable_vad = getattr(self.config, 'enable_vad', True)
                 if enable_vad and rms < vad_threshold:
-                     # Silence/Noise detected. Do NOT send to Azure STT.
-                     # This prevents hallucinations from static/breathing.
+                     # Silence/Noise detected. Send SILENCE to Azure STT to keep stream alive.
+                     # This allows Azure's "Segmentation Silence" timer to advance.
+                     silence_chunk = bytes(len(audio_bytes))
+                     try:
+                        self.push_stream.write(silence_chunk)
+                     except Exception as e_push_silence:
+                        logging.error(f"❌ [DEBUG] Failed to write silence to Azure STT: {e_push_silence}")
+
                      if self._audio_chunk_count % 50 == 1:
-                         logging.warning(f"🔇 [VAD GATE] Dropping packet. RMS {rms} < Threshold {vad_threshold}")
+                         logging.warning(f"🔇 [VAD GATE] Sent SILENCE. RMS {rms} < Threshold {vad_threshold}")
                      return
                 # ------------------------------------------------------------------
 
@@ -1218,9 +1231,7 @@ class VoiceOrchestrator:
                  logging.error(f"Error calculating metrics: {e_metric}")
 
             # DEBUG: Log before sending to Azure STT (reduced verbosity)
-            if not hasattr(self, '_audio_chunk_count'):
-                self._audio_chunk_count = 0
-            self._audio_chunk_count += 1
+            # _audio_chunk_count is incremented at the start of metrics block
             
             # Only log every 50 chunks to reduce noise
             if self._audio_chunk_count % 50 == 1:
