@@ -631,7 +631,8 @@ class VoiceOrchestrator:
                 with wave.open(wav_io, 'wb') as wav_file:
                     wav_file.setnchannels(1)
                     wav_file.setsampwidth(2) # 16-bit
-                    wav_file.setframerate(16000)
+                    rate = 16000 if self.client_type == "browser" else 8000
+                    wav_file.setframerate(rate)
                     wav_file.writeframes(audio_data)
                 wav_data = wav_io.getvalue()
                 
