@@ -200,16 +200,10 @@
                             <input type="hidden" name="twilio_record" value="{{ config.twilio_record }}">
                             <input type="hidden" name="twilio_trim_silence" value="{{ config.twilio_trim_silence }}">
 
-                            <!-- ADVANCED -->
+                            <!-- ADVANCED (Partially moved to UI) -->
                             <input type="hidden" name="idle_timeout" value="{{ config.idle_timeout }}">
                             <input type="hidden" name="idle_message" value="{{ config.idle_message }}">
                             <input type="hidden" name="max_duration" value="{{ config.max_duration }}">
-                            <input type="hidden" name="idle_timeout_telnyx" value="{{ config.idle_timeout_telnyx }}">
-                            <input type="hidden" name="max_duration_telnyx" value="{{ config.max_duration_telnyx }}">
-                            <input type="hidden" name="idle_message_telnyx" value="{{ config.idle_message_telnyx }}">
-                            <input type="hidden" name="enable_recording_telnyx"
-                                value="{{ config.enable_recording_telnyx }}">
-                            <input type="hidden" name="amd_config_telnyx" value="{{ config.amd_config_telnyx }}">
                             <input type="hidden" name="initial_silence_timeout_ms"
                                 value="{{ config.initial_silence_timeout_ms }}">
                             <input type="hidden" name="initial_silence_timeout_ms_phone"
@@ -537,7 +531,67 @@
                         <!-- Tab: Advanced -->
                         <!-- 🔒 LOCKED SECTION: PANEL AVANZADO (RESTORED PER REQUEST) -->
                         <div x-show="tab === 'advanced'" class="space-y-4" style="display: none;">
-                            <h3 class="text-sm font-semibold text-blue-300">Control de Flujo (Heredado)</h3>
+                            <!-- Telnyx Advanced Section -->
+                            <h3 class="text-sm font-semibold text-emerald-300">Control de Flujo (Telnyx)</h3>
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">Tiempo Espera
+                                            Inactividad (s)</label>
+                                        <input type="number" name="idle_timeout_telnyx" step="0.5"
+                                            value="{{ config.idle_timeout_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">Duración Máx Global
+                                            (s)</label>
+                                        <input type="number" name="max_duration_telnyx"
+                                            value="{{ config.max_duration_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-slate-200">Mensaje de
+                                        Inactividad</label>
+                                    <input type="text" name="idle_message_telnyx"
+                                        value="{{ config.idle_message_telnyx }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400 text-sm">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-700/50">
+                                    <!-- Recording -->
+                                    <div
+                                        class="flex items-center justify-between p-2 bg-slate-900/50 rounded border border-slate-700">
+                                        <div>
+                                            <label class="text-sm font-medium text-slate-200">Grabar Llamadas</label>
+                                            <p class="text-[10px] text-slate-500">Grabar audio nativamente en Telnyx</p>
+                                        </div>
+                                        <input type="checkbox" name="enable_recording_telnyx" value="true" {% if
+                                            config.enable_recording_telnyx %}checked{% endif %}
+                                            class="accent-emerald-500 transform scale-125">
+                                    </div>
+
+                                    <!-- AMD -->
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">Detección
+                                            Contestadora (AMD)</label>
+                                        <select name="amd_config_telnyx"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400">
+                                            <option value="disabled" {% if config.amd_config_telnyx=='disabled'
+                                                %}selected{% endif %}>Desactivado</option>
+                                            <option value="detect" {% if config.amd_config_telnyx=='detect' %}selected{%
+                                                endif %}>Detectar (Log)</option>
+                                            <option value="detect_hangup" {% if
+                                                config.amd_config_telnyx=='detect_hangup' %}selected{% endif %}>Colgar a
+                                                Máquinas</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3 class="text-sm font-semibold text-blue-300 pt-4">Control de Flujo (Heredado/Simulador)
+                            </h3>
 
                             <div class="bg-slate-800 p-3 rounded border border-slate-700 mb-4">
                                 <p class="text-xs text-slate-400 mb-2">Estos controles intervienen en la llamada para
