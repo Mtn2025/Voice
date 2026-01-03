@@ -97,9 +97,9 @@ async def telnyx_call_control(request: Request):
                     try:
                         await start_noise_suppression(call_control_id)
                     except Exception as e:
-                        logging.error(f\"❌ Noise suppression task failed: {e}\")
+                        logging.error(f"Noise suppression task failed: {e}")
                         import traceback
-                        logging.error(f\"Traceback: {traceback.format_exc()}\")
+                        logging.error(f"Traceback: {traceback.format_exc()}")
                 
                 asyncio.create_task(_run_suppression())
         
