@@ -13,6 +13,7 @@ class Call(Base):
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
     status = Column(String, default="active")
+    client_type = Column(String, default="simulator") # simulator, twilio, telnyx
     extracted_data = Column(JSON, nullable=True) # New
     
     transcripts = relationship("Transcript", back_populates="call")

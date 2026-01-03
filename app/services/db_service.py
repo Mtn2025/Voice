@@ -8,7 +8,7 @@ from sqlalchemy import desc, delete, func
 import logging
 
 class DBService:
-    async def create_call(self, session_id: str):
+    async def create_call(self, session_id: str, client_type: str = "simulator"):
         async with AsyncSessionLocal() as session:
             try:
                 # Check if exists first to avoid IntegrityError on reconnections
@@ -17,7 +17,7 @@ class DBService:
                 if existing_call:
                     return existing_call.id
                     
-                call = Call(session_id=session_id)
+                call = Call(session_id=session_id, client_type=client_type)
                 session.add(call)
                 await session.commit()
                 return call.id
