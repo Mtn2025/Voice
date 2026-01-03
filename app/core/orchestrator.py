@@ -349,10 +349,38 @@ class VoiceOrchestrator:
                 logging.warning(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | StartDelta: {now - self.start_time:.2f}")
                 
                 if not self.is_bot_speaking and (now - self.last_interaction_time > idle_timeout):
-                     logging.warning(f"💤 Idle timeout ({idle_timeout}s) reached. Triggering prompt.")
+                     if not hasattr(self, 'idle_retries'): self.idle_retries = 0
+                     
+                     max_retries = getattr(self.config, 'inactivity_max_retries', 3)
+                     logging.warning(f"zzz Idle timeout reached. Retry {self.idle_retries + 1}/{max_retries}")
+                     
+                     if self.idle_retries >= max_retries:
+                         logging.warning("🛑 Max idle retries reached. Ending call.")
+                         # Optional: Goodbye message for inactivity?
+                         # await self.speak_direct("Parece que no me escuchas. Colgaré por ahora.")
+                         # For now, just end it to save cost as requested.
+                         if self.client_type == "browser":
+                             await self.websocket.close()
+                         elif self.client_type == "telnyx":
+                              # Should trigger end call hook
+                              pass
+                         
+                         # Ensure we break loop and cleanup
+                         if self.stream_id:
+                             await db_service.log_transcript(self.stream_id, "system", f"Call ended by System (Max Idle Retries: {max_retries})", call_db_id=self.call_db_id)
+                         
+                         # Trick to force close: Cancel myself? Or just break?
+                         # If we break, we exit monitor, but main server keeps socket open?
+                         # Best is to signal stop.
+                         # self.stop() is async but we are in async loop.
+                         # We should probably raise an event or close socket.
+                         await self.websocket.close() # This usually kills the connection handler
+                         break
+                     
+                     self.idle_retries += 1
                      msg = getattr(self.config, 'idle_message', "¿Hola? ¿Sigue ahí?")
                      if msg:
-                        self.last_interaction_time = now # Reset to prevent spam
+                        self.last_interaction_time = now # Reset to wait again
                         asyncio.create_task(self.speak_direct(msg))
                         
             except Exception as e:
@@ -739,6 +767,7 @@ class VoiceOrchestrator:
         
         # VALID INPUT - RESET IDLE TIMER HERE
         self.last_interaction_time = time.time()
+        self.idle_retries = 0 # RESET RETRY COUNTER
         logging.warning(f"✅ [VALID INPUT] '{text}' passed filter ({len(text)} chars). Timer Reset.")
 
         # CRITICAL FIX: TRIGGER INTERRUPTION IF BOT IS SPEAKING

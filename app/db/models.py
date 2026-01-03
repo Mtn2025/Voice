@@ -92,6 +92,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     # Flow Control
     idle_timeout = Column(Float, default=10.0) # Seconds to wait before prompt
     idle_message = Column(String, default="¿Hola? ¿Sigue ahí?")
+    inactivity_max_retries = Column(Integer, default=3) # New: Retries before hangup
     max_duration = Column(Integer, default=600) # Max call seconds
     
     # VAPI Stage 1: Model & Voice

@@ -56,6 +56,7 @@ async def update_config(
     background_sound: str = Form("none"), # New
     idle_timeout: float = Form(10.0), # New
     idle_message: str = Form("¿Hola? ¿Sigue ahí?"), # New
+    inactivity_max_retries: int = Form(3), # New: Retries
     max_duration: int = Form(600), # New
     interruption_threshold: int = Form(5), # New
     interruption_threshold_phone: int = Form(2), # New
@@ -164,6 +165,7 @@ async def update_config(
         background_sound=background_sound,
         idle_timeout=idle_timeout,
         idle_message=idle_message,
+        inactivity_max_retries=inactivity_max_retries, # New
         interruption_threshold=interruption_threshold,
         interruption_threshold_phone=interruption_threshold_phone,
         
@@ -271,7 +273,8 @@ async def patch_config(request: Request):
             "interruption_threshold", "interruption_threshold_phone",
             "silence_timeout_ms_phone", "max_duration",
             "max_tokens_telnyx", "initial_silence_timeout_ms_telnyx", "input_min_characters_telnyx",
-            "voice_pacing_ms_telnyx", "silence_timeout_ms_telnyx", "interruption_threshold_telnyx"
+            "voice_pacing_ms_telnyx", "silence_timeout_ms_telnyx", "interruption_threshold_telnyx",
+            "inactivity_max_retries"
         ]
         float_fields = [
             "temperature", "voice_speed", "voice_speed_phone", "idle_timeout",
