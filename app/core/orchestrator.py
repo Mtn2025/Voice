@@ -1192,7 +1192,7 @@ class VoiceOrchestrator:
                     log_level = logging.WARNING
                     classification = "💥 SPIKE"
 
-                logging.log(log_level, f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
+                logging.warning(f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
                 
                 # ------------------------------------------------------------------
                 # NOISE GATING (The "Gate")
@@ -1201,7 +1201,8 @@ class VoiceOrchestrator:
                 if enable_vad and rms < vad_threshold:
                      # Silence/Noise detected. Do NOT send to Azure STT.
                      # This prevents hallucinations from static/breathing.
-                     # logging.debug("Parsing dropped due to low RMS (VAD Gate).")
+                     if self._audio_chunk_count % 50 == 1:
+                         logging.warning(f"🔇 [VAD GATE] Dropping packet. RMS {rms} < Threshold {vad_threshold}")
                      return
                 # ------------------------------------------------------------------
 
