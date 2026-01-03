@@ -229,7 +229,7 @@ async def start_streaming(call_control_id: str, request: Request):
         "stream_url": ws_url,
         "stream_track": "inbound_track",
         "stream_bidirectional_mode": "rtp",
-        "stream_bidirectional_codec": "PCMA",
+        "stream_bidirectional_codec": "PCMU",
         "client_state": client_state
     }
     
