@@ -217,8 +217,7 @@ async def update_config(
         voice_sensitivity_telnyx=voice_sensitivity_telnyx,
         enable_krisp_telnyx=enable_krisp_telnyx,
         enable_vad_telnyx=enable_vad_telnyx,
-        enable_krisp_telnyx=enable_krisp_telnyx,
-        enable_vad_telnyx=enable_vad_telnyx,
+
         
         idle_timeout_telnyx=idle_timeout_telnyx,
         max_duration_telnyx=max_duration_telnyx,
