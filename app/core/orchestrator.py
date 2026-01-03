@@ -429,7 +429,19 @@ class VoiceOrchestrator:
         self.monitor_task = asyncio.create_task(self.monitor_idle())
         logging.warning("🚀 [START] monitor_idle task created.")
             
-        self.recognizer.start_continuous_recognition()
+        # Start Recognition (Async)
+        try:
+            logging.warning("🎤 [AZURE] Starting Continuous Recognition Async...")
+            self.recognizer.start_continuous_recognition_async().get()
+            logging.warning("✅ [AZURE] Continuous Recognition Started")
+        except Exception as e_rec:
+            logging.error(f"❌ [AZURE] Failed to start recognition: {e_rec}")
+            raise
+        
+        # DIAGNOSTIC: Verify Azure STT state
+        logging.warning(f"🔍 [AZURE-DIAG] Recognizer started successfully")
+        logging.warning(f"🔍 [AZURE-DIAG] Language: {getattr(self.config, 'stt_language', 'UNKNOWN')}")
+        logging.warning(f"🔍 [AZURE-DIAG] Client type: {self.client_type}")
         
         # DIAGNOSTIC: Verify Azure STT state
         logging.warning(f"🔍 [AZURE-DIAG] Recognizer started successfully")

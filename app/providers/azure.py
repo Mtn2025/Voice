@@ -81,7 +81,11 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         else:
              # Manual Decode Mode: We decode MuLaw->PCM in Orchestrator before proper streaming
              # So we tell Azure this is PCM 16-bit 8kHz
+             # Manual Decode Mode: We decode MuLaw->PCM in Orchestrator before proper streaming
+             # So we tell Azure this is PCM 16-bit 8kHz
              format = speechsdk.audio.AudioStreamFormat(samples_per_second=8000, bits_per_sample=16, channels=1)
+             import logging
+             logging.warning(f"🎧 [AZURE PROVIDER] Created AudioStreamFormat: 8000Hz, 16bit, 1ch (Mode: {audio_mode})")
 
         push_stream = speechsdk.audio.PushAudioInputStream(stream_format=format)
         audio_config = speechsdk.audio.AudioConfig(stream=push_stream)
