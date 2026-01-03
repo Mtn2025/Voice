@@ -219,7 +219,7 @@ async def start_streaming(call_control_id: str, request: Request):
     stream_url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/streaming_start"
     payload = {
         "stream_url": ws_url,
-        "stream_track": "both_tracks",
+        "stream_track": "inbound_track",
         "stream_bidirectional_mode": "rtp",
         "stream_bidirectional_codec": "PCMU",
         "client_state": client_state

@@ -90,10 +90,8 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         push_stream = speechsdk.audio.PushAudioInputStream(stream_format=format)
         audio_config = speechsdk.audio.AudioConfig(stream=push_stream)
         
-        recognizer = speechsdk.SpeechRecognizer(
-            speech_config=self.speech_config, 
-            audio_config=audio_config
         )
+        self.recognizer = recognizer
 
         # Barge-in Sensitivity Logic
         if on_interruption_callback and event_loop:
