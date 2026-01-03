@@ -261,11 +261,14 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt }}</textarea>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Temperatura</label>
+                                        <div x-data="{ temp: {{ config.temperature }} }">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label class="block text-sm font-medium">Temperatura</label>
+                                                <span class="text-xs font-mono text-blue-400" x-text="temp"></span>
+                                            </div>
                                             <div class="relative w-full pt-2">
-                                                <input type="range" name="temperature" step="0.1" min="0" max="2"
-                                                    value="{{ config.temperature }}"
+                                                <input type="range" name="temperature" x-model="temp" step="0.1" min="0"
+                                                    max="2"
                                                     class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                                             </div>
                                             <div class="flex justify-between text-[10px] text-slate-500 mt-1">
@@ -339,12 +342,19 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt_phone }}</textarea>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Temperatura</label>
+                                        <div x-data="{ tempPhone: {{ config.temperature_phone }} }">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label class="block text-sm font-medium">Temperatura</label>
+                                                <span class="text-xs font-mono text-red-400" x-text="tempPhone"></span>
+                                            </div>
                                             <div class="relative w-full pt-2">
-                                                <input type="range" name="temperature_phone" step="0.1" min="0" max="2"
-                                                    value="{{ config.temperature_phone }}"
+                                                <input type="range" name="temperature_phone" x-model="tempPhone"
+                                                    step="0.1" min="0" max="2"
                                                     class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500">
+                                            </div>
+                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                                <span>0 (Preciso)</span>
+                                                <span>2 (Creativo)</span>
                                             </div>
                                         </div>
                                         <div>
@@ -445,20 +455,19 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-emerald-300">{{ config.system_prompt_telnyx }}</textarea>
                                     </div>
 
-                                    <div>
+                                    <div x-data="{ tempTelnyx: {{ config.temperature_telnyx }} }">
                                         <div class="flex justify-between items-center mb-1">
                                             <label class="block text-sm font-medium">Temperatura (Telnyx)</label>
-                                            <span class="text-xs text-emerald-500 font-mono">Actual: {{
-                                                config.temperature_telnyx }}</span>
+                                            <span class="text-xs text-emerald-500 font-mono" x-text="tempTelnyx"></span>
                                         </div>
                                         <div class="relative w-full pt-2">
-                                            <input type="range" name="temperature_telnyx" step="0.1" min="0" max="1"
-                                                value="{{ config.temperature_telnyx }}"
+                                            <input type="range" name="temperature_telnyx" x-model="tempTelnyx"
+                                                step="0.1" min="0" max="1"
                                                 class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                                         </div>
                                         <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                            <span>Min: 0</span>
-                                            <span>Max: 1</span>
+                                            <span>0 (Preciso)</span>
+                                            <span>1 (Creativo)</span>
                                         </div>
                                     </div>
                                 </div>
