@@ -806,11 +806,6 @@
                                     Detección de Actividad de Voz (VAD)</h4>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 flex justify-between">
-                                            <span>Sensibilidad Interrupción (Telnyx)</span>
-                                            <span class="text-xs text-slate-400"
-                                                x-text="interruptionTelnyx + ' chars'"></span>
-                                        </label>
                                         <label class="block text-sm font-medium mb-1">Sensibilidad Interrupción
                                             (Telnyx)</label>
                                         <div class="space-y-1">
@@ -824,8 +819,7 @@
                                                 oninput="document.getElementById('int-telnyx-val').innerText = this.value">
                                             <div class="text-right text-xs text-emerald-400 font-bold">
                                                 Actual: <span id="int-telnyx-val">{{
-                                                    config.interruption_threshold_telnyx
-                                                    }}</span> chars
+                                                    config.interruption_threshold_telnyx }}</span> chars
                                             </div>
                                             <p class="text-xs text-slate-500 mt-1">Más bajo = Más sensible.</p>
                                         </div>
@@ -873,42 +867,49 @@
 
                                 <!-- Voice Sensitivity (RMS Threshold) for Telnyx -->
                                 <div class="mb-3 border-t border-slate-700 pt-3">
-                                    <label class="block text-sm font-medium mb-2">Umbral de Activación de Voz (RMS)</label>
-                                    <input type="range" name="voice_sensitivity_telnyx"
-                                        min="1000" max="15000" step="500"
-                                        value="{{ config.voice_sensitivity_telnyx or 3000 }}"
+                                    <label class="block text-sm font-medium mb-2">Umbral de Activación de Voz
+                                        (RMS)</label>
+                                    <input type="range" name="voice_sensitivity_telnyx" min="1000" max="15000"
+                                        step="500" value="{{ config.voice_sensitivity_telnyx or 3000 }}"
                                         class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                                         oninput="document.getElementById('voice-sens-telnyx').innerText = this.value">
                                     <div class="flex justify-between text-xs text-slate-500 mt-1">
                                         <span>1000 (Muy sensible)</span>
-                                        <span class="text-emerald-400 font-bold">Actual: <span id="voice-sens-telnyx">{{ config.voice_sensitivity_telnyx or 3000 }}</span></span>
+                                        <span class="text-emerald-400 font-bold">Actual: <span id="voice-sens-telnyx">{{
+                                                config.voice_sensitivity_telnyx or 3000 }}</span></span>
                                         <span>15000 (Poco sensible)</span>
                                     </div>
-                                    <p class="text-xs text-slate-500 mt-1">Mayor valor = Filtra más ruido. Rec: <strong class="text-emerald-400">8000</strong></p>
+                                    <p class="text-xs text-slate-500 mt-1">Mayor valor = Filtra más ruido. Rec: <strong
+                                            class="text-emerald-400">8000</strong></p>
                                 </div>
 
                                 <!-- Telnyx Native Features (Krisp Noise Suppression + VAD) -->
                                 <div class="border-t border-slate-700 pt-3 mt-3">
-                                    <h4 class="text-sm font-bold text-emerald-300 mb-3">🌟 Funciones Nativas de Telnyx</h4>
+                                    <h4 class="text-sm font-bold text-emerald-300 mb-3">🌟 Funciones Nativas de Telnyx
+                                    </h4>
                                     <div class="space-y-2">
                                         <div class="flex items-center">
                                             <input type="hidden" name="enable_krisp_telnyx" value="false">
                                             <input type="checkbox" name="enable_krisp_telnyx" value="true"
-                                                class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-emerald-600" {% if
-                                                config.enable_krisp_telnyx %}checked{% endif %}>
+                                                class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-emerald-600"
+                                                {% if config.enable_krisp_telnyx %}checked{% endif %}>
                                             <label class="text-sm font-medium ml-2">Noise Suppression (Krisp)</label>
-                                            <span class="ml-auto px-2 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded border border-emerald-700">Nativo</span>
+                                            <span
+                                                class="ml-auto px-2 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded border border-emerald-700">Nativo</span>
                                         </div>
                                         <p class="text-xs text-slate-500 ml-6">Reduce ruido a nivel de red (pre-STT)</p>
                                         <div class="flex items-center mt-2">
                                             <input type="hidden" name="enable_vad_telnyx" value="false">
                                             <input type="checkbox" name="enable_vad_telnyx" value="true"
-                                                class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-emerald-600" {% if
-                                                config.enable_vad_telnyx %}checked{% endif %}>
-                                            <label class="text-sm font-medium ml-2">Voice Activity Detection (VAD)</label>
-                                            <span class="ml-auto px-2 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded border border-emerald-700">Nativo</span>
+                                                class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-emerald-600"
+                                                {% if config.enable_vad_telnyx %}checked{% endif %}>
+                                            <label class="text-sm font-medium ml-2">Voice Activity Detection
+                                                (VAD)</label>
+                                            <span
+                                                class="ml-auto px-2 py-0.5 bg-emerald-900/30 text-emerald-400 text-xs rounded border border-emerald-700">Nativo</span>
                                         </div>
-                                        <p class="text-xs text-slate-500 ml-6">Detección de voz nativa para filtrar ruido</p>
+                                        <p class="text-xs text-slate-500 ml-6">Detección de voz nativa para filtrar
+                                            ruido</p>
                                     </div>
                                 </div>
                                 <!-- No Phone Control for Telnyx yet (AMD/Record) -->
