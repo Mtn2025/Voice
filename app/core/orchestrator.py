@@ -422,6 +422,13 @@ class VoiceOrchestrator:
                   # Note: enable_dial_keypad is global, but we can override if needed. 
                   # For now, we assume if it's set in dashboard it applies.
                   
+                  # Flow Control Overrides (Independent Timeouts)
+                  # If set in DB (and not None/0.0 if default logic differs), apply.
+                  # Since default is 20.0, we just trust the DB value.
+                  if conf.idle_timeout_telnyx is not None: conf.idle_timeout = conf.idle_timeout_telnyx
+                  if conf.max_duration_telnyx is not None: conf.max_duration = conf.max_duration_telnyx
+                  if conf.idle_message_telnyx: conf.idle_message = conf.idle_message_telnyx
+                  
                   logging.warning("✅ [TELNYX] Profile overlay completed successfully")
              except Exception as e:
                   logging.error(f"❌❌❌ EXCEPTION in Telnyx profile overlay: {e}")

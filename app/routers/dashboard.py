@@ -114,7 +114,14 @@ async def update_config(
     voice_sensitivity_telnyx: int = Form(3000),
     enable_krisp_telnyx: bool = Form(True),
     enable_vad_telnyx: bool = Form(True),
-
+    
+    # Telnyx Advanced
+    idle_timeout_telnyx: float = Form(20.0),
+    max_duration_telnyx: int = Form(600),
+    idle_message_telnyx: str = Form("¿Hola? ¿Sigue ahí?"),
+    enable_recording_telnyx: bool = Form(False),
+    amd_config_telnyx: str = Form("disabled"),
+    
     # 🔒 LOCKED: MODEL & CORE ARGS (DO NOT EDIT)
     # (Includes Voice Settings above)
     # Stage 1: Model & Voice
@@ -210,6 +217,14 @@ async def update_config(
         voice_sensitivity_telnyx=voice_sensitivity_telnyx,
         enable_krisp_telnyx=enable_krisp_telnyx,
         enable_vad_telnyx=enable_vad_telnyx,
+        enable_krisp_telnyx=enable_krisp_telnyx,
+        enable_vad_telnyx=enable_vad_telnyx,
+        
+        idle_timeout_telnyx=idle_timeout_telnyx,
+        max_duration_telnyx=max_duration_telnyx,
+        idle_message_telnyx=idle_message_telnyx,
+        enable_recording_telnyx=enable_recording_telnyx,
+        amd_config_telnyx=amd_config_telnyx,
 
         max_duration=max_duration,
         # Stage 1

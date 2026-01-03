@@ -147,6 +147,14 @@ async def answer_call(call_control_id: str, request: Request):
     Answer call via Telnyx Call Control API.
     Official docs: https://developers.telnyx.com/docs/api/v2/call-control/Call-Commands#CallAnswer
     """
+    # Check config for Recording
+    try:
+        config = await db_service.get_agent_config()
+        if getattr(config, 'enable_recording_telnyx', False):
+             asyncio.create_task(start_recording(call_control_id))
+    except Exception as e:
+        logging.warning(f"Failed to check recording config: {e}")
+
     headers = {
         "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
         "Content-Type": "application/json"
@@ -285,6 +293,36 @@ async def start_noise_suppression(call_control_id: str):
             logging.warning(f"⚠️ Noise Suppression Failed: {response.status_code} - {response.text}")
     except Exception as e:
         logging.warning(f"⚠️ Noise Suppression Exception: {e}")
+
+
+async def start_recording(call_control_id: str):
+    """
+    Start recording the call via Telnyx Call Control API.
+    """
+    url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/record_start"
+    
+    headers = {
+        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "format": "mp3",
+        "channels": "dual" # Record both sides
+    }
+
+    try:
+        logging.info(f"🎙️ Starting Recording: {call_control_id}")
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(url, headers=headers, json=payload)
+            
+        if resp.status_code == 200:
+            logging.info("✅ Rec Started.")
+        else:
+            logging.error(f"❌ Rec Start Failed: {resp.status_code} - {resp.text}")
+            
+    except Exception as e:
+        logging.error(f"❌ Rec Exception: {e}")
 
 
 @router.websocket("/ws/media-stream")

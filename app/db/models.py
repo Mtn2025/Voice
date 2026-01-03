@@ -178,6 +178,13 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_sensitivity_telnyx = Column(Integer, default=3000)  # Voice activation threshold (RMS)
     enable_krisp_telnyx = Column(Boolean, default=True)       # Krisp noise suppression (native)
     enable_vad_telnyx = Column(Boolean, default=True)         # Voice Activity Detection (native)
+    
+    # Telnyx Advanced (Flow & Features)
+    idle_timeout_telnyx = Column(Float, default=20.0)         # Independent idle timeout
+    max_duration_telnyx = Column(Integer, default=600)        # Independent max duration
+    idle_message_telnyx = Column(String, default="¿Hola? ¿Sigue ahí?")
+    enable_recording_telnyx = Column(Boolean, default=False)  # Native Recording
+    amd_config_telnyx = Column(String, default="disabled")    # disabled, detect, detect_hangup
     # ------------------------------------------------
     
     enable_end_call = Column(Boolean, default=True)
