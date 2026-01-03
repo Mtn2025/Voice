@@ -255,27 +255,7 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm bg-slate-800">
                                     </div>
 
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
-                                        <textarea name="system_prompt" rows="15"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt }}</textarea>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div x-data="{ temp: {{ config.temperature }} }">
-                                            <div class="flex justify-between items-center mb-1">
-                                                <label class="block text-sm font-medium">Temperatura</label>
-                                                <span class="text-xs font-mono text-blue-400" x-text="temp"></span>
-                                            </div>
-                                            <div class="relative w-full pt-2">
-                                                <input type="range" name="temperature" x-model="temp" step="0.1" min="0"
-                                                    max="2"
-                                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                                            </div>
-                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                                <span>0 (Preciso)</span>
-                                                <span>2 (Creativo)</span>
-                                            </div>
-                                        </div>
+                                    <div class="space-y-4">
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Modo Saludo</label>
                                             <select name="first_message_mode"
@@ -288,11 +268,33 @@
                                                     Esperar Usuario</option>
                                             </select>
                                         </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
+                                            <input type="text" name="first_message" value="{{ config.first_message }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
-                                        <input type="text" name="first_message" value="{{ config.first_message }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
+                                        <textarea name="system_prompt" rows="15"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt }}</textarea>
+                                    </div>
+
+                                    <div x-data="{ temp: {{ config.temperature }} }">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <label class="block text-sm font-medium">Temperatura</label>
+                                            <span class="text-xs font-mono text-blue-400" x-text="temp"></span>
+                                        </div>
+                                        <div class="relative w-full pt-2">
+                                            <input type="range" name="temperature" x-model="temp" step="0.1" min="0"
+                                                max="2"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                        </div>
+                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                            <span>0 (Preciso)</span>
+                                            <span>2 (Creativo)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -336,27 +338,7 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm bg-slate-800">
                                     </div>
 
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
-                                        <textarea name="system_prompt_phone" rows="15"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt_phone }}</textarea>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div x-data="{ tempPhone: {{ config.temperature_phone }} }">
-                                            <div class="flex justify-between items-center mb-1">
-                                                <label class="block text-sm font-medium">Temperatura</label>
-                                                <span class="text-xs font-mono text-red-400" x-text="tempPhone"></span>
-                                            </div>
-                                            <div class="relative w-full pt-2">
-                                                <input type="range" name="temperature_phone" x-model="tempPhone"
-                                                    step="0.1" min="0" max="2"
-                                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500">
-                                            </div>
-                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                                <span>0 (Preciso)</span>
-                                                <span>2 (Creativo)</span>
-                                            </div>
-                                        </div>
+                                    <div class="space-y-4">
                                         <div>
                                             <label class="block text-sm font-medium mb-1">Modo Saludo</label>
                                             <select name="first_message_mode_phone"
@@ -369,12 +351,34 @@
                                                     %}>Esperar Usuario</option>
                                             </select>
                                         </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
+                                            <input type="text" name="first_message_phone"
+                                                value="{{ config.first_message_phone }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                        </div>
                                     </div>
+
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
-                                        <input type="text" name="first_message_phone"
-                                            value="{{ config.first_message_phone }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
+                                        <textarea name="system_prompt_phone" rows="15"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt_phone }}</textarea>
+                                    </div>
+
+                                    <div x-data="{ tempPhone: {{ config.temperature_phone }} }">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <label class="block text-sm font-medium">Temperatura</label>
+                                            <span class="text-xs font-mono text-red-400" x-text="tempPhone"></span>
+                                        </div>
+                                        <div class="relative w-full pt-2">
+                                            <input type="range" name="temperature_phone" x-model="tempPhone" step="0.1"
+                                                min="0" max="2"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500">
+                                        </div>
+                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                            <span>0 (Preciso)</span>
+                                            <span>2 (Creativo)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
