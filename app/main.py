@@ -138,3 +138,15 @@ from fastapi.responses import RedirectResponse
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/dashboard")
+
+@app.post("/", include_in_schema=False)
+async def root_post():
+    """
+    Handle POST requests to root (e.g., from health checks or misconfigured webhooks).
+    Returns 200 OK to prevent 405 errors flowing into logs.
+    """
+    return {"status": "ok", "message": "Voice Orchestrator Running"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
