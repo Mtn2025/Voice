@@ -56,10 +56,10 @@
                             title="Auditando...">Voz</button>
 
                         <!-- Transcriber (Disabled/Hidden) -->
+                        <!-- Transcriber (RESTORED) -->
                         <button @click.prevent="tab = 'transcriber'"
                             :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
-                            title="Auditando...">Transcriptor</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Transcriptor</button>
 
                         <!-- Functions (RESTORED) -->
                         <button @click.prevent="tab = 'functions'"
@@ -163,8 +163,7 @@
                             <input type="hidden" name="voice_speed_telnyx" value="{{ config.voice_speed_telnyx }}">
                             <input type="hidden" name="voice_pacing_ms_telnyx"
                                 value="{{ config.voice_pacing_ms_telnyx }}">
-                            <input type="hidden" name="voice_sensitivity_telnyx"
-                                value="{{ config.voice_sensitivity_telnyx }}">
+
 
                             <!-- VOICE EXTRAS -->
                             <input type="hidden" name="voice_id_manual" value="{{ config.voice_id_manual or '' }}">
@@ -199,23 +198,7 @@
                             <input type="hidden" name="enable_denoising_phone"
                                 value="{{ config.enable_denoising_phone }}">
 
-                            <!-- TRANSCRIBER TELNYX -->
-                            <input type="hidden" name="stt_provider_telnyx" value="{{ config.stt_provider_telnyx }}">
-                            <input type="hidden" name="stt_language_telnyx" value="{{ config.stt_language_telnyx }}">
-                            <input type="hidden" name="interruption_threshold_telnyx"
-                                value="{{ config.interruption_threshold_telnyx }}">
-                            <input type="hidden" name="silence_timeout_ms_telnyx"
-                                value="{{ config.silence_timeout_ms_telnyx }}">
-                            <input type="hidden" name="input_min_characters_telnyx"
-                                value="{{ config.input_min_characters_telnyx }}">
-                            <input type="hidden" name="hallucination_blacklist_telnyx"
-                                value="{{ config.hallucination_blacklist_telnyx }}">
-                            <input type="hidden" name="enable_denoising_telnyx"
-                                value="{{ config.enable_denoising_telnyx }}">
 
-                            <!-- TELNYX FEATURES -->
-                            <input type="hidden" name="enable_krisp_telnyx" value="{{ config.enable_krisp_telnyx }}">
-                            <input type="hidden" name="enable_vad_telnyx" value="{{ config.enable_vad_telnyx }}">
 
                             <!-- TWILIO FEATURES -->
                             <input type="hidden" name="twilio_machine_detection"
@@ -249,6 +232,81 @@
                                 value="{{ config.segmentation_strategy }}">
                             <input type="hidden" name="twilio_recording_channels"
                                 value="{{ config.twilio_recording_channels }}">
+                        </div>
+
+                        <!-- Tab: Transcriber -->
+                        <div x-show="tab === 'transcriber'" class="space-y-4" style="display: none;">
+                            <h3 class="text-sm font-semibold text-emerald-300">Configuración Transcripción (Telnyx)</h3>
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                <!-- STT Provider -->
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Proveedor STT</label>
+                                    <select name="stt_provider_telnyx"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                                        <option value="azure" {% if config.stt_provider_telnyx=='azure' %}selected{%
+                                            endif %}>
+                                            Azure (Recomendado - A-Law)</option>
+                                        <option value="deepgram" {% if config.stt_provider_telnyx=='deepgram'
+                                            %}selected{% endif %}>Deepgram</option>
+                                    </select>
+                                </div>
+                                <!-- Language -->
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Idioma</label>
+                                    <select name="stt_language_telnyx"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                                        <option value="es-MX" {% if config.stt_language_telnyx=='es-MX' %}selected{%
+                                            endif %}>Español (México)</option>
+                                        <option value="es-US" {% if config.stt_language_telnyx=='es-US' %}selected{%
+                                            endif %}>Español (USA)</option>
+                                    </select>
+                                </div>
+                                <!-- Sensitivity -->
+                                <div>
+                                    <label class="flex justify-between text-sm font-medium mb-1">
+                                        Sensibilidad de Voz (RMS)
+                                        <span class="text-emerald-400">{{ config.voice_sensitivity_telnyx }}</span>
+                                    </label>
+                                    <input type="range" name="voice_sensitivity_telnyx" min="100" max="10000" step="100"
+                                        value="{{ config.voice_sensitivity_telnyx }}"
+                                        class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                        oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value">
+                                    <p class="text-[10px] text-slate-500 mt-1">Óptimo: 2000-3000. Menos es más sensible.
+                                    </p>
+                                </div>
+                                <!-- Silence & Interruption -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Silencio (ms)</label>
+                                        <input type="number" name="silence_timeout_ms_telnyx"
+                                            value="{{ config.silence_timeout_ms_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Interrupción (Palabras)</label>
+                                        <input type="number" name="interruption_threshold_telnyx"
+                                            value="{{ config.interruption_threshold_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                    </div>
+                                </div>
+                                <!-- Noise & Features -->
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Filtro Ruido (Min Caracteres)</label>
+                                    <input type="number" name="input_min_characters_telnyx"
+                                        value="{{ config.input_min_characters_telnyx }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-2 bg-slate-900 rounded border border-slate-700">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-medium">Noise Suppression (Telnyx)</span>
+                                        <span class="text-[10px] text-slate-500">Krisp Audio Filtering</span>
+                                    </div>
+                                    <input type="checkbox" name="enable_krisp_telnyx" value="true" {% if
+                                        config.enable_krisp_telnyx %}checked{% endif %}
+                                        class="transform scale-125 accent-emerald-500">
+                                </div>
+                            </div>
                         </div>
                         <!-- Tab: Functions -->
                         <!-- 🔒 LOCKED SECTION: PANEL FUNCIONES (RESTORED PER REQUEST) -->
