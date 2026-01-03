@@ -111,9 +111,9 @@ async def update_config(
     interruption_threshold_telnyx: int = Form(2),
     hallucination_blacklist_telnyx: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
     voice_speed_telnyx: float = Form(0.9),
-
-
-
+    voice_sensitivity_telnyx: int = Form(3000),
+    enable_krisp_telnyx: bool = Form(True),
+    enable_vad_telnyx: bool = Form(True),
 
     # 🔒 LOCKED: MODEL & CORE ARGS (DO NOT EDIT)
     # (Includes Voice Settings above)
@@ -207,6 +207,9 @@ async def update_config(
         interruption_threshold_telnyx=interruption_threshold_telnyx,
         hallucination_blacklist_telnyx=hallucination_blacklist_telnyx,
         voice_speed_telnyx=voice_speed_telnyx,
+        voice_sensitivity_telnyx=voice_sensitivity_telnyx,
+        enable_krisp_telnyx=enable_krisp_telnyx,
+        enable_vad_telnyx=enable_vad_telnyx,
 
         max_duration=max_duration,
         # Stage 1
