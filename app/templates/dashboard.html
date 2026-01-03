@@ -168,18 +168,9 @@
                             <input type="hidden" name="system_prompt_telnyx" value="{{ config.system_prompt_telnyx }}">
                             <input type="hidden" name="temperature_telnyx" value="{{ config.temperature_telnyx }}">
 
-                            <!-- VOICE -->
-                            <input type="hidden" name="voice_name" value="{{ config.voice_name }}">
-                            <input type="hidden" name="voice_style" value="{{ config.voice_style or '' }}">
-                            <input type="hidden" name="voice_speed" value="{{ config.voice_speed }}">
-                            <input type="hidden" name="voice_pacing_ms" value="{{ config.voice_pacing_ms }}">
+                            <!-- VOICE (MOVED TO UI) -->
 
-                            <!-- VOICE PHONE -->
-                            <input type="hidden" name="voice_name_phone" value="{{ config.voice_name_phone }}">
-                            <input type="hidden" name="voice_style_phone" value="{{ config.voice_style_phone or '' }}">
-                            <input type="hidden" name="voice_speed_phone" value="{{ config.voice_speed_phone }}">
-                            <input type="hidden" name="voice_pacing_ms_phone"
-                                value="{{ config.voice_pacing_ms_phone }}">
+                            <!-- VOICE PHONE (MOVED TO UI) -->
 
                             <!-- VOICE TELNYX (MOVED TO UI) -->
 
@@ -241,142 +232,227 @@
                                 value="{{ config.twilio_recording_channels }}">
                         </div>
 
-                        <!-- Tab: Voice (Telnyx) -->
+                        <!-- Tab: Voice -->
                         <div x-show="tab === 'voice'" class="space-y-4" style="display: none;">
-                            <h3 class="text-sm font-semibold text-emerald-300">Configuración de Voz (TTS)</h3>
 
-                            <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                <!-- Voice Identity Grid -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">Voz
-                                            (Telnyx/Azure)</label>
-                                        <select name="voice_name_telnyx" x-model="activeVoice"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
-                                            <option value="es-MX-DaliaNeural">🇲🇽
-                                                Dalia (Femenina - Neutra)</option>
-                                            <option value="es-MX-JorgeNeural">🇲🇽
-                                                Jorge (Masculina - Seria)</option>
-                                            <option value="es-MX-LarissaNeural">
-                                                🇲🇽 Larissa (Femenina - Cálida)</option>
-                                            <option value="es-MX-CecilioNeural">
-                                                🇲🇽 Cecilio (Masculina - Amable)</option>
-                                            <option value="es-MX-MarinaNeural">
-                                                🇲🇽 Marina (Femenina - Suave)</option>
-                                            <option value="es-MX-BeatrizNeural">
-                                                🇲🇽 Beatriz (Femenina - Mayor)</option>
-                                            <option value="es-MX-RenataNeural">
-                                                🇲🇽 Renata (Femenina - Joven)</option>
-                                            <option value="es-ES-ElviraNeural">
-                                                🇪🇸 Elvira (Femenina - España)</option>
-                                            <option value="es-ES-AlvaroNeural">
-                                                🇪🇸 Alvaro (Masculina - España)</option>
-                                            <option value="en-US-JennyNeural">🇺🇸
-                                                Jenny (Inglés USA)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo de
-                                            Emoción</label>
-                                        <select name="voice_style_telnyx"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 outline-none">
-                                            <option value="" {% if not config.voice_style_telnyx %}selected{% endif %}>
-                                                Normal (Predeterminado)</option>
-                                            <!-- Dynamic Styles -->
-                                            <template x-for="style in currentStyles" :key="style.id">
-                                                <option :value="style.id" x-text="style.label"
-                                                    :selected="'{{ config.voice_style_telnyx }}' === style.id"></option>
-                                            </template>
-                                        </select>
-                                        <p x-show="currentStyles.length === 0" class="text-[10px] text-slate-500 mt-1">*
-                                            Esta voz solo soporta el modo Normal.</p>
-                                    </div>
+                            <!-- SIMULATOR PROFILE -->
+                            <div x-show="activeProfile === 'browser'" class="space-y-4">
+                                <div class="bg-blue-900/20 border border-blue-700/50 p-3 rounded mb-4">
+                                    <h3 class="text-sm font-bold text-blue-400">Configuración Simulador (Web)</h3>
+                                    <p class="text-xs text-slate-400">Esta configuración aplica solo al chat web /
+                                        testing.</p>
                                 </div>
-
-                                <!-- Sliders Section -->
-                                <div class="grid grid-cols-1 gap-4">
-                                    <!-- Speed -->
-                                    <div class="bg-slate-900/50 p-3 rounded border border-slate-700/50">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <label
-                                                class="text-xs font-bold text-slate-300 uppercase tracking-wider">Velocidad
-                                                (Telnyx)</label>
-                                            <span
-                                                class="text-xs font-mono bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800"
-                                                x-text="voiceSpeedTelnyx + 'x'"></span>
-                                        </div>
-                                        <input type="range" name="voice_speed_telnyx" x-model="voiceSpeedTelnyx"
-                                            min="0.5" max="2.0" step="0.1"
-                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                            <span>Min: 0.5x</span>
-                                            <span>Max: 2.0x</span>
-                                        </div>
+                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
+                                            (Azure)</label>
+                                        <input type="text" name="voice_name" value="{{ config.voice_name }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300">
                                     </div>
-
-                                    <!-- Pacing -->
-                                    <div class="bg-slate-900/50 p-3 rounded border border-slate-700/50">
-                                        <div class="flex justify-between items-center mb-2">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo</label>
+                                        <input type="text" name="voice_style" value="{{ config.voice_style or '' }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
                                             <label
-                                                class="text-xs font-bold text-slate-300 uppercase tracking-wider">Ritmo
-                                                de Voz (Telnyx)</label>
-                                            <span
-                                                class="text-xs font-mono bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded border border-purple-800"
-                                                x-text="voicePacingTelnyx + ' ms'"></span>
+                                                class="block text-sm font-medium mb-1 text-slate-200">Velocidad</label>
+                                            <input type="number" name="voice_speed" step="0.1"
+                                                value="{{ config.voice_speed }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
                                         </div>
-                                        <input type="range" name="voice_pacing_ms_telnyx" x-model="voicePacingTelnyx"
-                                            min="0" max="2000" step="50"
-                                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                            <span>0 ms (Inmediato)</span>
-                                            <span>Retraso antes de hablar (Naturalidad).</span>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1 text-slate-200">Pacing
+                                                (ms)</label>
+                                            <input type="number" name="voice_pacing_ms" step="10"
+                                                value="{{ config.voice_pacing_ms }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Advanced Voice Extras -->
-                                <div class="pt-4 border-t border-slate-700/50 space-y-3">
+                            <!-- TWILIO PROFILE -->
+                            <div x-show="activeProfile === 'twilio'" class="space-y-4">
+                                <div class="bg-purple-900/20 border border-purple-700/50 p-3 rounded mb-4">
+                                    <h3 class="text-sm font-bold text-purple-400">Configuración Twilio (Phone)</h3>
+                                    <p class="text-xs text-slate-400">Configuración exclusiva para llamadas telefónicas
+                                        vía Twilio.</p>
+                                </div>
+                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz Manual
-                                            (Sobrescribir)</label>
-                                        <input type="text" name="voice_id_manual"
-                                            value="{{ config.voice_id_manual or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300 placeholder-slate-600"
-                                            placeholder="ej. en-US-DavisNeural">
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
+                                            (Azure)</label>
+                                        <input type="text" name="voice_name_phone" value="{{ config.voice_name_phone }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300">
                                     </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo</label>
+                                        <input type="text" name="voice_style_phone"
+                                            value="{{ config.voice_style_phone or '' }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium mb-1 text-slate-200">Velocidad</label>
+                                            <input type="number" name="voice_speed_phone" step="0.1"
+                                                value="{{ config.voice_speed_phone }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1 text-slate-200">Pacing
+                                                (ms)</label>
+                                            <input type="number" name="voice_pacing_ms_phone" step="10"
+                                                value="{{ config.voice_pacing_ms_phone }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
+                            <!-- TELNYX PROFILE -->
+                            <div x-show="activeProfile === 'telnyx'" class="space-y-4">
+                                <h3 class="text-sm font-semibold text-emerald-300">Configuración de Voz (Telnyx)</h3>
+
+                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                    <!-- Voice Identity Grid -->
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Sonido de
-                                                Fondo</label>
-                                            <select name="background_sound"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                                <option value="none" {% if config.background_sound=='none' %}selected{%
-                                                    endif %}>Ninguno</option>
-                                                <option value="office" {% if config.background_sound=='office'
-                                                    %}selected{% endif %}>Oficina</option>
-                                                <option value="cafe" {% if config.background_sound=='cafe' %}selected{%
-                                                    endif %}>Cafetería</option>
-                                                <option value="call_center" {% if config.background_sound=='call_center'
-                                                    %}selected{% endif %}>Call Center</option>
+                                            <label class="block text-sm font-medium mb-1 text-slate-200">Voz
+                                                (Telnyx/Azure)</label>
+                                            <select name="voice_name_telnyx" x-model="activeVoice"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
+                                                <option value="es-MX-DaliaNeural">🇲🇽
+                                                    Dalia (Femenina - Neutra)</option>
+                                                <option value="es-MX-JorgeNeural">🇲🇽
+                                                    Jorge (Masculina - Seria)</option>
+                                                <option value="es-MX-LarissaNeural">
+                                                    🇲🇽 Larissa (Femenina - Cálida)</option>
+                                                <option value="es-MX-CecilioNeural">
+                                                    🇲🇽 Cecilio (Masculina - Amable)</option>
+                                                <option value="es-MX-MarinaNeural">
+                                                    🇲🇽 Marina (Femenina - Suave)</option>
+                                                <option value="es-MX-BeatrizNeural">
+                                                    🇲🇽 Beatriz (Femenina - Mayor)</option>
+                                                <option value="es-MX-RenataNeural">
+                                                    🇲🇽 Renata (Femenina - Joven)</option>
+                                                <option value="es-ES-ElviraNeural">
+                                                    🇪🇸 Elvira (Femenina - España)</option>
+                                                <option value="es-ES-AlvaroNeural">
+                                                    🇪🇸 Alvaro (Masculina - España)</option>
+                                                <option value="en-US-JennyNeural">🇺🇸
+                                                    Jenny (Inglés USA)</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Mínimo
-                                                Caracteres Entrada</label>
-                                            <input type="number" name="input_min_characters"
-                                                value="{{ config.input_min_characters }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                                            <label class="block text-sm font-medium mb-1 text-slate-200">Estilo de
+                                                Emoción</label>
+                                            <select name="voice_style_telnyx"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 outline-none">
+                                                <option value="" {% if not config.voice_style_telnyx %}selected{% endif
+                                                    %}>
+                                                    Normal (Predeterminado)</option>
+                                                <!-- Dynamic Styles -->
+                                                <template x-for="style in currentStyles" :key="style.id">
+                                                    <option :value="style.id" x-text="style.label"
+                                                        :selected="'{{ config.voice_style_telnyx }}' === style.id">
+                                                    </option>
+                                                </template>
+                                            </select>
+                                            <p x-show="currentStyles.length === 0"
+                                                class="text-[10px] text-slate-500 mt-1">*
+                                                Esta voz solo soporta el modo Normal.</p>
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">URL Sonido de Fondo
-                                            (Externo)</label>
-                                        <input type="text" name="background_sound_url"
-                                            value="{{ config.background_sound_url or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-400 font-mono"
-                                            placeholder="https://example.com/ambiente.mp3">
+                                    <!-- Sliders Section -->
+                                    <div class="grid grid-cols-1 gap-4">
+                                        <!-- Speed -->
+                                        <div class="bg-slate-900/50 p-3 rounded border border-slate-700/50">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <label
+                                                    class="text-xs font-bold text-slate-300 uppercase tracking-wider">Velocidad
+                                                    (Telnyx)</label>
+                                                <span
+                                                    class="text-xs font-mono bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded border border-blue-800"
+                                                    x-text="voiceSpeedTelnyx + 'x'"></span>
+                                            </div>
+                                            <input type="range" name="voice_speed_telnyx" x-model="voiceSpeedTelnyx"
+                                                min="0.5" max="2.0" step="0.1"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                                <span>Min: 0.5x</span>
+                                                <span>Max: 2.0x</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pacing -->
+                                        <div class="bg-slate-900/50 p-3 rounded border border-slate-700/50">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <label
+                                                    class="text-xs font-bold text-slate-300 uppercase tracking-wider">Ritmo
+                                                    de Voz (Telnyx)</label>
+                                                <span
+                                                    class="text-xs font-mono bg-purple-900/50 text-purple-300 px-2 py-0.5 rounded border border-purple-800"
+                                                    x-text="voicePacingTelnyx + ' ms'"></span>
+                                            </div>
+                                            <input type="range" name="voice_pacing_ms_telnyx"
+                                                x-model="voicePacingTelnyx" min="0" max="2000" step="50"
+                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                                <span>0 ms (Inmediato)</span>
+                                                <span>Retraso antes de hablar (Naturalidad).</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Advanced Voice Extras -->
+                                    <div class="pt-4 border-t border-slate-700/50 space-y-3">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
+                                                Manual (Sobrescribir)</label>
+                                            <input type="text" name="voice_id_manual"
+                                                value="{{ config.voice_id_manual or '' }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300 placeholder-slate-600"
+                                                placeholder="ej. en-US-DavisNeural">
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium mb-1 text-slate-200">Sonido de
+                                                    Fondo</label>
+                                                <select name="background_sound"
+                                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                                                    <option value="none" {% if config.background_sound=='none'
+                                                        %}selected{% endif %}>Ninguno</option>
+                                                    <option value="office" {% if config.background_sound=='office'
+                                                        %}selected{% endif %}>Oficina</option>
+                                                    <option value="cafe" {% if config.background_sound=='cafe'
+                                                        %}selected{% endif %}>Cafetería</option>
+                                                    <option value="call_center" {% if
+                                                        config.background_sound=='call_center' %}selected{% endif %}>
+                                                        Call Center</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium mb-1 text-slate-200">Mínimo
+                                                    Caracteres Entrada</label>
+                                                <input type="number" name="input_min_characters"
+                                                    value="{{ config.input_min_characters }}"
+                                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1 text-slate-200">URL Sonido de
+                                                Fondo (Externo)</label>
+                                            <input type="text" name="background_sound_url"
+                                                value="{{ config.background_sound_url or '' }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-400 font-mono"
+                                                placeholder="https://example.com/ambiente.mp3">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
