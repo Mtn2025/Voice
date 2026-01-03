@@ -72,8 +72,7 @@
                         <!-- Model (Disabled/Hidden) -->
                         <button @click.prevent="tab = 'model'"
                             :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
-                            title="Auditando...">Modelo</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Modelo</button>
 
                         <!-- Voice (RESTORED) -->
                         <button @click.prevent="tab = 'voice'"
@@ -139,34 +138,15 @@
 
                         <!-- FROZEN CONFIGURATION STATE (AUDIT MODE) -->
                         <div style="display:none;">
-                            <!-- CORE & MODEL -->
-                            <input type="hidden" name="llm_model" value="{{ config.llm_model }}">
+                            <!-- CORE & MODEL (MOVED TO UI) -->
                             <input type="hidden" name="extraction_model" value="{{ config.extraction_model }}">
                             <input type="hidden" name="max_tokens" value="{{ config.max_tokens }}">
-                            <input type="hidden" name="first_message_mode" value="{{ config.first_message_mode }}">
-                            <input type="hidden" name="first_message" value="{{ config.first_message }}">
-                            <input type="hidden" name="system_prompt" value="{{ config.system_prompt }}">
-                            <input type="hidden" name="temperature" value="{{ config.temperature }}">
 
-                            <!-- CORE PHONE (TWILIO) -->
-                            <input type="hidden" name="llm_model_phone" value="{{ config.llm_model_phone }}">
-                            <input type="hidden" name="llm_provider_phone" value="{{ config.llm_provider_phone }}">
+                            <!-- CORE PHONE (MOVED TO UI) -->
                             <input type="hidden" name="max_tokens_phone" value="{{ config.max_tokens_phone }}">
-                            <input type="hidden" name="first_message_mode_phone"
-                                value="{{ config.first_message_mode_phone }}">
-                            <input type="hidden" name="first_message_phone" value="{{ config.first_message_phone }}">
-                            <input type="hidden" name="system_prompt_phone" value="{{ config.system_prompt_phone }}">
-                            <input type="hidden" name="temperature_phone" value="{{ config.temperature_phone }}">
 
-                            <!-- CORE TELNYX -->
-                            <input type="hidden" name="llm_model_telnyx" value="{{ config.llm_model_telnyx }}">
-                            <input type="hidden" name="llm_provider_telnyx" value="{{ config.llm_provider_telnyx }}">
+                            <!-- CORE TELNYX (MOVED TO UI) -->
                             <input type="hidden" name="max_tokens_telnyx" value="{{ config.max_tokens_telnyx }}">
-                            <input type="hidden" name="first_message_mode_telnyx"
-                                value="{{ config.first_message_mode_telnyx }}">
-                            <input type="hidden" name="first_message_telnyx" value="{{ config.first_message_telnyx }}">
-                            <input type="hidden" name="system_prompt_telnyx" value="{{ config.system_prompt_telnyx }}">
-                            <input type="hidden" name="temperature_telnyx" value="{{ config.temperature_telnyx }}">
 
                             <!-- VOICE (MOVED TO UI) -->
 
@@ -230,6 +210,138 @@
                                 value="{{ config.segmentation_strategy }}">
                             <input type="hidden" name="twilio_recording_channels"
                                 value="{{ config.twilio_recording_channels }}">
+                        </div>
+
+                        <!-- Tab: Model (RESTORED) -->
+                        <div x-show="tab === 'model'" class="space-y-4" style="display: none;">
+
+                            <!-- SIMULATOR PROFILE -->
+                            <div x-show="activeProfile === 'browser'">
+                                <h3 class="text-sm font-semibold text-blue-300">Modelo LLM (Simulador)</h3>
+                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Modelo LLM</label>
+                                        <input type="text" name="llm_model" value="{{ config.llm_model }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-200 font-mono text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
+                                        <textarea name="system_prompt" rows="3"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt }}</textarea>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Temperatura</label>
+                                            <input type="number" name="temperature" step="0.1" min="0" max="2"
+                                                value="{{ config.temperature }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Modo Saludo</label>
+                                            <select name="first_message_mode"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                                <option value="speak-first" {% if
+                                                    config.first_message_mode=='speak-first' %}selected{% endif %}>
+                                                    Hablar Primero</option>
+                                                <option value="wait-for-user" {% if
+                                                    config.first_message_mode=='wait-for-user' %}selected{% endif %}>
+                                                    Esperar Usuario</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
+                                        <input type="text" name="first_message" value="{{ config.first_message }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TWILIO PROFILE -->
+                            <div x-show="activeProfile === 'twilio'">
+                                <h3 class="text-sm font-semibold text-red-300">Modelo LLM (Twilio)</h3>
+                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Modelo LLM</label>
+                                        <input type="text" name="llm_model_phone" value="{{ config.llm_model_phone }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-200 font-mono text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
+                                        <textarea name="system_prompt_phone" rows="3"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt_phone }}</textarea>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Temperatura</label>
+                                            <input type="number" name="temperature_phone" step="0.1" min="0" max="2"
+                                                value="{{ config.temperature_phone }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Modo Saludo</label>
+                                            <select name="first_message_mode_phone"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                                <option value="speak-first" {% if
+                                                    config.first_message_mode_phone=='speak-first' %}selected{% endif
+                                                    %}>Hablar Primero</option>
+                                                <option value="wait-for-user" {% if
+                                                    config.first_message_mode_phone=='wait-for-user' %}selected{% endif
+                                                    %}>Esperar Usuario</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
+                                        <input type="text" name="first_message_phone"
+                                            value="{{ config.first_message_phone }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TELNYX PROFILE -->
+                            <div x-show="activeProfile === 'telnyx'">
+                                <h3 class="text-sm font-semibold text-emerald-300">Modelo LLM (Telnyx)</h3>
+                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Modelo LLM (Groq)</label>
+                                        <input type="text" name="llm_model_telnyx" value="{{ config.llm_model_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
+                                        <textarea name="system_prompt_telnyx" rows="3"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-emerald-300">{{ config.system_prompt_telnyx }}</textarea>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Temperatura</label>
+                                            <input type="number" name="temperature_telnyx" step="0.1" min="0" max="2"
+                                                value="{{ config.temperature_telnyx }}"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Modo Saludo</label>
+                                            <select name="first_message_mode_telnyx"
+                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400">
+                                                <option value="speak-first" {% if
+                                                    config.first_message_mode_telnyx=='speak-first' %}selected{% endif
+                                                    %}>Hablar Primero</option>
+                                                <option value="wait-for-user" {% if
+                                                    config.first_message_mode_telnyx=='wait-for-user' %}selected{% endif
+                                                    %}>Esperar Usuario</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
+                                        <input type="text" name="first_message_telnyx"
+                                            value="{{ config.first_message_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Tab: Voice -->
