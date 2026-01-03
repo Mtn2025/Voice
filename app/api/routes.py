@@ -92,8 +92,16 @@ async def telnyx_call_control(request: Request):
                 # NOW start streaming (event-driven, not hardcoded delay)
                 await start_streaming(call_control_id, request)
                 
-                # Start noise suppression after call is answered
-                asyncio.create_task(start_noise_suppression(call_control_id))
+                # Start noise suppression after call is answered (with error handling)
+                async def _run_suppression():
+                    try:
+                        await start_noise_suppression(call_control_id)
+                    except Exception as e:
+                        logging.error(f\"❌ Noise suppression task failed: {e}\")
+                        import traceback
+                        logging.error(f\"Traceback: {traceback.format_exc()}\")
+                
+                asyncio.create_task(_run_suppression())
         
         # Handle streaming.started - Streaming is ready
         elif event_type == "streaming.started":

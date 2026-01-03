@@ -989,7 +989,14 @@ class VoiceOrchestrator:
             except Exception as e_metric:
                  logging.error(f"Error calculating metrics: {e_metric}")
 
-            self.push_stream.write(audio_bytes)
+            # DEBUG: Log before sending to Azure STT
+            logging.warning(f"🔊 [DEBUG] Sending {len(audio_bytes)} bytes to Azure STT push_stream")
+            try:
+                self.push_stream.write(audio_bytes)
+                logging.warning(f"✅ [DEBUG] Audio sent to Azure STT successfully")
+            except Exception as e_push:
+                logging.error(f"❌ [DEBUG] Failed to write to Azure STT push_stream: {e_push}")
+                
             self.user_audio_buffer.extend(audio_bytes)
         except Exception as e:
             # Detailed Logging for debugging
