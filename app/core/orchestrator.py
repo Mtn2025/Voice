@@ -463,17 +463,30 @@ class VoiceOrchestrator:
         bg_sound = getattr(self.config, 'background_sound', 'none')
         if bg_sound and bg_sound.lower() != 'none' and self.client_type != 'browser':
              try:
-                 # Expecting RAW 8kHz A-Law file (.alaw)
-                 # We cannot easily decode MP3 on the fly without heavy deps, so we expect a pre-converted asset.
                  import os
-                 sound_path = f"app/static/sounds/{bg_sound}.alaw"
+                 # User clarification: "existe .wav con configuracion a-law"
+                 sound_path = f"app/static/sounds/{bg_sound}.wav"
+                 
                  if os.path.exists(sound_path):
                      logging.info(f"🎵 [BG-SOUND] Loading background audio: {sound_path}")
                      with open(sound_path, "rb") as f:
-                         self.bg_loop_buffer = f.read()
-                     logging.info(f"🎵 [BG-SOUND] Loaded {len(self.bg_loop_buffer)} bytes.")
+                         raw_bytes = f.read()
+                     
+                     # WAV Header Parsing (Find 'data' chunk)
+                     data_index = raw_bytes.find(b'data')
+                     if data_index != -1:
+                         # 'data' (4) + Size (4) = 8 bytes offset
+                         start_offset = data_index + 8
+                         self.bg_loop_buffer = raw_bytes[start_offset:]
+                         logging.info(f"🎵 [BG-SOUND] WAV Header found (Offset {start_offset}). Loaded payload.")
+                     else:
+                         # Fallback: Assume RAW or headerless
+                         self.bg_loop_buffer = raw_bytes
+                         logging.warning("⚠️ [BG-SOUND] No 'data' chunk found in WAV. Assuming RAW.")
+
+                     logging.info(f"🎵 [BG-SOUND] Buffer Size: {len(self.bg_loop_buffer)} bytes.")
                  else:
-                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}. Mixing disabled. Please convert {bg_sound}.mp3 to .alaw (Raw 8k A-Law).")
+                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}. Mixing disabled.")
              except Exception as e_bg:
                  logging.error(f"❌ [BG-SOUND] Failed to load: {e_bg}")
         # -----------------------------------------------------
