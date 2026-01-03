@@ -350,19 +350,7 @@
                         <!-- 🔒 END LOCKED SECTION -->
                         <!-- Tab: History -->
                         <!-- 🔒 LOCKED SECTION: PANEL HISTORIAL (DO NOT EDIT WITHOUT AUTH) -->
-                        <div x-show="tab === 'history'" class="space-y-4" style="display: none;">
-                            <!-- Toolbar -->
-                            <div x-show="tab === 'history'" class="space-y-4" style="display: none;">
-                                <div id="history-panel" hx-get="/dashboard/history-rows"
-                                    hx-trigger="load, refreshHistory from:body" hx-target="this">
-                                    <div class="p-8 text-center text-slate-500">
-                                        <span
-                                            class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-emerald-500 mr-2"></span>
-                                        Cargando interfaz de historial...
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <script>
                             function toggleAllHistory(source) {
@@ -411,235 +399,236 @@
                         <!-- 🔒 END LOCKED SECTION -->
 
 
-                </div>
-                <!-- END HIDDEN CONFIGURATION SECTION -->
+                        <!-- END HIDDEN CONFIGURATION SECTION -->
 
-                <div class="pt-4 border-t border-slate-700">
-                    <button type="button" onclick="saveConfig()"
-                        class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2">
-                        <span>💾</span> Guardar Configuración Completa
-                    </button>
-                </div>
-                </form>
+                        <div class="pt-4 border-t border-slate-700"
+                            x-show="tab !== 'history' && tab !== 'connectivity'">
+                            <button type="button" onclick="saveConfig()"
+                                class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2">
+                                <span>💾</span> Guardar Configuración Completa
+                            </button>
+                        </div>
+                    </form>
 
-                <script>
-                    async function saveConfig() {
-                        const btn = document.querySelector('button[onclick="saveConfig()"]');
-                        const originalText = btn.innerHTML;
-                        btn.innerHTML = '<span>⏳</span> Guardando...';
-                        btn.disabled = true;
+                    <script>
+                        async function saveConfig() {
+                            const btn = document.querySelector('button[onclick="saveConfig()"]');
+                            const originalText = btn.innerHTML;
+                            btn.innerHTML = '<span>⏳</span> Guardando...';
+                            btn.disabled = true;
 
-                        const form = document.querySelector('form[action="/api/config/update"]');
-                        const formData = new FormData(form);
+                            const form = document.querySelector('form[action="/api/config/update"]');
+                            const formData = new FormData(form);
 
-                        try {
-                            const response = await fetch('/api/config/update', {
-                                method: 'POST',
-                                body: formData
-                            });
+                            try {
+                                const response = await fetch('/api/config/update', {
+                                    method: 'POST',
+                                    body: formData
+                                });
 
-                            if (response.ok) {
-                                btn.innerHTML = '<span>✅</span> ¡Guardado!';
-                                btn.classList.add('bg-green-600');
+                                if (response.ok) {
+                                    btn.innerHTML = '<span>✅</span> ¡Guardado!';
+                                    btn.classList.add('bg-green-600');
+                                    setTimeout(() => {
+                                        btn.innerHTML = originalText;
+                                        btn.classList.remove('bg-green-600');
+                                        btn.disabled = false;
+                                    }, 2000);
+
+                                    // Notify Simulator of potentially new settings (e.g. VAD sliders)
+                                    if (typeof window.updateSimulatorConfig === 'function') {
+                                        // window.updateSimulatorConfig(); // Optional: reload sim config
+                                    }
+                                } else {
+                                    throw new Error('Error en respuesta');
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                btn.innerHTML = '<span>❌</span> Error al Guardar';
+                                btn.classList.add('bg-red-600');
                                 setTimeout(() => {
                                     btn.innerHTML = originalText;
-                                    btn.classList.remove('bg-green-600');
+                                    btn.classList.remove('bg-red-600');
                                     btn.disabled = false;
-                                }, 2000);
-
-                                // Notify Simulator of potentially new settings (e.g. VAD sliders)
-                                if (typeof window.updateSimulatorConfig === 'function') {
-                                    // window.updateSimulatorConfig(); // Optional: reload sim config
-                                }
-                            } else {
-                                throw new Error('Error en respuesta');
+                                }, 3000);
                             }
-                        } catch (e) {
-                            console.error(e);
-                            btn.innerHTML = '<span>❌</span> Error al Guardar';
-                            btn.classList.add('bg-red-600');
-                            setTimeout(() => {
-                                btn.innerHTML = originalText;
-                                btn.classList.remove('bg-red-600');
-                                btn.disabled = false;
-                            }, 3000);
                         }
-                    }
-                </script>
-
-                <!-- Tab: History -->
-                <div x-show="tab === 'history'" class="space-y-4">
-
-                    <!-- Filters -->
-                    <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
-                        <button type="button" @click="historyFilter = 'all'"
-                            :class="{'bg-blue-600 text-white': historyFilter === 'all', 'text-slate-400 hover:text-white': historyFilter !== 'all'}"
-                            class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
-                        <button type="button" @click="historyFilter = 'simulator'"
-                            :class="{'bg-blue-600 text-white': historyFilter === 'simulator', 'text-slate-400 hover:text-white': historyFilter !== 'simulator'}"
-                            class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
-                        <button type="button" @click="historyFilter = 'twilio'"
-                            :class="{'bg-red-600 text-white': historyFilter === 'twilio', 'text-slate-400 hover:text-white': historyFilter !== 'twilio'}"
-                            class="px-3 py-1 rounded text-xs font-bold transition-all">Twilio</button>
-                        <button type="button" @click="historyFilter = 'telnyx'"
-                            :class="{'bg-emerald-600 text-white': historyFilter === 'telnyx', 'text-slate-400 hover:text-white': historyFilter !== 'telnyx'}"
-                            class="px-3 py-1 rounded text-xs font-bold transition-all">Telnyx</button>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-x-auto rounded border border-slate-700">
-                        <table class="w-full text-xs text-left text-slate-400">
-                            <thead class="text-xs text-slate-300 uppercase bg-slate-800">
-                                <tr>
-                                    <th scope="col" class="px-4 py-2">Fecha</th>
-                                    <th scope="col" class="px-4 py-2">Fuente</th>
-                                    <th scope="col" class="px-4 py-2">Duración</th>
-                                    <th scope="col" class="px-4 py-2">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for call in history %}
-                                <tr class="border-b border-slate-800 hover:bg-slate-800/50"
-                                    x-show="historyFilter === 'all' || historyFilter === '{{ call.client_type or 'simulator' }}'">
-                                    <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        {% if call.client_type == 'telnyx' %}
-                                        <span
-                                            class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
-                                        {% elif call.client_type == 'twilio' %}
-                                        <span
-                                            class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
-                                        {% else %}
-                                        <span
-                                            class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-4 py-2 font-mono">
-                                        {% if call.end_time %}
-                                        {{ (call.end_time - call.start_time).seconds }}s
-                                        {% else %}
-                                        <span class="text-yellow-500 animate-pulse">En curso</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <a href="/call/{{ call.id }}" class="text-blue-400 hover:underline">Ver</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                                {% if not history %}
-                                <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">
-                                        No hay historial disponible.
-                                    </td>
-                                </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Clear History Action -->
-                    <div class="pt-2">
-                        <form action="/api/history/clear" method="POST"
-                            onsubmit="return confirm('¿Borrar todo el historial?');">
-                            <button type="submit"
-                                class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
-                                🗑️ Borrar Historial Completo
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-            </div> <!-- End x-data -->
-        </div>
-
-        <!-- Simulator Panel (Sticky, Right Side) -->
-        <div class="sm:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
-            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
-                <div class="flex justify-between items-center mb-6">
-                    <script>
-                        // Expose Config to Simulator
-                        window.simulatorConfig = {
-                            backgroundAudio: "{{ config.background_sound }}",
-                            backgroundUrl: "{{ config.background_sound_url }}"
-                        };
                     </script>
-                    <div class="flex flex-col">
-                        <h2 class="text-xl font-semibold text-emerald-300 flex items-center gap-2">
-                            <span>🧪</span> Simulador
-                        </h2>
-                        <!-- Client Type Indicator -->
-                        <div id="sim-client-wrapper" class="text-[10px] font-mono mt-1 text-slate-400">
-                            Perfil: <span id="sim-mode-text" class="text-blue-400 font-bold">Navegador</span>
+
+                    <!-- Tab: History -->
+                    <div x-show="tab === 'history'" class="space-y-4">
+
+                        <!-- Filters -->
+                        <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+                            <button type="button" @click="historyFilter = 'all'"
+                                :class="{'bg-blue-600 text-white': historyFilter === 'all', 'text-slate-400 hover:text-white': historyFilter !== 'all'}"
+                                class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
+                            <button type="button" @click="historyFilter = 'simulator'"
+                                :class="{'bg-blue-600 text-white': historyFilter === 'simulator', 'text-slate-400 hover:text-white': historyFilter !== 'simulator'}"
+                                class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
+                            <button type="button" @click="historyFilter = 'twilio'"
+                                :class="{'bg-red-600 text-white': historyFilter === 'twilio', 'text-slate-400 hover:text-white': historyFilter !== 'twilio'}"
+                                class="px-3 py-1 rounded text-xs font-bold transition-all">Twilio</button>
+                            <button type="button" @click="historyFilter = 'telnyx'"
+                                :class="{'bg-emerald-600 text-white': historyFilter === 'telnyx', 'text-slate-400 hover:text-white': historyFilter !== 'telnyx'}"
+                                class="px-3 py-1 rounded text-xs font-bold transition-all">Telnyx</button>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto rounded border border-slate-700">
+                            <table class="w-full text-xs text-left text-slate-400">
+                                <thead class="text-xs text-slate-300 uppercase bg-slate-800">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-2">Fecha</th>
+                                        <th scope="col" class="px-4 py-2">Fuente</th>
+                                        <th scope="col" class="px-4 py-2">Duración</th>
+                                        <th scope="col" class="px-4 py-2">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for call in history %}
+                                    <tr class="border-b border-slate-800 hover:bg-slate-800/50"
+                                        x-show="historyFilter === 'all' || historyFilter === '{{ call.client_type or 'simulator' }}'">
+                                        <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            {% if call.client_type == 'telnyx' %}
+                                            <span
+                                                class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
+                                            {% elif call.client_type == 'twilio' %}
+                                            <span
+                                                class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
+                                            {% else %}
+                                            <span
+                                                class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-2 font-mono">
+                                            {% if call.end_time %}
+                                            {{ (call.end_time - call.start_time).seconds }}s
+                                            {% else %}
+                                            <span class="text-yellow-500 animate-pulse">En curso</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-4 py-2">
+                                            <a href="/call/{{ call.id }}" class="text-blue-400 hover:underline">Ver</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% if not history %}
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">
+                                            No hay historial disponible.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Clear History Action -->
+                        <div class="pt-2">
+                            <form action="/api/history/clear" method="POST"
+                                onsubmit="return confirm('¿Borrar todo el historial?');">
+                                <button type="submit"
+                                    class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
+                                    🗑️ Borrar Historial Completo
+                                </button>
+                            </form>
                         </div>
                     </div>
-                    <button id="start-btn" onclick="toggleCall()"
-                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all text-sm">
-                        Iniciar Prueba
-                    </button>
-                </div>
 
-                <div
-                    class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
-                    <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                </div> <!-- End x-data -->
+            </div>
+
+            <!-- Simulator Panel (Sticky, Right Side) -->
+            <div class="sm:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <script>
+                            // Expose Config to Simulator
+                            window.simulatorConfig = {
+                                backgroundAudio: "{{ config.background_sound }}",
+                                backgroundUrl: "{{ config.background_sound_url }}"
+                            };
+                        </script>
+                        <div class="flex flex-col">
+                            <h2 class="text-xl font-semibold text-emerald-300 flex items-center gap-2">
+                                <span>🧪</span> Simulador
+                            </h2>
+                            <!-- Client Type Indicator -->
+                            <div id="sim-client-wrapper" class="text-[10px] font-mono mt-1 text-slate-400">
+                                Perfil: <span id="sim-mode-text" class="text-blue-400 font-bold">Navegador</span>
+                            </div>
+                        </div>
+                        <button id="start-btn" onclick="toggleCall()"
+                            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all text-sm">
+                            Iniciar Prueba
+                        </button>
                     </div>
 
-                    <!-- Visualizer Canvas -->
-                    <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
-                </div>
+                    <div
+                        class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                        <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
+                        </div>
 
-                <!-- SIMULATOR VAD CONTROLS (HIDDEN) -->
-                <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700" style="display:none !important;">
-                    <h3 class="text-sm font-mono text-slate-400 mb-2">CONTROLES DE SENSIBILIDAD (VAD)</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
+                        <!-- Visualizer Canvas -->
+                        <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
+                    </div>
+
+                    <!-- SIMULATOR VAD CONTROLS (HIDDEN) -->
+                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700"
+                        style="display:none !important;">
+                        <h3 class="text-sm font-mono text-slate-400 mb-2">CONTROLES DE SENSIBILIDAD (VAD)</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
+                                    <span>Sensibilidad Mic (RMS)</span>
+                                    <span id="vad-sens-val" class="text-emerald-400">0.05</span>
+                                </label>
+                                <input type="range" id="vad-sensitivity" min="0.005" max="0.2" step="0.005" value="0.05"
+                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                    oninput="document.getElementById('vad-sens-val').innerText = this.value">
+                                <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-rms"
+                                        class="font-mono text-blue-400">0.00</span> | Mínimo ruido</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
+                                    <span>Umbral de Voz (Frec)</span>
+                                    <span id="vad-voice-val" class="text-emerald-400">45</span>
+                                </label>
+                                <input type="range" id="vad-voice-threshold" min="0" max="100" step="5" value="45"
+                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                    oninput="document.getElementById('vad-voice-val').innerText = this.value">
+                                <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-voice"
+                                        class="font-mono text-blue-400">0</span> | Calidad Voz</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-700">
                             <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                <span>Sensibilidad Mic (RMS)</span>
-                                <span id="vad-sens-val" class="text-emerald-400">0.05</span>
+                                <span>Filtro de Ruido (Min Letras)</span>
+                                <span id="min-chars-val" class="text-orange-400">1</span>
                             </label>
-                            <input type="range" id="vad-sensitivity" min="0.005" max="0.2" step="0.005" value="0.05"
+                            <input type="range" id="input-min-chars" min="0" max="50" step="1" value="1"
                                 class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                oninput="document.getElementById('vad-sens-val').innerText = this.value">
-                            <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-rms"
-                                    class="font-mono text-blue-400">0.00</span> | Mínimo ruido</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                <span>Umbral de Voz (Frec)</span>
-                                <span id="vad-voice-val" class="text-emerald-400">45</span>
-                            </label>
-                            <input type="range" id="vad-voice-threshold" min="0" max="100" step="5" value="45"
-                                class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                oninput="document.getElementById('vad-voice-val').innerText = this.value">
-                            <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-voice"
-                                    class="font-mono text-blue-400">0</span> | Calidad Voz</p>
+                                oninput="document.getElementById('min-chars-val').innerText = this.value; document.getElementById('form-input-min-chars').value = this.value; updateServerConfig('input_min_characters', this.value)">
+                            <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras. (Recomendado:
+                                20-30 para ambientes ruidosos)</p>
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-4 border-t border-slate-700">
-                        <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                            <span>Filtro de Ruido (Min Letras)</span>
-                            <span id="min-chars-val" class="text-orange-400">1</span>
-                        </label>
-                        <input type="range" id="input-min-chars" min="0" max="50" step="1" value="1"
-                            class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                            oninput="document.getElementById('min-chars-val').innerText = this.value; document.getElementById('form-input-min-chars').value = this.value; updateServerConfig('input_min_characters', this.value)">
-                        <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras. (Recomendado:
-                            20-30 para ambientes ruidosos)</p>
-                    </div>
-                </div>
+                    <!-- Latest Transcript -->
+                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
+                        <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
 
-                <!-- Latest Transcript -->
-                <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
-                    <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
-
-                    <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
-                        <!-- Messages inserted by JS -->
+                        <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
+                            <!-- Messages inserted by JS -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
     <script src="/static/js/simulator.js"></script>
