@@ -116,8 +116,8 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         if audio_mode == "browser":
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
         elif audio_mode == "telnyx":
-            # Telnyx (Mexico/Global) -> Mu-Law 8kHz (Reverted for compatibility)
-            self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
+            # Telnyx (Mexico/Global) -> A-Law 8kHz (Required Standard)
+            self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoALaw)
         else:
             # Twilio Default -> Mu-Law 8kHz
             # This is the standard telephony format, removing need for custom transcoding in Orchestrator.
