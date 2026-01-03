@@ -544,7 +544,7 @@
                                                 %}selected{% endif %}>Call Center</option>
                                         </select>
                                     </div>
-                                    <div>
+                                    <div x-show="activeProfile === 'browser'">
                                         <label class="block text-sm font-medium mb-1">Mínimo Caracteres Entrada</label>
                                         <input type="number" name="input_min_characters" id="form-input-min-chars"
                                             value="{{ config.input_min_characters }}"

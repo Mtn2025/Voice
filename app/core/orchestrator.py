@@ -94,7 +94,13 @@ class VoiceOrchestrator:
         
         # Adaptive VAD
         self.vad_filter = AdaptiveInputFilter()
+        # Adaptive VAD
+        self.vad_filter = AdaptiveInputFilter()
         self.current_turn_max_rms = 0.0
+        
+        # Audio Mixing (Background Sound)
+        self.bg_loop_buffer = None
+        self.bg_loop_index = 0
 
     async def send_audio_chunked(self, audio_data: bytes):
         """
@@ -120,6 +126,55 @@ class VoiceOrchestrator:
             chunk_count += 1
             total_bytes += len(chunk)
             
+
+            
+            # -----------------------------------------------
+            # AUDIO MIXING (Background Sound for Telephony)
+            # -----------------------------------------------
+            if self.bg_loop_buffer and len(self.bg_loop_buffer) > 0:
+                try:
+                    # Get slice from background buffer
+                    bg_len = len(chunk)
+                    # Handle wrapping
+                    if self.bg_loop_index + bg_len > len(self.bg_loop_buffer):
+                        # Simple wrap: take what's left, then start from 0
+                        part1 = self.bg_loop_buffer[self.bg_loop_index:]
+                        remaining = bg_len - len(part1)
+                        part2 = self.bg_loop_buffer[:remaining]
+                        bg_chunk = part1 + part2
+                        self.bg_loop_index = remaining
+                    else:
+                        bg_chunk = self.bg_loop_buffer[self.bg_loop_index : self.bg_loop_index + bg_len]
+                        self.bg_loop_index += bg_len
+                    
+                    # Decoding
+                    # Background is always ALAW (standardized asset)
+                    bg_lin = audioop.alaw2lin(bg_chunk, 2)
+                    
+                    # TTS Chunk depends on Client
+                    if self.client_type == 'telnyx':
+                        tts_lin = audioop.alaw2lin(chunk, 2)
+                    else:
+                        # Twilio etc defaults to Mu-Law (PCMU)
+                        tts_lin = audioop.ulaw2lin(chunk, 2)
+                    
+                    # Volume Control for BG (e.g. 15% volume)
+                    bg_lin_quiet = audioop.mul(bg_lin, 2, 0.15) 
+                    
+                    # Mix
+                    mixed_lin = audioop.add(tts_lin, bg_lin_quiet, 2)
+                    
+                    # Encode back to target format
+                    if self.client_type == 'telnyx':
+                        chunk = audioop.lin2alaw(mixed_lin, 2)
+                    else:
+                        chunk = audioop.lin2ulaw(mixed_lin, 2)
+                    
+                except Exception as e_mix:
+                    logging.error(f"⚠️ [MIX ERROR] {e_mix}")
+                    # Fallback to original chunk if mix fails
+            # -----------------------------------------------
+
             b64_audio = base64.b64encode(chunk).decode("utf-8")
             
             msg = {
@@ -153,6 +208,8 @@ class VoiceOrchestrator:
         Wraps text in SSML with configured voice and style.
         """
         voice = getattr(self.config, 'voice_name', 'es-MX-DaliaNeural')
+        if getattr(self.config, 'voice_id_manual', None):
+             voice = self.config.voice_id_manual
         style = getattr(self.config, 'voice_style', None)
         
         speed = getattr(self.config, 'voice_speed', 1.0)
@@ -399,6 +456,27 @@ class VoiceOrchestrator:
         silence_timeout = getattr(self.config, 'silence_timeout_ms', 500)
         if self.client_type != "browser":
              silence_timeout = getattr(self.config, 'silence_timeout_ms_phone', 2000)
+
+        # -----------------------------------------------------
+        # LOAD BACKGROUND AUDIO (If enabled)
+        # -----------------------------------------------------
+        bg_sound = getattr(self.config, 'background_sound', 'none')
+        if bg_sound and bg_sound.lower() != 'none' and self.client_type != 'browser':
+             try:
+                 # Expecting RAW 8kHz A-Law file (.alaw)
+                 # We cannot easily decode MP3 on the fly without heavy deps, so we expect a pre-converted asset.
+                 import os
+                 sound_path = f"app/static/sounds/{bg_sound}.alaw"
+                 if os.path.exists(sound_path):
+                     logging.info(f"🎵 [BG-SOUND] Loading background audio: {sound_path}")
+                     with open(sound_path, "rb") as f:
+                         self.bg_loop_buffer = f.read()
+                     logging.info(f"🎵 [BG-SOUND] Loaded {len(self.bg_loop_buffer)} bytes.")
+                 else:
+                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}. Mixing disabled. Please convert {bg_sound}.mp3 to .alaw (Raw 8k A-Law).")
+             except Exception as e_bg:
+                 logging.error(f"❌ [BG-SOUND] Failed to load: {e_bg}")
+        # -----------------------------------------------------
 
         self.recognizer, self.push_stream = self.stt_provider.create_recognizer(
             language=getattr(self.config, 'stt_language', 'es-MX'), 
