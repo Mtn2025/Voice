@@ -1192,7 +1192,7 @@ class VoiceOrchestrator:
                     log_level = logging.WARNING
                     classification = "💥 SPIKE"
 
-                logging.log(log_level, f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
+                logging.warning(f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
                 
                 # ------------------------------------------------------------------
                 # NOISE GATING (The "Gate")
