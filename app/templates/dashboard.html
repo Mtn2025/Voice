@@ -328,21 +328,89 @@
                                     </div>
                                 </div>
                                 <!-- Noise & Features -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Filtro Ruido (Min Caracteres)</label>
-                                    <input type="number" name="input_min_characters_telnyx"
-                                        value="{{ config.input_min_characters_telnyx }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-2 bg-slate-900 rounded border border-slate-700">
-                                    <div class="flex flex-col">
-                                        <span class="text-sm font-medium">Noise Suppression (Telnyx)</span>
-                                        <span class="text-[10px] text-slate-500">Krisp Audio Filtering</span>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Filtro Ruido -->
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Filtro Ruido (Min
+                                            Caracteres)</label>
+                                        <input type="number" name="input_min_characters_telnyx"
+                                            value="{{ config.input_min_characters_telnyx }}"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-slate-200 focus:border-emerald-500 focus:outline-none transition-colors">
+                                        <p class="text-[10px] text-slate-500 mt-1">Ignora frases con menos de X
+                                            caracteres.</p>
                                     </div>
-                                    <input type="checkbox" name="enable_krisp_telnyx" value="true" {% if
-                                        config.enable_krisp_telnyx %}checked{% endif %}
-                                        class="transform scale-125 accent-emerald-500">
+
+                                    <!-- Lista Negra -->
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Lista Negra (Telnyx)</label>
+                                        <textarea name="hallucination_blacklist_telnyx" rows="1"
+                                            placeholder="Pero, Y..., Mm..., Oye, Ah..."
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-200 font-mono focus:border-emerald-500 focus:outline-none transition-colors">{{ config.hallucination_blacklist_telnyx or '' }}</textarea>
+                                        <p class="text-[10px] text-slate-500 mt-1">Separar frases por comas.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Toggles Section -->
+                                <div class="space-y-3 pt-2 border-t border-slate-700/50">
+                                    <!-- Software Denoising -->
+                                    <div
+                                        class="flex items-center justify-between p-3 bg-slate-900/50 rounded border border-slate-700 hover:border-blue-500/50 transition-colors">
+                                        <div>
+                                            <label class="text-sm font-medium text-slate-200">Reducción de Ruido
+                                                (Software)</label>
+                                            <p class="text-[10px] text-slate-500">Filtro de ruido adicional
+                                                post-transcripción.</p>
+                                        </div>
+                                        <input type="checkbox" name="enable_denoising_telnyx" value="true" {% if
+                                            config.enable_denoising_telnyx %}checked{% endif %}
+                                            class="transform scale-125 accent-blue-500 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                                    </div>
+
+                                    <!-- Funciones Nativas Header -->
+                                    <div class="flex items-center gap-2 mt-4 mb-2">
+                                        <span class="text-yellow-400 text-xs">⚡</span>
+                                        <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                                            Funciones Nativas de Telnyx</h4>
+                                    </div>
+
+                                    <!-- Krisp & VAD Grid -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <!-- Noise Suppression (Krisp) -->
+                                        <div
+                                            class="flex items-center justify-between p-3 bg-slate-900 rounded border border-emerald-900/30">
+                                            <div>
+                                                <label class="text-sm font-medium text-slate-200">Noise Suppression
+                                                    (Krisp)</label>
+                                                <p class="text-[10px] text-emerald-500/80">Reduce ruido de fondo
+                                                    (Nativo)</p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="text-[10px] text-emerald-600 border border-emerald-800 px-1 rounded bg-emerald-900/20">Nativo</span>
+                                                <input type="checkbox" name="enable_krisp_telnyx" value="true" {% if
+                                                    config.enable_krisp_telnyx %}checked{% endif %}
+                                                    class="transform scale-125 accent-emerald-500 rounded border-gray-300 focus:ring-emerald-500">
+                                            </div>
+                                        </div>
+
+                                        <!-- Voice Activity Detection (VAD) -->
+                                        <div
+                                            class="flex items-center justify-between p-3 bg-slate-900 rounded border border-emerald-900/30">
+                                            <div>
+                                                <label class="text-sm font-medium text-slate-200">Voice Activity
+                                                    Detection (VAD)</label>
+                                                <p class="text-[10px] text-emerald-500/80">Detecta voz vs silencio
+                                                    (Nativo)</p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span
+                                                    class="text-[10px] text-emerald-600 border border-emerald-800 px-1 rounded bg-emerald-900/20">Nativo</span>
+                                                <input type="checkbox" name="enable_vad_telnyx" value="true" {% if
+                                                    config.enable_vad_telnyx %}checked{% endif %}
+                                                    class="transform scale-125 accent-emerald-500 rounded border-gray-300 focus:ring-emerald-500">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
