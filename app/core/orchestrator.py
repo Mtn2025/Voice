@@ -405,6 +405,8 @@ class VoiceOrchestrator:
                   if conf.enable_denoising_telnyx is not None: conf.enable_denoising = conf.enable_denoising_telnyx
                   if conf.hallucination_blacklist_telnyx: conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
                   if conf.voice_sensitivity_telnyx: conf.voice_sensitivity = conf.voice_sensitivity_telnyx  # Voice activation threshold
+                  if conf.enable_vad_telnyx is not None: conf.enable_vad = conf.enable_vad_telnyx
+                  if conf.enable_krisp_telnyx is not None: conf.enable_krisp = conf.enable_krisp_telnyx
                   
                   # Voice / Audio OUT
                   if conf.voice_name_telnyx: conf.voice_name = conf.voice_name_telnyx
@@ -1117,38 +1119,43 @@ class VoiceOrchestrator:
                 # Max (Peak Volume) - Good for sudden spikes (clacks, pops)
                 max_val = audioop.max(audio_bytes, 2)
                 
-                # Dynamic Thresholds
-                if self.client_type in ["twilio", "telnyx"]:
-                    vad_threshold = getattr(self.config, 'voice_sensitivity_phone', 200)
-                else:
-                    vad_threshold = getattr(self.config, 'voice_sensitivity', 500)
+                # Dynamic Thresholds (Trust the Overlay!)
+                # "voice_sensitivity" is already updated by the overlay block in start()
+                vad_threshold = getattr(self.config, 'voice_sensitivity', 500)
 
                 log_level = logging.DEBUG
                 classification = "🔇 Silence"
                 
                 # Check VAD
                 if rms > vad_threshold: 
-                    log_level = logging.WARNING # Force visibility
+                    log_level = logging.INFO
                     classification = "🗣️ VOICE"
                 elif rms > (vad_threshold / 2):
-                    log_level = logging.INFO
+                    log_level = logging.DEBUG
                     classification = "🔊 Noise"
-                elif max_val > 25000: # Increased from 10000 for Telnyx clicks/pops
+                elif max_val > 25000: 
                     log_level = logging.WARNING
                     classification = "💥 SPIKE"
 
                 logging.log(log_level, f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
                 
                 # ------------------------------------------------------------------
+                # NOISE GATING (The "Gate")
+                # ------------------------------------------------------------------
+                enable_vad = getattr(self.config, 'enable_vad', True)
+                if enable_vad and rms < vad_threshold:
+                     # Silence/Noise detected. Do NOT send to Azure STT.
+                     # This prevents hallucinations from static/breathing.
+                     # logging.debug("Parsing dropped due to low RMS (VAD Gate).")
+                     return
+                # ------------------------------------------------------------------
+
+                # ------------------------------------------------------------------
                 # LOCAL VAD (CALIBRATION): Reset Idle Timer on Voice Activity
                 # ------------------------------------------------------------------
-                # If we hear loud audio (RMS > 1000), we know the user is there.
-                # Don't wait for Azure to confirm "SpeechStarted" (which might lag).
-                # This prevents "Are you there?" interruptions while user is speaking.
+                # If we hear loud audio, we know the user is there.
                 if rms > 1000:
                     self.last_interaction_time = time.time()
-                    # Optional: Log rare resets to avoid spam, or just trust the RMS log above covers it.
-                    # logging.debug("🔄 Local VAD: Interaction timer reset.")
                 # ------------------------------------------------------------------
                 
             except Exception as e_metric:
