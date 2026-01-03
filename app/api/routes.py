@@ -174,6 +174,16 @@ async def answer_call(call_control_id: str, request: Request):
     payload = {
         "client_state": client_state
     }
+
+    # AUDIT FIX: Link AMD Configuration
+    try:
+        # 'amd_config_telnyx': 'disabled', 'detect', 'detect_beep', etc.
+        amd_mode = getattr(config, 'amd_config_telnyx', 'disabled')
+        if amd_mode and amd_mode != 'disabled':
+             payload["answering_machine_detection"] = amd_mode
+             logging.info(f"📞 Enabled AMD (Telnyx): {amd_mode}")
+    except Exception as e:
+        logging.warning(f"Could not apply AMD config: {e}")
     
     try:
         logging.info(f"📞 Answering call: {call_control_id}")

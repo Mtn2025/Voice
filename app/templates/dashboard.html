@@ -61,11 +61,10 @@
                             class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
                             title="Auditando...">Transcriptor</button>
 
-                        <!-- Functions (Disabled/Hidden) -->
+                        <!-- Functions (RESTORED) -->
                         <button @click.prevent="tab = 'functions'"
                             :class="tab === 'functions' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
-                            title="Auditando...">Funciones</button>
+                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Funciones</button>
 
                         <!-- Advanced (RESTORED) -->
                         <button @click.prevent="tab = 'advanced'"
@@ -251,6 +250,61 @@
                             <input type="hidden" name="twilio_recording_channels"
                                 value="{{ config.twilio_recording_channels }}">
                         </div>
+                        <!-- Tab: Functions -->
+                        <!-- 🔒 LOCKED SECTION: PANEL FUNCIONES (RESTORED PER REQUEST) -->
+                        <div x-show="tab === 'functions'" class="space-y-4" style="display: none;">
+                            <h3 class="text-sm font-semibold text-blue-300">Funciones Predefinidas</h3>
+                            <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+
+                                <!-- End Call -->
+                                <div
+                                    class="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                                    <div>
+                                        <label class="font-medium text-sm text-slate-200">Habilitar Función
+                                            "Colgar"</label>
+                                        <p class="text-xs text-slate-500">Permite al asistente terminar la llamada
+                                            ([END_CALL]).</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="enable_end_call" value="true" class="sr-only peer"
+                                            {% if config.enable_end_call %}checked{% endif %}>
+                                        <div
+                                            class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Keypad -->
+                                <div
+                                    class="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                                    <div>
+                                        <label class="font-medium text-sm text-slate-200">Habilitar Teclado
+                                            Numérico</label>
+                                        <p class="text-xs text-slate-500">Permite marcar extensiones o números
+                                            ([DTMF:123]).</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="enable_dial_keypad" value="true"
+                                            class="sr-only peer" {% if config.enable_dial_keypad %}checked{% endif %}>
+                                        <div
+                                            class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Transfer -->
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Número para Transferencia</label>
+                                    <input type="text" name="transfer_phone_number" placeholder="+52..."
+                                        value="{{ config.transfer_phone_number or '' }}"
+                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 font-mono text-sm">
+                                    <p class="text-xs text-slate-500 mt-1">Si está vacío, la función [TRANSFER] no hará
+                                        nada.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 🔒 END LOCKED SECTION -->
+
                         <!-- END FROZEN CONFIG -->
 
                         <!-- Tab: Advanced -->
