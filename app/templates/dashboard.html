@@ -226,10 +226,39 @@
                                     <div>
                                         <label class="block text-sm font-medium mb-1 text-slate-200">Voz
                                             (Telnyx/Azure)</label>
-                                        <input type="text" name="voice_name_telnyx"
-                                            value="{{ config.voice_name_telnyx }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
-                                            placeholder="es-MX-DaliaNeural">
+                                        <select name="voice_name_telnyx"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
+                                            <option value="es-MX-DaliaNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-DaliaNeural' %}selected{% endif %}>🇲🇽
+                                                Dalia (Femenina - Neutra)</option>
+                                            <option value="es-MX-JorgeNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-JorgeNeural' %}selected{% endif %}>🇲🇽
+                                                Jorge (Masculina - Seria)</option>
+                                            <option value="es-MX-LarissaNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-LarissaNeural' %}selected{% endif %}>
+                                                🇲🇽 Larissa (Femenina - Cálida)</option>
+                                            <option value="es-MX-CecilioNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-CecilioNeural' %}selected{% endif %}>
+                                                🇲🇽 Cecilio (Masculina - Amable)</option>
+                                            <option value="es-MX-MarinaNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-MarinaNeural' %}selected{% endif %}>
+                                                🇲🇽 Marina (Femenina - Suave)</option>
+                                            <option value="es-MX-BeatrizNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-BeatrizNeural' %}selected{% endif %}>
+                                                🇲🇽 Beatriz (Femenina - Mayor)</option>
+                                            <option value="es-MX-RenataNeural" {% if
+                                                config.voice_name_telnyx=='es-MX-RenataNeural' %}selected{% endif %}>
+                                                🇲🇽 Renata (Femenina - Joven)</option>
+                                            <option value="es-ES-ElviraNeural" {% if
+                                                config.voice_name_telnyx=='es-ES-ElviraNeural' %}selected{% endif %}>
+                                                🇪🇸 Elvira (Femenina - España)</option>
+                                            <option value="es-ES-AlvaroNeural" {% if
+                                                config.voice_name_telnyx=='es-ES-AlvaroNeural' %}selected{% endif %}>
+                                                🇪🇸 Alvaro (Masculina - España)</option>
+                                            <option value="en-US-JennyNeural" {% if
+                                                config.voice_name_telnyx=='en-US-JennyNeural' %}selected{% endif %}>🇺🇸
+                                                Jenny (Inglés USA)</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium mb-1 text-slate-200">Estilo de
