@@ -101,107 +101,136 @@ class VoiceOrchestrator:
         # Audio Mixing (Background Sound)
         self.bg_loop_buffer = None
         self.bg_loop_index = 0
+        
+        # Audio Streaming Queue (Decoupled Output)
+        self.audio_queue = asyncio.Queue()
+        self.stream_task = None
 
     async def send_audio_chunked(self, audio_data: bytes):
         """
-        Sends audio in small chunks (e.g. 20ms/160bytes) to prevent provider timeouts.
+        PRODUCER: Queues audio chunks for the continuous stream loop.
+        Breaks down large TTS buffers into 20ms chunks (160 bytes for telephony).
         """
         if self.client_type == "browser":
-             # Browser can handle larger packets or manages its own buffer
+             # Browser still uses direct send (for now, or can be unified later)
+             # Browser is robust enough for gaps, but unification is cleaner.
+             # Keeping legacy path for browser to avoid regression there.
              b64 = base64.b64encode(audio_data).decode("utf-8")
              await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
-             logging.info(f"🔊 [AUDIO OUT] Sent {len(audio_data)} bytes to Browser")
              return
 
-        # For Telephony (Twilio/Telnyx)
-        # MuLaw 8kHz -> 160 bytes = 20ms
+        # For Telephony: Queue slices
         CHUNK_SIZE = 160
-        
-        chunk_count = 0
-        total_bytes = 0
-        
         for i in range(0, len(audio_data), CHUNK_SIZE):
             chunk = audio_data[i : i + CHUNK_SIZE]
+            self.audio_queue.put_nowait(chunk)
             
-            chunk_count += 1
-            total_bytes += len(chunk)
-            
-
-            
-            # -----------------------------------------------
-            # AUDIO MIXING (Background Sound for Telephony)
-            # -----------------------------------------------
-            if self.bg_loop_buffer and len(self.bg_loop_buffer) > 0:
+    async def _audio_stream_loop(self):
+        """
+        CONSUMER: Continuous 20ms Loop.
+        Mixes Background Audio + TTS Queue -> Socket.
+        Ensures constant stream (Carrier) to keep line alive and ambiance smooth.
+        """
+        logging.info("🌊 [STREAM] Starting Continuous Audio Stream Loop")
+        try:
+            while True:
+                # 1. TIMING: Target 20ms (0.02s)
+                loop_start = asyncio.get_running_loop().time()
+                
+                # 2. FETCH TTS (Non-blocking)
+                tts_chunk = None
                 try:
-                    # Get slice from background buffer
-                    bg_len = len(chunk)
-                    # Handle wrapping
-                    if self.bg_loop_index + bg_len > len(self.bg_loop_buffer):
-                        # Simple wrap: take what's left, then start from 0
+                    tts_chunk = self.audio_queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+                
+                # 3. FETCH BACKGROUND (If connected)
+                bg_chunk = None
+                if self.bg_loop_buffer and len(self.bg_loop_buffer) > 0:
+                     # Calculate needed size (default 160)
+                     req_len = 160
+                     if tts_chunk: req_len = len(tts_chunk)
+                     
+                     if self.bg_loop_index + req_len > len(self.bg_loop_buffer):
                         part1 = self.bg_loop_buffer[self.bg_loop_index:]
-                        remaining = bg_len - len(part1)
+                        remaining = req_len - len(part1)
                         part2 = self.bg_loop_buffer[:remaining]
                         bg_chunk = part1 + part2
                         self.bg_loop_index = remaining
-                    else:
-                        bg_chunk = self.bg_loop_buffer[self.bg_loop_index : self.bg_loop_index + bg_len]
-                        self.bg_loop_index += bg_len
-                    
-                    # Decoding
-                    # Background is always ALAW (standardized asset)
-                    bg_lin = audioop.alaw2lin(bg_chunk, 2)
-                    
-                    # TTS Chunk depends on Client
-                    if self.client_type == 'telnyx':
-                        tts_lin = audioop.alaw2lin(chunk, 2)
-                    else:
-                        # Twilio etc defaults to Mu-Law (PCMU)
-                        tts_lin = audioop.ulaw2lin(chunk, 2)
-                    
-                    # Volume Control for BG (e.g. 15% volume)
-                    bg_lin_quiet = audioop.mul(bg_lin, 2, 0.15) 
-                    
-                    # Mix
-                    mixed_lin = audioop.add(tts_lin, bg_lin_quiet, 2)
-                    
-                    # Encode back to target format
-                    if self.client_type == 'telnyx':
-                        chunk = audioop.lin2alaw(mixed_lin, 2)
-                    else:
-                        chunk = audioop.lin2ulaw(mixed_lin, 2)
-                    
-                except Exception as e_mix:
-                    logging.error(f"⚠️ [MIX ERROR] {e_mix}")
-                    # Fallback to original chunk if mix fails
-            # -----------------------------------------------
+                     else:
+                        bg_chunk = self.bg_loop_buffer[self.bg_loop_index : self.bg_loop_index + req_len]
+                        self.bg_loop_index += req_len
 
-            b64_audio = base64.b64encode(chunk).decode("utf-8")
-            
-            msg = {
-                "event": "media",
-                "media": {"payload": b64_audio}
-            }
-            # Common protocol for Twilio/Telnyx often requires identifying the stream
-            if self.client_type == "twilio":
-                msg["streamSid"] = self.stream_id
-            elif self.client_type == "telnyx":
-                msg["stream_id"] = self.stream_id
+                # 4. MIXING LOGIC
+                final_chunk = None
+                
+                if tts_chunk and bg_chunk:
+                    # MIX
+                    try:
+                        bg_lin = audioop.alaw2lin(bg_chunk, 2)
+                        
+                        if self.client_type == 'telnyx':
+                            tts_lin = audioop.alaw2lin(tts_chunk, 2)
+                        else:
+                            tts_lin = audioop.ulaw2lin(tts_chunk, 2)
+                            
+                        bg_lin_quiet = audioop.mul(bg_lin, 2, 0.15) 
+                        mixed_lin = audioop.add(tts_lin, bg_lin_quiet, 2)
+                        
+                        if self.client_type == 'telnyx':
+                            final_chunk = audioop.lin2alaw(mixed_lin, 2)
+                        else:
+                            final_chunk = audioop.lin2ulaw(mixed_lin, 2)
+                    except Exception as e_mix:
+                        logging.error(f"Mixing error: {e_mix}")
+                        final_chunk = tts_chunk # Fallback
 
-            try:
-                await self.websocket.send_text(json.dumps(msg))
-            except RuntimeError as e:
-                 # Stop loudly but safely
-                logging.warning(f"⚠️ Connection Closed during Audio Send: {e}")
-                return
-            except Exception as e:
-                logging.error(f"Error sending chunk: {e}")
-                return
-            
-            # Pacing: Simple sleep to prevent flooding the socket
-            # 20ms audio = 0.02s. We sleep slightly less to stay ahead.
-            await asyncio.sleep(0.018)
-            
-        logging.warning(f"📤 SENT CHUNKS | Count: {chunk_count} | Total Bytes: {total_bytes} | Client: {self.client_type}") 
+                elif tts_chunk:
+                    final_chunk = tts_chunk
+                    
+                elif bg_chunk:
+                    # JUST BACKGROUND (Silence filling)
+                    # Must be careful not to send too much if socket is buffering, 
+                    # but typically we drive this.
+                    try:
+                        bg_lin = audioop.alaw2lin(bg_chunk, 2)
+                        bg_lin_quiet = audioop.mul(bg_lin, 2, 0.15) # Quiet BG
+                        
+                        if self.client_type == 'telnyx':
+                            final_chunk = audioop.lin2alaw(bg_lin_quiet, 2)
+                        else:
+                            final_chunk = audioop.lin2ulaw(bg_lin_quiet, 2)
+                    except:
+                        pass
+                
+                # 5. SEND (If we have something to send)
+                if final_chunk:
+                    b64_audio = base64.b64encode(final_chunk).decode("utf-8")
+                    msg = {
+                        "event": "media",
+                        "media": {"payload": b64_audio}
+                    }
+                    if self.client_type == "twilio": msg["streamSid"] = self.stream_id
+                    elif self.client_type == "telnyx": msg["stream_id"] = self.stream_id
+                    
+                    try:
+                        await self.websocket.send_text(json.dumps(msg))
+                    except Exception:
+                        break # Socket closed?
+
+                # 6. SLEEP (Maintain 20ms cadence)
+                elapsed = asyncio.get_running_loop().time() - loop_start
+                delay = 0.02 - elapsed
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                else:
+                    # Running behind, yield briefly
+                    await asyncio.sleep(0)
+                    
+        except asyncio.CancelledError:
+             logging.info("🌊 [STREAM] Loop Cancelled")
+        except Exception as e_loop:
+             logging.error(f"🌊 [STREAM] Loop Crash: {e_loop}") 
 
     def _synthesize_text(self, text):
         """
@@ -519,7 +548,13 @@ class VoiceOrchestrator:
         # Start background idle monitor
         logging.warning("🚀 [START] Creating monitor_idle task...")
         self.monitor_task = asyncio.create_task(self.monitor_idle())
-        logging.warning("🚀 [START] monitor_idle task created.")
+        
+        # Start Continuous Audio Stream (Telephony)
+        if self.client_type != "browser":
+             logging.warning("🌊 [START] Launching Audio Stream Loop...")
+             self.stream_task = asyncio.create_task(self._audio_stream_loop())
+        
+        logging.warning("🚀 [START] Tasks created.")
             
         # Start Recognition (Async)
         try:
@@ -587,16 +622,28 @@ class VoiceOrchestrator:
                 await self.response_task
             except asyncio.CancelledError:
                 pass
-            self.response_task = None
+        # 2. Cancel Audio Stream
+        if self.stream_task:
+            self.stream_task.cancel()
+            try:
+                await self.stream_task
+            except asyncio.CancelledError:
+                 pass
+            self.stream_task = None
 
-        # 2. Cancel Monitor Task
+        # 3. Cancel Idle Monitor
         if self.monitor_task:
+            logging.info("🛑 Cancelling idle monitor...")
             self.monitor_task.cancel()
             try:
                 await self.monitor_task
             except asyncio.CancelledError:
                 pass
             self.monitor_task = None
+            
+        self.response_task = None
+
+
 
         if self.recognizer:
             try:
