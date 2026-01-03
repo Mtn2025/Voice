@@ -6,11 +6,14 @@ import uuid
 import time
 import wave
 import io
+import os
 import azure.cognitiveservices.speech as speechsdk
 import audioop
+import httpx # Required for Telnyx API
 from fastapi import WebSocket
 from app.services.db_service import db_service
 from app.core.service_factory import ServiceFactory
+from app.core.config import settings # Required for API Keys
 
 class AdaptiveInputFilter:
     """
@@ -413,6 +416,11 @@ class VoiceOrchestrator:
                   if conf.voice_style_telnyx: conf.voice_style = conf.voice_style_telnyx
                   if conf.voice_speed_telnyx: conf.voice_speed = conf.voice_speed_telnyx
                   if conf.voice_pacing_ms_telnyx: conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
+                  
+                  # Functions (Transfer / Keypad)
+                  if conf.transfer_phone_number: conf.transfer_phone_number = conf.transfer_phone_number
+                  # Note: enable_dial_keypad is global, but we can override if needed. 
+                  # For now, we assume if it's set in dashboard it applies.
                   
                   logging.warning("✅ [TELNYX] Profile overlay completed successfully")
              except Exception as e:
@@ -975,7 +983,9 @@ class VoiceOrchestrator:
             "4. Keep responses concise (spoken conversation style).\n"
             "5. Do not use markdown formatting like **bold** or [brackets] in your spoken response.\n"
             "6. NAME CONSTRAINT: Do NOT use the user's name in every response. Use it ONLY in the first greeting. Refer to them as 'usted' or implicitly. Repetitive naming is forbidden.\n"
-            f"{'7. If the user asks to end the call, says goodbye, or indicates they are done, append the token [END_CALL] to the end of your response.' if getattr(self.config, 'enable_end_call', True) else ''}\n\n"
+            f"{'7. If the user asks to end the call, says goodbye, or indicates they are done, append the token [END_CALL] to the end of your response.' if getattr(self.config, 'enable_end_call', True) else ''}\n"
+            f"{'8. If the user asks to speak to a human/operator/supervisor, append [TRANSFER] to your response.' if getattr(self.config, 'transfer_phone_number', None) else ''}\n"
+            f"{'9. If the user asks to dial an extension or number, append [DTMF:digits] (e.g., [DTMF:123], [DTMF:9]) to your response.' if getattr(self.config, 'enable_dial_keypad', False) else ''}\n\n"
             "### CHARACTER CONFIGURATION ###\n"
             f"{base_prompt}\n"
             "### END CONFIGURATION ###\n\n"
@@ -1002,22 +1012,55 @@ class VoiceOrchestrator:
                 full_response += text_chunk
                 sentence_buffer += text_chunk
 
-                # ROBUST TOKEN DETECTION: Check buffer, not just chunk
+                # ------------------------------------------------------------------
+                # TOKEN DETECTION LOGIC (End Call, Transfer, DTMF)
+                # ------------------------------------------------------------------
+                
+                # Check for [END_CALL]
                 if "[END_CALL]" in sentence_buffer:
                     should_hangup = True
                     sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
-                
+
+                # Check for [TRANSFER]
+                if "[TRANSFER]" in sentence_buffer:
+                     logging.warning("🔀 [TOKEN] Transfer Requested by AI")
+                     # Execute Transfer Logic
+                     target_phone = getattr(self.config, 'transfer_phone_number', None)
+                     if target_phone:
+                          # Run in background or await? 
+                          # Await might block TTS, but transfer usually ends call flow.
+                          asyncio.create_task(self._perform_transfer(target_phone))
+                          # Stop TTS? Only if we want immediate silence.
+                     else:
+                          logging.warning("⚠️ Transfer requested but no number configured.")
+                     
+                     sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
+
+                # Check for [DTMF:...]
+                # Pattern: [DTMF:123], [DTMF:9], etc.
+                if "[DTMF:" in sentence_buffer and "]" in sentence_buffer:
+                     import re
+                     # Find all occurrences
+                     dtmf_matches = re.findall(r"\[DTMF:([0-9\*\#]+)\]", sentence_buffer)
+                     for digits in dtmf_matches:
+                          logging.warning(f"🎹 [TOKEN] DTMF Requested: {digits}")
+                          asyncio.create_task(self._perform_dtmf(digits))
+                     
+                     # Remove tokens from spoken text
+                     sentence_buffer = re.sub(r"\[DTMF:[0-9\*\#]+\]", "", sentence_buffer)
+
+                # ------------------------------------------------------------------
+
                 # Logic: Flush on punctuation, but keep a small buffer (tail) if we suspect a split token?
                 # Simpler: Just check split. If [END is at the end, don't flush yet?
-                # For now, the replacement above handles the case where it fully arrived.
                 # To handle split e.g. "Bye [END", we should wait.
                 
                 # Check if buffer ends with partial token
-                if sentence_buffer.endswith("[") or sentence_buffer.endswith("[END") or sentence_buffer.endswith("[END_"):
+                if sentence_buffer.endswith("[") or sentence_buffer.endswith("[END") or sentence_buffer.endswith("[TRAN") or sentence_buffer.endswith("[DT"):
                      continue # Wait for next chunk
 
                 if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
-                    # Safety clean again just in case
+                    # Safety clean again just in case tokens were re-added or split resolved
                     if "[END_CALL]" in sentence_buffer:
                          should_hangup = True
                          sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
@@ -1028,9 +1071,14 @@ class VoiceOrchestrator:
             
             # Process remaining buffer
             if sentence_buffer and self.is_bot_speaking:
-                if "[END_CALL]" in sentence_buffer: 
-                     should_hangup = True
-                     sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                # final cleanup
+                if "[END_CALL]" in sentence_buffer: should_hangup = True
+                sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
+                # Clean DTMF if any left
+                import re
+                sentence_buffer = re.sub(r"\[DTMF:[0-9\*\#]+\]", "", sentence_buffer)
+                
                 await process_tts(sentence_buffer)
                 
             if self.stream_id and full_response:
@@ -1182,3 +1230,78 @@ class VoiceOrchestrator:
             # Detailed Logging for debugging
             preview = payload[:50] + "..." + payload[-50:] if payload and len(payload) > 100 else payload
             logging.error(f"Error processing audio: {e} | Payload Len: {len(payload) if payload else 0} | Preview: {preview}")
+
+    # -------------------------------------------------------------------------
+    # TELNYX FUNCTIONS (Audit Implementation)
+    # -------------------------------------------------------------------------
+    async def _perform_transfer(self, target_number: str):
+        """
+        Executes a call transfer via Telnyx API.
+        Docs: https://developers.telnyx.com/docs/api/v2/call-control/Call-Commands#CallTransfer
+        """
+        if self.client_type != "telnyx" or not self.stream_id:
+            logging.error("❌ Transfer failed: Not a Telnyx call or missing stream_id/call_control_id")
+            return
+
+        # Note: self.stream_id IS the call_control_id for Telnyx in this architecture
+        call_control_id = self.stream_id
+        url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/transfer"
+        
+        headers = {
+            "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "to": target_number,
+            # "webhook_url": ... (Optional, use existing app webhook)
+        }
+
+        try:
+            logging.warning(f"📞 [TRANSFER] Initiating transfer to {target_number}...")
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                
+            if resp.status_code == 200:
+                logging.warning("✅ [TRANSFER] Command accepted by Telnyx.")
+                # We might want to stop speaking/listening here
+                self.is_bot_speaking = False 
+            else:
+                logging.error(f"❌ [TRANSFER] Failed: {resp.status_code} - {resp.text}")
+                
+        except Exception as e:
+            logging.error(f"❌ [TRANSFER] Exception: {e}")
+
+    async def _perform_dtmf(self, digits: str):
+        """
+        Sends DTMF tones via Telnyx API.
+        Docs: https://developers.telnyx.com/docs/api/v2/call-control/Call-Commands#CallSendDTMF
+        """
+        if self.client_type != "telnyx" or not self.stream_id:
+            logging.error("❌ DTMF failed: Not a Telnyx call")
+            return
+
+        call_control_id = self.stream_id
+        url = f"{settings.TELNYX_API_BASE}/calls/{call_control_id}/actions/send_dtmf"
+        
+        headers = {
+            "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "digits": digits
+        }
+
+        try:
+            logging.warning(f"ww [DTMF] Sending digits: {digits}")
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(url, headers=headers, json=payload)
+                
+            if resp.status_code == 200:
+                logging.info("✅ [DTMF] Sent successfully.")
+            else:
+                logging.error(f"❌ [DTMF] Failed: {resp.status_code} - {resp.text}")
+                
+        except Exception as e:
+            logging.error(f"❌ [DTMF] Exception: {e}")
