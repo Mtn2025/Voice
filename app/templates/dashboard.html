@@ -36,12 +36,37 @@
                     /* Telnyx State */
                     interruptionTelnyx: {{ config.interruption_threshold_telnyx or 2 }},
                     voiceSpeedTelnyx: {{ config.voice_speed_telnyx or 0.9 }},
-                    silenceTelnyx: {{ config.silence_timeout_ms_telnyx or 1200 }},
                     voicePacingTelnyx: {{ config.voice_pacing_ms_telnyx or 500 }},
-
-                    /* History State */
-                    historyFilter: 'all'
-                }">
+                    activeVoice: '{{ config.voice_name_telnyx or " es-MX-DaliaNeural" }}', voiceStyles:
+                    { 'es-MX-DaliaNeural' : [ {id: 'cheerful' , label: 'Alegre (Cheerful)' }, {id: 'sad' ,
+                    label: 'Triste (Sad)' }, {id: 'whispering' , label: 'Susurrando (Whispering)' }, {id: 'friendly' ,
+                    label: 'Amigable (Friendly)' }, {id: 'excited' , label: 'Entusiasmado (Excited)' }, {id: 'hopeful' ,
+                    label: 'Esperanzado (Hopeful)' }, {id: 'terrified' , label: 'Aterrorizado (Terrified)' },
+                    {id: 'angry' , label: 'Enojado (Angry)' }, {id: 'chat' , label: 'Charla (Chat)' },
+                    {id: 'customerservice' , label: 'Servicio al Cliente' } ], 'es-MX-JorgeNeural' : [ {id: 'cheerful' ,
+                    label: 'Alegre (Cheerful)' }, {id: 'chat' , label: 'Charla (Chat)' }, {id: 'sad' ,
+                    label: 'Triste (Sad)' }, {id: 'whispering' , label: 'Susurrando (Whispering)' }
+                    ], 'es-MX-CecilioNeural' : [ {id: 'cheerful' , label: 'Alegre (Cheerful)' }, {id: 'sad' ,
+                    label: 'Triste (Sad)' }, {id: 'angry' , label: 'Enojado (Angry)' }, {id: 'hopeful' ,
+                    label: 'Esperanzado (Hopeful)' }, {id: 'friendly' , label: 'Amigable (Friendly)' },
+                    {id: 'unfriendly' , label: 'Antipático (Unfriendly)' }, {id: 'terrified' ,
+                    label: 'Aterrorizado (Terrified)' }, {id: 'excited' , label: 'Entusiasmado (Excited)' },
+                    {id: 'whispering' , label: 'Susurrando (Whispering)' }, {id: 'shouting' ,
+                    label: 'Gritando (Shouting)' } ], 'es-MX-MarinaNeural' : [ {id: 'cheerful' ,
+                    label: 'Alegre (Cheerful)' }, {id: 'sad' , label: 'Triste (Sad)' }, {id: 'whispering' ,
+                    label: 'Susurrando (Whispering)' }, {id: 'friendly' , label: 'Amigable (Friendly)' }, {id: 'excited'
+                    , label: 'Entusiasmado (Excited)' }, {id: 'hopeful' , label: 'Esperanzado (Hopeful)' },
+                    {id: 'terrified' , label: 'Aterrorizado (Terrified)' }, {id: 'angry' , label: 'Enojado (Angry)' },
+                    {id: 'chat' , label: 'Charla (Chat)' }, {id: 'customerservice' , label: 'Servicio al Cliente' }
+                    ], 'en-US-JennyNeural' : [ {id: 'assistant' , label: 'Asistente' }, {id: 'chat' , label: 'Charla' },
+                    {id: 'customerservice' , label: 'Servicio Cliente' }, {id: 'newscast' , label: 'Noticias' },
+                    {id: 'angry' , label: 'Enojado' }, {id: 'cheerful' , label: 'Alegre' }, {id: 'sad' , label: 'Triste'
+                    }, {id: 'excited' , label: 'Entusiasmado' }, {id: 'friendly' , label: 'Amigable' }, {id: 'terrified'
+                    , label: 'Aterrorizado' }, {id: 'shouting' , label: 'Gritando' }, {id: 'unfriendly' ,
+                    label: 'Antipático' }, {id: 'whispering' , label: 'Susurrando' }, {id: 'hopeful' ,
+                    label: 'Esperanzado' } ], // Default fallback 'default' : [] }, get currentStyles() { return
+                    this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; }, /* History State */
+                    historyFilter: 'all' }">
                     <!-- Tabs Header (RESTORED FOR HISTORY ACCESS) -->
                     <div class="flex space-x-1 border-b border-slate-700 mb-4 overflow-x-auto pb-1 custom-scrollbar">
                         <!-- Model (Disabled/Hidden) -->
@@ -226,37 +251,27 @@
                                     <div>
                                         <label class="block text-sm font-medium mb-1 text-slate-200">Voz
                                             (Telnyx/Azure)</label>
-                                        <select name="voice_name_telnyx"
+                                        <select name="voice_name_telnyx" x-model="activeVoice"
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
-                                            <option value="es-MX-DaliaNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-DaliaNeural' %}selected{% endif %}>🇲🇽
+                                            <option value="es-MX-DaliaNeural">🇲🇽
                                                 Dalia (Femenina - Neutra)</option>
-                                            <option value="es-MX-JorgeNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-JorgeNeural' %}selected{% endif %}>🇲🇽
+                                            <option value="es-MX-JorgeNeural">🇲🇽
                                                 Jorge (Masculina - Seria)</option>
-                                            <option value="es-MX-LarissaNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-LarissaNeural' %}selected{% endif %}>
+                                            <option value="es-MX-LarissaNeural">
                                                 🇲🇽 Larissa (Femenina - Cálida)</option>
-                                            <option value="es-MX-CecilioNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-CecilioNeural' %}selected{% endif %}>
+                                            <option value="es-MX-CecilioNeural">
                                                 🇲🇽 Cecilio (Masculina - Amable)</option>
-                                            <option value="es-MX-MarinaNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-MarinaNeural' %}selected{% endif %}>
+                                            <option value="es-MX-MarinaNeural">
                                                 🇲🇽 Marina (Femenina - Suave)</option>
-                                            <option value="es-MX-BeatrizNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-BeatrizNeural' %}selected{% endif %}>
+                                            <option value="es-MX-BeatrizNeural">
                                                 🇲🇽 Beatriz (Femenina - Mayor)</option>
-                                            <option value="es-MX-RenataNeural" {% if
-                                                config.voice_name_telnyx=='es-MX-RenataNeural' %}selected{% endif %}>
+                                            <option value="es-MX-RenataNeural">
                                                 🇲🇽 Renata (Femenina - Joven)</option>
-                                            <option value="es-ES-ElviraNeural" {% if
-                                                config.voice_name_telnyx=='es-ES-ElviraNeural' %}selected{% endif %}>
+                                            <option value="es-ES-ElviraNeural">
                                                 🇪🇸 Elvira (Femenina - España)</option>
-                                            <option value="es-ES-AlvaroNeural" {% if
-                                                config.voice_name_telnyx=='es-ES-AlvaroNeural' %}selected{% endif %}>
+                                            <option value="es-ES-AlvaroNeural">
                                                 🇪🇸 Alvaro (Masculina - España)</option>
-                                            <option value="en-US-JennyNeural" {% if
-                                                config.voice_name_telnyx=='en-US-JennyNeural' %}selected{% endif %}>🇺🇸
+                                            <option value="en-US-JennyNeural">🇺🇸
                                                 Jenny (Inglés USA)</option>
                                         </select>
                                     </div>
@@ -267,26 +282,14 @@
                                             class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 outline-none">
                                             <option value="" {% if not config.voice_style_telnyx %}selected{% endif %}>
                                                 Normal (Predeterminado)</option>
-                                            <option value="cheerful" {% if config.voice_style_telnyx=='cheerful'
-                                                %}selected{% endif %}>Alegre (Cheerful)</option>
-                                            <option value="empathetic" {% if config.voice_style_telnyx=='empathetic'
-                                                %}selected{% endif %}>Empático (Empathetic)</option>
-                                            <option value="chat" {% if config.voice_style_telnyx=='chat' %}selected{%
-                                                endif %}>Charla (Chat)</option>
-                                            <option value="customerservice" {% if
-                                                config.voice_style_telnyx=='customerservice' %}selected{% endif %}>
-                                                Servicio al Cliente</option>
-                                            <option value="excited" {% if config.voice_style_telnyx=='excited'
-                                                %}selected{% endif %}>Entusiasmado (Excited)</option>
-                                            <option value="friendly" {% if config.voice_style_telnyx=='friendly'
-                                                %}selected{% endif %}>Amigable (Friendly)</option>
-                                            <option value="hopeful" {% if config.voice_style_telnyx=='hopeful'
-                                                %}selected{% endif %}>Esperanzado (Hopeful)</option>
-                                            <option value="sad" {% if config.voice_style_telnyx=='sad' %}selected{%
-                                                endif %}>Triste (Sad)</option>
-                                            <option value="whispering" {% if config.voice_style_telnyx=='whispering'
-                                                %}selected{% endif %}>Susurrando (Whispering)</option>
+                                            <!-- Dynamic Styles -->
+                                            <template x-for="style in currentStyles" :key="style.id">
+                                                <option :value="style.id" x-text="style.label"
+                                                    :selected="'{{ config.voice_style_telnyx }}' === style.id"></option>
+                                            </template>
                                         </select>
+                                        <p x-show="currentStyles.length === 0" class="text-[10px] text-slate-500 mt-1">*
+                                            Esta voz solo soporta el modo Normal.</p>
                                     </div>
                                 </div>
 
