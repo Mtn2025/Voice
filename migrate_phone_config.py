@@ -35,10 +35,10 @@ async def run_migration():
             ("first_message_mode_phone", "VARCHAR DEFAULT 'speak-first'"),
             ("max_tokens_phone", "INTEGER DEFAULT 250"),
             
-            ("initial_silence_timeout_ms_phone", "INTEGER DEFAULT 5000"),
+            ("initial_silence_timeout_ms_phone", "INTEGER DEFAULT 30000"),
             ("input_min_characters_phone", "INTEGER DEFAULT 1"),
             ("enable_denoising_phone", "BOOLEAN DEFAULT TRUE"),
-            ("silence_timeout_ms_phone", "INTEGER DEFAULT 1200"),
+            ("silence_timeout_ms_phone", "INTEGER DEFAULT 2000"),
             
             # Twilio Specifics
             ("twilio_machine_detection", "VARCHAR DEFAULT 'Enable'"),

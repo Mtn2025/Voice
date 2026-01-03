@@ -7,7 +7,7 @@ async def patch():
     async with AsyncSessionLocal() as session:
         print("Patched DB: Adding initial_silence_timeout_ms...")
         try:
-            await session.execute(text("ALTER TABLE agent_configs ADD COLUMN initial_silence_timeout_ms INTEGER DEFAULT 5000"))
+            await session.execute(text("ALTER TABLE agent_configs ADD COLUMN initial_silence_timeout_ms INTEGER DEFAULT 30000"))
             await session.commit()
             print("✅ Success!")
         except Exception as e:

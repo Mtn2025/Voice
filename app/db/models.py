@@ -115,7 +115,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     first_message_mode_phone = Column(String, default="speak-first")
     max_tokens_phone = Column(Integer, default=250)
     
-    initial_silence_timeout_ms_phone = Column(Integer, default=5000)
+    initial_silence_timeout_ms_phone = Column(Integer, default=30000)
     input_min_characters_phone = Column(Integer, default=1)
     enable_denoising_phone = Column(Boolean, default=True)
     
@@ -138,11 +138,11 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     
     # VAPI Stage 2: Transcriber & Functions
     silence_timeout_ms = Column(Integer, default=500) # Speech end silence
-    silence_timeout_ms_phone = Column(Integer, default=1200) # Phone silence timeout (Higher for latency)
+    silence_timeout_ms_phone = Column(Integer, default=2000) # Phone silence timeout (Higher for latency)
     segmentation_max_time = Column(Integer, default=30000) # ms (max phrase duration)
     segmentation_strategy = Column(String, default="default") # default, time, semantic
     enable_denoising = Column(Boolean, default=True)
-    initial_silence_timeout_ms = Column(Integer, default=5000) # Time to wait for start of speech
+    initial_silence_timeout_ms = Column(Integer, default=30000) # Time to wait for start of speech
     
     # VAD Sensitivity (Lower = More Sensitive)
     voice_sensitivity = Column(Integer, default=500) 
@@ -164,12 +164,12 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     first_message_mode_telnyx = Column(String, default="speak-first")
     max_tokens_telnyx = Column(Integer, default=250)
 
-    initial_silence_timeout_ms_telnyx = Column(Integer, default=5000)
+    initial_silence_timeout_ms_telnyx = Column(Integer, default=30000)
     input_min_characters_telnyx = Column(Integer, default=4)
     enable_denoising_telnyx = Column(Boolean, default=True)
     
     voice_pacing_ms_telnyx = Column(Integer, default=500)
-    silence_timeout_ms_telnyx = Column(Integer, default=1200)
+    silence_timeout_ms_telnyx = Column(Integer, default=2000)
     interruption_threshold_telnyx = Column(Integer, default=2)
     hallucination_blacklist_telnyx = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.")
     voice_speed_telnyx = Column(Float, default=0.9)

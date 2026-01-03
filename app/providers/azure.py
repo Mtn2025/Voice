@@ -68,8 +68,8 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         
         # Apply Timeouts Dynamically - Set to "Infinity" to let Orchestrator manage state
         # 1. InitialSilence: Time before user *starts* speaking (Default is often 5s). 
-        #    If greeting is long, this kills the session. Set to 20 days.
-        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, "1728000000") 
+        #    If greeting is long, this kills the session. Azure soft limit is ~30s.
+        self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, str(initial_silence_ms)) 
         # 2. EndSilence: Time after speech to consider "phrase" done. 
         #    We want short latency, but let's stick to the config if valid, else 1000ms.
         self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, str(segmentation_silence_ms))
@@ -133,4 +133,15 @@ class AzureProvider(AbstractSTT, AbstractTTS):
     async def synthesize_stream(self, text: str):
         # Implementation left to orchestrator calling synthesizer directly for now, 
         # or we wraps speak_text_async here.
+        pass
+            
+    async def stop_recognition(self):
+        """
+        Stop continuous recognition safely.
+        """
+        if self.recognizer:
+            self.recognizer.stop_continuous_recognition_async()
+            
+    async def close(self):
+        # ... logic to clean resources if needed ...
         pass

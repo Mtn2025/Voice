@@ -398,14 +398,14 @@ class VoiceOrchestrator:
         # Configure Timeouts
         silence_timeout = getattr(self.config, 'silence_timeout_ms', 500)
         if self.client_type != "browser":
-             silence_timeout = getattr(self.config, 'silence_timeout_ms_phone', 1200)
+             silence_timeout = getattr(self.config, 'silence_timeout_ms_phone', 2000)
 
         self.recognizer, self.push_stream = self.stt_provider.create_recognizer(
             language=getattr(self.config, 'stt_language', 'es-MX'), 
             audio_mode=self.client_type,
             on_interruption_callback=self.handle_interruption,
             event_loop=self.loop,
-            initial_silence_ms=getattr(self.config, 'initial_silence_timeout_ms', 5000),
+            initial_silence_ms=getattr(self.config, 'initial_silence_timeout_ms', 30000),
             segmentation_silence_ms=silence_timeout
         )
         
@@ -688,6 +688,10 @@ class VoiceOrchestrator:
                  threshold = getattr(self.config, 'interruption_threshold', 10)
             else:
                  threshold = getattr(self.config, 'interruption_threshold_phone', 5)
+            # Tuning for Telnyx PSTN Noise
+            if self.client_type == "telnyx":
+                self.config.voice_sensitivity = getattr(self.config, 'voice_sensitivity_telnyx', 5000) # Increased default
+                self.config.interruption_threshold = getattr(self.config, 'interruption_threshold_telnyx', 2)
             
             # STOP WORD BYPASS (If user says "Espera", "Para", etc. interrupt immediately)
             is_stop_command = any(word in text.lower() for word in ["espera", "para", "alto", "stop", "oye", "disculpa", "perdona"])
@@ -985,7 +989,7 @@ class VoiceOrchestrator:
                 elif rms > (vad_threshold / 2):
                     log_level = logging.INFO
                     classification = "🔊 Noise"
-                elif max_val > 10000:
+                elif max_val > 25000: # Increased from 10000 for Telnyx clicks/pops
                     log_level = logging.WARNING
                     classification = "💥 SPIKE"
 
