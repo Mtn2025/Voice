@@ -263,10 +263,30 @@
                                     <div>
                                         <label class="block text-sm font-medium mb-1 text-slate-200">Estilo de
                                             Emoción</label>
-                                        <input type="text" name="voice_style_telnyx"
-                                            value="{{ config.voice_style_telnyx or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 outline-none"
-                                            placeholder="(Estándar)">
+                                        <select name="voice_style_telnyx"
+                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 focus:border-emerald-500 outline-none">
+                                            <option value="" {% if not config.voice_style_telnyx %}selected{% endif %}>
+                                                Normal (Predeterminado)</option>
+                                            <option value="cheerful" {% if config.voice_style_telnyx=='cheerful'
+                                                %}selected{% endif %}>Alegre (Cheerful)</option>
+                                            <option value="empathetic" {% if config.voice_style_telnyx=='empathetic'
+                                                %}selected{% endif %}>Empático (Empathetic)</option>
+                                            <option value="chat" {% if config.voice_style_telnyx=='chat' %}selected{%
+                                                endif %}>Charla (Chat)</option>
+                                            <option value="customerservice" {% if
+                                                config.voice_style_telnyx=='customerservice' %}selected{% endif %}>
+                                                Servicio al Cliente</option>
+                                            <option value="excited" {% if config.voice_style_telnyx=='excited'
+                                                %}selected{% endif %}>Entusiasmado (Excited)</option>
+                                            <option value="friendly" {% if config.voice_style_telnyx=='friendly'
+                                                %}selected{% endif %}>Amigable (Friendly)</option>
+                                            <option value="hopeful" {% if config.voice_style_telnyx=='hopeful'
+                                                %}selected{% endif %}>Esperanzado (Hopeful)</option>
+                                            <option value="sad" {% if config.voice_style_telnyx=='sad' %}selected{%
+                                                endif %}>Triste (Sad)</option>
+                                            <option value="whispering" {% if config.voice_style_telnyx=='whispering'
+                                                %}selected{% endif %}>Susurrando (Whispering)</option>
+                                        </select>
                                     </div>
                                 </div>
 
