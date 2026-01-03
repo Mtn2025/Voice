@@ -472,8 +472,9 @@ class VoiceOrchestrator:
                      with open(sound_path, "rb") as f:
                          raw_bytes = f.read()
                      
-                     # WAV Header Parsing (Find 'data' chunk)
+                     # WAV Header Parsing (Find 'data' chunk) to skip header noise
                      data_index = raw_bytes.find(b'data')
+                     
                      if data_index != -1:
                          # 'data' (4) + Size (4) = 8 bytes offset
                          start_offset = data_index + 8
@@ -482,9 +483,9 @@ class VoiceOrchestrator:
                      else:
                          # Fallback: Assume RAW or headerless
                          self.bg_loop_buffer = raw_bytes
-                         logging.warning("⚠️ [BG-SOUND] No 'data' chunk found in WAV. Assuming RAW.")
+                         logging.warning("⚠️ [BG-SOUND] No 'data' chunk found in WAV. Assuming RAW Mono.")
 
-                     logging.info(f"🎵 [BG-SOUND] Buffer Size: {len(self.bg_loop_buffer)} bytes.")
+                     logging.info(f"🎵 [BG-SOUND] Buffer Ready. Size: {len(self.bg_loop_buffer)}")
                  else:
                      logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}. Mixing disabled.")
              except Exception as e_bg:
