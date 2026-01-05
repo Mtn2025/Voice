@@ -237,16 +237,29 @@ class VoiceOrchestrator:
 
     def _synthesize_text(self, text):
         """
-        Wraps text in SSML with configured voice and style.
+        Wraps text in SSML with configured voice and style, respecting client_type.
         """
+        # Default to Browser/Simulator settings
         voice = getattr(self.config, 'voice_name', 'es-MX-DaliaNeural')
+        style = getattr(self.config, 'voice_style', None)
+        speed = getattr(self.config, 'voice_speed', 1.0)
+        
+        # Override for Twilio
+        if self.client_type == 'twilio':
+            voice = getattr(self.config, 'voice_name_phone', voice)
+            style = getattr(self.config, 'voice_style_phone', style)
+            speed = getattr(self.config, 'voice_speed_phone', 0.9)
+            
+        # Override for Telnyx
+        elif self.client_type == 'telnyx':
+            voice = getattr(self.config, 'voice_name_telnyx', voice)
+            style = getattr(self.config, 'voice_style_telnyx', style)
+            speed = getattr(self.config, 'voice_speed_telnyx', 0.9) # Default to 0.9 if missing
+
+        # Manual Override (Generic) - Check if this should apply to all or just browser? 
+        # Assuming manual override is for testing/browser primarily, but let's leave it generic if set.
         if getattr(self.config, 'voice_id_manual', None):
              voice = self.config.voice_id_manual
-        style = getattr(self.config, 'voice_style', None)
-        
-        speed = getattr(self.config, 'voice_speed', 1.0)
-        if hasattr(self, 'client_type') and self.client_type != 'browser':
-             speed = getattr(self.config, 'voice_speed_phone', 0.9)
         
         # Build SSML
         ssml_parts = [
@@ -271,6 +284,11 @@ class VoiceOrchestrator:
         ssml_parts.append('</voice></speak>')
         
         ssml = "".join(ssml_parts)
+        # Assuming synthesizer is set up
+        if not self.synthesizer:
+            logging.error("Synthesizer not initialized in _synthesize_text")
+            return None
+            
         return self.synthesizer.speak_ssml_async(ssml).get()
 
     def update_vad_stats(self, rms: float):

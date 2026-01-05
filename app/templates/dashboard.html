@@ -1,1340 +1,641 @@
-<!DOCTYPE html>
-<html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Orquestador de Voz</title>
+    <title>Orquestador de Voz Nativo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <style>
+        /* FANCY UI VARIABLES */
+        :root {
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: #0f172a;
+            /* Slate 900 */
+            background-image:
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+        }
+    </style>
 </head>
 
-<body class="bg-slate-900 text-slate-100 min-h-screen">
-    <div class="container mx-auto p-4 max-w-[1600px]"> <!-- Wider container -->
-        <header class="mb-6 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-                Orquestador de Voz Nativo
-            </h1>
-            <div class="px-3 py-1 bg-slate-800 rounded-full text-xs font-mono">
-                Estado: <span class="text-emerald-400">● En Línea</span>
+<body class="text-slate-100 min-h-screen">
+    <div class="container mx-auto p-4 max-w-[1800px]"> <!-- Wider container for 60/40 -->
+
+        <!-- HEADER -->
+        <header class="mb-8 flex justify-between items-center glass-panel rounded-2xl px-6 py-4 shadow-2xl">
+            <div class="flex items-center gap-4">
+                <div
+                    class="h-10 w-10 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <span class="text-2xl">🎙️</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">Orquestador de Voz Nativo</h1>
+                    <p class="text-xs text-slate-400 font-mono tracking-wide uppercase">Panel de Control Unificado</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div
+                    class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
+                    <span class="relative flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs font-bold text-emerald-400 shadow-sm">En Línea</span>
+                </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-6 relative">
-            <!-- Configuration Panel (Left, Scrollable naturally) -->
-            <div class="sm:col-span-5 lg:col-span-4 bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
-                <h2 class="text-lg font-semibold mb-3 text-blue-300">Configuración</h2>
-                <script src="//unpkg.com/alpinejs" defer></script>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative items-start">
 
-                <div x-data="{ 
+            <!-- LEFT PANEL: CONFIGURATION (60% -> 3/5 cols) -->
+            <div class="lg:col-span-3 space-y-6">
+
+                <h2 class="text-lg font-semibold text-white/90 px-2 border-l-4 border-blue-500">Configuración del Agente
+                </h2>
+
+                <div class="glass-panel p-6 rounded-2xl shadow-xl space-y-6">
+
+
+                    <div x-data="{ 
                     tab: 'model', 
                     activeProfile: 'browser',
-                    interruptionPhone: {{ config.interruption_threshold_phone or 2 }},
-                    voiceSpeedPhone: {{ config.voice_speed_phone or 0.9 }},
-                    silencePhone: {{ config.silence_timeout_ms_phone or 1200 }},
                     
-                    /* Telnyx State */
-                    interruptionTelnyx: {{ config.interruption_threshold_telnyx or 2 }},
-                    voiceSpeedTelnyx: {{ config.voice_speed_telnyx or 0.9 }},
-                    voicePacingTelnyx: {{ config.voice_pacing_ms_telnyx or 500 }},
-                    activeVoice: '{{ config.voice_name_telnyx or " es-MX-DaliaNeural" }}', voiceStyles:
-                    { 'es-MX-DaliaNeural' : [ {id: 'cheerful' , label: 'Alegre (Cheerful)' }, {id: 'sad' ,
-                    label: 'Triste (Sad)' }, {id: 'whispering' , label: 'Susurrando (Whispering)' }, {id: 'friendly' ,
-                    label: 'Amigable (Friendly)' }, {id: 'excited' , label: 'Entusiasmado (Excited)' }, {id: 'hopeful' ,
-                    label: 'Esperanzado (Hopeful)' }, {id: 'terrified' , label: 'Aterrorizado (Terrified)' },
-                    {id: 'angry' , label: 'Enojado (Angry)' }, {id: 'chat' , label: 'Charla (Chat)' },
-                    {id: 'customerservice' , label: 'Servicio al Cliente' } ], 'es-MX-JorgeNeural' : [ {id: 'cheerful' ,
-                    label: 'Alegre (Cheerful)' }, {id: 'chat' , label: 'Charla (Chat)' }, {id: 'sad' ,
-                    label: 'Triste (Sad)' }, {id: 'whispering' , label: 'Susurrando (Whispering)' }
-                    ], 'es-MX-CecilioNeural' : [ {id: 'cheerful' , label: 'Alegre (Cheerful)' }, {id: 'sad' ,
-                    label: 'Triste (Sad)' }, {id: 'angry' , label: 'Enojado (Angry)' }, {id: 'hopeful' ,
-                    label: 'Esperanzado (Hopeful)' }, {id: 'friendly' , label: 'Amigable (Friendly)' },
-                    {id: 'unfriendly' , label: 'Antipático (Unfriendly)' }, {id: 'terrified' ,
-                    label: 'Aterrorizado (Terrified)' }, {id: 'excited' , label: 'Entusiasmado (Excited)' },
-                    {id: 'whispering' , label: 'Susurrando (Whispering)' }, {id: 'shouting' ,
-                    label: 'Gritando (Shouting)' } ], 'es-MX-MarinaNeural' : [ {id: 'cheerful' ,
-                    label: 'Alegre (Cheerful)' }, {id: 'sad' , label: 'Triste (Sad)' }, {id: 'whispering' ,
-                    label: 'Susurrando (Whispering)' }, {id: 'friendly' , label: 'Amigable (Friendly)' }, {id: 'excited'
-                    , label: 'Entusiasmado (Excited)' }, {id: 'hopeful' , label: 'Esperanzado (Hopeful)' },
-                    {id: 'terrified' , label: 'Aterrorizado (Terrified)' }, {id: 'angry' , label: 'Enojado (Angry)' },
-                    {id: 'chat' , label: 'Charla (Chat)' }, {id: 'customerservice' , label: 'Servicio al Cliente' }
-                    ], 'en-US-JennyNeural' : [ {id: 'assistant' , label: 'Asistente' }, {id: 'chat' , label: 'Charla' },
-                    {id: 'customerservice' , label: 'Servicio Cliente' }, {id: 'newscast' , label: 'Noticias' },
-                    {id: 'angry' , label: 'Enojado' }, {id: 'cheerful' , label: 'Alegre' }, {id: 'sad' , label: 'Triste'
-                    }, {id: 'excited' , label: 'Entusiasmado' }, {id: 'friendly' , label: 'Amigable' }, {id: 'terrified'
-                    , label: 'Aterrorizado' }, {id: 'shouting' , label: 'Gritando' }, {id: 'unfriendly' ,
-                    label: 'Antipático' }, {id: 'whispering' , label: 'Susurrando' }, {id: 'hopeful' ,
-                    label: 'Esperanzado' } ], 'default' : [] }, get currentStyles() { return
-                    this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; }, /* History State */
-                    historyFilter: 'all' }">
-                    <!-- Tabs Header (RESTORED FOR HISTORY ACCESS) -->
-                    <div class="flex space-x-1 border-b border-slate-700 mb-4 overflow-x-auto pb-1 custom-scrollbar">
-                        <!-- Model (Disabled/Hidden) -->
-                        <button @click.prevent="tab = 'model'"
-                            :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Modelo</button>
+                    // --- DATA STORES (From Backend) ---
+                    configs: {
+                        browser: {
+                            provider: '{{ config.llm_provider }}',
+                            model: '{{ config.llm_model }}',
+                            temp: {{ config.temperature or 0.7 }},
+                            tokens: {{ config.max_tokens or 250 }},
+                            msg: '{{ config.first_message }}',
+                            mode: '{{ config.first_message_mode }}',
+                            prompt: `{{ config.system_prompt | replace('`', '\`') | safe }}`
+                            // --- VOICE CONFIG ---
+                            voiceProvider: '{{ config.tts_provider }}',
+                            voiceLang: '{{ config.voice_language or " es-MX" }}', voiceId: '{{ config.voice_name }}' ,
+                        voiceStyle: '{{ config.voice_style }}' , voiceSpeed: {{ config.voice_speed or 1.0 }},
+                        voicePacing: {{ config.voice_pacing_ms or 0 }}, // Naturality delay
+                        voiceBgSound: '{{ config.background_sound }}' , voiceBgUrl: '{{ config.background_sound_url }}'
+                        }, twilio: { provider: '{{ config.llm_provider_phone }}' || '{{ config.llm_provider }}' ,
+                        model: '{{ config.llm_model_phone }}' || '{{ config.llm_model }}' , temp: {{
+                        config.temperature_phone or config.temperature or 0.7 }}, tokens: {{ config.max_tokens_phone or
+                        config.max_tokens or 250 }}, msg: '{{ config.first_message_phone }}'
+                        || '{{ config.first_message }}' , mode: '{{ config.first_message_mode_phone }}'
+                        || '{{ config.first_message_mode }}' , prompt: `{{ config.system_prompt_phone |
+                        replace('`', '\`' ) | safe }}` || `{{ config.system_prompt | replace('`', '\`' ) | safe }}`, //
+                        --- VOICE CONFIG PHONE --- voiceProvider: '{{ config.tts_provider_phone }}'
+                        || '{{ config.tts_provider }}' , voiceLang: '{{ config.voice_language_phone or "es-MX" }}' ,
+                        voiceId: '{{ config.voice_name_phone }}' , voiceStyle: '{{ config.voice_style_phone }}' ,
+                        voiceSpeed: {{ config.voice_speed_phone or 1.0 }}, voicePacing: {{ config.voice_pacing_ms_phone
+                        or 0 }}, voiceBgSound: '{{ config.background_sound_phone }}' ,
+                        voiceBgUrl: '{{ config.background_sound_url_phone }}' }, telnyx: {
+                        provider: '{{ config.llm_provider_telnyx }}' || '{{ config.llm_provider }}' ,
+                        model: '{{ config.llm_model_telnyx }}' || '{{ config.llm_model }}' , temp: {{
+                        config.temperature_telnyx or config.temperature or 0.7 }}, tokens: {{ config.max_tokens_telnyx
+                        or config.max_tokens or 250 }}, msg: '{{ config.first_message_telnyx }}'
+                        || '{{ config.first_message }}' , mode: '{{ config.first_message_mode_telnyx }}'
+                        || '{{ config.first_message_mode }}' , prompt: `{{ config.system_prompt_telnyx |
+                        replace('`', '\`' ) | safe }}` || `{{ config.system_prompt | replace('`', '\`' ) | safe }}`, //
+                        --- VOICE CONFIG TELNYX --- voiceProvider: '{{ config.tts_provider_telnyx }}'
+                        || '{{ config.tts_provider }}' , voiceLang: '{{ config.voice_language_telnyx or "es-MX" }}' ,
+                        voiceId: '{{ config.voice_name_telnyx }}' , voiceStyle: '{{ config.voice_style_telnyx }}' ,
+                        voiceSpeed: {{ config.voice_speed_telnyx or 1.0 }}, voicePacing: {{
+                        config.voice_pacing_ms_telnyx or 0 }}, voiceBgSound: '{{ config.background_sound_telnyx }}' ,
+                        voiceBgUrl: '{{ config.background_sound_url_telnyx }}' } }, // --- UI BOUND VARIABLES ---
+                        currentProvider: '' , currentModel: '' , currentTemp: 0.7, maxTokens: 250, firstMessage: '' ,
+                        firstMessageMode: 'speak-first' , systemPrompt: '' , availableModels: [], // --- UI BOUND VOICE
+                        VARIABLES --- currentVoiceProvider: 'azure' , currentVoiceLang: 'es-MX' , currentVoiceId: '' ,
+                        currentVoiceStyle: '' , currentVoiceSpeed: 1.0, currentVoicePacing: 0, currentBgSound: 'none' ,
+                        currentBgUrl: '' , // --- DYNAMIC LISTS --- availableLanguages: [], availableVoices: [],
+                        availableStyles: [], // --- CONSTANTS --- models: { groq: [ {id:'llama-3.3-70b-versatile',
+                        name:'⚡ Llama 3.3 70B (Versatile)'}, {id:'llama-3.1-8b-instant', name:'⚡ Llama 3.1 8B
+                        (Instant)'}, {id:'mixtral-8x7b-32768', name:'⚡ Mixtral 8x7B'} ], openai: [ {id:'gpt-4o',
+                        name:'🧠 GPT-4o (Omni)'}, {id:'gpt-4-turbo', name:'🤖 GPT-4 Turbo'}, {id:'gpt-3.5-turbo',
+                        name:'⚡ GPT-3.5 Turbo'} ], azure: [ {id:'gpt-4o', name:'☁️ Azure GPT-4o'}, {id:'gpt-35-turbo',
+                        name:'☁️ Azure GPT-3.5'} ] }, // --- VOICE CONSTANTS --- voiceProviders: [ {id: 'azure' ,
+                        name: 'Azure Speech' , icon: '☁️' }, {id: 'elevenlabs' , name: 'ElevenLabs' , icon: '📢' },
+                        {id: 'openai' , name: 'OpenAI Audio' , icon: '🤖' } ], voiceLanguages: { 'azure' : [
+                        {id: 'es-MX' , name: '🇲🇽 Español (México)' }, {id: 'es-ES' , name: '🇪🇸 Español (España)' },
+                        {id: 'en-US' , name: '🇺🇸 Inglés (USA)' } ], 'elevenlabs' : [ {id: 'es' ,
+                        name: '🇲🇽/🇪🇸 Español (Global)' }, {id: 'en' , name: '🇺🇸 Inglés (Global)' } ], 'openai' : [
+                        {id: 'global' , name: 'Global (Auto)' } ] }, voiceCatalog: { 'azure' : { 'es-MX' : [
+                        {id: 'es-MX-DaliaNeural' , name: 'Dalia (Femenina)' , gender: 'female' },
+                        {id: 'es-MX-JorgeNeural' , name: 'Jorge (Masculina)' , gender: 'male' },
+                        {id: 'es-MX-CecilioNeural' , name: 'Cecilio (Masculina)' , gender: 'male' },
+                        {id: 'es-MX-MarinaNeural' , name: 'Marina (Femenina)' , gender: 'female' } ], 'es-ES' : [
+                        {id: 'es-ES-ElviraNeural' , name: 'Elvira (Femenina)' , gender: 'female' },
+                        {id: 'es-ES-AlvaroNeural' , name: 'Alvaro (Masculina)' , gender: 'male' } ], 'en-US' : [
+                        {id: 'en-US-JennyNeural' , name: 'Jenny (Female)' , gender: 'female' }, {id: 'en-US-GuyNeural' ,
+                        name: 'Guy (Male)' , gender: 'male' } ] }, 'elevenlabs' : { 'es' : [ {id: 'rachel' ,
+                        name: 'Rachel (Femenina)' , gender: 'female' }, {id: 'josh' , name: 'Josh (Masculina)' ,
+                        gender: 'male' } ], 'en' : [ {id: 'rachel' , name: 'Rachel (Female)' , gender: 'female' },
+                        {id: 'josh' , name: 'Josh (Male)' , gender: 'male' } ] }, 'openai' : { 'global' : [ {id: 'alloy'
+                        , name: 'Alloy' , gender: 'neutral' }, {id: 'echo' , name: 'Echo' , gender: 'neutral' },
+                        {id: 'fable' , name: 'Fable' , gender: 'neutral' }, {id: 'onyx' , name: 'Onyx' ,
+                        gender: 'neutral' }, {id: 'nova' , name: 'Nova' , gender: 'neutral' }, {id: 'shimmer' ,
+                        name: 'Shimmer' , gender: 'neutral' } ] } }, // We reuse the existing voiceStyles object for the
+                        styles mapping backgroundSounds: [ {id: 'none' , name: '🔇 Silencio' }, {id: 'office' ,
+                        name: '🏢 Oficina' }, {id: 'cafe' , name: '☕ Cafetería' }, {id: 'callcenter' ,
+                        name: '📞 Call Center' }, {id: 'custom' , name: '🔗 URL Personalizada' } ], init() {
+                        this.loadProfile(this.activeProfile); // Watch for profile changes this.$watch('activeProfile',
+                        val=> this.loadProfile(val));
 
-                        <!-- Voice (RESTORED) -->
-                        <button @click.prevent="tab = 'voice'"
-                            :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Voz</button>
+                        // Sync UI changes back to internal store (MODEL)
+                        this.$watch('currentProvider', v => { this.configs[this.activeProfile].provider = v;
+                        this.updateModelList(); });
+                        this.$watch('currentModel', v => this.configs[this.activeProfile].model = v);
+                        this.$watch('currentTemp', v => this.configs[this.activeProfile].temp = v);
+                        this.$watch('maxTokens', v => this.configs[this.activeProfile].tokens = v);
+                        this.$watch('firstMessage', v => this.configs[this.activeProfile].msg = v);
+                        this.$watch('firstMessageMode', v => this.configs[this.activeProfile].mode = v);
+                        this.$watch('systemPrompt', v => this.configs[this.activeProfile].prompt = v);
 
-                        <!-- Transcriber (Disabled/Hidden) -->
-                        <!-- Transcriber (RESTORED) -->
-                        <button @click.prevent="tab = 'transcriber'"
-                            :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Transcriptor</button>
+                        // Sync UI changes back to internal store (VOICE)
+                        this.$watch('currentVoiceProvider', v => {
+                        this.configs[this.activeProfile].voiceProvider = v;
+                        this.updateVoiceLists();
+                        });
+                        this.$watch('currentVoiceLang', v => {
+                        this.configs[this.activeProfile].voiceLang = v;
+                        this.updateVoiceLists();
+                        });
+                        this.$watch('currentVoiceId', v => {
+                        this.configs[this.activeProfile].voiceId = v;
+                        this.updateStyleList();
+                        });
+                        this.$watch('currentVoiceStyle', v => this.configs[this.activeProfile].voiceStyle = v);
+                        this.$watch('currentVoiceSpeed', v => this.configs[this.activeProfile].voiceSpeed = v);
+                        this.$watch('currentVoicePacing', v => this.configs[this.activeProfile].voicePacing = v);
+                        this.$watch('currentBgSound', v => this.configs[this.activeProfile].voiceBgSound = v);
+                        this.$watch('currentBgUrl', v => this.configs[this.activeProfile].voiceBgUrl = v);
+                        },
 
-                        <!-- Functions (RESTORED) -->
-                        <button @click.prevent="tab = 'functions'"
-                            :class="tab === 'functions' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Funciones</button>
+                        loadProfile(p) {
+                        let c = this.configs[p];
+                        if(!c) return;
+                        // MODEL
+                        this.currentProvider = c.provider;
+                        this.updateModelList();
+                        this.currentModel = c.model;
+                        this.currentTemp = c.temp;
+                        this.maxTokens = c.tokens;
+                        this.firstMessage = c.msg;
+                        this.firstMessageMode = c.mode;
+                        this.systemPrompt = c.prompt;
 
-                        <!-- Advanced (RESTORED) -->
-                        <button @click.prevent="tab = 'advanced'"
-                            :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Avanzado</button>
+                        // VOICE
+                        this.currentVoiceProvider = c.voiceProvider || 'azure';
+                        this.currentVoiceLang = c.voiceLang || 'es-MX';
+                        this.updateVoiceLists(); // Calculates available based on prov/lang
 
-                        <!-- HISTORY (ACTIVE) -->
-                        <button @click.prevent="tab = 'history'"
-                            :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Historial</button>
+                        // Set ID after lists population to ensure validity
+                        this.currentVoiceId = c.voiceId;
+                        this.updateStyleList();
 
-                        <!-- Connectivity (Disabled/Hidden) -->
-                        <button @click.prevent="tab = 'connectivity'"
-                            :class="tab === 'connectivity' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                            class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
-                            title="Auditando...">Conexión</button>
-                    </div>
+                        this.currentVoiceStyle = c.voiceStyle;
+                        this.currentVoiceSpeed = c.voiceSpeed;
+                        this.currentVoicePacing = c.voicePacing;
+                        this.currentBgSound = c.voiceBgSound;
+                        this.currentBgUrl = c.voiceBgUrl;
+                        },
 
-                    <!-- GLOBAL PROFILE TOGGLE -->
-                    <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 mb-4 border border-slate-700">
-                        <button type="button"
-                            @click="activeProfile = 'browser'; document.getElementById('sim-mode-text').innerText = 'Navegador'; document.getElementById('sim-mode-text').className = 'text-blue-400'; window.simulatorClientType = 'browser';"
-                            :class="{'bg-blue-600 text-white shadow-lg': activeProfile === 'browser', 'text-slate-400 hover:text-white': activeProfile !== 'browser'}"
-                            class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
-                            <span>🌐</span> Simulador
-                        </button>
-                        <button type="button"
-                            @click="activeProfile = 'twilio'; document.getElementById('sim-mode-text').innerText = 'Twilio'; document.getElementById('sim-mode-text').className = 'text-red-400'; window.simulatorClientType = 'twilio';"
-                            :class="{'bg-red-600 text-white shadow-lg': activeProfile === 'twilio', 'text-slate-400 hover:text-white': activeProfile !== 'twilio'}"
-                            class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
-                            <span>📱</span> Twilio
-                        </button>
-                        <button type="button"
-                            @click="activeProfile = 'telnyx'; document.getElementById('sim-mode-text').innerText = 'Telnyx'; document.getElementById('sim-mode-text').className = 'text-emerald-400'; window.simulatorClientType = 'telnyx';"
-                            :class="{'bg-emerald-600 text-white shadow-lg': activeProfile === 'telnyx', 'text-slate-400 hover:text-white': activeProfile !== 'telnyx'}"
-                            class="flex-1 py-1.5 px-3 rounded text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
-                            <span>📡</span> Telnyx
-                        </button>
-                    </div>
+                        updateModelList() {
+                        this.availableModels = this.models[this.currentProvider] || [];
+                        // Validate current model exists in new list
+                        if (this.currentModel && !this.availableModels.find(m => m.id === this.currentModel)) {
+                        this.currentModel = this.availableModels[0]?.id || '';
+                        }
+                        },
 
-                    <form action="/api/config/update" method="POST" class="space-y-4"
-                        onsubmit="event.preventDefault(); saveConfig();">
-                        <!-- HIDDEN INPUTS AND FORM CONTENT SAME AS BEFORE (RELYING ON CONTEXT MATCH) -->
-                        <input type="hidden" name="stt_provider" value="azure">
-                        <input type="hidden" name="llm_provider" value="groq">
-                        <input type="hidden" name="tts_provider" value="azure">
+                        updateVoiceLists() {
+                        // 1. Get Languages for Provider
+                        this.availableLanguages = this.voiceLanguages[this.currentVoiceProvider] || [];
+                        // Ensure valid lang
+                        if (!this.availableLanguages.find(l => l.id === this.currentVoiceLang)) {
+                        this.currentVoiceLang = this.availableLanguages[0]?.id || '';
+                        }
 
-                        <!-- FROZEN CONFIGURATION STATE (AUDIT MODE) -->
-                        <div style="display:none;">
-                            <!-- CORE & MODEL (MOVED TO UI) -->
-                            <input type="hidden" name="extraction_model" value="{{ config.extraction_model }}">
-                            <input type="hidden" name="max_tokens" value="{{ config.max_tokens }}">
+                        // 2. Get Voices for Lang
+                        const providerVoices = this.voiceCatalog[this.currentVoiceProvider] || {};
+                        this.availableVoices = providerVoices[this.currentVoiceLang] || [];
 
-                            <!-- CORE PHONE (MOVED TO UI) -->
-                            <input type="hidden" name="max_tokens_phone" value="{{ config.max_tokens_phone }}">
+                        // Ensure valid voice if not empty
+                        if (this.availableVoices.length > 0 && !this.availableVoices.find(v => v.id ===
+                        this.currentVoiceId)) {
+                        // Use config voice if valid, otherwise first available
+                        // We don't overwrite if it might be a valid manual ID?
+                        // For now, let's select first if invalid to support dropdown Logic
+                        this.currentVoiceId = this.availableVoices[0].id;
+                        }
 
-                            <!-- CORE TELNYX (MOVED TO UI) -->
-                            <input type="hidden" name="max_tokens_telnyx" value="{{ config.max_tokens_telnyx }}">
+                        this.updateStyleList();
+                        },
 
-                            <!-- VOICE (MOVED TO UI) -->
+                        updateStyleList() {
+                        this.availableStyles = this.voiceStyles[this.currentVoiceId] || [];
+                        // Ensure valid style
+                        if (this.availableStyles.length > 0) {
+                        if (!this.availableStyles.find(s => s.id === this.currentVoiceStyle)) {
+                        this.currentVoiceStyle = this.availableStyles[0].id;
+                        }
+                        } else {
+                        this.currentVoiceStyle = '';
+                        }
+                        },
 
-                            <!-- VOICE PHONE (MOVED TO UI) -->
+                        /* Legacy Variables needed for other tabs */
+                        interruptionPhone: {{ config.interruption_threshold_phone or 2 }},
+                        voiceSpeedPhone: {{ config.voice_speed_phone or 0.9 }},
+                        silencePhone: {{ config.silence_timeout_ms_phone or 1200 }},
 
-                            <!-- VOICE TELNYX (MOVED TO UI) -->
-
-
-                            <!-- VOICE EXTRAS (MOVED TO UI) -->
-
-                            <!-- TRANSCRIBER & FUNCTIONS -->
-                            <input type="hidden" name="stt_language" value="{{ config.stt_language }}">
-                            <input type="hidden" name="silence_timeout_ms" value="{{ config.silence_timeout_ms }}">
-                            <input type="hidden" name="segmentation_max_time"
-                                value="{{ config.segmentation_max_time }}">
-                            <input type="hidden" name="interruption_threshold"
-                                value="{{ config.interruption_threshold }}">
-                            <input type="hidden" name="hallucination_blacklist"
-                                value="{{ config.hallucination_blacklist }}">
-                            <input type="hidden" name="enable_denoising" value="{{ config.enable_denoising }}">
-
-                            <!-- TRANSCRIBER PHONE -->
-                            <input type="hidden" name="stt_provider_phone" value="{{ config.stt_provider_phone }}">
-                            <input type="hidden" name="stt_language_phone" value="{{ config.stt_language_phone }}">
-                            <input type="hidden" name="interruption_threshold_phone"
-                                value="{{ config.interruption_threshold_phone }}">
-                            <input type="hidden" name="silence_timeout_ms_phone"
-                                value="{{ config.silence_timeout_ms_phone }}">
-                            <input type="hidden" name="input_min_characters_phone"
-                                value="{{ config.input_min_characters_phone }}">
-                            <input type="hidden" name="hallucination_blacklist_phone"
-                                value="{{ config.hallucination_blacklist_phone }}">
-                            <input type="hidden" name="enable_denoising_phone"
-                                value="{{ config.enable_denoising_phone }}">
-
-
-
-                            <!-- TWILIO FEATURES -->
-                            <input type="hidden" name="twilio_machine_detection"
-                                value="{{ config.twilio_machine_detection }}">
-                            <input type="hidden" name="twilio_record" value="{{ config.twilio_record }}">
-                            <input type="hidden" name="twilio_trim_silence" value="{{ config.twilio_trim_silence }}">
-
-                            <!-- ADVANCED (Partially moved to UI) -->
-                            <input type="hidden" name="idle_timeout" value="{{ config.idle_timeout }}">
-                            <input type="hidden" name="idle_message" value="{{ config.idle_message }}">
-                            <input type="hidden" name="max_duration" value="{{ config.max_duration }}">
-                            <input type="hidden" name="initial_silence_timeout_ms"
-                                value="{{ config.initial_silence_timeout_ms }}">
-                            <input type="hidden" name="initial_silence_timeout_ms_phone"
-                                value="{{ config.initial_silence_timeout_ms_phone }}">
-                            <input type="hidden" name="initial_silence_timeout_ms_telnyx"
-                                value="{{ config.initial_silence_timeout_ms_telnyx }}">
-                            <input type="hidden" name="punctuation_boundaries"
-                                value="{{ config.punctuation_boundaries or '' }}">
-                            <input type="hidden" name="enable_end_call" value="{{ config.enable_end_call }}">
-                            <input type="hidden" name="enable_dial_keypad" value="{{ config.enable_dial_keypad }}">
-                            <input type="hidden" name="transfer_phone_number"
-                                value="{{ config.transfer_phone_number or '' }}">
-                            <input type="hidden" name="segmentation_strategy"
-                                value="{{ config.segmentation_strategy }}">
-                            <input type="hidden" name="twilio_recording_channels"
-                                value="{{ config.twilio_recording_channels }}">
+                        /* Telnyx State */
+                        interruptionTelnyx: {{ config.interruption_threshold_telnyx or 2 }},
+                        voiceSpeedTelnyx: {{ config.voice_speed_telnyx or 0.9 }},
+                        voicePacingTelnyx: {{ config.voice_pacing_ms_telnyx or 500 }},
+                        activeVoice: '{{ config.voice_name_telnyx or " es-MX-DaliaNeural" }}', voiceStyles:
+                        { 'es-MX-DaliaNeural' : [ {id: 'cheerful' , label: 'Alegre (Cheerful)' }, {id: 'sad' ,
+                        label: 'Triste (Sad)' }, {id: 'whispering' , label: 'Susurrando (Whispering)' }, {id: 'friendly'
+                        , label: 'Amigable (Friendly)' }, {id: 'excited' , label: 'Entusiasmado (Excited)' },
+                        {id: 'hopeful' , label: 'Esperanzado (Hopeful)' }, {id: 'terrified' ,
+                        label: 'Aterrorizado (Terrified)' }, {id: 'angry' , label: 'Enojado (Angry)' }, {id: 'chat' ,
+                        label: 'Charla (Chat)' }, {id: 'customerservice' , label: 'Servicio al Cliente' }
+                        ], 'es-MX-JorgeNeural' : [ {id: 'cheerful' , label: 'Alegre (Cheerful)' }, {id: 'chat' ,
+                        label: 'Charla (Chat)' }, {id: 'sad' , label: 'Triste (Sad)' }, {id: 'whispering' ,
+                        label: 'Susurrando (Whispering)' } ], 'es-MX-CecilioNeural' : [ {id: 'cheerful' ,
+                        label: 'Alegre (Cheerful)' }, {id: 'sad' , label: 'Triste (Sad)' }, {id: 'angry' ,
+                        label: 'Enojado (Angry)' }, {id: 'hopeful' , label: 'Esperanzado (Hopeful)' }, {id: 'friendly' ,
+                        label: 'Amigable (Friendly)' }, {id: 'unfriendly' , label: 'Antipático (Unfriendly)' },
+                        {id: 'terrified' , label: 'Aterrorizado (Terrified)' }, {id: 'excited' ,
+                        label: 'Entusiasmado (Excited)' }, {id: 'whispering' , label: 'Susurrando (Whispering)' },
+                        {id: 'shouting' , label: 'Gritando (Shouting)' } ], 'es-MX-MarinaNeural' : [ {id: 'cheerful' ,
+                        label: 'Alegre (Cheerful)' }, {id: 'sad' , label: 'Triste (Sad)' }, {id: 'whispering' ,
+                        label: 'Susurrando (Whispering)' }, {id: 'friendly' , label: 'Amigable (Friendly)' },
+                        {id: 'excited' , label: 'Entusiasmado (Excited)' }, {id: 'hopeful' ,
+                        label: 'Esperanzado (Hopeful)' }, {id: 'terrified' , label: 'Aterrorizado (Terrified)' },
+                        {id: 'angry' , label: 'Enojado (Angry)' }, {id: 'chat' , label: 'Charla (Chat)' },
+                        {id: 'customerservice' , label: 'Servicio al Cliente' } ], 'en-US-JennyNeural' : [
+                        {id: 'assistant' , label: 'Asistente' }, {id: 'chat' , label: 'Charla' }, {id: 'customerservice'
+                        , label: 'Servicio Cliente' }, {id: 'newscast' , label: 'Noticias' }, {id: 'angry' ,
+                        label: 'Enojado' }, {id: 'cheerful' , label: 'Alegre' }, {id: 'sad' , label: 'Triste' },
+                        {id: 'excited' , label: 'Entusiasmado' }, {id: 'friendly' , label: 'Amigable' },
+                        {id: 'terrified' , label: 'Aterrorizado' }, {id: 'shouting' , label: 'Gritando' },
+                        {id: 'unfriendly' , label: 'Antipático' }, {id: 'whispering' , label: 'Susurrando' },
+                        {id: 'hopeful' , label: 'Esperanzado' } ], 'default' : [] }, get currentStyles() { return
+                        this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; }, historyFilter: 'all' }">
+                        <!-- GLOBAL PROFILE TOGGLE -->
+                        <div
+                            class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 mb-8 border border-slate-700/50 shadow-lg">
+                            <button type="button"
+                                @click="activeProfile = 'browser'; document.getElementById('sim-mode-text').innerText = 'Navegador'; document.getElementById('sim-mode-text').className = 'text-blue-400'; window.simulatorClientType = 'browser';"
+                                :class="{'bg-blue-600 text-white shadow-lg scale-[1.02]': activeProfile === 'browser', 'text-slate-400 hover:text-white': activeProfile !== 'browser'}"
+                                class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
+                                <span class="text-lg">🌐</span> Simulador
+                            </button>
+                            <button type="button"
+                                @click="activeProfile = 'twilio'; document.getElementById('sim-mode-text').innerText = 'Twilio'; document.getElementById('sim-mode-text').className = 'text-red-400'; window.simulatorClientType = 'twilio';"
+                                :class="{'bg-red-600 text-white shadow-lg scale-[1.02]': activeProfile === 'twilio', 'text-slate-400 hover:text-white': activeProfile !== 'twilio'}"
+                                class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
+                                <span class="text-lg">📱</span> Twilio
+                            </button>
+                            <button type="button"
+                                @click="activeProfile = 'telnyx'; document.getElementById('sim-mode-text').innerText = 'Telnyx'; document.getElementById('sim-mode-text').className = 'text-emerald-400'; window.simulatorClientType = 'telnyx';"
+                                :class="{'bg-emerald-600 text-white shadow-lg scale-[1.02]': activeProfile === 'telnyx', 'text-slate-400 hover:text-white': activeProfile !== 'telnyx'}"
+                                class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
+                                <span class="text-lg">📡</span> Telnyx
+                            </button>
                         </div>
 
-                        <!-- Tab: Model (RESTORED) -->
-                        <div x-show="tab === 'model'" class="space-y-4" style="display: none;">
+                        <!-- Tabs Header (RESTORED FOR HISTORY ACCESS) -->
+                        <div class=" flex space-x-1 border-b border-slate-700 mb-4 overflow-x-auto pb-1
+                        custom-scrollbar">
+                            <!-- Model (Disabled/Hidden) -->
+                            <button @click.prevent="tab = 'model'"
+                                :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Modelo</button>
 
-                            <!-- SIMULATOR PROFILE -->
-                            <div x-show="activeProfile === 'browser'">
-                                <h3 class="text-sm font-semibold text-blue-300">Modelo LLM (Simulador)</h3>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Proveedor LLM</label>
-                                            <select name="llm_provider"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                                <option value="groq" {% if config.llm_provider=='groq' %}selected{%
-                                                    endif %}>Groq (Rápido)</option>
-                                                <option value="openai" {% if config.llm_provider=='openai' %}selected{%
-                                                    endif %}>OpenAI (Calidad)</option>
-                                                <option value="azure" {% if config.llm_provider=='azure' %}selected{%
-                                                    endif %}>Azure</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Modelo LLM</label>
-                                            <select name="llm_model"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 font-mono">
-                                                <option value="llama-3.3-70b-versatile" {% if
-                                                    config.llm_model=='llama-3.3-70b-versatile' %}selected{% endif %}>
-                                                    Llama 3.3 70B</option>
-                                                <option value="gpt-4o" {% if config.llm_model=='gpt-4o' %}selected{%
-                                                    endif %}>GPT-4o</option>
-                                                <option value="gpt-3.5-turbo" {% if config.llm_model=='gpt-3.5-turbo'
-                                                    %}selected{% endif %}>GPT-3.5 Turbo</option>
-                                                <option value="mixtral-8x7b-32768" {% if
-                                                    config.llm_model=='mixtral-8x7b-32768' %}selected{% endif %}>Mixtral
-                                                    8x7B</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Max Tokens</label>
-                                        <input type="number" name="max_tokens" value="{{ config.max_tokens }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm bg-slate-800">
-                                    </div>
+                            <!-- Voice (RESTORED) -->
+                            <button @click.prevent="tab = 'voice'"
+                                :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Voz</button>
 
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Modo Saludo</label>
-                                            <select name="first_message_mode"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
-                                                <option value="speak-first" {% if
-                                                    config.first_message_mode=='speak-first' %}selected{% endif %}>
-                                                    Hablar Primero</option>
-                                                <option value="wait-for-user" {% if
-                                                    config.first_message_mode=='wait-for-user' %}selected{% endif %}>
-                                                    Esperar Usuario</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
-                                            <input type="text" name="first_message" value="{{ config.first_message }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
-                                        </div>
-                                    </div>
+                            <!-- Transcriber (Disabled/Hidden) -->
+                            <!-- Transcriber (RESTORED) -->
+                            <button @click.prevent="tab = 'transcriber'"
+                                :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Transcriptor</button>
 
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
-                                        <textarea name="system_prompt" rows="15"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt }}</textarea>
-                                    </div>
+                            <!-- Functions (RESTORED) -->
+                            <button @click.prevent="tab = 'functions'"
+                                :class="tab === 'functions' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Funciones</button>
 
-                                    <div x-data="{ temp: {{ config.temperature }} }">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <label class="block text-sm font-medium">Temperatura</label>
-                                            <span class="text-xs font-mono text-blue-400" x-text="temp"></span>
-                                        </div>
-                                        <div class="relative w-full pt-2">
-                                            <input type="range" name="temperature" x-model="temp" step="0.1" min="0"
-                                                max="2"
-                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                                        </div>
-                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                            <span>0 (Preciso)</span>
-                                            <span>2 (Creativo)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Advanced (RESTORED) -->
+                            <button @click.prevent="tab = 'advanced'"
+                                :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Avanzado</button>
 
-                            <!-- TWILIO PROFILE -->
-                            <div x-show="activeProfile === 'twilio'">
-                                <h3 class="text-sm font-semibold text-red-300">Modelo LLM (Twilio)</h3>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Proveedor LLM</label>
-                                            <select name="llm_provider_phone"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                                <option value="groq" {% if config.llm_provider_phone=='groq'
-                                                    %}selected{% endif %}>Groq (Rápido)</option>
-                                                <option value="openai" {% if config.llm_provider_phone=='openai'
-                                                    %}selected{% endif %}>OpenAI</option>
-                                                <option value="azure" {% if config.llm_provider_phone=='azure'
-                                                    %}selected{% endif %}>Azure</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Modelo LLM</label>
-                                            <select name="llm_model_phone"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200 font-mono">
-                                                <option value="llama-3.3-70b-versatile" {% if
-                                                    config.llm_model_phone=='llama-3.3-70b-versatile' %}selected{% endif
-                                                    %}>Llama 3.3 70B</option>
-                                                <option value="gpt-4o" {% if config.llm_model_phone=='gpt-4o'
-                                                    %}selected{% endif %}>GPT-4o</option>
-                                                <option value="gpt-3.5-turbo" {% if
-                                                    config.llm_model_phone=='gpt-3.5-turbo' %}selected{% endif %}>
-                                                    GPT-3.5 Turbo</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Max Tokens</label>
-                                        <input type="number" name="max_tokens_phone"
-                                            value="{{ config.max_tokens_phone }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm bg-slate-800">
-                                    </div>
+                            <!-- HISTORY (ACTIVE) -->
+                            <button @click.prevent="tab = 'history'"
+                                :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Historial</button>
 
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Modo Saludo</label>
-                                            <select name="first_message_mode_phone"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
-                                                <option value="speak-first" {% if
-                                                    config.first_message_mode_phone=='speak-first' %}selected{% endif
-                                                    %}>Hablar Primero</option>
-                                                <option value="wait-for-user" {% if
-                                                    config.first_message_mode_phone=='wait-for-user' %}selected{% endif
-                                                    %}>Esperar Usuario</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Mensaje Inicial</label>
-                                            <input type="text" name="first_message_phone"
-                                                value="{{ config.first_message_phone }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm">
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">System Prompt</label>
-                                        <textarea name="system_prompt_phone" rows="15"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-slate-300">{{ config.system_prompt_phone }}</textarea>
-                                    </div>
-
-                                    <div x-data="{ tempPhone: {{ config.temperature_phone }} }">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <label class="block text-sm font-medium">Temperatura</label>
-                                            <span class="text-xs font-mono text-red-400" x-text="tempPhone"></span>
-                                        </div>
-                                        <div class="relative w-full pt-2">
-                                            <input type="range" name="temperature_phone" x-model="tempPhone" step="0.1"
-                                                min="0" max="2"
-                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500">
-                                        </div>
-                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                            <span>0 (Preciso)</span>
-                                            <span>2 (Creativo)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- TELNYX PROFILE -->
-                            <div x-show="activeProfile === 'telnyx'">
-                                <!-- Green Banner for Telnyx -->
-                                <div
-                                    class="bg-emerald-900/30 border border-emerald-500/30 rounded p-2 mb-4 flex items-center gap-2">
-                                    <span class="text-emerald-400">📡</span>
-                                    <span class="text-sm font-semibold text-emerald-400">Configuración Específica para
-                                        Telnyx</span>
-                                </div>
-                                <h3 class="text-sm font-semibold text-emerald-300">Modelo LLM (Telnyx)</h3>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Modelo LLM (Telnyx)</label>
-                                            <select name="llm_model_telnyx"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400 font-mono">
-                                                <option value="llama-3.3-70b-versatile" {% if
-                                                    config.llm_model_telnyx=='llama-3.3-70b-versatile' %}selected{%
-                                                    endif %}>Llama 3.3 70B</option>
-                                                <option value="llama3-70b-8192" {% if
-                                                    config.llm_model_telnyx=='llama3-70b-8192' %}selected{% endif %}>
-                                                    Llama 3 70B (Groq)</option>
-                                                <option value="gpt-4o" {% if config.llm_model_telnyx=='gpt-4o'
-                                                    %}selected{% endif %}>GPT-4o</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Proveedor LLM</label>
-                                            <select name="llm_provider_telnyx"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                                <option value="groq" {% if config.llm_provider_telnyx=='groq'
-                                                    %}selected{% endif %}>Groq (Rápido)</option>
-                                                <option value="openai" {% if config.llm_provider_telnyx=='openai'
-                                                    %}selected{% endif %}>OpenAI</option>
-                                                <option value="azure" {% if config.llm_provider_telnyx=='azure'
-                                                    %}selected{% endif %}>Azure</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Max Tokens (Telnyx)</label>
-                                        <input type="number" name="max_tokens_telnyx"
-                                            value="{{ config.max_tokens_telnyx }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm bg-slate-800 text-emerald-400">
-                                    </div>
-
-                                    <div class="grid grid-cols-1 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Modo Primer Mensaje
-                                                (Telnyx)</label>
-                                            <select name="first_message_mode_telnyx"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400">
-                                                <option value="speak-first" {% if
-                                                    config.first_message_mode_telnyx=='speak-first' %}selected{% endif
-                                                    %}>Hablar Primero</option>
-                                                <option value="wait-for-user" {% if
-                                                    config.first_message_mode_telnyx=='wait-for-user' %}selected{% endif
-                                                    %}>Esperar Usuario</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Mensaje Inicial
-                                                (Telnyx)</label>
-                                            <input type="text" name="first_message_telnyx"
-                                                value="{{ config.first_message_telnyx }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400">
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Prompt del Sistema
-                                            (Telnyx)</label>
-                                        <textarea name="system_prompt_telnyx" rows="15"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-mono text-emerald-300">{{ config.system_prompt_telnyx }}</textarea>
-                                    </div>
-
-                                    <div x-data="{ tempTelnyx: {{ config.temperature_telnyx }} }">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <label class="block text-sm font-medium">Temperatura (Telnyx)</label>
-                                            <span class="text-xs text-emerald-500 font-mono" x-text="tempTelnyx"></span>
-                                        </div>
-                                        <div class="relative w-full pt-2">
-                                            <input type="range" name="temperature_telnyx" x-model="tempTelnyx"
-                                                step="0.1" min="0" max="1"
-                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                                        </div>
-                                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                                            <span>0 (Preciso)</span>
-                                            <span>1 (Creativo)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Connectivity (Disabled/Hidden) -->
+                            <button @click.prevent="tab = 'connectivity'"
+                                :class="tab === 'connectivity' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
+                                title="Auditando...">Conexión</button>
                         </div>
 
-                        <!-- Tab: Voice -->
-                        <div x-show="tab === 'voice'" class="space-y-4" style="display: none;">
 
-                            <!-- SIMULATOR PROFILE -->
-                            <div x-show="activeProfile === 'browser'" class="space-y-4">
-                                <div class="bg-blue-900/20 border border-blue-700/50 p-3 rounded mb-4">
-                                    <h3 class="text-sm font-bold text-blue-400">Configuración Simulador (Web)</h3>
-                                    <p class="text-xs text-slate-400">Esta configuración aplica solo al chat web /
-                                        testing.</p>
-                                </div>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
-                                            (Azure)</label>
-                                        <input type="text" name="voice_name" value="{{ config.voice_name }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo</label>
-                                        <input type="text" name="voice_style" value="{{ config.voice_style or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label
-                                                class="block text-sm font-medium mb-1 text-slate-200">Velocidad</label>
-                                            <input type="number" name="voice_speed" step="0.1"
-                                                value="{{ config.voice_speed }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Pacing
-                                                (ms)</label>
-                                            <input type="number" name="voice_pacing_ms" step="10"
-                                                value="{{ config.voice_pacing_ms }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                        </div>
-                                    </div>
-                                </div>
+
+                        <form action="/api/config/update" method="POST" class="space-y-4"
+                            onsubmit="event.preventDefault(); saveConfig();">
+                            <!-- HIDDEN INPUTS AND FORM CONTENT SAME AS BEFORE (RELYING ON CONTEXT MATCH) -->
+                            <input type="hidden" name="stt_provider" value="azure">
+
+                            <input type="hidden" name="tts_provider" value="azure">
+
+                            <!-- FROZEN CONFIGURATION STATE (AUDIT MODE) -->
+                            <div style="display:none;">
+                                <!-- CORE & MODEL (MOVED TO UI) -->
+                                <input type="hidden" name="extraction_model" value="{{ config.extraction_model }}">
+
+
+                                <!-- CORE PHONE (MOVED TO UI) -->
+
+
+                                <!-- CORE TELNYX (MOVED TO UI) -->
+
+
+                                <!-- VOICE (MOVED TO UI) -->
+
+                                <!-- VOICE PHONE (MOVED TO UI) -->
+
+                                <!-- VOICE TELNYX (MOVED TO UI) -->
+
+
+                                <!-- VOICE EXTRAS (MOVED TO UI) -->
+
+                                <!-- TRANSCRIBER & FUNCTIONS -->
+                                <input type="hidden" name="stt_language" value="{{ config.stt_language }}">
+                                <input type="hidden" name="silence_timeout_ms" value="{{ config.silence_timeout_ms }}">
+                                <input type="hidden" name="segmentation_max_time"
+                                    value="{{ config.segmentation_max_time }}">
+                                <input type="hidden" name="interruption_threshold"
+                                    value="{{ config.interruption_threshold }}">
+                                <input type="hidden" name="hallucination_blacklist"
+                                    value="{{ config.hallucination_blacklist }}">
+                                <input type="hidden" name="enable_denoising" value="{{ config.enable_denoising }}">
+
+                                <!-- TRANSCRIBER PHONE -->
+                                <input type="hidden" name="stt_provider_phone" value="{{ config.stt_provider_phone }}">
+                                <input type="hidden" name="stt_language_phone" value="{{ config.stt_language_phone }}">
+                                <input type="hidden" name="interruption_threshold_phone"
+                                    value="{{ config.interruption_threshold_phone }}">
+                                <input type="hidden" name="silence_timeout_ms_phone"
+                                    value="{{ config.silence_timeout_ms_phone }}">
+                                <input type="hidden" name="input_min_characters_phone"
+                                    value="{{ config.input_min_characters_phone }}">
+                                <input type="hidden" name="hallucination_blacklist_phone"
+                                    value="{{ config.hallucination_blacklist_phone }}">
+                                <input type="hidden" name="enable_denoising_phone"
+                                    value="{{ config.enable_denoising_phone }}">
+
+
+
+                                <!-- TWILIO FEATURES -->
+                                <input type="hidden" name="twilio_machine_detection"
+                                    value="{{ config.twilio_machine_detection }}">
+                                <input type="hidden" name="twilio_record" value="{{ config.twilio_record }}">
+                                <input type="hidden" name="twilio_trim_silence"
+                                    value="{{ config.twilio_trim_silence }}">
+
+                                <!-- ADVANCED (Partially moved to UI) -->
+                                <input type="hidden" name="idle_timeout" value="{{ config.idle_timeout }}">
+                                <input type="hidden" name="idle_message" value="{{ config.idle_message }}">
+                                <input type="hidden" name="max_duration" value="{{ config.max_duration }}">
+                                <input type="hidden" name="initial_silence_timeout_ms"
+                                    value="{{ config.initial_silence_timeout_ms }}">
+                                <input type="hidden" name="initial_silence_timeout_ms_phone"
+                                    value="{{ config.initial_silence_timeout_ms_phone }}">
+                                <input type="hidden" name="initial_silence_timeout_ms_telnyx"
+                                    value="{{ config.initial_silence_timeout_ms_telnyx }}">
+                                <input type="hidden" name="punctuation_boundaries"
+                                    value="{{ config.punctuation_boundaries or '' }}">
+                                <input type="hidden" name="enable_end_call" value="{{ config.enable_end_call }}">
+                                <input type="hidden" name="enable_dial_keypad" value="{{ config.enable_dial_keypad }}">
+                                <input type="hidden" name="transfer_phone_number"
+                                    value="{{ config.transfer_phone_number or '' }}">
+                                <input type="hidden" name="segmentation_strategy"
+                                    value="{{ config.segmentation_strategy }}">
+                                <input type="hidden" name="twilio_recording_channels"
+                                    value="{{ config.twilio_recording_channels }}">
                             </div>
 
-                            <!-- TWILIO PROFILE -->
-                            <div x-show="activeProfile === 'twilio'" class="space-y-4">
-                                <div class="bg-purple-900/20 border border-purple-700/50 p-3 rounded mb-4">
-                                    <h3 class="text-sm font-bold text-purple-400">Configuración Twilio (Phone)</h3>
-                                    <p class="text-xs text-slate-400">Configuración exclusiva para llamadas telefónicas
-                                        vía Twilio.</p>
-                                </div>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
-                                            (Azure)</label>
-                                        <input type="text" name="voice_name_phone" value="{{ config.voice_name_phone }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo</label>
-                                        <input type="text" name="voice_style_phone"
-                                            value="{{ config.voice_style_phone or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label
-                                                class="block text-sm font-medium mb-1 text-slate-200">Velocidad</label>
-                                            <input type="number" name="voice_speed_phone" step="0.1"
-                                                value="{{ config.voice_speed_phone }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Pacing
-                                                (ms)</label>
-                                            <input type="number" name="voice_pacing_ms_phone" step="10"
-                                                value="{{ config.voice_pacing_ms_phone }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                        </div>
-                                    </div>
-                                </div>
+                            <!-- Tab: Model -->
+                            {% include "partials/tab_model.html" %}
+
+                            <!-- Tab: Voice -->
+                            {% include "partials/tab_voice.html" %}
+
+                            <!-- Tab: Transcriber -->
+                            {% include "partials/tab_transcriber.html" %}
+
+                            <!-- Tab: Functions -->
+                            {% include "partials/tab_functions.html" %}
+
+                            <!-- Tab: Advanced -->
+                            {% include "partials/tab_advanced.html" %}
+
+                            <!-- 🔒 LOCKED SECTION: PANEL HISTORIAL (DO NOT EDIT WITHOUT AUTH) -->
+                            <!-- Script moved to partials/tab_history.html -->
+                            <!-- 🔒 END LOCKED SECTION -->
+
+
+                            <!-- END HIDDEN CONFIGURATION SECTION -->
+
+                            <div class="pt-4 border-t border-slate-700"
+                                x-show="tab !== 'history' && tab !== 'connectivity'">
+                                <button type="button" onclick="saveConfig()"
+                                    class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2">
+                                    <span>💾</span> Guardar Configuración Completa
+                                </button>
                             </div>
-
-                            <!-- TELNYX PROFILE -->
-                            <div x-show="activeProfile === 'telnyx'" class="space-y-4">
-                                <h3 class="text-sm font-semibold text-emerald-300">Configuración de Voz (Telnyx)</h3>
-
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <!-- Voice Identity Grid -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
-                                            (Telnyx/Azure)</label>
-                                        <input type="text" name="voice_name_telnyx"
-                                            value="{{ config.voice_name_telnyx }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-emerald-400">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">Estilo</label>
-                                        <input type="text" name="voice_style_telnyx"
-                                            value="{{ config.voice_style_telnyx or '' }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Velocidad
-                                                (Telnyx)</label>
-                                            <input type="number" name="voice_speed_telnyx" step="0.1"
-                                                value="{{ config.voice_speed_telnyx }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Pacing
-                                                (ms)</label>
-                                            <input type="number" name="voice_pacing_ms_telnyx" step="10"
-                                                value="{{ config.voice_pacing_ms_telnyx }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-300">
-                                        </div>
-                                    </div>
-
-                                    <!-- Advanced Voice Extras -->
-                                    <div class="pt-4 border-t border-slate-700/50 space-y-3">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">ID de Voz
-                                                Manual (Sobrescribir)</label>
-                                            <input type="text" name="voice_id_manual"
-                                                value="{{ config.voice_id_manual or '' }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm font-mono text-slate-300 placeholder-slate-600"
-                                                placeholder="ej. en-US-DavisNeural">
-                                        </div>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label class="block text-sm font-medium mb-1 text-slate-200">Sonido de
-                                                    Fondo</label>
-                                                <select name="background_sound"
-                                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                                    <option value="none" {% if config.background_sound=='none'
-                                                        %}selected{% endif %}>Ninguno</option>
-                                                    <option value="office" {% if config.background_sound=='office'
-                                                        %}selected{% endif %}>Oficina</option>
-                                                    <option value="cafe" {% if config.background_sound=='cafe'
-                                                        %}selected{% endif %}>Cafetería</option>
-                                                    <option value="call_center" {% if
-                                                        config.background_sound=='call_center' %}selected{% endif %}>
-                                                        Call Center</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="block text-sm font-medium mb-1 text-slate-200">Mínimo
-                                                    Caracteres Entrada</label>
-                                                <input type="number" name="input_min_characters"
-                                                    value="{{ config.input_min_characters }}"
-                                                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">URL Sonido de
-                                                Fondo (Externo)</label>
-                                            <input type="text" name="background_sound_url"
-                                                value="{{ config.background_sound_url or '' }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-400 font-mono"
-                                                placeholder="https://example.com/ambiente.mp3">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tab: Transcriber -->
-                        <div x-show="tab === 'transcriber'" class="space-y-4" style="display: none;">
-
-                            <!-- GENERIC / SIMULATOR PROFILE -->
-                            <div x-show="activeProfile !== 'telnyx'" class="space-y-4">
-                                <div class="bg-blue-900/20 border border-blue-700/50 p-3 rounded mb-4">
-                                    <h3 class="text-sm font-bold text-blue-400">Transcripción Simulador / Twilio</h3>
-                                    <p class="text-xs text-slate-400">Configuración compartida para Web y Twilio.</p>
-                                </div>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <!-- STT Provider -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Proveedor STT</label>
-                                        <select name="stt_provider"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                            <option value="azure" {% if config.stt_provider=='azure' %}selected{% endif
-                                                %}>Azure</option>
-                                            <option value="deepgram" {% if config.stt_provider=='deepgram' %}selected{%
-                                                endif %}>Deepgram</option>
-                                        </select>
-                                    </div>
-                                    <!-- Language -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Idioma</label>
-                                        <select name="stt_language"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                            <option value="es-MX" {% if config.stt_language=='es-MX' %}selected{% endif
-                                                %}>Español (México)</option>
-                                            <option value="es-US" {% if config.stt_language=='es-US' %}selected{% endif
-                                                %}>Español (USA)</option>
-                                            <option value="en-US" {% if config.stt_language=='en-US' %}selected{% endif
-                                                %}>Inglés (USA)</option>
-                                        </select>
-                                    </div>
-                                    <!-- Sensitivity (Generic) -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Umbral Interrupción
-                                            (Palabras)</label>
-                                        <input type="number" name="interruption_threshold"
-                                            value="{{ config.interruption_threshold }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-200">
-                                    </div>
-                                    <!-- Silence (Generic) -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Silencio Fin de Turno (ms)</label>
-                                        <input type="number" name="silence_timeout_ms"
-                                            value="{{ config.silence_timeout_ms }}" step="100"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-200">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- TELNYX PROFILE -->
-                            <div x-show="activeProfile === 'telnyx'" class="space-y-4">
-                                <h3 class="text-sm font-semibold text-emerald-300">Configuración Transcripción (Telnyx)
-                                </h3>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <!-- STT Provider -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Proveedor STT</label>
-                                        <select name="stt_provider_telnyx"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                            <option value="azure" {% if config.stt_provider_telnyx=='azure' %}selected{%
-                                                endif %}>
-                                                Azure (Recomendado - A-Law)</option>
-                                            <option value="deepgram" {% if config.stt_provider_telnyx=='deepgram'
-                                                %}selected{% endif %}>Deepgram</option>
-                                        </select>
-                                    </div>
-                                    <!-- Language -->
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1">Idioma</label>
-                                        <select name="stt_language_telnyx"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
-                                            <option value="es-MX" {% if config.stt_language_telnyx=='es-MX' %}selected{%
-                                                endif %}>Español (México)</option>
-                                            <option value="es-US" {% if config.stt_language_telnyx=='es-US' %}selected{%
-                                                endif %}>Español (USA)</option>
-                                        </select>
-                                    </div>
-                                    <!-- Sensitivity (RMS) -->
-                                    <div>
-                                        <div class="flex justify-between items-end mb-1">
-                                            <label class="text-sm font-medium text-slate-300">Umbral de Activación
-                                                (RMS)</label>
-                                            <span class="text-emerald-400 font-mono font-bold text-sm" id="val-rms">{{
-                                                config.voice_sensitivity_telnyx }}</span>
-                                        </div>
-                                        <div class="relative w-full">
-                                            <input type="range" name="voice_sensitivity_telnyx" min="100" max="8000"
-                                                step="100" value="{{ config.voice_sensitivity_telnyx }}"
-                                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                                                oninput="document.getElementById('val-rms').innerText = this.value">
-                                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                                                <span>100 (Muy Sensible)</span>
-                                                <span>8000 (Poco Sensible)</span>
-                                            </div>
-                                        </div>
-                                        <p class="text-[10px] text-blue-400/80 mt-1 italic">Valor recomendado: 2000 -
-                                            3000
-                                        </p>
-                                    </div>
-
-                                    <!-- Silence & Interruption (Sliders) -->
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <!-- Silence Timeout -->
-                                        <div>
-                                            <div class="flex justify-between items-end mb-1">
-                                                <label class="text-sm font-medium text-slate-300">Silencio Fin de Turno
-                                                    (ms)</label>
-                                                <span class="text-emerald-400 font-mono font-bold text-sm"
-                                                    id="val-silence">{{ config.silence_timeout_ms_telnyx }} ms</span>
-                                            </div>
-                                            <div class="relative w-full">
-                                                <input type="range" name="silence_timeout_ms_telnyx" min="500"
-                                                    max="3000" step="100" value="{{ config.silence_timeout_ms_telnyx }}"
-                                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                                                    oninput="document.getElementById('val-silence').innerText = this.value + ' ms'">
-                                                <div
-                                                    class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                                                    <span>500ms (Rápido)</span>
-                                                    <span>3000ms (Lento)</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Interruption Threshold -->
-                                        <div>
-                                            <div class="flex justify-between items-end mb-1">
-                                                <label class="text-sm font-medium text-slate-300">Sensibilidad
-                                                    Interrupción</label>
-                                                <span class="text-emerald-400 font-mono font-bold text-sm"
-                                                    id="val-interrupt">{{ config.interruption_threshold_telnyx }}
-                                                    palabras</span>
-                                            </div>
-                                            <div class="relative w-full">
-                                                <input type="range" name="interruption_threshold_telnyx" min="0"
-                                                    max="10" step="1" value="{{ config.interruption_threshold_telnyx }}"
-                                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
-                                                    oninput="document.getElementById('val-interrupt').innerText = this.value + ' palabras'">
-                                                <div
-                                                    class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                                                    <span>0 (Inmediato)</span>
-                                                    <span>10 (Tolera ruido)</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Noise & Features -->
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <!-- Filtro Ruido -->
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Filtro Ruido (Min
-                                                Caracteres)</label>
-                                            <input type="number" name="input_min_characters_telnyx"
-                                                value="{{ config.input_min_characters_telnyx }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-slate-200 focus:border-emerald-500 focus:outline-none transition-colors">
-                                            <p class="text-[10px] text-slate-500 mt-1">Ignora frases con menos de X
-                                                caracteres.</p>
-                                        </div>
-
-                                        <!-- Lista Negra -->
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Lista Negra (Telnyx)</label>
-                                            <textarea name="hallucination_blacklist_telnyx" rows="1"
-                                                placeholder="Pero, Y..., Mm..., Oye, Ah..."
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-200 font-mono focus:border-emerald-500 focus:outline-none transition-colors">{{ config.hallucination_blacklist_telnyx or '' }}</textarea>
-                                            <p class="text-[10px] text-slate-500 mt-1">Separar frases por comas.</p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Toggles Section -->
-                                    <div class="space-y-3 pt-2 border-t border-slate-700/50">
-                                        <!-- Software Denoising -->
-                                        <div
-                                            class="flex items-center justify-between p-3 bg-slate-900/50 rounded border border-slate-700 hover:border-blue-500/50 transition-colors">
-                                            <div>
-                                                <label class="text-sm font-medium text-slate-200">Reducción de Ruido
-                                                    (Software)</label>
-                                                <p class="text-[10px] text-slate-500">Filtro de ruido adicional
-                                                    post-transcripción.</p>
-                                            </div>
-                                            <input type="checkbox" name="enable_denoising_telnyx" value="true" {% if
-                                                config.enable_denoising_telnyx %}checked{% endif %}
-                                                class="transform scale-125 accent-blue-500 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
-                                        </div>
-
-                                        <!-- Funciones Nativas Header -->
-                                        <div class="flex items-center gap-2 mt-4 mb-2">
-                                            <span class="text-yellow-400 text-xs">⚡</span>
-                                            <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-                                                Funciones Nativas de Telnyx</h4>
-                                        </div>
-
-                                        <!-- Krisp & VAD Grid -->
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <!-- Noise Suppression (Krisp) -->
-                                            <div
-                                                class="flex items-center justify-between p-3 bg-slate-900 rounded border border-emerald-900/30">
-                                                <div>
-                                                    <label class="text-sm font-medium text-slate-200">Noise Suppression
-                                                        (Krisp)</label>
-                                                    <p class="text-[10px] text-emerald-500/80">Reduce ruido de fondo
-                                                        (Nativo)</p>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <span
-                                                        class="text-[10px] text-emerald-600 border border-emerald-800 px-1 rounded bg-emerald-900/20">Nativo</span>
-                                                    <input type="checkbox" name="enable_krisp_telnyx" value="true" {% if
-                                                        config.enable_krisp_telnyx %}checked{% endif %}
-                                                        class="transform scale-125 accent-emerald-500 rounded border-gray-300 focus:ring-emerald-500">
-                                                </div>
-                                            </div>
-
-                                            <!-- Voice Activity Detection (VAD) -->
-                                            <div
-                                                class="flex items-center justify-between p-3 bg-slate-900 rounded border border-emerald-900/30">
-                                                <div>
-                                                    <label class="text-sm font-medium text-slate-200">Voice Activity
-                                                        Detection (VAD)</label>
-                                                    <p class="text-[10px] text-emerald-500/80">Detecta voz vs silencio
-                                                        (Nativo)</p>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <span
-                                                        class="text-[10px] text-emerald-600 border border-emerald-800 px-1 rounded bg-emerald-900/20">Nativo</span>
-                                                    <input type="checkbox" name="enable_vad_telnyx" value="true" {% if
-                                                        config.enable_vad_telnyx %}checked{% endif %}
-                                                        class="transform scale-125 accent-emerald-500 rounded border-gray-300 focus:ring-emerald-500">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Tab: Functions -->
-                        <!-- 🔒 LOCKED SECTION: PANEL FUNCIONES (RESTORED PER REQUEST) -->
-                        <div x-show="tab === 'functions'" class="space-y-4" style="display: none;">
-                            <h3 class="text-sm font-semibold text-blue-300">Funciones Predefinidas</h3>
-                            <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-
-                                <!-- End Call -->
-                                <div
-                                    class="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                                    <div>
-                                        <label class="font-medium text-sm text-slate-200">Habilitar Función
-                                            "Colgar"</label>
-                                        <p class="text-xs text-slate-500">Permite al asistente terminar la llamada
-                                            ([END_CALL]).</p>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="enable_end_call" value="true" class="sr-only peer"
-                                            {% if config.enable_end_call %}checked{% endif %}>
-                                        <div
-                                            class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <!-- Keypad -->
-                                <div
-                                    class="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                                    <div>
-                                        <label class="font-medium text-sm text-slate-200">Habilitar Teclado
-                                            Numérico</label>
-                                        <p class="text-xs text-slate-500">Permite marcar extensiones o números
-                                            ([DTMF:123]).</p>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="enable_dial_keypad" value="true"
-                                            class="sr-only peer" {% if config.enable_dial_keypad %}checked{% endif %}>
-                                        <div
-                                            class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <!-- Transfer -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Número para Transferencia</label>
-                                    <input type="text" name="transfer_phone_number" placeholder="+52..."
-                                        value="{{ config.transfer_phone_number or '' }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 font-mono text-sm">
-                                    <p class="text-xs text-slate-500 mt-1">Si está vacío, la función [TRANSFER] no hará
-                                        nada.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- 🔒 END LOCKED SECTION -->
-
-                        <!-- END FROZEN CONFIG -->
-
-                        <!-- Tab: Advanced -->
-                        <!-- 🔒 LOCKED SECTION: PANEL AVANZADO (RESTORED PER REQUEST) -->
-                        <div x-show="tab === 'advanced'" class="space-y-4" style="display: none;">
-                            <!-- Telnyx Advanced Section -->
-                            <div x-show="activeProfile === 'telnyx'">
-                                <h3 class="text-sm font-semibold text-emerald-300">Control de Flujo (Telnyx)</h3>
-                                <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Tiempo Espera
-                                                Inactividad (s)</label>
-                                            <input type="number" name="idle_timeout_telnyx" step="0.5"
-                                                value="{{ config.idle_timeout_telnyx }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Duración Máx
-                                                Global
-                                                (s)</label>
-                                            <input type="number" name="max_duration_telnyx"
-                                                value="{{ config.max_duration_telnyx }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400">
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium mb-1 text-slate-200">Mensaje de
-                                            Inactividad</label>
-                                        <input type="text" name="idle_message_telnyx"
-                                            value="{{ config.idle_message_telnyx }}"
-                                            class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-emerald-400 text-sm">
-                                    </div>
-
-                                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-700/50">
-                                        <!-- Recording -->
-                                        <div
-                                            class="flex items-center justify-between p-2 bg-slate-900/50 rounded border border-slate-700">
-                                            <div>
-                                                <label class="text-sm font-medium text-slate-200">Grabar
-                                                    Llamadas</label>
-                                                <p class="text-[10px] text-slate-500">Grabar audio nativamente en Telnyx
-                                                </p>
-                                            </div>
-                                            <input type="checkbox" name="enable_recording_telnyx" value="true" {% if
-                                                config.enable_recording_telnyx %}checked{% endif %}
-                                                class="accent-emerald-500 transform scale-125">
-                                        </div>
-
-                                        <!-- AMD -->
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1 text-slate-200">Detección
-                                                Contestadora (AMD)</label>
-                                            <select name="amd_config_telnyx"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-emerald-400">
-                                                <option value="disabled" {% if config.amd_config_telnyx=='disabled'
-                                                    %}selected{% endif %}>Desactivado</option>
-                                                <option value="detect" {% if config.amd_config_telnyx=='detect'
-                                                    %}selected{% endif %}>Detectar (Log)</option>
-                                                <option value="detect_hangup" {% if
-                                                    config.amd_config_telnyx=='detect_hangup' %}selected{% endif %}>
-                                                    Colgar a
-                                                    Máquinas</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Legacy/Simulator Advanced Section -->
-                            <div x-show="activeProfile !== 'telnyx'">
-                                <h3 class="text-sm font-semibold text-blue-300 pt-4">Control de Flujo
-                                    (Heredado/Simulador)
-                                </h3>
-
-                                <div class="bg-slate-800 p-3 rounded border border-slate-700 mb-4">
-                                    <p class="text-xs text-slate-400 mb-2">Estos controles intervienen en la llamada
-                                        para
-                                        verificar continuidad.</p>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Tiempo Espera Inactividad
-                                                (s)</label>
-                                            <input type="number" name="idle_timeout" step="0.5"
-                                                value="{{ config.idle_timeout }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Intentos Máximos
-                                                (Silencio)</label>
-                                            <input type="number" name="inactivity_max_retries"
-                                                value="{{ config.inactivity_max_retries or 3 }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                            <p class="text-[10px] text-slate-500 mt-1">Cuelga tras X intentos fallidos.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4 mt-2">
-                                        <div>
-                                            <label class="block text-sm font-medium mb-1">Duración Máx Global
-                                                (s)</label>
-                                            <input type="number" name="max_duration" value="{{ config.max_duration }}"
-                                                class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Mensaje de Inactividad</label>
-                                    <input type="text" name="idle_message" value="{{ config.idle_message }}"
-                                        class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1">
-                                </div>
-                            </div>
-                        </div>
-                        <!-- 🔒 END LOCKED SECTION -->
-                        <!-- Tab: History -->
-                        <!-- 🔒 LOCKED SECTION: PANEL HISTORIAL (DO NOT EDIT WITHOUT AUTH) -->
-
+                        </form>
 
                         <script>
-                            function toggleAllHistory(source) {
-                                const checkboxes = document.querySelectorAll('.history-checkbox');
-                                checkboxes.forEach(cb => cb.checked = source.checked);
-                                updateDeleteButton();
-                            }
+                            async function saveConfig() {
+                                const btn = document.querySelector('button[onclick="saveConfig()"]');
+                                const originalText = btn.innerHTML;
+                                btn.innerHTML = '<span>⏳</span> Guardando...';
+                                btn.disabled = true;
 
-                            function updateDeleteButton() {
-                                const checked = document.querySelectorAll('.history-checkbox:checked').length;
-                                const btn = document.getElementById('btn-delete-selected');
-                                if (checked > 0) {
-                                    btn.style.display = 'inline-flex';
-                                    btn.innerHTML = `<span>🗑️</span> Borrar (${checked})`;
-                                } else {
-                                    btn.style.display = 'none';
-                                }
-                            }
-
-                            async function deleteSelectedCalls() {
-                                if (!confirm('¿Borrar llamadas seleccionadas?')) return;
-
-                                const checkedBoxes = document.querySelectorAll('.history-checkbox:checked');
-                                const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+                                const form = document.querySelector('form[action="/api/config/update"]');
+                                const formData = new FormData(form);
 
                                 try {
-                                    const res = await fetch('/api/history/delete-selected', {
+                                    const response = await fetch('/api/config/update', {
                                         method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ call_ids: ids })
+                                        body: formData
                                     });
 
-                                    if (res.ok) {
-                                        htmx.trigger('#history-body', 'refreshHistory');
-                                        document.querySelector('thead input[type="checkbox"]').checked = false;
-                                        updateDeleteButton();
+                                    if (response.ok) {
+                                        btn.innerHTML = '<span>✅</span> ¡Guardado!';
+                                        btn.classList.add('bg-green-600');
+                                        setTimeout(() => {
+                                            btn.innerHTML = originalText;
+                                            btn.classList.remove('bg-green-600');
+                                            btn.disabled = false;
+                                        }, 2000);
+
+                                        // Notify Simulator of potentially new settings (e.g. VAD sliders)
+                                        if (typeof window.updateSimulatorConfig === 'function') {
+                                            // window.updateSimulatorConfig(); // Optional: reload sim config
+                                        }
                                     } else {
-                                        alert('Error al borrar');
+                                        throw new Error('Error en respuesta');
                                     }
                                 } catch (e) {
                                     console.error(e);
-                                    alert('Error de conexión');
-                                }
-                            }
-                        </script>
-                        <!-- 🔒 END LOCKED SECTION -->
-
-
-                        <!-- END HIDDEN CONFIGURATION SECTION -->
-
-                        <div class="pt-4 border-t border-slate-700"
-                            x-show="tab !== 'history' && tab !== 'connectivity'">
-                            <button type="button" onclick="saveConfig()"
-                                class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2">
-                                <span>💾</span> Guardar Configuración Completa
-                            </button>
-                        </div>
-                    </form>
-
-                    <script>
-                        async function saveConfig() {
-                            const btn = document.querySelector('button[onclick="saveConfig()"]');
-                            const originalText = btn.innerHTML;
-                            btn.innerHTML = '<span>⏳</span> Guardando...';
-                            btn.disabled = true;
-
-                            const form = document.querySelector('form[action="/api/config/update"]');
-                            const formData = new FormData(form);
-
-                            try {
-                                const response = await fetch('/api/config/update', {
-                                    method: 'POST',
-                                    body: formData
-                                });
-
-                                if (response.ok) {
-                                    btn.innerHTML = '<span>✅</span> ¡Guardado!';
-                                    btn.classList.add('bg-green-600');
+                                    btn.innerHTML = '<span>❌</span> Error al Guardar';
+                                    btn.classList.add('bg-red-600');
                                     setTimeout(() => {
                                         btn.innerHTML = originalText;
-                                        btn.classList.remove('bg-green-600');
+                                        btn.classList.remove('bg-red-600');
                                         btn.disabled = false;
-                                    }, 2000);
-
-                                    // Notify Simulator of potentially new settings (e.g. VAD sliders)
-                                    if (typeof window.updateSimulatorConfig === 'function') {
-                                        // window.updateSimulatorConfig(); // Optional: reload sim config
-                                    }
-                                } else {
-                                    throw new Error('Error en respuesta');
+                                    }, 3000);
                                 }
-                            } catch (e) {
-                                console.error(e);
-                                btn.innerHTML = '<span>❌</span> Error al Guardar';
-                                btn.classList.add('bg-red-600');
-                                setTimeout(() => {
-                                    btn.innerHTML = originalText;
-                                    btn.classList.remove('bg-red-600');
-                                    btn.disabled = false;
-                                }, 3000);
                             }
-                        }
-                    </script>
-
-                    <!-- Tab: History -->
-                    <div x-show="tab === 'history'" class="space-y-4">
-
-                        <!-- Filters -->
-                        <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
-                            <button type="button" @click="historyFilter = 'all'"
-                                :class="{'bg-blue-600 text-white': historyFilter === 'all', 'text-slate-400 hover:text-white': historyFilter !== 'all'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
-                            <button type="button" @click="historyFilter = 'simulator'"
-                                :class="{'bg-blue-600 text-white': historyFilter === 'simulator', 'text-slate-400 hover:text-white': historyFilter !== 'simulator'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
-                            <button type="button" @click="historyFilter = 'twilio'"
-                                :class="{'bg-red-600 text-white': historyFilter === 'twilio', 'text-slate-400 hover:text-white': historyFilter !== 'twilio'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Twilio</button>
-                            <button type="button" @click="historyFilter = 'telnyx'"
-                                :class="{'bg-emerald-600 text-white': historyFilter === 'telnyx', 'text-slate-400 hover:text-white': historyFilter !== 'telnyx'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Telnyx</button>
-                        </div>
-
-                        <!-- Table -->
-                        <div class="overflow-x-auto rounded border border-slate-700">
-                            <table class="w-full text-xs text-left text-slate-400">
-                                <thead class="text-xs text-slate-300 uppercase bg-slate-800">
-                                    <tr>
-                                        <th scope="col" class="px-4 py-2">Fecha</th>
-                                        <th scope="col" class="px-4 py-2">Fuente</th>
-                                        <th scope="col" class="px-4 py-2">Duración</th>
-                                        <th scope="col" class="px-4 py-2">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for call in history %}
-                                    <tr class="border-b border-slate-800 hover:bg-slate-800/50"
-                                        x-show="historyFilter === 'all' || historyFilter === '{{ call.client_type or 'simulator' }}'">
-                                        <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            {% if call.client_type == 'telnyx' %}
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
-                                            {% elif call.client_type == 'twilio' %}
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
-                                            {% else %}
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="px-4 py-2 font-mono">
-                                            {% if call.end_time %}
-                                            {{ (call.end_time - call.start_time).seconds }}s
-                                            {% else %}
-                                            <span class="text-yellow-500 animate-pulse">En curso</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <a href="/call/{{ call.id }}" class="text-blue-400 hover:underline">Ver</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% if not history %}
-                                    <tr>
-                                        <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">
-                                            No hay historial disponible.
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Clear History Action -->
-                        <div class="pt-2">
-                            <form action="/api/history/clear" method="POST"
-                                onsubmit="return confirm('¿Borrar todo el historial?');">
-                                <button type="submit"
-                                    class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
-                                    🗑️ Borrar Historial Completo
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                </div> <!-- End x-data -->
-            </div>
-
-            <!-- Simulator Panel (Sticky, Right Side) -->
-            <div class="sm:col-span-7 lg:col-span-8 sticky top-6 self-start space-y-4">
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl flex flex-col min-h-[500px]">
-                    <div class="flex justify-between items-center mb-6">
-                        <script>
-                            // Expose Config to Simulator
-                            window.simulatorConfig = {
-                                backgroundAudio: "{{ config.background_sound }}",
-                                backgroundUrl: "{{ config.background_sound_url }}"
-                            };
                         </script>
-                        <div class="flex flex-col">
-                            <h2 class="text-xl font-semibold text-emerald-300 flex items-center gap-2">
-                                <span>🧪</span> Simulador
-                            </h2>
-                            <!-- Client Type Indicator -->
-                            <div id="sim-client-wrapper" class="text-[10px] font-mono mt-1 text-slate-400">
-                                Perfil: <span id="sim-mode-text" class="text-blue-400 font-bold">Navegador</span>
-                            </div>
-                        </div>
-                        <button id="start-btn" onclick="toggleCall()"
-                            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all text-sm">
-                            Iniciar Prueba
-                        </button>
-                    </div>
 
+                        <!-- Tab: History -->
+                        {% include "partials/tab_history.html" %}
+
+                    </div> <!-- End x-data -->
+                </div>
+
+                <!-- Simulator Panel (Sticky, Right Side) -->
+                <div class="lg:col-span-2 sticky top-6 self-start space-y-4">
                     <div
-                        class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
-                        <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para conectar...
-                        </div>
-
-                        <!-- Visualizer Canvas -->
-                        <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
-                    </div>
-
-                    <!-- SIMULATOR VAD CONTROLS (HIDDEN) -->
-                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700"
-                        style="display:none !important;">
-                        <h3 class="text-sm font-mono text-slate-400 mb-2">CONTROLES DE SENSIBILIDAD (VAD)</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                    <span>Sensibilidad Mic (RMS)</span>
-                                    <span id="vad-sens-val" class="text-emerald-400">0.05</span>
-                                </label>
-                                <input type="range" id="vad-sensitivity" min="0.005" max="0.2" step="0.005" value="0.05"
-                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                    oninput="document.getElementById('vad-sens-val').innerText = this.value">
-                                <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-rms"
-                                        class="font-mono text-blue-400">0.00</span> | Mínimo ruido</p>
+                        class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col min-h-[600px] border border-white/10">
+                        <div class="flex justify-between items-center mb-6">
+                            <script>
+                                // Expose Config to Simulator
+                                window.simulatorConfig = {
+                                    backgroundAudio: "{{ config.background_sound }}",
+                                    backgroundUrl: "{{ config.background_sound_url }}"
+                                };
+                            </script>
+                            <div class="flex flex-col">
+                                <h2 class="text-xl font-semibold text-emerald-300 flex items-center gap-2">
+                                    <span>🧪</span> Simulador
+                                </h2>
+                                <!-- Client Type Indicator -->
+                                <div id="sim-client-wrapper" class="text-[10px] font-mono mt-1 text-slate-400">
+                                    Perfil: <span id="sim-mode-text" class="text-blue-400 font-bold">Navegador</span>
+                                </div>
                             </div>
-                            <div>
+                            <button id="start-btn" onclick="toggleCall()"
+                                class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all text-sm">
+                                Iniciar Prueba
+                            </button>
+                        </div>
+
+                        <div
+                            class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                            <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para
+                                conectar...
+                            </div>
+
+                            <!-- Visualizer Canvas -->
+                            <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
+                        </div>
+
+                        <!-- SIMULATOR VAD CONTROLS (HIDDEN) -->
+                        <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700"
+                            style="display:none !important;">
+                            <h3 class="text-sm font-mono text-slate-400 mb-2">CONTROLES DE SENSIBILIDAD (VAD)</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
+                                        <span>Sensibilidad Mic (RMS)</span>
+                                        <span id="vad-sens-val" class="text-emerald-400">0.05</span>
+                                    </label>
+                                    <input type="range" id="vad-sensitivity" min="0.005" max="0.2" step="0.005"
+                                        value="0.05"
+                                        class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                        oninput="document.getElementById('vad-sens-val').innerText = this.value">
+                                    <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-rms"
+                                            class="font-mono text-blue-400">0.00</span> | Mínimo ruido</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
+                                        <span>Umbral de Voz (Frec)</span>
+                                        <span id="vad-voice-val" class="text-emerald-400">45</span>
+                                    </label>
+                                    <input type="range" id="vad-voice-threshold" min="0" max="100" step="5" value="45"
+                                        class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                        oninput="document.getElementById('vad-voice-val').innerText = this.value">
+                                    <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-voice"
+                                            class="font-mono text-blue-400">0</span> | Calidad Voz</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-slate-700">
                                 <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                    <span>Umbral de Voz (Frec)</span>
-                                    <span id="vad-voice-val" class="text-emerald-400">45</span>
+                                    <span>Filtro de Ruido (Min Letras)</span>
+                                    <span id="min-chars-val" class="text-orange-400">1</span>
                                 </label>
-                                <input type="range" id="vad-voice-threshold" min="0" max="100" step="5" value="45"
+                                <input type="range" id="input-min-chars" min="0" max="50" step="1" value="1"
                                     class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                    oninput="document.getElementById('vad-voice-val').innerText = this.value">
-                                <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-voice"
-                                        class="font-mono text-blue-400">0</span> | Calidad Voz</p>
+                                    oninput="document.getElementById('min-chars-val').innerText = this.value; document.getElementById('form-input-min-chars').value = this.value; updateServerConfig('input_min_characters', this.value)">
+                                <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras.
+                                    (Recomendado:
+                                    20-30 para ambientes ruidosos)</p>
                             </div>
                         </div>
 
-                        <div class="mt-4 pt-4 border-t border-slate-700">
-                            <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                <span>Filtro de Ruido (Min Letras)</span>
-                                <span id="min-chars-val" class="text-orange-400">1</span>
-                            </label>
-                            <input type="range" id="input-min-chars" min="0" max="50" step="1" value="1"
-                                class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                oninput="document.getElementById('min-chars-val').innerText = this.value; document.getElementById('form-input-min-chars').value = this.value; updateServerConfig('input_min_characters', this.value)">
-                            <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras. (Recomendado:
-                                20-30 para ambientes ruidosos)</p>
-                        </div>
-                    </div>
+                        <!-- Latest Transcript -->
+                        <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
+                            <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
 
-                    <!-- Latest Transcript -->
-                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
-                        <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
-
-                        <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
-                            <!-- Messages inserted by JS -->
+                            <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
+                                <!-- Messages inserted by JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="/static/js/simulator.js"></script>
+        <script src="/static/js/simulator.js"></script>
 </body>
 
 </html>

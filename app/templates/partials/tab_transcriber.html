@@ -1,0 +1,227 @@
+<div x-show="tab === 'transcriber'" class="space-y-4" style="display: none;">
+
+    <!-- GENERIC / SIMULATOR PROFILE -->
+    <div x-show="activeProfile !== 'telnyx'" class="space-y-4">
+        <div class="bg-blue-900/20 border border-blue-700/50 p-3 rounded mb-4">
+            <h3 class="text-sm font-bold text-blue-400">Transcripción Simulador / Twilio</h3>
+            <p class="text-xs text-slate-400">Configuración compartida para Web y Twilio.</p>
+        </div>
+        <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+            <!-- STT Provider -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Proveedor STT</label>
+                <select name="stt_provider"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                    <option value="azure" {% if config.stt_provider=='azure' %}selected{% endif %}>Azure</option>
+                    <option value="deepgram" {% if config.stt_provider=='deepgram' %}selected{% endif %}>Deepgram
+                    </option>
+                </select>
+            </div>
+            <!-- Language -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Idioma</label>
+                <select name="stt_language"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                    <option value="es-MX" {% if config.stt_language=='es-MX' %}selected{% endif %}>Español (México)
+                    </option>
+                    <option value="es-US" {% if config.stt_language=='es-US' %}selected{% endif %}>Español (USA)
+                    </option>
+                    <option value="en-US" {% if config.stt_language=='en-US' %}selected{% endif %}>Inglés (USA)</option>
+                </select>
+            </div>
+            <!-- Sensitivity (Generic) -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Umbral Interrupción
+                    (Palabras)</label>
+                <input type="number" name="interruption_threshold" value="{{ config.interruption_threshold }}"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-200">
+            </div>
+            <!-- Silence (Generic) -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Silencio Fin de Turno (ms)</label>
+                <input type="number" name="silence_timeout_ms" value="{{ config.silence_timeout_ms }}" step="100"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-slate-200">
+            </div>
+        </div>
+    </div>
+
+    <!-- TELNYX PROFILE -->
+    <div x-show="activeProfile === 'telnyx'" class="space-y-4">
+        <h3 class="text-sm font-semibold text-emerald-300">Configuración Transcripción (Telnyx)
+        </h3>
+        <div class="bg-slate-800 p-4 rounded border border-slate-700 space-y-4">
+            <!-- STT Provider -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Proveedor STT</label>
+                <select name="stt_provider_telnyx"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                    <option value="azure" {% if config.stt_provider_telnyx=='azure' %}selected{% endif %}>
+                        Azure (Recomendado - A-Law)</option>
+                    <option value="deepgram" {% if config.stt_provider_telnyx=='deepgram' %}selected{% endif %}>Deepgram
+                    </option>
+                </select>
+            </div>
+            <!-- Language -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Idioma</label>
+                <select name="stt_language_telnyx"
+                    class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200">
+                    <option value="es-MX" {% if config.stt_language_telnyx=='es-MX' %}selected{% endif %}>Español
+                        (México)</option>
+                    <option value="es-US" {% if config.stt_language_telnyx=='es-US' %}selected{% endif %}>Español (USA)
+                    </option>
+                </select>
+            </div>
+            <!-- Sensitivity (RMS) -->
+            <div>
+                <div class="flex justify-between items-end mb-1">
+                    <label class="text-sm font-medium text-slate-300">Umbral de Activación
+                        (RMS)</label>
+                    <span class="text-emerald-400 font-mono font-bold text-sm" id="val-rms">{{
+                        config.voice_sensitivity_telnyx }}</span>
+                </div>
+                <div class="relative w-full">
+                    <input type="range" name="voice_sensitivity_telnyx" min="100" max="8000" step="100"
+                        value="{{ config.voice_sensitivity_telnyx }}"
+                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                        oninput="document.getElementById('val-rms').innerText = this.value">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                        <span>100 (Muy Sensible)</span>
+                        <span>8000 (Poco Sensible)</span>
+                    </div>
+                </div>
+                <p class="text-[10px] text-blue-400/80 mt-1 italic">Valor recomendado: 2000 -
+                    3000
+                </p>
+            </div>
+
+            <!-- Silence & Interruption (Sliders) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Silence Timeout -->
+                <div>
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="text-sm font-medium text-slate-300">Silencio Fin de Turno
+                            (ms)</label>
+                        <span class="text-emerald-400 font-mono font-bold text-sm" id="val-silence">{{
+                            config.silence_timeout_ms_telnyx }} ms</span>
+                    </div>
+                    <div class="relative w-full">
+                        <input type="range" name="silence_timeout_ms_telnyx" min="500" max="3000" step="100"
+                            value="{{ config.silence_timeout_ms_telnyx }}"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                            oninput="document.getElementById('val-silence').innerText = this.value + ' ms'">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>500ms (Rápido)</span>
+                            <span>3000ms (Lento)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interruption Threshold -->
+                <div>
+                    <div class="flex justify-between items-end mb-1">
+                        <label class="text-sm font-medium text-slate-300">Sensibilidad
+                            Interrupción</label>
+                        <span class="text-emerald-400 font-mono font-bold text-sm" id="val-interrupt">{{
+                            config.interruption_threshold_telnyx }}
+                            palabras</span>
+                    </div>
+                    <div class="relative w-full">
+                        <input type="range" name="interruption_threshold_telnyx" min="0" max="10" step="1"
+                            value="{{ config.interruption_threshold_telnyx }}"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                            oninput="document.getElementById('val-interrupt').innerText = this.value + ' palabras'">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                            <span>0 (Inmediato)</span>
+                            <span>10 (Tolera ruido)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Noise & Features -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Filtro Ruido -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Filtro Ruido (Min
+                        Caracteres)</label>
+                    <input type="number" name="input_min_characters_telnyx"
+                        value="{{ config.input_min_characters_telnyx }}"
+                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-slate-200 focus:border-emerald-500 focus:outline-none transition-colors">
+                    <p class="text-[10px] text-slate-500 mt-1">Ignora frases con menos de X
+                        caracteres.</p>
+                </div>
+
+                <!-- Lista Negra -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Lista Negra (Telnyx)</label>
+                    <textarea name="hallucination_blacklist_telnyx" rows="1" placeholder="Pero, Y..., Mm..., Oye, Ah..."
+                        class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-200 font-mono focus:border-emerald-500 focus:outline-none transition-colors">{{ config.hallucination_blacklist_telnyx or '' }}</textarea>
+                    <p class="text-[10px] text-slate-500 mt-1">Separar frases por comas.</p>
+                </div>
+            </div>
+
+            <!-- Toggles Section -->
+            <div class="space-y-3 pt-2 border-t border-slate-700/50">
+                <!-- Software Denoising -->
+                <div
+                    class="flex items-center justify-between p-3 bg-slate-900/50 rounded border border-slate-700 hover:border-blue-500/50 transition-colors">
+                    <div>
+                        <label class="text-sm font-medium text-slate-200">Reducción de Ruido
+                            (Software)</label>
+                        <p class="text-[10px] text-slate-500">Filtro de ruido adicional
+                            post-transcripción.</p>
+                    </div>
+                    <input type="checkbox" name="enable_denoising_telnyx" value="true" {% if
+                        config.enable_denoising_telnyx %}checked{% endif %}
+                        class="transform scale-125 accent-blue-500 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                </div>
+
+                <!-- Funciones Nativas Header -->
+                <div class="flex items-center gap-2 mt-4 mb-2">
+                    <span class="text-yellow-400 text-xs">⚡</span>
+                    <h4 class="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                        Funciones Nativas de Telnyx</h4>
+                </div>
+
+                <!-- Krisp & VAD Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Noise Suppression (Krisp) -->
+                    <div
+                        class="flex items-center justify-between p-3 bg-slate-900 rounded border border-emerald-900/30">
+                        <div>
+                            <label class="text-sm font-medium text-slate-200">Noise Suppression
+                                (Krisp)</label>
+                            <p class="text-[10px] text-emerald-500/80">Reduce ruido de fondo
+                                (Nativo)</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-[10px] text-emerald-600 border border-emerald-800 px-1 rounded bg-emerald-900/20">Nativo</span>
+                            <input type="checkbox" name="enable_krisp_telnyx" value="true" {% if
+                                config.enable_krisp_telnyx %}checked{% endif %}
+                                class="transform scale-125 accent-emerald-500 rounded border-gray-300 focus:ring-emerald-500">
+                        </div>
+                    </div>
+
+                    <!-- Voice Activity Detection (VAD) -->
+                    <div
+                        class="flex items-center justify-between p-3 bg-slate-900 rounded border border-emerald-900/30">
+                        <div>
+                            <label class="text-sm font-medium text-slate-200">Voice Activity
+                                Detection (VAD)</label>
+                            <p class="text-[10px] text-emerald-500/80">Detecta voz vs silencio
+                                (Nativo)</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="text-[10px] text-emerald-600 border border-emerald-800 px-1 rounded bg-emerald-900/20">Nativo</span>
+                            <input type="checkbox" name="enable_vad_telnyx" value="true" {% if config.enable_vad_telnyx
+                                %}checked{% endif %}
+                                class="transform scale-125 accent-emerald-500 rounded border-gray-300 focus:ring-emerald-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,189 @@
+<div x-show="tab === 'voice'" class="space-y-6" style="display: none;"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95"
+    x-transition:enter-end="opacity-100 transform scale-100">
+
+    <!-- Dynamic Header -->
+    <div class="glass-panel p-4 rounded-xl border border-white/10 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="text-6xl">🔊</span>
+        </div>
+        <h3 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400 mb-1">
+            Motor de Voz (TTS)
+        </h3>
+        <p class="text-xs text-slate-400">Personaliza la voz, idioma y estilo de respuesta.</p>
+    </div>
+
+    <!-- Unified Form Area -->
+    <div class="space-y-6">
+
+        <!-- 1. CASCADING SELECTION: Provider -> Lang -> Voice -> Style -->
+        <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-5">
+            <h4 class="text-xs font-bold text-slate-500 uppercase border-b border-slate-700/50 pb-2">Selección de Voz
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- 1.1 Provider -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Proveedor</label>
+                    <div class="relative">
+                        <select x-model="currentVoiceProvider" @change="updateVoiceLists()"
+                            :name="activeProfile === 'browser' ? 'tts_provider' : (activeProfile === 'twilio' ? 'tts_provider_phone' : 'tts_provider_telnyx')"
+                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all appearance-none cursor-pointer hover:bg-slate-800">
+                            <template x-for="p in voiceProviders" :key="p.id">
+                                <option :value="p.id" x-text="p.name"></option>
+                            </template>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                            <span class="text-sm"
+                                x-text="voiceProviders.find(p => p.id === currentVoiceProvider)?.icon"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.2 Language -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Idioma</label>
+                    <div class="relative">
+                        <select x-model="currentVoiceLang" @change="updateVoiceLists()"
+                            :name="activeProfile === 'browser' ? 'voice_language' : (activeProfile === 'twilio' ? 'voice_language_phone' : 'voice_language_telnyx')"
+                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all appearance-none cursor-pointer hover:bg-slate-800">
+                            <template x-for="l in availableLanguages" :key="l.id">
+                                <option :value="l.id" x-text="l.name"></option>
+                            </template>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                            <span>🌍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.3 Voice Identity -->
+                <div class="space-y-1 md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Identidad de
+                        Voz</label>
+                    <div class="relative">
+                        <select x-model="currentVoiceId" @change="updateStyleList()"
+                            :name="activeProfile === 'browser' ? 'voice_name' : (activeProfile === 'twilio' ? 'voice_name_phone' : 'voice_name_telnyx')"
+                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all appearance-none cursor-pointer hover:bg-slate-800 font-medium">
+                            <template x-for="v in availableVoices" :key="v.id">
+                                <option :value="v.id" x-text="v.name"></option>
+                            </template>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                            <span
+                                x-text="availableVoices.find(v => v.id === currentVoiceId)?.gender === 'female' ? '👩' : (availableVoices.find(v => v.id === currentVoiceId)?.gender === 'male' ? '👨' : '🤖')"></span>
+                        </div>
+
+                        <!-- Manual ID Fallback/Input -->
+                        <div class="mt-1 text-right">
+                            <a href="#" @click.prevent="showManualVoiceId = !showManualVoiceId"
+                                class="text-[10px] text-pink-400 hover:text-pink-300 underline decoration-dotted">
+                                Usar ID Manual
+                            </a>
+                        </div>
+                        <div x-show="showManualVoiceId" x-data="{ showManualVoiceId: false }" class="mt-2">
+                            <input type="text" placeholder="Ej: es-MX-DaliaNeural (ID Exacto)" x-model="currentVoiceId"
+                                class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-xs text-slate-300 font-mono focus:border-pink-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.4 Style (Conditional) -->
+                <div class="space-y-1 md:col-span-2" x-show="availableStyles.length > 0" x-transition>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estilo /
+                        Emoción</label>
+                    <div class="relative">
+                        <select x-model="currentVoiceStyle"
+                            :name="activeProfile === 'browser' ? 'voice_style' : (activeProfile === 'twilio' ? 'voice_style_phone' : 'voice_style_telnyx')"
+                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all appearance-none cursor-pointer hover:bg-slate-800">
+                            <template x-for="s in availableStyles" :key="s.id">
+                                <option :value="s.id" x-text="s.label"></option>
+                            </template>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                            <span>🎭</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 2. Voice Characteristics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Speed Slider -->
+            <div class="glass-panel p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Velocidad</label>
+                    <span
+                        class="px-2 py-1 bg-pink-500/20 text-pink-400 rounded text-xs font-mono border border-pink-500/30"
+                        x-text="currentVoiceSpeed + 'x'">1.0x</span>
+                </div>
+                <input type="range" min="0.5" max="2.0" step="0.1" x-model="currentVoiceSpeed"
+                    :name="activeProfile === 'browser' ? 'voice_speed' : (activeProfile === 'twilio' ? 'voice_speed_phone' : 'voice_speed_telnyx')"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500 hover:accent-pink-400 transition-all">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono">
+                    <span>Lento (0.5)</span>
+                    <span>Rápido (2.0)</span>
+                </div>
+            </div>
+
+            <!-- Pacing Slider -->
+            <div class="glass-panel p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Ritmo (Pacing)</label>
+                    <span
+                        class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs font-mono border border-purple-500/30"
+                        x-text="currentVoicePacing + 'ms'">0ms</span>
+                </div>
+                <input type="range" min="0" max="2000" step="100" x-model="currentVoicePacing"
+                    :name="activeProfile === 'browser' ? 'voice_pacing_ms' : (activeProfile === 'twilio' ? 'voice_pacing_ms_phone' : 'voice_pacing_ms_telnyx')"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono">
+                    <span>Inmediato</span>
+                    <span>Pausado (2s)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Background Sound -->
+        <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-4">
+            <h4 class="text-xs font-bold text-slate-400 uppercase border-b border-slate-700 pb-2 mb-2">Ambiente & Sonido
+                de Fondo</h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <!-- Preset -->
+                <div>
+                    <label class="text-xs font-semibold text-slate-500 block mb-1">Preset de Ambiente</label>
+                    <div class="relative">
+                        <select x-model="currentBgSound"
+                            :name="activeProfile === 'browser' ? 'background_sound' : (activeProfile === 'twilio' ? 'background_sound_phone' : 'background_sound_telnyx')"
+                            class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer hover:bg-slate-700 focus:border-purple-500">
+                            <template x-for="bg in backgroundSounds" :key="bg.id">
+                                <option :value="bg.id" x-text="bg.name"></option>
+                            </template>
+                        </select>
+                        <div
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- URL Custom -->
+                <div x-show="currentBgSound === 'custom'" x-transition>
+                    <label class="text-xs font-semibold text-slate-500 block mb-1">URL de Audio (MP3/WAV)</label>
+                    <input type="text" x-model="currentBgUrl"
+                        :name="activeProfile === 'browser' ? 'background_sound_url' : (activeProfile === 'twilio' ? 'background_sound_url_phone' : 'background_sound_url_telnyx')"
+                        class="w-full bg-slate-800 border-b-2 border-slate-600 px-3 py-2 text-sm text-purple-200 placeholder-slate-600 focus:border-purple-500 focus:bg-slate-800/80 outline-none transition-colors"
+                        placeholder="https://micdn.com/sonido.mp3">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

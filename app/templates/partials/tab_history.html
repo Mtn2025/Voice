@@ -1,0 +1,124 @@
+<script>
+    function toggleAllHistory(source) {
+        const checkboxes = document.querySelectorAll('.history-checkbox');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+        updateDeleteButton();
+    }
+
+    function updateDeleteButton() {
+        const checked = document.querySelectorAll('.history-checkbox:checked').length;
+        const btn = document.getElementById('btn-delete-selected');
+        if (checked > 0) {
+            btn.style.display = 'inline-flex';
+            btn.innerHTML = `<span>🗑️</span> Borrar (${checked})`;
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    async function deleteSelectedCalls() {
+        if (!confirm('¿Borrar llamadas seleccionadas?')) return;
+
+        const checkedBoxes = document.querySelectorAll('.history-checkbox:checked');
+        const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+        try {
+            const res = await fetch('/api/history/delete-selected', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ call_ids: ids })
+            });
+
+            if (res.ok) {
+                htmx.trigger('#history-body', 'refreshHistory');
+                document.querySelector('thead input[type="checkbox"]').checked = false;
+                updateDeleteButton();
+            } else {
+                alert('Error al borrar');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error de conexión');
+        }
+    }
+</script>
+
+<div x-show="tab === 'history'" class="space-y-4">
+
+    <!-- Filters -->
+    <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+        <button type="button" @click="historyFilter = 'all'"
+            :class="{'bg-blue-600 text-white': historyFilter === 'all', 'text-slate-400 hover:text-white': historyFilter !== 'all'}"
+            class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
+        <button type="button" @click="historyFilter = 'simulator'"
+            :class="{'bg-blue-600 text-white': historyFilter === 'simulator', 'text-slate-400 hover:text-white': historyFilter !== 'simulator'}"
+            class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
+        <button type="button" @click="historyFilter = 'twilio'"
+            :class="{'bg-red-600 text-white': historyFilter === 'twilio', 'text-slate-400 hover:text-white': historyFilter !== 'twilio'}"
+            class="px-3 py-1 rounded text-xs font-bold transition-all">Twilio</button>
+        <button type="button" @click="historyFilter = 'telnyx'"
+            :class="{'bg-emerald-600 text-white': historyFilter === 'telnyx', 'text-slate-400 hover:text-white': historyFilter !== 'telnyx'}"
+            class="px-3 py-1 rounded text-xs font-bold transition-all">Telnyx</button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded border border-slate-700">
+        <table class="w-full text-xs text-left text-slate-400">
+            <thead class="text-xs text-slate-300 uppercase bg-slate-800">
+                <tr>
+                    <th scope="col" class="px-4 py-2">Fecha</th>
+                    <th scope="col" class="px-4 py-2">Fuente</th>
+                    <th scope="col" class="px-4 py-2">Duración</th>
+                    <th scope="col" class="px-4 py-2">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for call in history %}
+                <tr class="border-b border-slate-800 hover:bg-slate-800/50"
+                    x-show="historyFilter === 'all' || historyFilter === '{{ call.client_type or 'simulator' }}'">
+                    <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="px-4 py-2">
+                        {% if call.client_type == 'telnyx' %}
+                        <span
+                            class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
+                        {% elif call.client_type == 'twilio' %}
+                        <span
+                            class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
+                        {% else %}
+                        <span
+                            class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2 font-mono">
+                        {% if call.end_time %}
+                        {{ (call.end_time - call.start_time).seconds }}s
+                        {% else %}
+                        <span class="text-yellow-500 animate-pulse">En curso</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2">
+                        <a href="/dashboard/call/{{ call.id }}" class="text-blue-400 hover:underline">Ver</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not history %}
+                <tr>
+                    <td colspan="4" class="px-4 py-8 text-center text-slate-500 italic">
+                        No hay historial disponible.
+                    </td>
+                </tr>
+                {% endendif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Clear History Action -->
+    <div class="pt-2">
+        <form action="/api/history/clear" method="POST" onsubmit="return confirm('¿Borrar todo el historial?');">
+            <button type="submit" class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
+                🗑️ Borrar Historial Completo
+            </button>
+        </form>
+    </div>
+</div>

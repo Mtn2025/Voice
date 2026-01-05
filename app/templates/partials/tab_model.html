@@ -1,0 +1,163 @@
+<div x-show="tab === 'model'" class="space-y-6" style="display: none;"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95"
+    x-transition:enter-end="opacity-100 transform scale-100">
+
+    <!-- Dynamic Header based on Profile -->
+    <div class="glass-panel p-4 rounded-xl border border-white/10 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="text-6xl"
+                x-text="activeProfile === 'browser' ? '🌐' : (activeProfile === 'twilio' ? '📱' : '📡')"></span>
+        </div>
+        <h3 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-1">
+            Configuración del Modelo LLM
+        </h3>
+        <p class="text-xs text-slate-400"
+            x-text="activeProfile === 'browser' ? 'Perfil: Navegador (Simulador Web)' : (activeProfile === 'twilio' ? 'Perfil: Twilio (Telefonía)' : 'Perfil: Telnyx (Telefonía Avanzada)')">
+        </p>
+    </div>
+
+    <!-- Unified Form Area -->
+    <div class="space-y-6">
+
+        <!-- 1. LLM Provider & Model -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Provider -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Proveedor LLM</label>
+                <div class="relative">
+                    <select
+                        :name="activeProfile === 'browser' ? 'llm_provider' : (activeProfile === 'twilio' ? 'llm_provider_phone' : 'llm_provider_telnyx')"
+                        class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none cursor-pointer hover:bg-slate-800"
+                        x-model="currentProvider" @change="updateModelList()">
+                        <option value="groq">⚡ Groq (LPU - Ultra Rápido)</option>
+                        <option value="openai">🤖 OpenAI (GPT Series)</option>
+                        <option value="azure">☁️ Azure OpenAI (Enterprise)</option>
+                    </select>
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-lg" x-text="providerIcon(currentProvider)"></span>
+                    </div>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model (Dependent) -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Modelo</label>
+                <div class="relative">
+                    <select
+                        :name="activeProfile === 'browser' ? 'llm_model' : (activeProfile === 'twilio' ? 'llm_model_phone' : 'llm_model_telnyx')"
+                        class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none cursor-pointer hover:bg-slate-800 font-mono"
+                        x-bind:value="currentModel">
+                        <template x-for="model in availableModels" :key="model.id">
+                            <option :value="model.id" x-text="model.name" :selected="model.id === currentModel">
+                            </option>
+                        </template>
+                    </select>
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-lg">🧠</span>
+                    </div>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Configuration Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Temperature Slider -->
+            <div class="glass-panel p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="text-xs font-bold text-slate-400 uppercase">Creatividad (Temperatura)</label>
+                    <span
+                        class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-mono border border-blue-500/30"
+                        x-text="currentTemp">0.7</span>
+                </div>
+                <input type="range"
+                    :name="activeProfile === 'browser' ? 'temperature' : (activeProfile === 'twilio' ? 'temperature_phone' : 'temperature_telnyx')"
+                    min="0" max="1.5" step="0.1" x-model="currentTemp"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono">
+                    <span>Preciso (0.0)</span>
+                    <span>Balanceado (0.7)</span>
+                    <span>Creativo (1.5)</span>
+                </div>
+            </div>
+
+            <!-- Max Tokens -->
+            <div class="glass-panel p-4 rounded-xl border border-white/5 flex flex-col justify-center">
+                <label class="text-xs font-bold text-slate-400 uppercase mb-2">Longitud Respuesta (Max Tokens)</label>
+                <div class="relative">
+                    <input type="number"
+                        :name="activeProfile === 'browser' ? 'max_tokens' : (activeProfile === 'twilio' ? 'max_tokens_phone' : 'max_tokens_telnyx')"
+                        x-model="maxTokens"
+                        class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-sm text-center font-mono text-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                    <span class="absolute right-3 top-2.5 text-xs text-slate-600">tokens</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Greeting Configuration -->
+        <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-4">
+            <h4 class="text-xs font-bold text-slate-400 uppercase border-b border-slate-700 pb-2 mb-2">Comportamiento
+                Inicial</h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="md:col-span-1">
+                    <label class="text-xs font-semibold text-slate-500 block mb-1">Modo Inicio</label>
+                    <div class="relative">
+                        <select
+                            :name="activeProfile === 'browser' ? 'first_message_mode' : (activeProfile === 'twilio' ? 'first_message_mode_phone' : 'first_message_mode_telnyx')"
+                            class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-xs text-white appearance-none cursor-pointer hover:bg-slate-700 focus:border-blue-500"
+                            x-model="firstMessageMode">
+                            <option value="speak-first">🗣️ Hablar Primero</option>
+                            <option value="wait-for-user">👂 Escuchar Primero</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2" x-show="firstMessageMode === 'speak-first'" x-transition>
+                    <label class="text-xs font-semibold text-slate-500 block mb-1">Mensaje de Bienvenida</label>
+                    <input type="text"
+                        :name="activeProfile === 'browser' ? 'first_message' : (activeProfile === 'twilio' ? 'first_message_phone' : 'first_message_telnyx')"
+                        x-model="firstMessage"
+                        class="w-full bg-slate-800 border-b-2 border-slate-600 px-3 py-2 text-sm text-blue-200 placeholder-slate-600 focus:border-blue-500 focus:bg-slate-800/80 outline-none transition-colors"
+                        placeholder="Ej: Hola, soy Andrea...">
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. System Prompt -->
+        <div class="glass-panel p-0 rounded-xl border border-white/5 overflow-hidden">
+            <div class="bg-slate-900/50 px-4 py-2 border-b border-white/5 flex justify-between items-center">
+                <label class="text-xs font-bold text-slate-400 uppercase">System Prompt (Identidad)</label>
+                <span class="text-[10px] text-slate-600 bg-slate-800 px-2 py-0.5 rounded">Markdown Supported</span>
+            </div>
+            <textarea
+                :name="activeProfile === 'browser' ? 'system_prompt' : (activeProfile === 'twilio' ? 'system_prompt_phone' : 'system_prompt_telnyx')"
+                rows="12"
+                class="w-full bg-slate-900/90 text-slate-300 text-xs font-mono p-4 outline-none resize-y focus:bg-slate-900 transition-colors"
+                x-model="systemPrompt"></textarea>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Helper to get icon for provider
+    function providerIcon(p) {
+        if (p === 'groq') return '⚡';
+        if (p === 'openai') return '🤖';
+        if (p === 'azure') return '☁️';
+        return '❓';
+    }
+</script>

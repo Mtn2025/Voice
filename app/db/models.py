@@ -120,6 +120,8 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     initial_silence_timeout_ms_phone = Column(Integer, default=30000)
     input_min_characters_phone = Column(Integer, default=1)
     enable_denoising_phone = Column(Boolean, default=True)
+    extra_settings_phone = Column(JSON, nullable=True)
+
     
     # TWILIO SPECIFIC (Platform Capabilities)
     twilio_machine_detection = Column(String, default="Enable") # Enable, Disable, DetectMessageEnd
