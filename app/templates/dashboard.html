@@ -160,12 +160,11 @@
                         , name: 'Alloy' , gender: 'neutral' }, {id: 'echo' , name: 'Echo' , gender: 'neutral' },
                         {id: 'fable' , name: 'Fable' , gender: 'neutral' }, {id: 'onyx' , name: 'Onyx' ,
                         gender: 'neutral' }, {id: 'nova' , name: 'Nova' , gender: 'neutral' }, {id: 'shimmer' ,
-                        name: 'Shimmer' , gender: 'neutral' } ] } }, // We reuse the existing voiceStyles object for the
-                        styles mapping backgroundSounds: [ {id: 'none' , name: '🔇 Silencio' }, {id: 'office' ,
-                        name: '🏢 Oficina' }, {id: 'cafe' , name: '☕ Cafetería' }, {id: 'callcenter' ,
-                        name: '📞 Call Center' }, {id: 'custom' , name: '🔗 URL Personalizada' } ], init() {
-                        this.loadProfile(this.activeProfile); // Watch for profile changes this.$watch('activeProfile',
-                        val=> this.loadProfile(val));
+                        gender: 'neutral' } ] } }, // We reuse the existing voiceStyles object for the styles mapping
+                        backgroundSounds: [ {id: 'none' , name: '🔇 Silencio' }, {id: 'office' , name: '🏢 Oficina' },
+                        {id: 'cafe' , name: '☕ Cafetería' }, {id: 'callcenter' , name: '📞 Call Center' }, {id: 'custom'
+                        , name: '🔗 URL Personalizada' } ], init() { this.loadProfile(this.activeProfile); // Watch for
+                        profile changes this.$watch('activeProfile', val=> this.loadProfile(val));
 
                         // Sync UI changes back to internal store (MODEL)
                         this.$watch('currentProvider', v => { this.configs[this.activeProfile].provider = v;
