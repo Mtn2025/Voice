@@ -96,22 +96,21 @@
                             tokens: {{ config.max_tokens or 250 }},
                             msg: '{{ config.first_message }}',
                             mode: '{{ config.first_message_mode }}',
-                            prompt: `{{ config.system_prompt | replace('`', '\`') | safe }}`
-                            // --- VOICE CONFIG ---
+                            prompt: {{ (config.system_prompt or '') | tojson }},
+                            /* VOICE CONFIG */
                             voiceProvider: '{{ config.tts_provider }}',
                             voiceLang: '{{ config.voice_language or " es-MX" }}', voiceId: '{{ config.voice_name }}' ,
                         voiceStyle: '{{ config.voice_style }}' , voiceSpeed: {{ config.voice_speed or 1.0 }},
-                        voicePacing: {{ config.voice_pacing_ms or 0 }}, // Naturality delay
-                        voiceBgSound: '{{ config.background_sound }}' , voiceBgUrl: '{{ config.background_sound_url }}'
-                        }, twilio: { provider: '{{ config.llm_provider_phone }}' || '{{ config.llm_provider }}' ,
+                        voicePacing: {{ config.voice_pacing_ms or 0 }}, voiceBgSound: '{{ config.background_sound }}' ,
+                        voiceBgUrl: '{{ config.background_sound_url }}' }, twilio: {
+                        provider: '{{ config.llm_provider_phone }}' || '{{ config.llm_provider }}' ,
                         model: '{{ config.llm_model_phone }}' || '{{ config.llm_model }}' , temp: {{
                         config.temperature_phone or config.temperature or 0.7 }}, tokens: {{ config.max_tokens_phone or
                         config.max_tokens or 250 }}, msg: '{{ config.first_message_phone }}'
-                        || '{{ config.first_message }}' , mode: '{{ config.first_message_mode_phone }}'
-                        || '{{ config.first_message_mode }}' , prompt: `{{ config.system_prompt_phone |
-                        replace('`', '\`' ) | safe }}` || `{{ config.system_prompt | replace('`', '\`' ) | safe }}`, //
-                        --- VOICE CONFIG PHONE --- voiceProvider: '{{ config.tts_provider_phone }}'
-                        || '{{ config.tts_provider }}' , voiceLang: '{{ config.voice_language_phone or "es-MX" }}' ,
+                        || '{{ config.first_message }}' , mode: '{{ config.first_message_mode_phone }}' prompt: {{
+                        (config.system_prompt_phone or '' ) | tojson }}, /* VOICE CONFIG PHONE */
+                        voiceProvider: '{{ config.tts_provider_phone }}' || '{{ config.tts_provider }}' ,
+                        voiceLang: '{{ config.voice_language_phone or "es-MX" }}' ,
                         voiceId: '{{ config.voice_name_phone }}' , voiceStyle: '{{ config.voice_style_phone }}' ,
                         voiceSpeed: {{ config.voice_speed_phone or 1.0 }}, voicePacing: {{ config.voice_pacing_ms_phone
                         or 0 }}, voiceBgSound: '{{ config.background_sound_phone }}' ,
@@ -120,27 +119,26 @@
                         model: '{{ config.llm_model_telnyx }}' || '{{ config.llm_model }}' , temp: {{
                         config.temperature_telnyx or config.temperature or 0.7 }}, tokens: {{ config.max_tokens_telnyx
                         or config.max_tokens or 250 }}, msg: '{{ config.first_message_telnyx }}'
-                        || '{{ config.first_message }}' , mode: '{{ config.first_message_mode_telnyx }}'
-                        || '{{ config.first_message_mode }}' , prompt: `{{ config.system_prompt_telnyx |
-                        replace('`', '\`' ) | safe }}` || `{{ config.system_prompt | replace('`', '\`' ) | safe }}`, //
-                        --- VOICE CONFIG TELNYX --- voiceProvider: '{{ config.tts_provider_telnyx }}'
-                        || '{{ config.tts_provider }}' , voiceLang: '{{ config.voice_language_telnyx or "es-MX" }}' ,
+                        || '{{ config.first_message }}' , mode: '{{ config.first_message_mode_telnyx }}' prompt: {{
+                        (config.system_prompt_telnyx or '' ) | tojson }}, /* VOICE CONFIG TELNYX */
+                        voiceProvider: '{{ config.tts_provider_telnyx }}' || '{{ config.tts_provider }}' ,
+                        voiceLang: '{{ config.voice_language_telnyx or "es-MX" }}' ,
                         voiceId: '{{ config.voice_name_telnyx }}' , voiceStyle: '{{ config.voice_style_telnyx }}' ,
                         voiceSpeed: {{ config.voice_speed_telnyx or 1.0 }}, voicePacing: {{
                         config.voice_pacing_ms_telnyx or 0 }}, voiceBgSound: '{{ config.background_sound_telnyx }}' ,
-                        voiceBgUrl: '{{ config.background_sound_url_telnyx }}' } }, // --- UI BOUND VARIABLES ---
-                        currentProvider: '' , currentModel: '' , currentTemp: 0.7, maxTokens: 250, firstMessage: '' ,
-                        firstMessageMode: 'speak-first' , systemPrompt: '' , availableModels: [], // --- UI BOUND VOICE
-                        VARIABLES --- currentVoiceProvider: 'azure' , currentVoiceLang: 'es-MX' , currentVoiceId: '' ,
+                        voiceBgUrl: '{{ config.background_sound_url_telnyx }}' } },
+                        voiceBgUrl: '{{ config.background_sound_url_telnyx }}' } }, currentProvider: '' ,
+                        currentModel: '' , currentTemp: 0.7, maxTokens: 250, firstMessage: '' ,
+                        firstMessageMode: 'speak-first' , systemPrompt: '' , availableModels: [],
+                        currentVoiceProvider: 'azure' , currentVoiceLang: 'es-MX' , currentVoiceId: '' ,
                         currentVoiceStyle: '' , currentVoiceSpeed: 1.0, currentVoicePacing: 0, currentBgSound: 'none' ,
-                        currentBgUrl: '' , // --- DYNAMIC LISTS --- availableLanguages: [], availableVoices: [],
-                        availableStyles: [], // --- CONSTANTS --- models: { groq: [ {id:'llama-3.3-70b-versatile',
-                        name:'⚡ Llama 3.3 70B (Versatile)'}, {id:'llama-3.1-8b-instant', name:'⚡ Llama 3.1 8B
-                        (Instant)'}, {id:'mixtral-8x7b-32768', name:'⚡ Mixtral 8x7B'} ], openai: [ {id:'gpt-4o',
-                        name:'🧠 GPT-4o (Omni)'}, {id:'gpt-4-turbo', name:'🤖 GPT-4 Turbo'}, {id:'gpt-3.5-turbo',
-                        name:'⚡ GPT-3.5 Turbo'} ], azure: [ {id:'gpt-4o', name:'☁️ Azure GPT-4o'}, {id:'gpt-35-turbo',
-                        name:'☁️ Azure GPT-3.5'} ] }, // --- VOICE CONSTANTS --- voiceProviders: [ {id: 'azure' ,
-                        name: 'Azure Speech' , icon: '☁️' }, {id: 'elevenlabs' , name: 'ElevenLabs' , icon: '📢' },
+                        currentBgUrl: '' , availableLanguages: [], availableVoices: [], availableStyles: [], models: {
+                        groq: [ {id:'llama-3.3-70b-versatile', name:'⚡ Llama 3.3 70B (Versatile)'},
+                        {id:'llama-3.1-8b-instant', name:'⚡ Llama 3.1 8B (Instant)'}, {id:'mixtral-8x7b-32768', name:'⚡
+                        Mixtral 8x7B'} ], openai: [ {id:'gpt-4o', name:'🧠 GPT-4o (Omni)'}, {id:'gpt-4-turbo', name:'🤖
+                        GPT-4 Turbo'}, {id:'gpt-3.5-turbo', name:'⚡ GPT-3.5 Turbo'} ], azure: [ {id:'gpt-4o', name:'☁️
+                        Azure GPT-4o'}, {id:'gpt-35-turbo', name:'☁️ Azure GPT-3.5'} ] }, voiceProviders: [ {id: 'azure'
+                        , name: 'Azure Speech' , icon: '☁️' }, {id: 'elevenlabs' , name: 'ElevenLabs' , icon: '📢' },
                         {id: 'openai' , name: 'OpenAI Audio' , icon: '🤖' } ], voiceLanguages: { 'azure' : [
                         {id: 'es-MX' , name: '🇲🇽 Español (México)' }, {id: 'es-ES' , name: '🇪🇸 Español (España)' },
                         {id: 'en-US' , name: '🇺🇸 Inglés (USA)' } ], 'elevenlabs' : [ {id: 'es' ,
@@ -160,13 +158,11 @@
                         , name: 'Alloy' , gender: 'neutral' }, {id: 'echo' , name: 'Echo' , gender: 'neutral' },
                         {id: 'fable' , name: 'Fable' , gender: 'neutral' }, {id: 'onyx' , name: 'Onyx' ,
                         gender: 'neutral' }, {id: 'nova' , name: 'Nova' , gender: 'neutral' }, {id: 'shimmer' ,
-                        gender: 'neutral' } ] } }, // We reuse the existing voiceStyles object for the styles mapping
-                        backgroundSounds: [ {id: 'none' , name: '🔇 Silencio' }, {id: 'office' , name: '🏢 Oficina' },
-                        {id: 'cafe' , name: '☕ Cafetería' }, {id: 'callcenter' , name: '📞 Call Center' }, {id: 'custom'
-                        , name: '🔗 URL Personalizada' } ], init() { this.loadProfile(this.activeProfile); // Watch for
-                        profile changes this.$watch('activeProfile', val=> this.loadProfile(val));
+                        gender: 'neutral' } ] } }, backgroundSounds: [ {id: 'none' , name: '🔇 Silencio' },
+                        {id: 'office' , name: '🏢 Oficina' }, {id: 'cafe' , name: '☕ Cafetería' }, {id: 'callcenter' ,
+                        name: '📞 Call Center' }, {id: 'custom' , name: '🔗 URL Personalizada' } ], init() {
+                        this.loadProfile(this.activeProfile); this.$watch('activeProfile', val=> this.loadProfile(val));
 
-                        // Sync UI changes back to internal store (MODEL)
                         this.$watch('currentProvider', v => { this.configs[this.activeProfile].provider = v;
                         this.updateModelList(); });
                         this.$watch('currentModel', v => this.configs[this.activeProfile].model = v);
@@ -176,7 +172,6 @@
                         this.$watch('firstMessageMode', v => this.configs[this.activeProfile].mode = v);
                         this.$watch('systemPrompt', v => this.configs[this.activeProfile].prompt = v);
 
-                        // Sync UI changes back to internal store (VOICE)
                         this.$watch('currentVoiceProvider', v => {
                         this.configs[this.activeProfile].voiceProvider = v;
                         this.updateVoiceLists();
