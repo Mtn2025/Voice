@@ -1,995 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orquestador de Voz Nativo</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="//unpkg.com/alpinejs" defer></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <style>
-        /* FANCY UI VARIABLES */
-        :root {
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
+        [x-cloak] {
+            display: none !important;
         }
 
         body {
+            font-family: 'Inter', sans-serif;
             background-color: #0f172a;
-            /* Slate 900 */
-            background-image:
-                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-            background-attachment: fixed;
+            color: #e2e8f0;
         }
 
+        .font-mono {
+            font-family: 'Fragment Mono', monospace;
+        }
+
+        /* Glassmorphism */
         .glass-panel {
-            background: var(--glass-bg);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 6px;
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s;
         }
 
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
+        .glass-input:focus {
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.8);
+            outline: none;
         }
 
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            rounded: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
         }
     </style>
 </head>
 
-<body class="text-slate-100 min-h-screen">
-    <div class="container mx-auto p-4 max-w-[1800px]"> <!-- Wider container for 60/40 -->
+<body class="min-h-screen bg-slate-900 selection:bg-blue-500/30">
+
+    <!-- SERVER DATA INJECTION (Safe JSON) -->
+    <script id="server-config" type="application/json">
+        {{ config.dict() | tojson if config.dict is defined else config | tojson }}
+    </script>
+    <script id="server-voices" type="application/json">{{ voices | tojson }}</script>
+    <script id="server-styles" type="application/json">{{ voice_styles | tojson }}</script>
+    <script id="server-models" type="application/json">{{ llm_models | tojson }}</script>
+    <script id="server-langs" type="application/json">{{ languages | tojson }}</script>
+
+    <!-- Main Container -->
+    <div x-data="dashboard()" x-init="init()" x-cloak
+        class="max-w-[1800px] mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- HEADER -->
-        <header class="mb-8 flex justify-between items-center glass-panel rounded-2xl px-6 py-4 shadow-2xl">
-            <div class="flex items-center gap-4">
-                <div
-                    class="h-10 w-10 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <span class="text-2xl">🎙️</span>
+        <div class="lg:col-span-12 flex justify-between items-center mb-2 glass-panel p-4 rounded-xl">
+            <div class="flex items-center space-x-4">
+                <div class="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-lg shadow-blue-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-white">Orquestador de Voz Nativo</h1>
-                    <p class="text-xs text-slate-400 font-mono tracking-wide uppercase">Panel de Control Unificado</p>
+                    <h1
+                        class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-300">
+                        Orquestador de Voz Nativo
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono tracking-wider">PANEL DE CONTROL UNIFICADO</p>
                 </div>
             </div>
-
-            <div class="flex items-center gap-4">
+            <div class="flex items-center space-x-3">
                 <div
-                    class="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
-                    <span class="relative flex h-2 w-2">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    <span class="text-xs font-bold text-emerald-400 shadow-sm">En Línea</span>
-                </div>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
-
-            <!-- LEFT PANEL: CONFIGURATION (Approx 45%) -->
-            <div class="lg:col-span-5 space-y-6">
-
-                <h2 class="text-lg font-semibold text-white/90 px-2 border-l-4 border-blue-500">Configuración del Agente
-                </h2>
-
-                <div class="glass-panel p-6 rounded-2xl shadow-xl space-y-6">
-
-
-                    <div x-data="getDashboardData()">
-
-                        <script>
-                            function getDashboardData() {
-                                return {
-                                    tab: 'model',
-                                    activeProfile: 'browser',
-
-                                    // --- DATA STORES (From Backend) ---
-
-                                    configs: {
-                                        browser: {
-                                            provider: {{ (config.llm_provider or 'openai') | tojson }
-                            },
-                            model: {{ (config.llm_model or 'gpt-3.5-turbo') | tojson }},
-                            temp: {{ config.temperature or 0.7 }},
-                            tokens: {{ config.max_tokens or 250 }},
-                            msg: {{ (config.first_message or '') | tojson }},
-                            mode: {{ (config.first_message_mode or 'speak-first') | tojson }},
-                            prompt: {{ (config.system_prompt or '') | tojson }},
-
-                            /* VOICE CONFIG */
-                            voiceProvider: {{ (config.tts_provider or 'azure') | tojson }},
-                            voiceLang: {{ (config.voice_language or "es-MX") | tojson }},
-                            voiceId: {{ (config.voice_name or '') | tojson }},
-                            voiceStyle: {{ (config.voice_style or '') | tojson }},
-                            voiceSpeed: {{ config.voice_speed or 1.0 }},
-                            voicePacing: {{ config.voice_pacing_ms or 0 }},
-                            voiceBgSound: {{ (config.background_sound or 'none') | tojson }},
-                            voiceBgUrl: {{ (config.background_sound_url or '') | tojson }},
-
-                            /* FUNCTIONS */
-                            enableEndCall: {{ 'true' if config.enable_end_call else 'false' }},
-                            dialKeypad: {{ 'true' if config.enable_dial_keypad else 'false' }},
-                            transferNum: {{ (config.transfer_phone_number or "") | tojson }},
-
-                            /* ADVANCED */
-                            idleTimeout: {{ config.idle_timeout or 10 }},
-                            maxDuration: {{ config.max_duration or 600 }},
-                            idleMessage: {{ (config.idle_message or '') | tojson }},
-                            maxRetries: {{ config.inactivity_max_retries or 3 }},
-
-                            /* TRANSCRIBER CONFIG */
-                            sttProvider: {{ (config.stt_provider or 'azure') | tojson }},
-                            sttLang: {{ (config.stt_language or 'es-MX') | tojson }},
-                            interruptWords: {{ config.interruption_threshold or 0 }},
-                            silence: {{ config.silence_timeout_ms or 5000 }},
-                            inputMin: 0,
-                                blacklist: {{ (config.hallucination_blacklist or '') | tojson }},
-                            denoise: false,
-                                krisp: false,
-                                    vad: false
-                                        },
-                            twilio: {
-                                provider: {{ (config.llm_provider_phone or config.llm_provider or 'openai') | tojson }},
-                                model: {{ (config.llm_model_phone or config.llm_model or 'gpt-3.5-turbo') | tojson }},
-                                temp: {{ config.temperature_phone or config.temperature or 0.7 }},
-                                tokens: {{ config.max_tokens_phone or config.max_tokens or 250 }},
-                                msg: {{ (config.first_message_phone or config.first_message or '') | tojson }},
-                                mode: {{ (config.first_message_mode_phone or config.first_message_mode or 'speak-first') | tojson }},
-                                prompt: {{ (config.system_prompt_phone or '') | tojson }},
-
-                                /* VOICE CONFIG PHONE */
-                                voiceProvider: {{ (config.tts_provider_phone or config.tts_provider or 'azure') | tojson }},
-                                voiceLang: {{ (config.voice_language_phone or "es-MX") | tojson }},
-                                voiceId: {{ (config.voice_name_phone or '') | tojson }},
-                                voiceStyle: {{ (config.voice_style_phone or '') | tojson }},
-                                voiceSpeed: {{ config.voice_speed_phone or 1.0 }},
-                                voicePacing: {{ config.voice_pacing_ms_phone or 0 }},
-                                voiceBgSound: {{ (config.background_sound_phone or 'none') | tojson }},
-                                voiceBgUrl: {{ (config.background_sound_url_phone or '') | tojson }},
-
-                                /* FUNCTIONS PHONE */
-                                enableEndCall: {{ 'true' if config.enable_end_call else 'false' }},
-                                dialKeypad: {{ 'true' if config.enable_dial_keypad else 'false' }},
-                                transferNum: {{ (config.transfer_phone_number or "") | tojson }},
-
-                                /* ADVANCED PHONE (Legacy/Shared) */
-                                idleTimeout: {{ config.idle_timeout or 10 }},
-                                maxDuration: {{ config.max_duration or 600 }},
-                                idleMessage: {{ (config.idle_message_phone or '') | tojson }},
-                                maxRetries: {{ config.inactivity_max_retries or 3 }},
-
-                                /* TRANSCRIBER CONFIG PHONE */
-                                sttProvider: {{ (config.stt_provider_phone or 'azure') | tojson }},
-                                sttLang: {{ (config.stt_language_phone or 'es-MX') | tojson }},
-                                interruptWords: {{ config.interruption_threshold_phone or 0 }},
-                                silence: {{ config.silence_timeout_ms_phone or 5000 }},
-                                inputMin: {{ config.input_min_characters_phone or 0 }},
-                                blacklist: {{ (config.hallucination_blacklist_phone or '') | tojson }},
-                                denoise: {{ 'true' if config.enable_denoising_phone else 'false' }},
-                                krisp: false,
-                                    vad: false
-                            },
-                            telnyx: {
-                                provider: {{ (config.llm_provider_telnyx or config.llm_provider or 'openai') | tojson }},
-                                model: {{ (config.llm_model_telnyx or config.llm_model or 'gpt-3.5-turbo') | tojson }},
-                                temp: {{ config.temperature_telnyx or config.temperature or 0.7 }},
-                                tokens: {{ config.max_tokens_telnyx or config.max_tokens or 250 }},
-                                msg: {{ (config.first_message_telnyx or config.first_message or '') | tojson }},
-                                mode: {{ (config.first_message_mode_telnyx or config.first_message_mode or 'speak-first') | tojson }},
-                                prompt: {{ (config.system_prompt_telnyx or '') | tojson }},
-
-                                /* VOICE CONFIG TELNYX */
-                                voiceProvider: {{ (config.tts_provider_telnyx or config.tts_provider or 'azure') | tojson }},
-                                voiceLang: {{ (config.voice_language_telnyx or "es-MX") | tojson }},
-                                voiceId: {{ (config.voice_name_telnyx or '') | tojson }},
-                                voiceStyle: {{ (config.voice_style_telnyx or '') | tojson }},
-                                voiceSpeed: {{ config.voice_speed_telnyx or 1.0 }},
-                                voicePacing: {{ config.voice_pacing_ms_telnyx or 0 }},
-                                voiceBgSound: {{ (config.background_sound_telnyx or 'none') | tojson }},
-                                voiceBgUrl: {{ (config.background_sound_url_telnyx or '') | tojson }},
-
-                                /* FUNCTIONS TELNYX */
-                                enableEndCall: {{ 'true' if config.enable_end_call else 'false' }},
-                                dialKeypad: {{ 'true' if config.enable_dial_keypad else 'false' }},
-                                transferNum: {{ (config.transfer_phone_number or "") | tojson }},
-
-                                /* ADVANCED TELNYX */
-                                idleTimeout: {{ config.idle_timeout_telnyx or 20 }},
-                                maxDuration: {{ config.max_duration_telnyx or 600 }},
-                                idleMessage: {{ (config.idle_message_telnyx or '') | tojson }},
-                                enableRecording: {{ 'true' if config.enable_recording_telnyx else 'false' }},
-                                amdConfig: {{ (config.amd_config_telnyx or "disabled") | tojson }},
-
-                                /* TRANSCRIBER CONFIG TELNYX */
-                                sttProvider: {{ (config.stt_provider_telnyx or 'azure') | tojson }},
-                                sttLang: {{ (config.stt_language_telnyx or 'es-MX') | tojson }},
-                                interruptWords: {{ config.interruption_threshold_telnyx or 0 }},
-                                interruptRMS: {{ config.voice_sensitivity_telnyx or 0 }},
-                                silence: {{ config.silence_timeout_ms_telnyx or 5000 }},
-                                inputMin: {{ config.input_min_characters_telnyx or 0 }},
-                                blacklist: {{ (config.hallucination_blacklist_telnyx or '') | tojson }},
-                                denoise: {{ 'true' if config.enable_denoising_telnyx else 'false' }},
-                                krisp: {{ 'true' if config.enable_krisp_telnyx else 'false' }},
-                                vad: {{ 'true' if config.enable_vad_telnyx else 'false' }}
-                            },
-                                    },
-
-
-                            // --- UI BOUND VARIABLES ---
-                            currentProvider: '',
-                                currentModel: '',
-                                    currentTemp: 0.7,
-                                        maxTokens: 250,
-                                            firstMessage: '',
-                                                firstMessageMode: 'speak-first',
-                                                    systemPrompt: '',
-                                                        availableModels: [],
-
-                                                            // --- VOICE VARIABLES ---
-                                                            currentVoiceProvider: 'azure',
-                                                                currentVoiceLang: 'es-MX',
-                                                                    currentVoiceId: '',
-                                                                        currentVoiceStyle: '',
-                                                                            currentVoiceSpeed: 1.0,
-                                                                                currentVoicePacing: 0,
-                                                                                    currentBgSound: 'none',
-                                                                                        currentBgUrl: '',
-
-                                                                                            // --- TRANSCRIBER VARIABLES ---
-                                                                                            currentSttProvider: 'azure',
-                                                                                                currentSttLang: 'es-MX',
-                                                                                                    currentInterruptWords: 5,
-                                                                                                        currentInterruptRMS: 2000,
-                                                                                                            currentSilence: 5000,
-                                                                                                                currentInputMin: 0,
-                                                                                                                    currentBlacklist: '',
-                                                                                                                        currentDenoise: false,
-                                                                                                                            currentKrisp: false,
-                                                                                                                                currentVad: false,
-
-                                                                                                                                    // --- FUNCTIONS VARIABLES ---
-                                                                                                                                    currentEndCall: true,
-                                                                                                                                        currentKeypad: false,
-                                                                                                                                            currentTransferNum: '',
-
-                                                                                                                                                // --- ADVANCED VARIABLES ---
-                                                                                                                                                currentIdleTimeout: 10,
-                                                                                                                                                    currentMaxDuration: 600,
-                                                                                                                                                        currentIdleMessage: '',
-                                                                                                                                                            currentMaxRetries: 3,
-                                                                                                                                                                currentEnableRecording: false,
-                                                                                                                                                                    currentAmdConfig: 'disabled',
-
-                                                                                                                                                                        // --- DYNAMIC LISTS ---
-                                                                                                                                                                        availableLanguages: [],
-                                                                                                                                                                            availableVoices: [],
-                                                                                                                                                                                availableStyles: [],
-
-                                                                                                                                                                                    // --- CONSTANTS --- 
-                                                                                                                                                                                    models: {
-                                groq: [
-                                    { id: 'llama-3.3-70b-versatile', name: '⚡ Llama 3.3 70B (Versatile)' },
-                                    { id: 'llama-3.1-8b-instant', name: '⚡ Llama 3.1 8B (Instant)' },
-                                    { id: 'mixtral-8x7b-32768', name: '⚡ Mixtral 8x7B' }
-                                ],
-                                    openai: [
-                                        { id: 'gpt-4o', name: '🧠 GPT-4o (Omni)' },
-                                        { id: 'gpt-4-turbo', name: '🤖 GPT-4 Turbo' },
-                                        { id: 'gpt-3.5-turbo', name: '⚡ GPT-3.5 Turbo' }
-                                    ],
-                                        azure: [
-                                            { id: 'gpt-4o', name: '☁️ Azure GPT-4o' },
-                                            { id: 'gpt-35-turbo', name: '☁️ Azure GPT-3.5' }
-                                        ]
-                            },
-
-                            voiceProviders: [
-                                { id: 'azure', name: 'Azure Speech', icon: '☁️' },
-                                { id: 'elevenlabs', name: 'ElevenLabs', icon: '📢' },
-                                { id: 'openai', name: 'OpenAI Audio', icon: '🤖' }
-                            ],
-
-                                voiceLanguages: {
-                                'azure': [
-                                    { id: 'es-MX', name: '🇲🇽 Español (México)' },
-                                    { id: 'es-ES', name: '🇪🇸 Español (España)' },
-                                    { id: 'en-US', name: '🇺🇸 Inglés (USA)' }
-                                ],
-                                    'elevenlabs': [
-                                        { id: 'es', name: '🇲🇽/🇪🇸 Español (Global)' },
-                                        { id: 'en', name: '🇺🇸 Inglés (Global)' }
-                                    ],
-                                        'openai': [
-                                            { id: 'global', name: 'Global (Auto)' }
-                                        ]
-                            },
-                            voiceCatalog: {
-                                'azure': {
-                                    /* Expanded Catalog with Gender */
-                                    'es-MX': [
-                                        { id: 'es-MX-DaliaNeural', name: 'Dalia (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-JorgeNeural', name: 'Jorge (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-BeatrizNeural', name: 'Beatriz (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-CandelaNeural', name: 'Candela (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-CarlotaNeural', name: 'Carlota (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-CecilioNeural', name: 'Cecilio (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-GerardoNeural', name: 'Gerardo (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-LarissaNeural', name: 'Larissa (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-LibertoNeural', name: 'Liberto (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-LucianoNeural', name: 'Luciano (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-MarinaNeural', name: 'Marina (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-NurielNeural', name: 'Nuriel (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-PelayoNeural', name: 'Pelayo (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-RenataNeural', name: 'Renata (Femenina)', gender: 'female' },
-                                        { id: 'es-MX-YagoNeural', name: 'Yago (Masculina)', gender: 'male' }
-                                    ],
-                                        'es-ES': [
-                                            { id: 'es-ES-ElviraNeural', name: 'Elvira (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-AlvaroNeural', name: 'Alvaro (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-AbrilNeural', name: 'Abril (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-ArnauNeural', name: 'Arnau (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-DarioNeural', name: 'Dario (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-EliasNeural', name: 'Elias (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-EstrellaNeural', name: 'Estrella (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-IreneNeural', name: 'Irene (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-LaiaNeural', name: 'Laia (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-LiaNeural', name: 'Lia (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-NilNeural', name: 'Nil (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-SaulNeural', name: 'Saul (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-TeoNeural', name: 'Teo (Masculina)', gender: 'male' },
-                                            { id: 'es-ES-TrianaNeural', name: 'Triana (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-VeraNeural', name: 'Vera (Femenina)', gender: 'female' }
-                                        ],
-                                            'en-US': [
-                                                { id: 'en-US-JennyNeural', name: 'Jenny (Female)', gender: 'female' },
-                                                { id: 'en-US-GuyNeural', name: 'Guy (Male)', gender: 'male' },
-                                                { id: 'en-US-AnaNeural', name: 'Ana (Female)', gender: 'female' },
-                                                { id: 'en-US-AriaNeural', name: 'Aria (Female)', gender: 'female' },
-                                                { id: 'en-US-ChristopherNeural', name: 'Christopher (Male)', gender: 'male' },
-                                                { id: 'en-US-EricNeural', name: 'Eric (Male)', gender: 'male' },
-                                                { id: 'en-US-MichelleNeural', name: 'Michelle (Female)', gender: 'female' },
-                                                { id: 'en-US-RogerNeural', name: 'Roger (Male)', gender: 'male' }
-                                            ]
-                                },
-                                'elevenlabs': {
-                                    'es': [
-                                        { id: 'rachel', name: 'Rachel (Femenina)', gender: 'female' },
-                                        { id: 'josh', name: 'Josh (Masculina)', gender: 'male' }
-                                    ],
-                                        'en': [
-                                            { id: 'rachel', name: 'Rachel (Female)', gender: 'female' },
-                                            { id: 'josh', name: 'Josh (Male)', gender: 'male' }
-                                        ]
-                                },
-                                'openai': {
-                                    'global': [
-                                        { id: 'alloy', name: 'Alloy', gender: 'neutral' },
-                                        { id: 'echo', name: 'Echo', gender: 'neutral' },
-                                        { id: 'fable', name: 'Fable', gender: 'neutral' },
-                                        { id: 'onyx', name: 'Onyx', gender: 'neutral' },
-                                        { id: 'nova', name: 'Nova', gender: 'neutral' },
-                                        { id: 'shimmer', name: 'Shimmer', gender: 'neutral' }
-                                    ]
-                                }
-                            },
-
-                            backgroundSounds: [
-                                { id: 'none', name: '🔇 Silencio' },
-                                { id: 'office', name: '🏢 Oficina' },
-                                { id: 'cafe', name: '☕ Cafetería' },
-                                { id: 'callcenter', name: '📞 Call Center' },
-                                { id: 'custom', name: '🔗 URL Personalizada' }
-                            ],
-
-                                /* Legacy Variables needed for other tabs */
-                                interruptionPhone: {{ config.interruption_threshold_phone or 2 }},
-                            voiceSpeedPhone: {{ config.voice_speed_phone or 0.9 }},
-                            silencePhone: {{ config.silence_timeout_ms_phone or 1200 }},
-
-                            /* Telnyx State */
-                            interruptionTelnyx: {{ config.interruption_threshold_telnyx or 2 }},
-                            voiceSpeedTelnyx: {{ config.voice_speed_telnyx or 0.9 }},
-                            voicePacingTelnyx: {{ config.voice_pacing_ms_telnyx or 500 }},
-                            activeVoice: {{ (config.voice_name_telnyx or " es-MX-DaliaNeural") | tojson }},
-
-                            // --- STYLE MAPPINGS ---
-                            voiceStyles: {
-                                'es-MX-DaliaNeural': [
-                                    { id: 'cheerful', label: 'Alegre (Cheerful)' },
-                                    { id: 'sad', label: 'Triste (Sad)' },
-                                    { id: 'whispering', label: 'Susurrando (Whispering)' },
-                                    { id: 'friendly', label: 'Amigable (Friendly)' },
-                                    { id: 'excited', label: 'Entusiasmado "Excited"' },
-                                    { id: 'hopeful', label: 'Esperanzado "Hopeful"' },
-                                    { id: 'terrified', label: 'Aterrorizado "Terrified"' },
-                                    { id: 'angry', label: 'Enojado "Angry"' },
-                                    { id: 'chat', label: 'Charla "Chat"' },
-                                    { id: 'customerservice', label: 'Servicio al Cliente' }
-                                ],
-                                    // Generic fallbacks for other neural voices that often support these
-                                    'default': [
-                                        { id: 'cheerful', label: 'Alegre' },
-                                        { id: 'sad', label: 'Triste' },
-                                        { id: 'chat', label: 'Charla' },
-                                        { id: 'customerservice', label: 'Servicio al Cliente' }
-                                    ]
-                            }, 
-                                    
-                                    get currentStyles() { return this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; },
-                            historyFilter: 'all',
-
-                                // New Filter State
-                                currentVoiceGender: 'female',
-                                    availableGenders: [],
-
-                                        init() {
-                                this.loadProfile(this.activeProfile);
-                                this.$watch('activeProfile', val => this.loadProfile(val));
-
-                                this.$watch('currentProvider', v => { this.configs[this.activeProfile].provider = v; this.updateModelList(); });
-                                this.$watch('currentModel', v => this.configs[this.activeProfile].model = v);
-                                this.$watch('currentTemp', v => this.configs[this.activeProfile].temp = v);
-                                this.$watch('maxTokens', v => this.configs[this.activeProfile].tokens = v);
-                                this.$watch('firstMessage', v => this.configs[this.activeProfile].msg = v);
-                                this.$watch('firstMessageMode', v => this.configs[this.activeProfile].mode = v);
-                                this.$watch('systemPrompt', v => this.configs[this.activeProfile].prompt = v);
-
-                                this.$watch('currentVoiceProvider', v => {
-                                    this.configs[this.activeProfile].voiceProvider = v;
-                                    this.updateVoiceLists();
-                                });
-                                this.$watch('currentVoiceLang', v => {
-                                    this.configs[this.activeProfile].voiceLang = v;
-                                    this.updateVoiceLists();
-                                });
-                                this.$watch('currentVoiceGender', v => {
-                                    // Gender is UI only, selects the first voice of that gender
-                                    this.updateVoiceLists();
-                                });
-
-                                this.$watch('currentVoiceId', v => {
-                                    this.configs[this.activeProfile].voiceId = v;
-                                    this.updateStyleList();
-                                });
-                                this.$watch('currentVoiceStyle', v => this.configs[this.activeProfile].voiceStyle = v);
-                                this.$watch('currentVoiceSpeed', v => this.configs[this.activeProfile].voiceSpeed = v);
-                                this.$watch('currentVoicePacing', v => this.configs[this.activeProfile].voicePacing = v);
-                                this.$watch('currentBgSound', v => this.configs[this.activeProfile].voiceBgSound = v);
-                                this.$watch('currentBgUrl', v => this.configs[this.activeProfile].voiceBgUrl = v);
-
-                                // TRANSCRIBER WATCHERS
-                                this.$watch('currentSttProvider', v => this.configs[this.activeProfile].sttProvider = v);
-                                this.$watch('currentSttLang', v => this.configs[this.activeProfile].sttLang = v);
-                                this.$watch('currentInterruptWords', v => this.configs[this.activeProfile].interruptWords = v);
-                                this.$watch('currentInterruptRMS', v => this.configs[this.activeProfile].interruptRMS = v);
-                                this.$watch('currentSilence', v => this.configs[this.activeProfile].silence = v);
-                                this.$watch('currentInputMin', v => this.configs[this.activeProfile].inputMin = v);
-                                this.$watch('currentBlacklist', v => this.configs[this.activeProfile].blacklist = v);
-                                this.$watch('currentDenoise', v => this.configs[this.activeProfile].denoise = v);
-                                this.$watch('currentKrisp', v => this.configs[this.activeProfile].krisp = v);
-                                this.$watch('currentVad', v => this.configs[this.activeProfile].vad = v);
-
-                                // FUNCTIONS WATCHERS
-                                this.$watch('currentEndCall', v => this.configs[this.activeProfile].enableEndCall = v);
-                                this.$watch('currentKeypad', v => this.configs[this.activeProfile].dialKeypad = v);
-                                this.$watch('currentTransferNum', v => this.configs[this.activeProfile].transferNum = v);
-
-                                // ADVANCED WATCHERS
-                                this.$watch('currentIdleTimeout', v => this.configs[this.activeProfile].idleTimeout = v);
-                                this.$watch('currentMaxDuration', v => this.configs[this.activeProfile].maxDuration = v);
-                                this.$watch('currentIdleMessage', v => this.configs[this.activeProfile].idleMessage = v);
-                                this.$watch('currentMaxRetries', v => this.configs[this.activeProfile].maxRetries = v);
-                                this.$watch('currentEnableRecording', v => this.configs[this.activeProfile].enableRecording = v);
-                                this.$watch('currentAmdConfig', v => this.configs[this.activeProfile].amdConfig = v);
-                            },
-
-                            loadProfile(p) {
-                                let c = this.configs[p];
-                                if (!c) return;
-                                // MODEL
-                                this.currentProvider = c.provider;
-                                this.updateModelList();
-                                this.currentModel = c.model;
-                                this.currentTemp = c.temp;
-                                this.maxTokens = c.tokens;
-                                this.firstMessage = c.msg;
-                                this.firstMessageMode = c.mode;
-                                this.systemPrompt = c.prompt;
-
-                                // VOICE
-                                this.currentVoiceProvider = c.voiceProvider || 'azure';
-                                this.currentVoiceLang = c.voiceLang || 'es-MX';
-
-                                // Try to deduce gender from current ID if possible, else default female
-                                let currentId = c.voiceId;
-                                let knownGender = 'female'; // default
-                                // Search in catalog
-                                for (let prov in this.voiceCatalog) {
-                                    for (let lang in this.voiceCatalog[prov]) {
-                                        let found = this.voiceCatalog[prov][lang].find(v => v.id === currentId);
-                                        if (found) knownGender = found.gender;
-                                    }
-                                }
-                                this.currentVoiceGender = knownGender;
-
-                                // TRANSCRIBER
-                                this.currentSttProvider = c.sttProvider || 'azure';
-                                this.currentSttLang = c.sttLang || 'es-MX';
-                                this.currentInterruptWords = c.interruptWords;
-                                this.currentInterruptRMS = c.interruptRMS || 2000;
-                                this.currentSilence = c.silence;
-                                this.currentInputMin = c.inputMin;
-                                this.currentBlacklist = c.blacklist;
-                                this.currentDenoise = c.denoise;
-                                this.currentKrisp = c.krisp;
-                                this.currentVad = c.vad;
-
-                                // FUNCTIONS
-                                this.currentEndCall = c.enableEndCall;
-                                this.currentKeypad = c.dialKeypad;
-                                this.currentTransferNum = c.transferNum;
-
-                                // ADVANCED
-                                this.currentIdleTimeout = c.idleTimeout;
-                                this.currentMaxDuration = c.maxDuration;
-                                this.currentIdleMessage = c.idleMessage;
-                                this.currentMaxRetries = c.maxRetries; // Undefined for Telnyx but ignored
-                                this.currentEnableRecording = c.enableRecording; // Undefined for others
-                                this.currentAmdConfig = c.amdConfig;
-
-                                this.updateVoiceLists();
-
-                                // Set ID after lists population
-                                this.currentVoiceId = c.voiceId;
-                                this.updateStyleList();
-
-                                this.currentVoiceStyle = c.voiceStyle;
-                                this.currentVoiceSpeed = c.voiceSpeed;
-                                this.currentVoicePacing = c.voicePacing;
-                                this.currentBgSound = c.voiceBgSound;
-                                this.currentBgUrl = c.voiceBgUrl;
-                            },
-
-                            updateModelList() {
-                                this.availableModels = this.models[this.currentProvider] || [];
-                                if (this.currentModel && !this.availableModels.find(m => m.id === this.currentModel)) {
-                                    this.currentModel = this.availableModels[0]?.id || '';
-                                }
-                            },
-
-                            updateVoiceLists() {
-                                this.availableLanguages = this.voiceLanguages[this.currentVoiceProvider] || [];
-                                if (!this.availableLanguages.find(l => l.id === this.currentVoiceLang)) {
-                                    this.currentVoiceLang = this.availableLanguages[0]?.id || '';
-                                }
-
-                                const providerVoices = this.voiceCatalog[this.currentVoiceProvider] || {};
-                                let allVoices = providerVoices[this.currentVoiceLang] || [];
-
-                                // Calculate Genders
-                                let genders = new Set(allVoices.map(v => v.gender));
-                                this.availableGenders = Array.from(genders).map(g => ({
-                                    id: g,
-                                    name: g === 'female' ? 'Mujer (Femenina)' : (g === 'male' ? 'Hombre (Masculina)' : 'Neutral')
-                                }));
-
-                                if (!genders.has(this.currentVoiceGender) && this.availableGenders.length > 0) {
-                                    this.currentVoiceGender = this.availableGenders[0].id;
-                                }
-
-                                // Filter by Gender
-                                this.availableVoices = allVoices.filter(v => v.gender === this.currentVoiceGender);
-
-                                if (this.availableVoices.length > 0 && !this.availableVoices.find(v => v.id === this.currentVoiceId)) {
-                                    this.currentVoiceId = this.availableVoices[0].id;
-                                }
-
-                                this.updateStyleList();
-                            },
-
-                            updateStyleList() {
-                                // Expanded Style Matching
-                                let styles = this.voiceStyles[this.currentVoiceId] || [];
-                                if (styles.length === 0) {
-                                    // Try generic matching
-                                    styles = this.voiceStyles['default'];
-                                }
-                                this.availableStyles = styles;
-
-                                if (this.availableStyles.length > 0) {
-                                    if (!this.availableStyles.find(s => s.id === this.currentVoiceStyle)) {
-                                        this.currentVoiceStyle = this.availableStyles[0].id;
-                                    }
-                                } else {
-                                    this.currentVoiceStyle = '';
-                                }
-                            }
-                                }
-                            }
-                        </script>
-
-                        <!-- GLOBAL PROFILE TOGGLE -->
-                        <div
-                            class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 mb-8 border border-slate-700/50 shadow-lg">
-                            <button type="button"
-                                @click="activeProfile = 'browser'; document.getElementById('sim-mode-text').innerText = 'Navegador'; document.getElementById('sim-mode-text').className = 'text-blue-400'; window.simulatorClientType = 'browser';"
-                                :class="{'bg-blue-600 text-white shadow-lg scale-[1.02]': activeProfile === 'browser', 'text-slate-400 hover:text-white': activeProfile !== 'browser'}"
-                                class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
-                                <span class="text-lg">🌐</span> Simulador
-                            </button>
-                            <button type="button"
-                                @click="activeProfile = 'twilio'; document.getElementById('sim-mode-text').innerText = 'Twilio'; document.getElementById('sim-mode-text').className = 'text-red-400'; window.simulatorClientType = 'twilio';"
-                                :class="{'bg-red-600 text-white shadow-lg scale-[1.02]': activeProfile === 'twilio', 'text-slate-400 hover:text-white': activeProfile !== 'twilio'}"
-                                class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
-                                <span class="text-lg">📱</span> Twilio
-                            </button>
-                            <button type="button"
-                                @click="activeProfile = 'telnyx'; document.getElementById('sim-mode-text').innerText = 'Telnyx'; document.getElementById('sim-mode-text').className = 'text-emerald-400'; window.simulatorClientType = 'telnyx';"
-                                :class="{'bg-emerald-600 text-white shadow-lg scale-[1.02]': activeProfile === 'telnyx', 'text-slate-400 hover:text-white': activeProfile !== 'telnyx'}"
-                                class="flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all focus:outline-none flex items-center justify-center gap-2">
-                                <span class="text-lg">📡</span> Telnyx
-                            </button>
-                        </div>
-
-                        <!-- Tabs Header (RESTORED FOR HISTORY ACCESS) -->
-                        <div class=" flex space-x-1 border-b border-slate-700 mb-4 overflow-x-auto pb-1
-                        custom-scrollbar">
-                            <!-- Model (Disabled/Hidden) -->
-                            <button @click.prevent="tab = 'model'"
-                                :class="tab === 'model' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Modelo</button>
-
-                            <!-- Voice (RESTORED) -->
-                            <button @click.prevent="tab = 'voice'"
-                                :class="tab === 'voice' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Voz</button>
-
-                            <!-- Transcriber (Disabled/Hidden) -->
-                            <!-- Transcriber (RESTORED) -->
-                            <button @click.prevent="tab = 'transcriber'"
-                                :class="tab === 'transcriber' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Transcriptor</button>
-
-                            <!-- Functions (RESTORED) -->
-                            <button @click.prevent="tab = 'functions'"
-                                :class="tab === 'functions' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Funciones</button>
-
-                            <!-- Advanced (RESTORED) -->
-                            <button @click.prevent="tab = 'advanced'"
-                                :class="tab === 'advanced' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Avanzado</button>
-
-                            <!-- HISTORY (ACTIVE) -->
-                            <button @click.prevent="tab = 'history'"
-                                :class="tab === 'history' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap font-bold text-emerald-400">Historial</button>
-
-                            <!-- Connectivity (Disabled/Hidden) -->
-                            <button @click.prevent="tab = 'connectivity'"
-                                :class="tab === 'connectivity' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'"
-                                class="px-3 py-1.5 border-b-2 text-sm font-medium whitespace-nowrap opacity-50 cursor-not-allowed"
-                                title="Auditando...">Conexión</button>
-                        </div>
-
-
-
-                        <form action="/api/config/update" method="POST" class="space-y-4"
-                            onsubmit="event.preventDefault(); saveConfig();">
-
-
-
-                            <!-- ALPINE SHADOW FORM (Dynamic Binding for Save) -->
-                            <div style="display:none;">
-                                <!-- 1. BROWSER PROFILE (Standard Names) -->
-                                <input type="hidden" name="llm_provider" :value="configs.browser.provider">
-                                <input type="hidden" name="llm_model" :value="configs.browser.model">
-                                <input type="hidden" name="temperature" :value="configs.browser.temp">
-                                <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
-                                <input type="hidden" name="first_message" :value="configs.browser.msg">
-                                <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
-                                <textarea name="system_prompt" :value="configs.browser.prompt"></textarea>
-
-                                <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
-                                <input type="hidden" name="voice_language" :value="configs.browser.voiceLang">
-                                <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
-                                <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
-                                <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
-                                <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
-                                <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
-                                <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
-
-                                <!-- FUNCTIONS BROWSER -->
-                                <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
-                                <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
-                                <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
-
-                                <!-- ADVANCED BROWSER -->
-                                <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
-                                <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
-                                <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
-                                <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
-
-                                <!-- TRANSCRIBER BROWSER -->
-                                <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
-                                <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
-                                <input type="hidden" name="interruption_threshold"
-                                    :value="configs.browser.interruptWords">
-                                <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
-                                <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
-
-                                <!-- 2. TWILIO PROFILE (_phone suffix) -->
-                                <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
-                                <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
-                                <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
-                                <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
-                                <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
-                                <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
-                                <textarea name="system_prompt_phone" :value="configs.twilio.prompt"></textarea>
-
-                                <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
-                                <input type="hidden" name="voice_language_phone" :value="configs.twilio.voiceLang">
-                                <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
-                                <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
-                                <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
-                                <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
-                                <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
-                                <input type="hidden" name="background_sound_url_phone"
-                                    :value="configs.twilio.voiceBgUrl">
-
-                                <!-- FUNCTIONS TWILIO -->
-                                <input type="hidden" name="enable_end_call_phone" :value="configs.twilio.enableEndCall">
-                                <input type="hidden" name="enable_dial_keypad_phone" :value="configs.twilio.dialKeypad">
-                                <input type="hidden" name="transfer_phone_number_phone"
-                                    :value="configs.twilio.transferNum">
-
-                                <!-- ADVANCED TWILIO -->
-                                <input type="hidden" name="idle_timeout_phone" :value="configs.twilio.idleTimeout">
-                                <input type="hidden" name="max_duration_phone" :value="configs.twilio.maxDuration">
-                                <input type="hidden" name="idle_message_phone" :value="configs.twilio.idleMessage">
-                                <input type="hidden" name="inactivity_max_retries_phone"
-                                    :value="configs.twilio.maxRetries">
-
-                                <!-- TRANSCRIBER TWILIO -->
-                                <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
-                                <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
-                                <input type="hidden" name="interruption_threshold_phone"
-                                    :value="configs.twilio.interruptWords">
-                                <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
-                                <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
-                                <input type="hidden" name="hallucination_blacklist_phone"
-                                    :value="configs.twilio.blacklist">
-                                <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
-
-                                <!-- 3. TELNYX PROFILE (_telnyx suffix) -->
-                                <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
-                                <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
-                                <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
-                                <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
-                                <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
-                                <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
-                                <textarea name="system_prompt_telnyx" :value="configs.telnyx.prompt"></textarea>
-
-                                <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
-                                <input type="hidden" name="voice_language_telnyx" :value="configs.telnyx.voiceLang">
-                                <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
-                                <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
-                                <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
-                                <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
-                                <input type="hidden" name="background_sound_telnyx"
-                                    :value="configs.telnyx.voiceBgSound">
-                                <input type="hidden" name="background_sound_url_telnyx"
-                                    :value="configs.telnyx.voiceBgUrl">
-
-                                <!-- TRANSCRIBER TELNYX -->
-                                <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
-                                <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
-                                <input type="hidden" name="interruption_threshold_telnyx"
-                                    :value="configs.telnyx.interruptWords">
-                                <input type="hidden" name="voice_sensitivity_telnyx"
-                                    :value="configs.telnyx.interruptRMS">
-                                <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
-                                <input type="hidden" name="input_min_characters_telnyx"
-                                    :value="configs.telnyx.inputMin">
-                                <input type="hidden" name="hallucination_blacklist_telnyx"
-                                    :value="configs.telnyx.blacklist">
-                                <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
-                                <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
-                                <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
-
-                                <!-- ADVANCED TELNYX -->
-                                <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
-                                <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
-                                <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
-                                <input type="hidden" name="enable_recording_telnyx"
-                                    :value="configs.telnyx.enableRecording">
-                                <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
-                            </div>
-
-                            <!-- Tab: Model -->
-                            {% include "partials/tab_model.html" %}
-
-                            <!-- Tab: Voice -->
-                            {% include "partials/tab_voice.html" %}
-
-                            <!-- Tab: Transcriber -->
-                            {% include "partials/tab_transcriber.html" %}
-
-                            <!-- Tab: Functions -->
-                            {% include "partials/tab_functions.html" %}
-
-                            <!-- Tab: Advanced -->
-                            {% include "partials/tab_advanced.html" %}
-
-                            <!-- 🔒 LOCKED SECTION: PANEL HISTORIAL (DO NOT EDIT WITHOUT AUTH) -->
-                            <!-- Script moved to partials/tab_history.html -->
-                            <!-- 🔒 END LOCKED SECTION -->
-
-
-                            <!-- END HIDDEN CONFIGURATION SECTION -->
-
-                            <div class="pt-4 border-t border-slate-700"
-                                x-show="tab !== 'history' && tab !== 'connectivity'">
-                                <button type="button" onclick="saveConfig()"
-                                    class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-[1.02] flex items-center justify-center gap-2">
-                                    <span>💾</span> Guardar Configuración Completa
-                                </button>
-                            </div>
-                        </form>
-
-                        <script>
-                            async function saveConfig() {
-                                const btn = document.querySelector('button[onclick="saveConfig()"]');
-                                const originalText = btn.innerHTML;
-                                btn.innerHTML = '<span>⏳</span> Guardando...';
-                                btn.disabled = true;
-
-                                const form = document.querySelector('form[action="/api/config/update"]');
-                                const formData = new FormData(form);
-
-                                try {
-                                    const response = await fetch('/api/config/update', {
-                                        method: 'POST',
-                                        body: formData
-                                    });
-
-                                    if (response.ok) {
-                                        btn.innerHTML = '<span>✅</span> ¡Guardado!';
-                                        btn.classList.add('bg-green-600');
-                                        setTimeout(() => {
-                                            btn.innerHTML = originalText;
-                                            btn.classList.remove('bg-green-600');
-                                            btn.disabled = false;
-                                        }, 2000);
-
-                                        // Notify Simulator of potentially new settings (e.g. VAD sliders)
-                                        if (typeof window.updateSimulatorConfig === 'function') {
-                                            // window.updateSimulatorConfig(); // Optional: reload sim config
-                                        }
-                                    } else {
-                                        throw new Error('Error en respuesta');
-                                    }
-                                } catch (e) {
-                                    console.error(e);
-                                    btn.innerHTML = '<span>❌</span> Error al Guardar';
-                                    btn.classList.add('bg-red-600');
-                                    setTimeout(() => {
-                                        btn.innerHTML = originalText;
-                                        btn.classList.remove('bg-red-600');
-                                        btn.disabled = false;
-                                    }, 3000);
-                                }
-                            }
-                        </script>
-
-                        <!-- Tab: History -->
-                        {% include "partials/tab_history.html" %}
-
-                    </div> <!-- End x-data -->
-                </div>
-            </div> <!-- End Left Panel Column -->
-
-            <!-- Simulator Panel (Sticky, Right Side) -->
-            <div class="lg:col-span-7 sticky top-6 self-start space-y-4">
-                <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col min-h-[600px] border border-white/10">
-                    <div class="flex justify-between items-center mb-6">
-                        <script>
-                            // Expose Config to Simulator
-                            window.simulatorConfig = {
-                                audio: "{{ config.background_sound }}",
-                                audioUrl: "{{ config.background_sound_url }}"
-                            };
-                        </script>
-                        <div class="flex flex-col">
-                            <h2 class="text-xl font-semibold text-emerald-300 flex items-center gap-2">
-                                <span>🧪</span> Simulador
-                            </h2>
-                            <!-- Client Type Indicator -->
-                            <div id="sim-client-wrapper" class="text-[10px] font-mono mt-1 text-slate-400">
-                                Perfil: <span id="sim-mode-text" class="text-blue-400 font-bold">Navegador</span>
-                            </div>
-                        </div>
-                        <button id="start-btn" onclick="toggleCall()"
-                            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded font-bold shadow-lg transition-all text-sm">
-                            Iniciar Prueba
-                        </button>
-                    </div>
-
-                    <div
-                        class="flex-grow bg-slate-900 rounded-lg p-4 border border-slate-600 relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
-                        <div id="status-indicator" class="text-slate-500 font-mono mb-4 text-lg">Listo para
-                            conectar...
-                        </div>
-
-                        <!-- Visualizer Canvas -->
-                        <canvas id="visualizer" width="600" height="100" class="w-full h-32"></canvas>
-                    </div>
-
-                    <!-- SIMULATOR VAD CONTROLS (HIDDEN) -->
-                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700"
-                        style="display:none !important;">
-                        <h3 class="text-sm font-mono text-slate-400 mb-2">CONTROLES DE SENSIBILIDAD (VAD)</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                    <span>Sensibilidad Mic (RMS)</span>
-                                    <span id="vad-sens-val" class="text-emerald-400">0.05</span>
-                                </label>
-                                <input type="range" id="vad-sensitivity" min="0.005" max="0.2" step="0.005" value="0.05"
-                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                    oninput="document.getElementById('vad-sens-val').innerText = this.value">
-                                <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-rms"
-                                        class="font-mono text-blue-400">0.00</span> | Mínimo ruido</p>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                    <span>Umbral de Voz (Frec)</span>
-                                    <span id="vad-voice-val" class="text-emerald-400">45</span>
-                                </label>
-                                <input type="range" id="vad-voice-threshold" min="0" max="100" step="5" value="45"
-                                    class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                    oninput="document.getElementById('vad-voice-val').innerText = this.value">
-                                <p class="text-[10px] text-slate-500 mt-1">Actual: <span id="cur-voice"
-                                        class="font-mono text-blue-400">0</span> | Calidad Voz</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-4 border-t border-slate-700">
-                            <label class="block text-xs font-medium mb-1 text-slate-300 flex justify-between">
-                                <span>Filtro de Ruido (Min Letras)</span>
-                                <span id="min-chars-val" class="text-orange-400">1</span>
-                            </label>
-                            <input type="range" id="input-min-chars" min="0" max="50" step="1" value="1"
-                                class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                                oninput="document.getElementById('min-chars-val').innerText = this.value; document.getElementById('form-input-min-chars').value = this.value; updateServerConfig('input_min_characters', this.value)">
-                            <p class="text-[10px] text-slate-500 mt-1">Ignora textos menores a X letras.
-                                (Recomendado:
-                                20-30 para ambientes ruidosos)</p>
-                        </div>
-                    </div>
-
-                    <!-- Latest Transcript -->
-                    <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-700">
-                        <h3 class="text-sm font-mono text-slate-400 mb-2">TRANSCRIPCIÓN EN VIVO</h3>
-
-                        <div id="transcript-box" class="h-40 overflow-y-auto text-sm space-y-2">
-                            <!-- Messages inserted by JS -->
-                        </div>
-                    </div>
+                    class="flex items-center space-x-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                    <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                    <span class="text-xs font-medium text-green-400">En Línea</span>
                 </div>
             </div>
         </div>
+
+        <!-- LEFT COLUMN: CONFIGURATION (5/12) -->
+        <div class="lg:col-span-5 space-y-6">
+
+            <form action="/api/config/update" method="POST" id="configForm" @submit.prevent="saveConfig">
+                <!-- PROFILE SELECTOR (Tabs) -->
+                <div class="glass-panel p-2 rounded-xl flex space-x-1 mb-6">
+                    <button type="button" @click="activeProfile = 'browser'"
+                        :class="{'bg-blue-600 text-white shadow-lg shadow-blue-500/25': activeProfile === 'browser', 'text-slate-400 hover:text-white hover:bg-white/5': activeProfile !== 'browser'}"
+                        class="flex-1 py-2 rounded-lg text-sm font-medium transition-all flex justify-center items-center space-x-2">
+                        <span>🌐 Simulador</span>
+                    </button>
+                    <button type="button" @click="activeProfile = 'twilio'"
+                        :class="{'bg-red-600 text-white shadow-lg shadow-red-500/25': activeProfile === 'twilio', 'text-slate-400 hover:text-white hover:bg-white/5': activeProfile !== 'twilio'}"
+                        class="flex-1 py-2 rounded-lg text-sm font-medium transition-all flex justify-center items-center space-x-2">
+                        <span>📱 Twilio</span>
+                    </button>
+                    <button type="button" @click="activeProfile = 'telnyx'"
+                        :class="{'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25': activeProfile === 'telnyx', 'text-slate-400 hover:text-white hover:bg-white/5': activeProfile !== 'telnyx'}"
+                        class="flex-1 py-2 rounded-lg text-sm font-medium transition-all flex justify-center items-center space-x-2">
+                        <span>🦕 Telnyx</span>
+                    </button>
+                </div>
+
+                <!-- MAIN CONFIG PANEL -->
+                <div class="glass-panel p-6 rounded-2xl relative overflow-hidden min-h-[600px]">
+                    <!-- Settings Tabs -->
+                    <div class="flex space-x-6 border-b border-slate-700/50 pb-4 mb-6 overflow-x-auto">
+                        <template
+                            x-for="t in ['Model', 'Voz', 'Transcriptor', 'Funciones', 'Avanzado', 'Historial', 'Conexión']">
+                            <button type="button" @click="activeTab = t.toLowerCase()" x-show="shouldShowTab(t)"
+                                :class="{'text-blue-400 border-b-2 border-blue-400': activeTab === t.toLowerCase(), 'text-slate-400 hover:text-white': activeTab !== t.toLowerCase()}"
+                                class="pb-2 text-sm font-medium whitespace-nowrap transition-colors" x-text="t">
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- TAB START: MODEL -->
+                    <div x-show="activeTab === 'model'" class="space-y-5 animate-fade-in-up">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                                    LLM</label>
+                                <select x-model="c.provider" @change="updateModelList()"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <option value="openai">OpenAI</option>
+                                    <option value="groq">Groq</option>
+                                    <option value="azure">Azure OpenAI</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Modelo</label>
+                                <select x-model="c.model" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <template x-for="m in availableModels">
+                                        <option :value="m.id" x-text="m.id"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                <span>Temperatura</span>
+                                <span class="text-blue-400" x-text="c.temp"></span>
+                            </label>
+                            <input type="range" x-model="c.temp" min="0" max="1" step="0.1"
+                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                <span>Max Tokens</span>
+                                <span class="text-blue-400" x-text="c.tokens"></span>
+                            </label>
+                            <input type="number" x-model="c.tokens" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">System
+                                Prompt</label>
+                            <textarea x-model="c.prompt" rows="6"
+                                class="glass-input w-full p-3 rounded-lg text-sm font-mono leading-relaxed"
+                                placeholder="Instrucciones para el agente..."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
+                                    Inicial</label>
+                                <input type="text" x-model="c.msg" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Modo
+                                    Inicio</label>
+                                <select x-model="c.mode" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <option value="speak-first">Hablar Primero (Agente)</option>
+                                    <option value="listen-first">Escuchar Primero (Usuario)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB START: VOZ -->
+                    <div x-show="activeTab === 'voz'" class="space-y-5 animate-fade-in-up">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                                    TTS</label>
+                                <select x-model="c.voiceProvider" @change="updateVoiceLists()"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <option value="azure">Azure</option>
+                                    <option value="elevenlabs">ElevenLabs</option>
+                                    <option value="openai">OpenAI</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
+                                <select x-model="c.voiceLang" @change="updateVoiceLists()"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <template x-for="l in availableLanguages">
+                                        <option :value="l.id" x-text="l.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Gender Filter -->
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Género</label>
+                            <div class="flex space-x-2">
+                                <template x-for="g in availableGenders">
+                                    <button type="button" @click="setGender(g.id)"
+                                        :class="{'bg-blue-600 border-blue-500 text-white': currentGender === g.id, 'bg-slate-800 border-slate-700 text-slate-400': currentGender !== g.id}"
+                                        class="px-3 py-1.5 rounded-md text-xs font-medium border transition-colors capitalize"
+                                        x-text="g.name">
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Voz</label>
+                            <select x-model="c.voiceId" @change="updateStyleList()"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                <template x-for="v in availableVoices">
+                                    <option :value="v.id" x-text="v.name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div x-show="availableStyles.length > 0">
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Estilo
+                                Emocional</label>
+                            <select x-model="c.voiceStyle" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                <option value="">(Default)</option>
+                                <template x-for="s in availableStyles">
+                                    <option :value="s.id" x-text="s.label"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                    <span>Velocidad</span>
+                                    <span class="text-blue-400" x-text="c.voiceSpeed"></span>
+                                </label>
+                                <input type="range" x-model="c.voiceSpeed" min="0.5" max="2.0" step="0.1"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                    <span>Pacing (ms)</span>
+                                    <span class="text-blue-400" x-text="c.voicePacing"></span>
+                                </label>
+                                <input type="range" x-model="c.voicePacing" min="0" max="2000" step="100"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Sonido
+                                    de Fondo</label>
+                                <select x-model="c.voiceBgSound" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <option value="none">🔇 Silencio</option>
+                                    <option value="office">🏢 Oficina</option>
+                                    <option value="cafe">☕ Cafetería</option>
+                                    <option value="callcenter">📞 Call Center</option>
+                                    <option value="custom">🔗 URL Personalizada</option>
+                                </select>
+                            </div>
+                            <div x-show="c.voiceBgSound === 'custom'">
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">URL
+                                    Audio</label>
+                                <input type="text" x-model="c.voiceBgUrl"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm" placeholder="https://...">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- TAB START: TRANSCRIPTOR -->
+                    <div x-show="activeTab === 'transcriptor'" class="space-y-5 animate-fade-in-up">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                                    STT</label>
+                                <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <option value="azure">Azure</option>
+                                    <option value="deepgram">Deepgram</option>
+                                    <option value="gladia">Gladia</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
+                                <input type="text" x-model="c.sttLang"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">Control
+                                de Interrupciones</label>
+
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm">Umbral de Palabras</span>
+                                    <span class="text-blue-400 font-mono" x-text="c.interruptWords"></span>
+                                </div>
+                                <input type="range" x-model="c.interruptWords" min="0" max="10" step="1"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                                <p class="text-[10px] text-slate-500 mt-1">Palabras requeridas para detener al bot.</p>
+                            </div>
+
+                            <div x-show="activeProfile === 'telnyx'">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm">Sensibilidad (RMS)</span>
+                                    <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
+                                </div>
+                                <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                <p class="text-[10px] text-slate-500 mt-1">Nivel de audio para detectar voz humana.</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                <span>Timeout Silencio (ms)</span>
+                                <span class="text-blue-400" x-text="c.silence"></span>
+                            </label>
+                            <input type="range" x-model="c.silence" min="100" max="5000" step="100"
+                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
+                                Alucinaciones</label>
+                            <input type="text" x-model="c.blacklist"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm">
+                        </div>
+
+                        <div class="flex items-center space-x-4 pt-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" x-model="c.denoise"
+                                    class="form-checkbox bg-slate-800 border-slate-600 text-blue-500 rounded">
+                                <span class="text-sm">Denoising</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer"
+                                x-show="activeProfile === 'telnyx'">
+                                <input type="checkbox" x-model="c.krisp"
+                                    class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                                <span class="text-sm">Krisp AI</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer"
+                                x-show="activeProfile === 'telnyx'">
+                                <input type="checkbox" x-model="c.vad"
+                                    class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                                <span class="text-sm">VAD</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- TAB START: FUNCIONES -->
+                    <div x-show="activeTab === 'funciones'" class="space-y-5 animate-fade-in-up">
+                        <div class="space-y-4">
+                            <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium">Colgar Llamada</h4>
+                                    <p class="text-xs text-slate-400">Permite al bot finalizar la llamada.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" x-model="c.enableEndCall" class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium">Teclado Numérico</h4>
+                                    <p class="text-xs text-slate-400">Interacción DTMF.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" x-model="c.dialKeypad" class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="glass-panel p-4 rounded-lg space-y-3">
+                                <h4 class="text-sm font-medium">Transferencia</h4>
+                                <input type="text" x-model="c.transferNum"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm" placeholder="+52...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB START: AVANZADO -->
+                    <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Duración
+                                    Máx (seg)</label>
+                                <input type="number" x-model="c.maxDuration"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Max
+                                    Retries</label>
+                                <input type="number" x-model="c.maxRetries"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                <span>Timeout Inactividad (seg)</span>
+                                <span class="text-blue-400" x-text="c.idleTimeout"></span>
+                            </label>
+                            <input type="range" x-model="c.idleTimeout" min="5" max="60" step="1"
+                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
+                                Inactividad</label>
+                            <input type="text" x-model="c.idleMessage"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm">
+                        </div>
+
+                        <div x-show="activeProfile === 'telnyx'" class="pt-4 border-t border-slate-700">
+                            <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3">Telnyx Only</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" x-model="c.enableRecording"
+                                        class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                                    <span class="text-sm">Grabar Llamada</span>
+                                </label>
+                                <div>
+                                    <label class="text-xs text-slate-400 block mb-1">AMD Config</label>
+                                    <select x-model="c.amdConfig" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                        <option value="disabled">Disabled</option>
+                                        <option value="premium">Premium</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HIDDEN INPUTS (MAPPED TO FLATTENED FORM FOR BACKEND) -->
+                    <!-- This ensures backend receives expected fields regardless of active tab -->
+                    <div class="hidden">
+                        <!-- Browser/Common -->
+                        <input type="hidden" name="llm_provider" :value="configs.browser.provider">
+                        <input type="hidden" name="llm_model" :value="configs.browser.model">
+                        <input type="hidden" name="temperature" :value="configs.browser.temp">
+                        <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
+                        <input type="hidden" name="system_prompt" :value="configs.browser.prompt">
+                        <input type="hidden" name="first_message" :value="configs.browser.msg">
+                        <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
+
+                        <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
+                        <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
+                        <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
+                        <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
+                        <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
+                        <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
+                        <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
+
+                        <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
+                        <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
+                        <input type="hidden" name="interruption_threshold" :value="configs.browser.interruptWords">
+                        <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
+                        <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
+
+                        <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
+                        <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
+                        <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
+
+                        <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
+                        <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
+                        <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
+                        <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
+
+                        <!-- Twilio -->
+                        <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
+                        <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
+                        <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
+                        <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
+                        <input type="hidden" name="system_prompt_phone" :value="configs.twilio.prompt">
+                        <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
+                        <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
+
+                        <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
+                        <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
+                        <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
+                        <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
+                        <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
+                        <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
+
+                        <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
+                        <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
+                        <input type="hidden" name="interruption_threshold_phone" :value="configs.twilio.interruptWords">
+                        <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
+                        <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
+                        <input type="hidden" name="hallucination_blacklist_phone" :value="configs.twilio.blacklist">
+                        <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
+
+                        <!-- Telnyx -->
+                        <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
+                        <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
+                        <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
+                        <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
+                        <input type="hidden" name="system_prompt_telnyx" :value="configs.telnyx.prompt">
+                        <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
+                        <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
+
+                        <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
+                        <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
+                        <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
+                        <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
+                        <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
+                        <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
+                        <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
+
+                        <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
+                        <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
+                        <input type="hidden" name="interruption_threshold_telnyx"
+                            :value="configs.telnyx.interruptWords">
+                        <input type="hidden" name="voice_sensitivity_telnyx" :value="configs.telnyx.interruptRMS">
+                        <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
+                        <input type="hidden" name="input_min_characters_telnyx" :value="configs.telnyx.inputMin">
+                        <input type="hidden" name="hallucination_blacklist_telnyx" :value="configs.telnyx.blacklist">
+                        <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
+                        <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
+                        <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
+
+                        <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
+                        <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
+                        <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
+                        <input type="hidden" name="enable_recording_telnyx" :value="configs.telnyx.enableRecording">
+                        <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
+                    </div>
+
+                    <!-- FOOTER ACTIONS -->
+                    <div
+                        class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
+                        <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            <span>Guardar Cambios</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- RIGHT COLUMN: SIMULATOR (7/12) -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="sticky top-6">
+                <!-- SIMULATOR HEADER -->
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">🧪</span>
+                        <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
+                    </div>
+                    <button
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 transition-all">
+                        Iniciar Prueba
+                    </button>
+                </div>
+
+                <!-- VISUALIZER AREA -->
+                <div
+                    class="glass-panel h-[400px] rounded-xl flex items-center justify-center p-6 mb-4 relative overflow-hidden bg-black/40">
+                    <p class="text-mono text-emerald-500/50 animate-pulse">Listo para conectar...</p>
+                </div>
+
+                <!-- TRANSCRIPT -->
+                <div
+                    class="glass-panel h-[200px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50">
+                    <div class="text-slate-500 mb-2">TRANSCRIPCIÓN EN VIVO</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script src="/static/js/simulator.js"></script>
+    <!-- APP LOGIC -->
+    <script>
+        function dashboard() {
+            return {
+                activeTab: 'model',
+                activeProfile: 'browser',
+                serverConfig: {},
+
+                // DATA HOLDERS
+                configs: { browser: {}, twilio: {}, telnyx: {} },
+
+                // CATALAGS
+                voices: [],
+                styles: [],
+                models: [],
+                languages: [],
+
+                // UI COMPUTED LISTS
+                availableModels: [],
+                availableLanguages: [],
+                availableVoices: [],
+                availableStyles: [],
+                availableGenders: [],
+                currentGender: 'female',
+
+                // CURRENT CONFIG POINTER (Convenience accessor for UI binding)
+                get c() { return this.configs[this.activeProfile]; },
+
+                async init() {
+                    // 1. SAFELY PARSE SERVER DATA
+                    try {
+                        this.serverConfig = JSON.parse(document.getElementById('server-config').textContent);
+                        this.voices = JSON.parse(document.getElementById('server-voices').textContent);
+                        this.styles = JSON.parse(document.getElementById('server-styles').textContent);
+                        this.models = JSON.parse(document.getElementById('server-models').textContent);
+                        this.languages = JSON.parse(document.getElementById('server-langs').textContent);
+                    } catch (e) {
+                        console.error("CRITICAL: JSON Parsing failed", e);
+                        return; // Stop execution if critical data missing
+                    }
+
+                    // 2. INITIALIZE CONFIG STORE FROM SERVER DATA
+                    this.initBrowserConfig();
+                    this.initTwilioConfig();
+                    this.initTelnyxConfig();
+
+                    // 3. SETUP WATCHERS & INITIAL UI LISTS
+                    this.$watch('activeProfile', () => this.refreshUI());
+                    this.refreshUI();
+                },
+
+                initBrowserConfig() {
+                    const s = this.serverConfig;
+                    this.configs.browser = {
+                        provider: s.llm_provider || 'openai',
+                        model: s.llm_model || 'gpt-3.5-turbo',
+                        temp: s.temperature || 0.7,
+                        tokens: s.max_tokens || 250,
+                        msg: s.first_message || '',
+                        mode: s.first_message_mode || 'speak-first',
+                        prompt: s.system_prompt || '',
+
+                        voiceProvider: s.tts_provider || 'azure',
+                        voiceLang: s.voice_language || 'es-MX',
+                        voiceId: s.voice_name || '',
+                        voiceStyle: s.voice_style || '',
+                        voiceSpeed: s.voice_speed || 1.0,
+                        voicePacing: s.voice_pacing_ms || 0,
+                        voiceBgSound: s.background_sound || 'none',
+                        voiceBgUrl: s.background_sound_url || '',
+
+                        sttProvider: s.stt_provider || 'azure',
+                        sttLang: s.stt_language || 'es-MX',
+                        interruptWords: s.interruption_threshold || 0,
+                        silence: s.silence_timeout_ms || 5000,
+                        blacklist: s.hallucination_blacklist || '',
+
+                        enableEndCall: s.enable_end_call,
+                        dialKeypad: s.enable_dial_keypad,
+                        transferNum: s.transfer_phone_number,
+
+                        idleTimeout: s.idle_timeout || 10,
+                        maxDuration: s.max_duration || 600,
+                        idleMessage: s.idle_message || '',
+                        maxRetries: s.inactivity_max_retries || 3
+                    };
+                },
+
+                initTwilioConfig() {
+                    const s = this.serverConfig;
+                    this.configs.twilio = {
+                        provider: s.llm_provider_phone || s.llm_provider || 'openai',
+                        model: s.llm_model_phone || s.llm_model || 'gpt-3.5-turbo',
+                        temp: s.temperature_phone || s.temperature || 0.7,
+                        tokens: s.max_tokens_phone || s.max_tokens || 250,
+                        msg: s.first_message_phone || s.first_message || '',
+                        mode: s.first_message_mode_phone || s.first_message_mode || 'speak-first',
+                        prompt: s.system_prompt_phone || '',
+
+                        voiceProvider: s.tts_provider_phone || s.tts_provider || 'azure',
+                        voiceLang: s.voice_language_phone || 'es-MX',
+                        voiceId: s.voice_name_phone || '',
+                        voiceStyle: s.voice_style_phone || '',
+                        voiceSpeed: s.voice_speed_phone || 1.0,
+                        voicePacing: s.voice_pacing_ms_phone || 0,
+                        voiceBgSound: s.background_sound_phone || 'none',
+
+                        sttProvider: s.stt_provider_phone || 'azure',
+                        sttLang: s.stt_language_phone || 'es-MX',
+                        interruptWords: s.interruption_threshold_phone || 0,
+                        silence: s.silence_timeout_ms_phone || 5000,
+                        inputMin: s.input_min_characters_phone || 0,
+                        blacklist: s.hallucination_blacklist_phone || '',
+                        denoise: s.enable_denoising_phone || false
+                    };
+                },
+
+                initTelnyxConfig() {
+                    const s = this.serverConfig;
+                    this.configs.telnyx = {
+                        provider: s.llm_provider_telnyx || s.llm_provider || 'openai',
+                        model: s.llm_model_telnyx || s.llm_model || 'gpt-3.5-turbo',
+                        temp: s.temperature_telnyx || s.temperature || 0.7,
+                        tokens: s.max_tokens_telnyx || s.max_tokens || 250,
+                        msg: s.first_message_telnyx || s.first_message || '',
+                        mode: s.first_message_mode_telnyx || s.first_message_mode || 'speak-first',
+                        prompt: s.system_prompt_telnyx || '',
+
+                        voiceProvider: s.tts_provider_telnyx || s.tts_provider || 'azure',
+                        voiceLang: s.voice_language_telnyx || 'es-MX',
+                        voiceId: s.voice_name_telnyx || '',
+                        voiceStyle: s.voice_style_telnyx || '',
+                        voiceSpeed: s.voice_speed_telnyx || 1.0,
+                        voicePacing: s.voice_pacing_ms_telnyx || 0,
+                        voiceBgSound: s.background_sound_telnyx || 'none',
+                        voiceBgUrl: s.background_sound_url_telnyx || '',
+
+                        sttProvider: s.stt_provider_telnyx || 'azure',
+                        sttLang: s.stt_language_telnyx || 'es-MX',
+                        interruptWords: s.interruption_threshold_telnyx || 0,
+                        interruptRMS: s.voice_sensitivity_telnyx || 0,
+                        silence: s.silence_timeout_ms_telnyx || 5000,
+                        inputMin: s.input_min_characters_telnyx || 0,
+                        blacklist: s.hallucination_blacklist_telnyx || '',
+                        denoise: s.enable_denoising_telnyx || false,
+                        krisp: s.enable_krisp_telnyx || false,
+                        vad: s.enable_vad_telnyx || false,
+
+                        idleTimeout: s.idle_timeout_telnyx || 20,
+                        maxDuration: s.max_duration_telnyx || 600,
+                        idleMessage: s.idle_message_telnyx || '',
+                        enableRecording: s.enable_recording_telnyx || false,
+                        amdConfig: s.amd_config_telnyx || 'disabled'
+                    };
+                },
+
+                refreshUI() {
+                    this.updateModelList();
+                    this.updateVoiceLists();
+                    // Styles autom update via voice list
+                },
+
+                updateModelList() {
+                    let prov = this.c.provider;
+                    this.availableModels = this.models[prov] || [];
+                    // Ensure valid selection
+                    if (this.c.model && !this.availableModels.find(m => m.id === this.c.model)) {
+                        this.c.model = this.availableModels[0]?.id || '';
+                    }
+                },
+
+                updateVoiceLists() {
+                    let prov = this.c.voiceProvider || 'azure';
+                    this.availableLanguages = this.languages[prov] || [];
+
+                    // Validate Lang
+                    if (!this.availableLanguages.find(l => l.id === this.c.voiceLang)) {
+                        this.c.voiceLang = this.availableLanguages[0]?.id || '';
+                    }
+
+                    // Get Voices for Prov + Lang
+                    let allVoices = (this.voices[prov] || {})[this.c.voiceLang] || [];
+
+                    // Extract Genders
+                    let gendersSet = new Set(allVoices.map(v => v.gender));
+                    this.availableGenders = Array.from(gendersSet).map(g => ({
+                        id: g,
+                        name: g === 'female' ? 'Femenino' : (g === 'male' ? 'Masculino' : 'Neutral')
+                    }));
+
+                    // Ensure Gender Selection
+                    if (!gendersSet.has(this.currentGender) && this.availableGenders.length > 0) {
+                        this.currentGender = this.availableGenders[0].id; // Fallback
+                    }
+
+                    // Filter by Gender
+                    this.availableVoices = allVoices.filter(v => v.gender === this.currentGender);
+
+                    // Ensure Voice ID Selection
+                    if (this.availableVoices.length > 0) {
+                        let found = this.availableVoices.find(v => v.id === this.c.voiceId);
+                        if (!found) {
+                            this.c.voiceId = this.availableVoices[0].id;
+                        }
+                    }
+
+                    this.updateStyleList();
+                },
+
+                updateStyleList() {
+                    let vid = this.c.voiceId;
+                    this.availableStyles = this.styles[vid] || this.styles['default'] || [];
+                    // Validate Style
+                    if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
+                        this.c.voiceStyle = '';
+                    }
+                },
+
+                setGender(g) {
+                    this.currentGender = g;
+                    this.updateVoiceLists();
+                },
+
+                shouldShowTab(t) {
+                    if (t === 'Conexión' && this.activeProfile === 'browser') return false;
+                    return true;
+                },
+
+                saveConfig() {
+                    // Alpine automatically binds inputs. 
+                    // The hidden inputs are populated by :value="configs..." attributes
+                    // Form Submit triggers browser POST with those values.
+                    document.getElementById('configForm').submit();
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
