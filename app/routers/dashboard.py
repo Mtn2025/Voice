@@ -31,14 +31,24 @@ async def dashboard(request: Request):
     
     history = await db_service.get_recent_calls(limit=10) # New
     
+    # Helpers for serialization
+    def model_to_dict(obj):
+        if not obj: return {}
+        return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
+    config_dict = model_to_dict(config)
+    
+    # Serialize history manually as well
+    history_list = [model_to_dict(call) for call in history]
+    
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
-        "config": config,
+        "config": config_dict,
         "voices": voices,
         "voice_styles": voice_styles,
         "languages": languages,
-        "llm_models": models, # Renamed for clarity in template
-        "history": history, # New
+        "llm_models": models,
+        "history": history_list,
         "protocol": request.url.scheme,
         "host": request.url.netloc
     })
