@@ -72,10 +72,10 @@
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
 
-            <!-- LEFT PANEL: CONFIGURATION (60% -> 3/5 cols) -->
-            <div class="lg:col-span-3 space-y-6">
+            <!-- LEFT PANEL: CONFIGURATION (Approx 45%) -->
+            <div class="lg:col-span-5 space-y-6">
 
                 <h2 class="text-lg font-semibold text-white/90 px-2 border-l-4 border-blue-500">Configuración del Agente
                 </h2>
@@ -90,353 +90,354 @@
                                 return {
                                     tab: 'model',
                                     activeProfile: 'browser',
-                                    
+
                                     // --- DATA STORES (From Backend) ---
                                     configs: {
                                         browser: {
                                             provider: '{{ config.llm_provider }}',
                                             model: '{{ config.llm_model }}',
-                                            temp: {{ config.temperature or 0.7 }},
-                                            tokens: {{ config.max_tokens or 250 }},
-                                            msg: '{{ config.first_message }}',
-                                            mode: '{{ config.first_message_mode }}',
-                                            prompt: {{ (config.system_prompt or '') | tojson }},
-                                            /* VOICE CONFIG */
-                                            voiceProvider: '{{ config.tts_provider }}',
-                                            voiceLang: '{{ config.voice_language or "es-MX" }}', 
-                                            voiceId: '{{ config.voice_name }}',
-                                            voiceStyle: '{{ config.voice_style }}', 
-                                            voiceSpeed: {{ config.voice_speed or 1.0 }},
-                                            voicePacing: {{ config.voice_pacing_ms or 0 }},
-                                            voiceBgSound: '{{ config.background_sound }}', 
-                                            voiceBgUrl: '{{ config.background_sound_url }}'
-                                        }, 
-                                        twilio: { 
-                                            provider: '{{ config.llm_provider_phone }}' || '{{ config.llm_provider }}',
-                                            model: '{{ config.llm_model_phone }}' || '{{ config.llm_model }}', 
-                                            temp: {{ config.temperature_phone or config.temperature or 0.7 }}, 
-                                            tokens: {{ config.max_tokens_phone or config.max_tokens or 250 }}, 
-                                            msg: '{{ config.first_message_phone }}' || '{{ config.first_message }}', 
-                                            mode: '{{ config.first_message_mode_phone }}' || '{{ config.first_message_mode }}', 
-                                            prompt: {{ (config.system_prompt_phone or '') | tojson }},
-                                            
-                                            /* VOICE CONFIG PHONE */
-                                            voiceProvider: '{{ config.tts_provider_phone }}' || '{{ config.tts_provider }}',
-                                            voiceLang: '{{ config.voice_language_phone or "es-MX" }}',
-                                            voiceId: '{{ config.voice_name_phone }}',
+                                            temp: {{ config.temperature or 0.7 }
+                            },
+                            tokens: { { config.max_tokens or 250 } },
+                            msg: '{{ config.first_message }}',
+                                mode: '{{ config.first_message_mode }}',
+                                    prompt: { { (config.system_prompt or '') | tojson } },
+                            /* VOICE CONFIG */
+                            voiceProvider: '{{ config.tts_provider }}',
+                                voiceLang: '{{ config.voice_language or "es-MX" }}',
+                                    voiceId: '{{ config.voice_name }}',
+                                        voiceStyle: '{{ config.voice_style }}',
+                                            voiceSpeed: { { config.voice_speed or 1.0 } },
+                            voicePacing: { { config.voice_pacing_ms or 0 } },
+                            voiceBgSound: '{{ config.background_sound }}',
+                                voiceBgUrl: '{{ config.background_sound_url }}'
+                                        },
+                            twilio: {
+                                provider: '{{ config.llm_provider_phone }}' || '{{ config.llm_provider }}',
+                                    model: '{{ config.llm_model_phone }}' || '{{ config.llm_model }}',
+                                        temp: { { config.temperature_phone or config.temperature or 0.7 } },
+                                tokens: { { config.max_tokens_phone or config.max_tokens or 250 } },
+                                msg: '{{ config.first_message_phone }}' || '{{ config.first_message }}',
+                                    mode: '{{ config.first_message_mode_phone }}' || '{{ config.first_message_mode }}',
+                                        prompt: { { (config.system_prompt_phone or '') | tojson } },
+
+                                /* VOICE CONFIG PHONE */
+                                voiceProvider: '{{ config.tts_provider_phone }}' || '{{ config.tts_provider }}',
+                                    voiceLang: '{{ config.voice_language_phone or "es-MX" }}',
+                                        voiceId: '{{ config.voice_name_phone }}',
                                             voiceStyle: '{{ config.voice_style_phone }}',
-                                            voiceSpeed: {{ config.voice_speed_phone or 1.0 }},
-                                            voicePacing: {{ config.voice_pacing_ms_phone or 0 }},
-                                            voiceBgSound: '{{ config.background_sound_phone }}',
-                                            voiceBgUrl: '{{ config.background_sound_url_phone }}' 
-                                        }, 
-                                        telnyx: {
-                                            provider: '{{ config.llm_provider_telnyx }}' || '{{ config.llm_provider }}',
-                                            model: '{{ config.llm_model_telnyx }}' || '{{ config.llm_model }}', 
-                                            temp: {{ config.temperature_telnyx or config.temperature or 0.7 }}, 
-                                            tokens: {{ config.max_tokens_telnyx or config.max_tokens or 250 }}, 
-                                            msg: '{{ config.first_message_telnyx }}' || '{{ config.first_message }}', 
-                                            mode: '{{ config.first_message_mode_telnyx }}' || '{{ config.first_message_mode }}', 
-                                            prompt: {{ (config.system_prompt_telnyx or '') | tojson }},
-                                            
-                                            /* VOICE CONFIG TELNYX */
-                                            voiceProvider: '{{ config.tts_provider_telnyx }}' || '{{ config.tts_provider }}', 
-                                            voiceLang: '{{ config.voice_language_telnyx or "es-MX" }}',
-                                            voiceId: '{{ config.voice_name_telnyx }}', 
+                                                voiceSpeed: { { config.voice_speed_phone or 1.0 } },
+                                voicePacing: { { config.voice_pacing_ms_phone or 0 } },
+                                voiceBgSound: '{{ config.background_sound_phone }}',
+                                    voiceBgUrl: '{{ config.background_sound_url_phone }}'
+                            },
+                            telnyx: {
+                                provider: '{{ config.llm_provider_telnyx }}' || '{{ config.llm_provider }}',
+                                    model: '{{ config.llm_model_telnyx }}' || '{{ config.llm_model }}',
+                                        temp: { { config.temperature_telnyx or config.temperature or 0.7 } },
+                                tokens: { { config.max_tokens_telnyx or config.max_tokens or 250 } },
+                                msg: '{{ config.first_message_telnyx }}' || '{{ config.first_message }}',
+                                    mode: '{{ config.first_message_mode_telnyx }}' || '{{ config.first_message_mode }}',
+                                        prompt: { { (config.system_prompt_telnyx or '') | tojson } },
+
+                                /* VOICE CONFIG TELNYX */
+                                voiceProvider: '{{ config.tts_provider_telnyx }}' || '{{ config.tts_provider }}',
+                                    voiceLang: '{{ config.voice_language_telnyx or "es-MX" }}',
+                                        voiceId: '{{ config.voice_name_telnyx }}',
                                             voiceStyle: '{{ config.voice_style_telnyx }}',
-                                            voiceSpeed: {{ config.voice_speed_telnyx or 1.0 }}, 
-                                            voicePacing: {{ config.voice_pacing_ms_telnyx or 0 }}, 
-                                            voiceBgSound: '{{ config.background_sound_telnyx }}',
-                                            voiceBgUrl: '{{ config.background_sound_url_telnyx }}' 
-                                        } 
+                                                voiceSpeed: { { config.voice_speed_telnyx or 1.0 } },
+                                voicePacing: { { config.voice_pacing_ms_telnyx or 0 } },
+                                voiceBgSound: '{{ config.background_sound_telnyx }}',
+                                    voiceBgUrl: '{{ config.background_sound_url_telnyx }}'
+                            } 
                                     },
-                                    
-                                    // --- UI BOUND VARIABLES ---
-                                    currentProvider: '', 
-                                    currentModel: '', 
-                                    currentTemp: 0.7, 
-                                    maxTokens: 250, 
-                                    firstMessage: '',
-                                    firstMessageMode: 'speak-first', 
-                                    systemPrompt: '', 
-                                    availableModels: [], 
-                                    
-                                    // --- VOICE VARIABLES ---
-                                    currentVoiceProvider: 'azure', 
-                                    currentVoiceLang: 'es-MX', 
-                                    currentVoiceId: '',
-                                    currentVoiceStyle: '', 
-                                    currentVoiceSpeed: 1.0, 
-                                    currentVoicePacing: 0, 
-                                    currentBgSound: 'none',
-                                    currentBgUrl: '', 
-                                    
-                                    // --- DYNAMIC LISTS ---
-                                    availableLanguages: [], 
-                                    availableVoices: [],
-                                    availableStyles: [], 
-                                    
-                                    // --- CONSTANTS --- 
-                                    models: { 
-                                        groq: [ 
-                                            {id:'llama-3.3-70b-versatile', name:'⚡ Llama 3.3 70B (Versatile)'}, 
-                                            {id:'llama-3.1-8b-instant', name:'⚡ Llama 3.1 8B (Instant)'}, 
-                                            {id:'mixtral-8x7b-32768', name:'⚡ Mixtral 8x7B'} 
-                                        ], 
-                                        openai: [ 
-                                            {id:'gpt-4o', name:'🧠 GPT-4o (Omni)'}, 
-                                            {id:'gpt-4-turbo', name:'🤖 GPT-4 Turbo'}, 
-                                            {id:'gpt-3.5-turbo', name:'⚡ GPT-3.5 Turbo'} 
-                                        ], 
-                                        azure: [ 
-                                            {id:'gpt-4o', name:'☁️ Azure GPT-4o'}, 
-                                            {id:'gpt-35-turbo', name:'☁️ Azure GPT-3.5'} 
-                                        ] 
-                                    }, 
-                                    
-                                    voiceProviders: [ 
-                                        {id: 'azure', name: 'Azure Speech', icon: '☁️'}, 
-                                        {id: 'elevenlabs', name: 'ElevenLabs', icon: '📢'},
-                                        {id: 'openai', name: 'OpenAI Audio', icon: '🤖'} 
-                                    ], 
-                                    
-                                    voiceLanguages: { 
-                                        'azure': [
-                                            {id: 'es-MX', name: '🇲🇽 Español (México)'}, 
-                                            {id: 'es-ES', name: '🇪🇸 Español (España)'},
-                                            {id: 'en-US', name: '🇺🇸 Inglés (USA)'} 
-                                        ], 
-                                        'elevenlabs': [ 
-                                            {id: 'es', name: '🇲🇽/🇪🇸 Español (Global)'}, 
-                                            {id: 'en', name: '🇺🇸 Inglés (Global)'} 
-                                        ], 
+
+                            // --- UI BOUND VARIABLES ---
+                            currentProvider: '',
+                                currentModel: '',
+                                    currentTemp: 0.7,
+                                        maxTokens: 250,
+                                            firstMessage: '',
+                                                firstMessageMode: 'speak-first',
+                                                    systemPrompt: '',
+                                                        availableModels: [],
+
+                                                            // --- VOICE VARIABLES ---
+                                                            currentVoiceProvider: 'azure',
+                                                                currentVoiceLang: 'es-MX',
+                                                                    currentVoiceId: '',
+                                                                        currentVoiceStyle: '',
+                                                                            currentVoiceSpeed: 1.0,
+                                                                                currentVoicePacing: 0,
+                                                                                    currentBgSound: 'none',
+                                                                                        currentBgUrl: '',
+
+                                                                                            // --- DYNAMIC LISTS ---
+                                                                                            availableLanguages: [],
+                                                                                                availableVoices: [],
+                                                                                                    availableStyles: [],
+
+                                                                                                        // --- CONSTANTS --- 
+                                                                                                        models: {
+                                groq: [
+                                    { id: 'llama-3.3-70b-versatile', name: '⚡ Llama 3.3 70B (Versatile)' },
+                                    { id: 'llama-3.1-8b-instant', name: '⚡ Llama 3.1 8B (Instant)' },
+                                    { id: 'mixtral-8x7b-32768', name: '⚡ Mixtral 8x7B' }
+                                ],
+                                    openai: [
+                                        { id: 'gpt-4o', name: '🧠 GPT-4o (Omni)' },
+                                        { id: 'gpt-4-turbo', name: '🤖 GPT-4 Turbo' },
+                                        { id: 'gpt-3.5-turbo', name: '⚡ GPT-3.5 Turbo' }
+                                    ],
+                                        azure: [
+                                            { id: 'gpt-4o', name: '☁️ Azure GPT-4o' },
+                                            { id: 'gpt-35-turbo', name: '☁️ Azure GPT-3.5' }
+                                        ]
+                            },
+
+                            voiceProviders: [
+                                { id: 'azure', name: 'Azure Speech', icon: '☁️' },
+                                { id: 'elevenlabs', name: 'ElevenLabs', icon: '📢' },
+                                { id: 'openai', name: 'OpenAI Audio', icon: '🤖' }
+                            ],
+
+                                voiceLanguages: {
+                                'azure': [
+                                    { id: 'es-MX', name: '🇲🇽 Español (México)' },
+                                    { id: 'es-ES', name: '🇪🇸 Español (España)' },
+                                    { id: 'en-US', name: '🇺🇸 Inglés (USA)' }
+                                ],
+                                    'elevenlabs': [
+                                        { id: 'es', name: '🇲🇽/🇪🇸 Español (Global)' },
+                                        { id: 'en', name: '🇺🇸 Inglés (Global)' }
+                                    ],
                                         'openai': [
-                                            {id: 'global', name: 'Global (Auto)'} 
-                                        ] 
-                                    }, 
-                                    
-                                    voiceCatalog: { 
-                                        'azure': { 
-                                            'es-MX': [
-                                                {id: 'es-MX-DaliaNeural', name: 'Dalia (Femenina)', gender: 'female'},
-                                                {id: 'es-MX-JorgeNeural', name: 'Jorge (Masculina)', gender: 'male'},
-                                                {id: 'es-MX-CecilioNeural', name: 'Cecilio (Masculina)', gender: 'male'},
-                                                {id: 'es-MX-MarinaNeural', name: 'Marina (Femenina)', gender: 'female'} 
-                                            ], 
-                                            'es-ES': [
-                                                {id: 'es-ES-ElviraNeural', name: 'Elvira (Femenina)', gender: 'female'},
-                                                {id: 'es-ES-AlvaroNeural', name: 'Alvaro (Masculina)', gender: 'male'} 
-                                            ], 
+                                            { id: 'global', name: 'Global (Auto)' }
+                                        ]
+                            },
+
+                            voiceCatalog: {
+                                'azure': {
+                                    'es-MX': [
+                                        { id: 'es-MX-DaliaNeural', name: 'Dalia (Femenina)', gender: 'female' },
+                                        { id: 'es-MX-JorgeNeural', name: 'Jorge (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-CecilioNeural', name: 'Cecilio (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-MarinaNeural', name: 'Marina (Femenina)', gender: 'female' }
+                                    ],
+                                        'es-ES': [
+                                            { id: 'es-ES-ElviraNeural', name: 'Elvira (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-AlvaroNeural', name: 'Alvaro (Masculina)', gender: 'male' }
+                                        ],
                                             'en-US': [
-                                                {id: 'en-US-JennyNeural', name: 'Jenny (Female)', gender: 'female'}, 
-                                                {id: 'en-US-GuyNeural', name: 'Guy (Male)', gender: 'male'} 
-                                            ] 
-                                        }, 
-                                        'elevenlabs': { 
-                                            'es': [ 
-                                                {id: 'rachel', name: 'Rachel (Femenina)', gender: 'female'}, 
-                                                {id: 'josh', name: 'Josh (Masculina)', gender: 'male'} 
-                                            ], 
-                                            'en': [ 
-                                                {id: 'rachel', name: 'Rachel (Female)', gender: 'female'},
-                                                {id: 'josh', name: 'Josh (Male)', gender: 'male'} 
-                                            ] 
-                                        }, 
-                                        'openai': { 
-                                            'global': [ 
-                                                {id: 'alloy', name: 'Alloy', gender: 'neutral'}, 
-                                                {id: 'echo', name: 'Echo', gender: 'neutral'},
-                                                {id: 'fable', name: 'Fable', gender: 'neutral'}, 
-                                                {id: 'onyx', name: 'Onyx', gender: 'neutral'}, 
-                                                {id: 'nova', name: 'Nova', gender: 'neutral'}, 
-                                                {id: 'shimmer', gender: 'neutral'} 
-                                            ] 
-                                        } 
-                                    }, 
+                                                { id: 'en-US-JennyNeural', name: 'Jenny (Female)', gender: 'female' },
+                                                { id: 'en-US-GuyNeural', name: 'Guy (Male)', gender: 'male' }
+                                            ]
+                                },
+                                'elevenlabs': {
+                                    'es': [
+                                        { id: 'rachel', name: 'Rachel (Femenina)', gender: 'female' },
+                                        { id: 'josh', name: 'Josh (Masculina)', gender: 'male' }
+                                    ],
+                                        'en': [
+                                            { id: 'rachel', name: 'Rachel (Female)', gender: 'female' },
+                                            { id: 'josh', name: 'Josh (Male)', gender: 'male' }
+                                        ]
+                                },
+                                'openai': {
+                                    'global': [
+                                        { id: 'alloy', name: 'Alloy', gender: 'neutral' },
+                                        { id: 'echo', name: 'Echo', gender: 'neutral' },
+                                        { id: 'fable', name: 'Fable', gender: 'neutral' },
+                                        { id: 'onyx', name: 'Onyx', gender: 'neutral' },
+                                        { id: 'nova', name: 'Nova', gender: 'neutral' },
+                                        { id: 'shimmer', gender: 'neutral' }
+                                    ]
+                                }
+                            },
+
+                            backgroundSounds: [
+                                { id: 'none', name: '🔇 Silencio' },
+                                { id: 'office', name: '🏢 Oficina' },
+                                { id: 'cafe', name: '☕ Cafetería' },
+                                { id: 'callcenter', name: '📞 Call Center' },
+                                { id: 'custom', name: '🔗 URL Personalizada' }
+                            ],
+
+                                /* Legacy Variables needed for other tabs */
+                                interruptionPhone: { { config.interruption_threshold_phone or 2 } },
+                            voiceSpeedPhone: { { config.voice_speed_phone or 0.9 } },
+                            silencePhone: { { config.silence_timeout_ms_phone or 1200 } },
+
+                            /* Telnyx State */
+                            interruptionTelnyx: { { config.interruption_threshold_telnyx or 2 } },
+                            voiceSpeedTelnyx: { { config.voice_speed_telnyx or 0.9 } },
+                            voicePacingTelnyx: { { config.voice_pacing_ms_telnyx or 500 } },
+                            activeVoice: '{{ config.voice_name_telnyx or " es-MX-DaliaNeural" }}',
+
+                                // --- STYLE MAPPINGS ---
+                                voiceStyles: {
+                                'es-MX-DaliaNeural': [
+                                    { id: 'cheerful', label: 'Alegre (Cheerful)' },
+                                    { id: 'sad', label: 'Triste (Sad)' },
+                                    { id: 'whispering', label: 'Susurrando (Whispering)' },
+                                    { id: 'friendly', label: 'Amigable (Friendly)' },
+                                    { id: 'excited', label: 'Entusiasmado (Excited)' },
+                                    { id: 'hopeful', label: 'Esperanzado (Hopeful)' },
+                                    { id: 'terrified', label: 'Aterrorizado (Terrified)' },
+                                    { id: 'angry', label: 'Enojado (Angry)' },
+                                    { id: 'chat', label: 'Charla (Chat)' },
+                                    { id: 'customerservice', label: 'Servicio al Cliente' }
+                                ],
+                                    'es-MX-JorgeNeural': [
+                                        { id: 'cheerful', label: 'Alegre (Cheerful)' },
+                                        { id: 'chat', label: 'Charla (Chat)' },
+                                        { id: 'sad', label: 'Triste (Sad)' },
+                                        { id: 'whispering', label: 'Susurrando (Whispering)' }
+                                    ],
+                                        'es-MX-CecilioNeural': [
+                                            { id: 'cheerful', label: 'Alegre (Cheerful)' },
+                                            { id: 'sad', label: 'Triste (Sad)' },
+                                            { id: 'angry', label: 'Enojado (Angry)' },
+                                            { id: 'hopeful', label: 'Esperanzado (Hopeful)' },
+                                            { id: 'friendly', label: 'Amigable (Friendly)' },
+                                            { id: 'unfriendly', label: 'Antipático (Unfriendly)' },
+                                            { id: 'terrified', label: 'Aterrorizado (Terrified)' },
+                                            { id: 'excited', label: 'Entusiasmado (Excited)' },
+                                            { id: 'whispering', label: 'Susurrando (Whispering)' },
+                                            { id: 'shouting', label: 'Gritando (Shouting)' }
+                                        ],
+                                            'es-MX-MarinaNeural': [
+                                                { id: 'cheerful', label: 'Alegre (Cheerful)' },
+                                                { id: 'sad', label: 'Triste (Sad)' },
+                                                { id: 'whispering', label: 'Susurrando (Whispering)' },
+                                                { id: 'friendly', label: 'Amigable (Friendly)' },
+                                                { id: 'excited', label: 'Entusiasmado (Excited)' },
+                                                { id: 'hopeful', label: 'Esperanzado (Hopeful)' },
+                                                { id: 'terrified', label: 'Aterrorizado (Terrified)' },
+                                                { id: 'angry', label: 'Enojado (Angry)' },
+                                                { id: 'chat', label: 'Charla (Chat)' },
+                                                { id: 'customerservice', label: 'Servicio al Cliente' }
+                                            ],
+                                                'en-US-JennyNeural': [
+                                                    { id: 'assistant', label: 'Asistente' },
+                                                    { id: 'chat', label: 'Charla' },
+                                                    { id: 'customerservice', label: 'Servicio Cliente' },
+                                                    { id: 'newscast', label: 'Noticias' },
+                                                    { id: 'angry', label: 'Enojado' },
+                                                    { id: 'cheerful', label: 'Alegre' },
+                                                    { id: 'sad', label: 'Triste' },
+                                                    { id: 'excited', label: 'Entusiasmado' },
+                                                    { id: 'friendly', label: 'Amigable' },
+                                                    { id: 'terrified', label: 'Aterrorizado' },
+                                                    { id: 'shouting', label: 'Gritando' },
+                                                    { id: 'unfriendly', label: 'Antipático' },
+                                                    { id: 'whispering', label: 'Susurrando' },
+                                                    { id: 'hopeful', label: 'Esperanzado' }
+                                                ],
+                                                    'default': []
+                            }, 
                                     
-                                    backgroundSounds: [ 
-                                        {id: 'none', name: '🔇 Silencio'}, 
-                                        {id: 'office', name: '🏢 Oficina'},
-                                        {id: 'cafe', name: '☕ Cafetería'}, 
-                                        {id: 'callcenter', name: '📞 Call Center'}, 
-                                        {id: 'custom', name: '🔗 URL Personalizada'} 
-                                    ], 
-                                    
-                                    /* Legacy Variables needed for other tabs */
-                                    interruptionPhone: {{ config.interruption_threshold_phone or 2 }},
-                                    voiceSpeedPhone: {{ config.voice_speed_phone or 0.9 }},
-                                    silencePhone: {{ config.silence_timeout_ms_phone or 1200 }},
+                                    get currentStyles() { return this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; },
+                            historyFilter: 'all',
 
-                                    /* Telnyx State */
-                                    interruptionTelnyx: {{ config.interruption_threshold_telnyx or 2 }},
-                                    voiceSpeedTelnyx: {{ config.voice_speed_telnyx or 0.9 }},
-                                    voicePacingTelnyx: {{ config.voice_pacing_ms_telnyx or 500 }},
-                                    activeVoice: '{{ config.voice_name_telnyx or " es-MX-DaliaNeural" }}', 
+                                init() {
+                                this.loadProfile(this.activeProfile);
+                                this.$watch('activeProfile', val => this.loadProfile(val));
 
-                                    // --- STYLE MAPPINGS ---
-                                    voiceStyles: { 
-                                        'es-MX-DaliaNeural': [ 
-                                            {id: 'cheerful', label: 'Alegre (Cheerful)'}, 
-                                            {id: 'sad', label: 'Triste (Sad)'}, 
-                                            {id: 'whispering', label: 'Susurrando (Whispering)'}, 
-                                            {id: 'friendly', label: 'Amigable (Friendly)'}, 
-                                            {id: 'excited', label: 'Entusiasmado (Excited)'},
-                                            {id: 'hopeful', label: 'Esperanzado (Hopeful)'}, 
-                                            {id: 'terrified', label: 'Aterrorizado (Terrified)'}, 
-                                            {id: 'angry', label: 'Enojado (Angry)'}, 
-                                            {id: 'chat', label: 'Charla (Chat)'}, 
-                                            {id: 'customerservice', label: 'Servicio al Cliente'}
-                                        ], 
-                                        'es-MX-JorgeNeural': [ 
-                                            {id: 'cheerful', label: 'Alegre (Cheerful)'}, 
-                                            {id: 'chat', label: 'Charla (Chat)'}, 
-                                            {id: 'sad', label: 'Triste (Sad)'}, 
-                                            {id: 'whispering', label: 'Susurrando (Whispering)'} 
-                                        ], 
-                                        'es-MX-CecilioNeural': [ 
-                                            {id: 'cheerful', label: 'Alegre (Cheerful)'}, 
-                                            {id: 'sad', label: 'Triste (Sad)'}, 
-                                            {id: 'angry', label: 'Enojado (Angry)'}, 
-                                            {id: 'hopeful', label: 'Esperanzado (Hopeful)'}, 
-                                            {id: 'friendly', label: 'Amigable (Friendly)'}, 
-                                            {id: 'unfriendly', label: 'Antipático (Unfriendly)'},
-                                            {id: 'terrified', label: 'Aterrorizado (Terrified)'}, 
-                                            {id: 'excited', label: 'Entusiasmado (Excited)'}, 
-                                            {id: 'whispering', label: 'Susurrando (Whispering)'},
-                                            {id: 'shouting', label: 'Gritando (Shouting)'} 
-                                        ], 
-                                        'es-MX-MarinaNeural': [ 
-                                            {id: 'cheerful', label: 'Alegre (Cheerful)'}, 
-                                            {id: 'sad', label: 'Triste (Sad)'}, 
-                                            {id: 'whispering', label: 'Susurrando (Whispering)'}, 
-                                            {id: 'friendly', label: 'Amigable (Friendly)'},
-                                            {id: 'excited', label: 'Entusiasmado (Excited)'}, 
-                                            {id: 'hopeful', label: 'Esperanzado (Hopeful)'}, 
-                                            {id: 'terrified', label: 'Aterrorizado (Terrified)'},
-                                            {id: 'angry', label: 'Enojado (Angry)'}, 
-                                            {id: 'chat', label: 'Charla (Chat)'},
-                                            {id: 'customerservice', label: 'Servicio al Cliente'} 
-                                        ], 
-                                        'en-US-JennyNeural': [
-                                            {id: 'assistant', label: 'Asistente'}, 
-                                            {id: 'chat', label: 'Charla'}, 
-                                            {id: 'customerservice', label: 'Servicio Cliente'}, 
-                                            {id: 'newscast', label: 'Noticias'}, 
-                                            {id: 'angry', label: 'Enojado'}, 
-                                            {id: 'cheerful', label: 'Alegre'}, 
-                                            {id: 'sad', label: 'Triste'},
-                                            {id: 'excited', label: 'Entusiasmado'}, 
-                                            {id: 'friendly', label: 'Amigable'},
-                                            {id: 'terrified', label: 'Aterrorizado'}, 
-                                            {id: 'shouting', label: 'Gritando'},
-                                            {id: 'unfriendly', label: 'Antipático'}, 
-                                            {id: 'whispering', label: 'Susurrando'},
-                                            {id: 'hopeful', label: 'Esperanzado'} 
-                                        ], 
-                                        'default': [] 
-                                    }, 
-                                    
-                                    get currentStyles() { return this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; }, 
-                                    historyFilter: 'all',
+                                this.$watch('currentProvider', v => { this.configs[this.activeProfile].provider = v; this.updateModelList(); });
+                                this.$watch('currentModel', v => this.configs[this.activeProfile].model = v);
+                                this.$watch('currentTemp', v => this.configs[this.activeProfile].temp = v);
+                                this.$watch('maxTokens', v => this.configs[this.activeProfile].tokens = v);
+                                this.$watch('firstMessage', v => this.configs[this.activeProfile].msg = v);
+                                this.$watch('firstMessageMode', v => this.configs[this.activeProfile].mode = v);
+                                this.$watch('systemPrompt', v => this.configs[this.activeProfile].prompt = v);
 
-                                    init() { 
-                                        this.loadProfile(this.activeProfile); 
-                                        this.$watch('activeProfile', val => this.loadProfile(val));
+                                this.$watch('currentVoiceProvider', v => {
+                                    this.configs[this.activeProfile].voiceProvider = v;
+                                    this.updateVoiceLists();
+                                });
+                                this.$watch('currentVoiceLang', v => {
+                                    this.configs[this.activeProfile].voiceLang = v;
+                                    this.updateVoiceLists();
+                                });
+                                this.$watch('currentVoiceId', v => {
+                                    this.configs[this.activeProfile].voiceId = v;
+                                    this.updateStyleList();
+                                });
+                                this.$watch('currentVoiceStyle', v => this.configs[this.activeProfile].voiceStyle = v);
+                                this.$watch('currentVoiceSpeed', v => this.configs[this.activeProfile].voiceSpeed = v);
+                                this.$watch('currentVoicePacing', v => this.configs[this.activeProfile].voicePacing = v);
+                                this.$watch('currentBgSound', v => this.configs[this.activeProfile].voiceBgSound = v);
+                                this.$watch('currentBgUrl', v => this.configs[this.activeProfile].voiceBgUrl = v);
+                            },
 
-                                        this.$watch('currentProvider', v => { this.configs[this.activeProfile].provider = v; this.updateModelList(); });
-                                        this.$watch('currentModel', v => this.configs[this.activeProfile].model = v);
-                                        this.$watch('currentTemp', v => this.configs[this.activeProfile].temp = v);
-                                        this.$watch('maxTokens', v => this.configs[this.activeProfile].tokens = v);
-                                        this.$watch('firstMessage', v => this.configs[this.activeProfile].msg = v);
-                                        this.$watch('firstMessageMode', v => this.configs[this.activeProfile].mode = v);
-                                        this.$watch('systemPrompt', v => this.configs[this.activeProfile].prompt = v);
+                            loadProfile(p) {
+                                let c = this.configs[p];
+                                if (!c) return;
+                                // MODEL
+                                this.currentProvider = c.provider;
+                                this.updateModelList();
+                                this.currentModel = c.model;
+                                this.currentTemp = c.temp;
+                                this.maxTokens = c.tokens;
+                                this.firstMessage = c.msg;
+                                this.firstMessageMode = c.mode;
+                                this.systemPrompt = c.prompt;
 
-                                        this.$watch('currentVoiceProvider', v => {
-                                            this.configs[this.activeProfile].voiceProvider = v;
-                                            this.updateVoiceLists();
-                                        });
-                                        this.$watch('currentVoiceLang', v => {
-                                            this.configs[this.activeProfile].voiceLang = v;
-                                            this.updateVoiceLists();
-                                        });
-                                        this.$watch('currentVoiceId', v => {
-                                            this.configs[this.activeProfile].voiceId = v;
-                                            this.updateStyleList();
-                                        });
-                                        this.$watch('currentVoiceStyle', v => this.configs[this.activeProfile].voiceStyle = v);
-                                        this.$watch('currentVoiceSpeed', v => this.configs[this.activeProfile].voiceSpeed = v);
-                                        this.$watch('currentVoicePacing', v => this.configs[this.activeProfile].voicePacing = v);
-                                        this.$watch('currentBgSound', v => this.configs[this.activeProfile].voiceBgSound = v);
-                                        this.$watch('currentBgUrl', v => this.configs[this.activeProfile].voiceBgUrl = v);
-                                    },
+                                // VOICE
+                                this.currentVoiceProvider = c.voiceProvider || 'azure';
+                                this.currentVoiceLang = c.voiceLang || 'es-MX';
+                                this.updateVoiceLists(); // Calculates available based on prov/lang
 
-                                    loadProfile(p) {
-                                        let c = this.configs[p];
-                                        if(!c) return;
-                                        // MODEL
-                                        this.currentProvider = c.provider;
-                                        this.updateModelList();
-                                        this.currentModel = c.model;
-                                        this.currentTemp = c.temp;
-                                        this.maxTokens = c.tokens;
-                                        this.firstMessage = c.msg;
-                                        this.firstMessageMode = c.mode;
-                                        this.systemPrompt = c.prompt;
+                                // Set ID after lists population to ensure validity
+                                this.currentVoiceId = c.voiceId;
+                                this.updateStyleList();
 
-                                        // VOICE
-                                        this.currentVoiceProvider = c.voiceProvider || 'azure';
-                                        this.currentVoiceLang = c.voiceLang || 'es-MX';
-                                        this.updateVoiceLists(); // Calculates available based on prov/lang
+                                this.currentVoiceStyle = c.voiceStyle;
+                                this.currentVoiceSpeed = c.voiceSpeed;
+                                this.currentVoicePacing = c.voicePacing;
+                                this.currentBgSound = c.voiceBgSound;
+                                this.currentBgUrl = c.voiceBgUrl;
+                            },
 
-                                        // Set ID after lists population to ensure validity
-                                        this.currentVoiceId = c.voiceId;
-                                        this.updateStyleList();
+                            updateModelList() {
+                                this.availableModels = this.models[this.currentProvider] || [];
+                                if (this.currentModel && !this.availableModels.find(m => m.id === this.currentModel)) {
+                                    this.currentModel = this.availableModels[0]?.id || '';
+                                }
+                            },
 
-                                        this.currentVoiceStyle = c.voiceStyle;
-                                        this.currentVoiceSpeed = c.voiceSpeed;
-                                        this.currentVoicePacing = c.voicePacing;
-                                        this.currentBgSound = c.voiceBgSound;
-                                        this.currentBgUrl = c.voiceBgUrl;
-                                    },
+                            updateVoiceLists() {
+                                this.availableLanguages = this.voiceLanguages[this.currentVoiceProvider] || [];
+                                if (!this.availableLanguages.find(l => l.id === this.currentVoiceLang)) {
+                                    this.currentVoiceLang = this.availableLanguages[0]?.id || '';
+                                }
 
-                                    updateModelList() {
-                                        this.availableModels = this.models[this.currentProvider] || [];
-                                        if (this.currentModel && !this.availableModels.find(m => m.id === this.currentModel)) {
-                                            this.currentModel = this.availableModels[0]?.id || '';
-                                        }
-                                    },
+                                const providerVoices = this.voiceCatalog[this.currentVoiceProvider] || {};
+                                this.availableVoices = providerVoices[this.currentVoiceLang] || [];
 
-                                    updateVoiceLists() {
-                                        this.availableLanguages = this.voiceLanguages[this.currentVoiceProvider] || [];
-                                        if (!this.availableLanguages.find(l => l.id === this.currentVoiceLang)) {
-                                            this.currentVoiceLang = this.availableLanguages[0]?.id || '';
-                                        }
+                                if (this.availableVoices.length > 0 && !this.availableVoices.find(v => v.id === this.currentVoiceId)) {
+                                    this.currentVoiceId = this.availableVoices[0].id;
+                                }
 
-                                        const providerVoices = this.voiceCatalog[this.currentVoiceProvider] || {};
-                                        this.availableVoices = providerVoices[this.currentVoiceLang] || [];
+                                this.updateStyleList();
+                            },
 
-                                        if (this.availableVoices.length > 0 && !this.availableVoices.find(v => v.id === this.currentVoiceId)) {
-                                            this.currentVoiceId = this.availableVoices[0].id;
-                                        }
-
-                                        this.updateStyleList();
-                                    },
-
-                                    updateStyleList() {
-                                        this.availableStyles = this.voiceStyles[this.currentVoiceId] || [];
-                                        if (this.availableStyles.length > 0) {
-                                            if (!this.availableStyles.find(s => s.id === this.currentVoiceStyle)) {
-                                                this.currentVoiceStyle = this.availableStyles[0].id;
-                                            }
-                                        } else {
-                                            this.currentVoiceStyle = '';
-                                        }
+                            updateStyleList() {
+                                this.availableStyles = this.voiceStyles[this.currentVoiceId] || [];
+                                if (this.availableStyles.length > 0) {
+                                    if (!this.availableStyles.find(s => s.id === this.currentVoiceStyle)) {
+                                        this.currentVoiceStyle = this.availableStyles[0].id;
                                     }
+                                } else {
+                                    this.currentVoiceStyle = '';
+                                }
+                            }
                                 }
                             }
                         </script>
 
-<!-- GLOBAL PROFILE TOGGLE -->
+                        <!-- GLOBAL PROFILE TOGGLE -->
                         <div
                             class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 mb-8 border border-slate-700/50 shadow-lg">
                             <button type="button"
@@ -669,7 +670,7 @@
                 </div>
 
                 <!-- Simulator Panel (Sticky, Right Side) -->
-                <div class="lg:col-span-2 sticky top-6 self-start space-y-4">
+                <div class="lg:col-span-7 sticky top-6 self-start space-y-4">
                     <div
                         class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col min-h-[600px] border border-white/10">
                         <div class="flex justify-between items-center mb-6">
