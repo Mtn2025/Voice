@@ -41,6 +41,19 @@
                     </div>
                 </div>
 
+                <!-- GHOST PROVIDER WARNING -->
+                <div x-show="['elevenlabs', 'openai'].includes(currentVoiceProvider)" x-transition
+                    class="md:col-span-2 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex items-start space-x-3 mb-2">
+                    <span class="text-xl">⚠️</span>
+                    <div>
+                        <h5 class="text-sm font-bold text-amber-400">Proveedor No Activo</h5>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Este proveedor no tiene credenciales configuradas.
+                            <a href="#" class="underline text-amber-300 hover:text-white">Configurar API Key</a>
+                        </p>
+                    </div>
+                </div>
+
                 <!-- 1.2 Language -->
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Idioma</label>
@@ -54,6 +67,23 @@
                         </select>
                         <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                             <span>🌍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1.25 Gender (New Filter) -->
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Género</label>
+                    <div class="relative">
+                        <select x-model="currentVoiceGender" @change="updateVoiceLists()"
+                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all appearance-none cursor-pointer hover:bg-slate-800">
+                            <template x-for="g in availableGenders" :key="g.id">
+                                <option :value="g.id" x-text="g.name"></option>
+                            </template>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                            <span
+                                x-text="currentVoiceGender === 'female' ? '👩' : (currentVoiceGender === 'male' ? '👨' : '⚧')"></span>
                         </div>
                     </div>
                 </div>

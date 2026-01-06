@@ -94,62 +94,131 @@
                                     // --- DATA STORES (From Backend) ---
                                     configs: {
                                         browser: {
-                                            provider: '{{ config.llm_provider }}',
-                                            model: '{{ config.llm_model }}',
-                                            temp: {{ config.temperature or 0.7 }
+                                            provider: {{ (config.llm_provider or 'openai') | tojson }
                             },
+                            model: { { (config.llm_model or 'gpt-3.5-turbo') | tojson } },
+                            temp: { { config.temperature or 0.7 } },
                             tokens: { { config.max_tokens or 250 } },
-                            msg: '{{ config.first_message }}',
-                                mode: '{{ config.first_message_mode }}',
-                                    prompt: { { (config.system_prompt or '') | tojson } },
+                            msg: { { (config.first_message or '') | tojson } },
+                            mode: { { (config.first_message_mode or 'speak-first') | tojson } },
+                            prompt: { { (config.system_prompt or '') | tojson } },
+
                             /* VOICE CONFIG */
-                            voiceProvider: '{{ config.tts_provider }}',
-                                voiceLang: '{{ config.voice_language or "es-MX" }}',
-                                    voiceId: '{{ config.voice_name }}',
-                                        voiceStyle: '{{ config.voice_style }}',
-                                            voiceSpeed: { { config.voice_speed or 1.0 } },
+                            voiceProvider: { { (config.tts_provider or 'azure') | tojson } },
+                            voiceLang: { { (config.voice_language or "es-MX") | tojson } },
+                            voiceId: { { (config.voice_name or '') | tojson } },
+                            voiceStyle: { { (config.voice_style or '') | tojson } },
+                            voiceSpeed: { { config.voice_speed or 1.0 } },
                             voicePacing: { { config.voice_pacing_ms or 0 } },
-                            voiceBgSound: '{{ config.background_sound }}',
-                                voiceBgUrl: '{{ config.background_sound_url }}'
+                            voiceBgSound: { { (config.background_sound or 'none') | tojson } },
+                            voiceBgUrl: { { (config.background_sound_url or '') | tojson } },
+
+                            /* FUNCTIONS */
+                            enableEndCall: { { 'true' if config.enable_end_call else 'false' } },
+                            dialKeypad: { { 'true' if config.enable_dial_keypad else 'false' } },
+                            transferNum: { { (config.transfer_phone_number or "") | tojson } },
+
+                            /* ADVANCED */
+                            idleTimeout: { { config.idle_timeout or 10 } },
+                            maxDuration: { { config.max_duration or 600 } },
+                            idleMessage: { { (config.idle_message or '') | tojson } },
+                            maxRetries: { { config.inactivity_max_retries or 3 } },
+
+                            /* TRANSCRIBER CONFIG */
+                            sttProvider: { { (config.stt_provider or 'azure') | tojson } },
+                            sttLang: { { (config.stt_language or 'es-MX') | tojson } },
+                            interruptWords: { { config.interruption_threshold or 0 } },
+                            silence: { { config.silence_timeout_ms or 5000 } },
+                            inputMin: 0,
+                                blacklist: { { (config.hallucination_blacklist or '') | tojson } },
+                            denoise: false,
+                                krisp: false,
+                                    vad: false
                                         },
                             twilio: {
-                                provider: '{{ config.llm_provider_phone }}' || '{{ config.llm_provider }}',
-                                    model: '{{ config.llm_model_phone }}' || '{{ config.llm_model }}',
-                                        temp: { { config.temperature_phone or config.temperature or 0.7 } },
+                                provider: { { (config.llm_provider_phone or config.llm_provider or 'openai') | tojson } },
+                                model: { { (config.llm_model_phone or config.llm_model or 'gpt-3.5-turbo') | tojson } },
+                                temp: { { config.temperature_phone or config.temperature or 0.7 } },
                                 tokens: { { config.max_tokens_phone or config.max_tokens or 250 } },
-                                msg: '{{ config.first_message_phone }}' || '{{ config.first_message }}',
-                                    mode: '{{ config.first_message_mode_phone }}' || '{{ config.first_message_mode }}',
-                                        prompt: { { (config.system_prompt_phone or '') | tojson } },
+                                msg: { { (config.first_message_phone or config.first_message or '') | tojson } },
+                                mode: { { (config.first_message_mode_phone or config.first_message_mode or 'speak-first') | tojson } },
+                                prompt: { { (config.system_prompt_phone or '') | tojson } },
 
                                 /* VOICE CONFIG PHONE */
-                                voiceProvider: '{{ config.tts_provider_phone }}' || '{{ config.tts_provider }}',
-                                    voiceLang: '{{ config.voice_language_phone or "es-MX" }}',
-                                        voiceId: '{{ config.voice_name_phone }}',
-                                            voiceStyle: '{{ config.voice_style_phone }}',
-                                                voiceSpeed: { { config.voice_speed_phone or 1.0 } },
+                                voiceProvider: { { (config.tts_provider_phone or config.tts_provider or 'azure') | tojson } },
+                                voiceLang: { { (config.voice_language_phone or "es-MX") | tojson } },
+                                voiceId: { { (config.voice_name_phone or '') | tojson } },
+                                voiceStyle: { { (config.voice_style_phone or '') | tojson } },
+                                voiceSpeed: { { config.voice_speed_phone or 1.0 } },
                                 voicePacing: { { config.voice_pacing_ms_phone or 0 } },
-                                voiceBgSound: '{{ config.background_sound_phone }}',
-                                    voiceBgUrl: '{{ config.background_sound_url_phone }}'
+                                voiceBgSound: { { (config.background_sound_phone or 'none') | tojson } },
+                                voiceBgUrl: { { (config.background_sound_url_phone or '') | tojson } },
+
+                                /* FUNCTIONS PHONE */
+                                enableEndCall: { { 'true' if config.enable_end_call else 'false' } },
+                                dialKeypad: { { 'true' if config.enable_dial_keypad else 'false' } },
+                                transferNum: { { (config.transfer_phone_number or "") | tojson } },
+
+                                /* ADVANCED PHONE (Legacy/Shared) */
+                                idleTimeout: { { config.idle_timeout or 10 } },
+                                maxDuration: { { config.max_duration or 600 } },
+                                idleMessage: { { (config.idle_message_phone or '') | tojson } },
+                                maxRetries: { { config.inactivity_max_retries or 3 } },
+
+                                /* TRANSCRIBER CONFIG PHONE */
+                                sttProvider: { { (config.stt_provider_phone or 'azure') | tojson } },
+                                sttLang: { { (config.stt_language_phone or 'es-MX') | tojson } },
+                                interruptWords: { { config.interruption_threshold_phone or 0 } },
+                                silence: { { config.silence_timeout_ms_phone or 5000 } },
+                                inputMin: { { config.input_min_characters_phone or 0 } },
+                                blacklist: { { (config.hallucination_blacklist_phone or '') | tojson } },
+                                denoise: { { 'true' if config.enable_denoising_phone else 'false' } },
+                                krisp: false,
+                                    vad: false
                             },
                             telnyx: {
-                                provider: '{{ config.llm_provider_telnyx }}' || '{{ config.llm_provider }}',
-                                    model: '{{ config.llm_model_telnyx }}' || '{{ config.llm_model }}',
-                                        temp: { { config.temperature_telnyx or config.temperature or 0.7 } },
+                                provider: { { (config.llm_provider_telnyx or config.llm_provider or 'openai') | tojson } },
+                                model: { { (config.llm_model_telnyx or config.llm_model or 'gpt-3.5-turbo') | tojson } },
+                                temp: { { config.temperature_telnyx or config.temperature or 0.7 } },
                                 tokens: { { config.max_tokens_telnyx or config.max_tokens or 250 } },
-                                msg: '{{ config.first_message_telnyx }}' || '{{ config.first_message }}',
-                                    mode: '{{ config.first_message_mode_telnyx }}' || '{{ config.first_message_mode }}',
-                                        prompt: { { (config.system_prompt_telnyx or '') | tojson } },
+                                msg: { { (config.first_message_telnyx or config.first_message or '') | tojson } },
+                                mode: { { (config.first_message_mode_telnyx or config.first_message_mode or 'speak-first') | tojson } },
+                                prompt: { { (config.system_prompt_telnyx or '') | tojson } },
 
                                 /* VOICE CONFIG TELNYX */
-                                voiceProvider: '{{ config.tts_provider_telnyx }}' || '{{ config.tts_provider }}',
-                                    voiceLang: '{{ config.voice_language_telnyx or "es-MX" }}',
-                                        voiceId: '{{ config.voice_name_telnyx }}',
-                                            voiceStyle: '{{ config.voice_style_telnyx }}',
-                                                voiceSpeed: { { config.voice_speed_telnyx or 1.0 } },
+                                voiceProvider: { { (config.tts_provider_telnyx or config.tts_provider or 'azure') | tojson } },
+                                voiceLang: { { (config.voice_language_telnyx or "es-MX") | tojson } },
+                                voiceId: { { (config.voice_name_telnyx or '') | tojson } },
+                                voiceStyle: { { (config.voice_style_telnyx or '') | tojson } },
+                                voiceSpeed: { { config.voice_speed_telnyx or 1.0 } },
                                 voicePacing: { { config.voice_pacing_ms_telnyx or 0 } },
-                                voiceBgSound: '{{ config.background_sound_telnyx }}',
-                                    voiceBgUrl: '{{ config.background_sound_url_telnyx }}'
-                            } 
+                                voiceBgSound: { { (config.background_sound_telnyx or 'none') | tojson } },
+                                voiceBgUrl: { { (config.background_sound_url_telnyx or '') | tojson } },
+
+                                /* FUNCTIONS TELNYX */
+                                enableEndCall: { { 'true' if config.enable_end_call else 'false' } },
+                                dialKeypad: { { 'true' if config.enable_dial_keypad else 'false' } },
+                                transferNum: { { (config.transfer_phone_number or "") | tojson } },
+
+                                /* ADVANCED TELNYX */
+                                idleTimeout: { { config.idle_timeout_telnyx or 20 } },
+                                maxDuration: { { config.max_duration_telnyx or 600 } },
+                                idleMessage: { { (config.idle_message_telnyx or '') | tojson } },
+                                enableRecording: { { 'true' if config.enable_recording_telnyx else 'false' } },
+                                amdConfig: { { (config.amd_config_telnyx or "disabled") | tojson } },
+
+                                /* TRANSCRIBER CONFIG TELNYX */
+                                sttProvider: { { (config.stt_provider_telnyx or 'azure') | tojson } },
+                                sttLang: { { (config.stt_language_telnyx or 'es-MX') | tojson } },
+                                interruptWords: { { config.interruption_threshold_telnyx or 0 } },
+                                interruptRMS: { { config.voice_sensitivity_telnyx or 0 } },
+                                silence: { { config.silence_timeout_ms_telnyx or 5000 } },
+                                inputMin: { { config.input_min_characters_telnyx or 0 } },
+                                blacklist: { { (config.hallucination_blacklist_telnyx or '') | tojson } },
+                                denoise: { { 'true' if config.enable_denoising_telnyx else 'false' } },
+                                krisp: { { 'true' if config.enable_krisp_telnyx else 'false' } },
+                                vad: { { 'true' if config.enable_vad_telnyx else 'false' } }
+                            }
                                     },
 
                             // --- UI BOUND VARIABLES ---
@@ -172,13 +241,38 @@
                                                                                     currentBgSound: 'none',
                                                                                         currentBgUrl: '',
 
-                                                                                            // --- DYNAMIC LISTS ---
-                                                                                            availableLanguages: [],
-                                                                                                availableVoices: [],
-                                                                                                    availableStyles: [],
+                                                                                            // --- TRANSCRIBER VARIABLES ---
+                                                                                            currentSttProvider: 'azure',
+                                                                                                currentSttLang: 'es-MX',
+                                                                                                    currentInterruptWords: 5,
+                                                                                                        currentInterruptRMS: 2000,
+                                                                                                            currentSilence: 5000,
+                                                                                                                currentInputMin: 0,
+                                                                                                                    currentBlacklist: '',
+                                                                                                                        currentDenoise: false,
+                                                                                                                            currentKrisp: false,
+                                                                                                                                currentVad: false,
 
-                                                                                                        // --- CONSTANTS --- 
-                                                                                                        models: {
+                                                                                                                                    // --- FUNCTIONS VARIABLES ---
+                                                                                                                                    currentEndCall: true,
+                                                                                                                                        currentKeypad: false,
+                                                                                                                                            currentTransferNum: '',
+
+                                                                                                                                                // --- ADVANCED VARIABLES ---
+                                                                                                                                                currentIdleTimeout: 10,
+                                                                                                                                                    currentMaxDuration: 600,
+                                                                                                                                                        currentIdleMessage: '',
+                                                                                                                                                            currentMaxRetries: 3,
+                                                                                                                                                                currentEnableRecording: false,
+                                                                                                                                                                    currentAmdConfig: 'disabled',
+
+                                                                                                                                                                        // --- DYNAMIC LISTS ---
+                                                                                                                                                                        availableLanguages: [],
+                                                                                                                                                                            availableVoices: [],
+                                                                                                                                                                                availableStyles: [],
+
+                                                                                                                                                                                    // --- CONSTANTS --- 
+                                                                                                                                                                                    models: {
                                 groq: [
                                     { id: 'llama-3.3-70b-versatile', name: '⚡ Llama 3.3 70B (Versatile)' },
                                     { id: 'llama-3.1-8b-instant', name: '⚡ Llama 3.1 8B (Instant)' },
@@ -215,22 +309,52 @@
                                             { id: 'global', name: 'Global (Auto)' }
                                         ]
                             },
-
                             voiceCatalog: {
                                 'azure': {
+                                    /* Expanded Catalog with Gender */
                                     'es-MX': [
                                         { id: 'es-MX-DaliaNeural', name: 'Dalia (Femenina)', gender: 'female' },
                                         { id: 'es-MX-JorgeNeural', name: 'Jorge (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-BeatrizNeural', name: 'Beatriz (Femenina)', gender: 'female' },
+                                        { id: 'es-MX-CandelaNeural', name: 'Candela (Femenina)', gender: 'female' },
+                                        { id: 'es-MX-CarlotaNeural', name: 'Carlota (Femenina)', gender: 'female' },
                                         { id: 'es-MX-CecilioNeural', name: 'Cecilio (Masculina)', gender: 'male' },
-                                        { id: 'es-MX-MarinaNeural', name: 'Marina (Femenina)', gender: 'female' }
+                                        { id: 'es-MX-GerardoNeural', name: 'Gerardo (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-LarissaNeural', name: 'Larissa (Femenina)', gender: 'female' },
+                                        { id: 'es-MX-LibertoNeural', name: 'Liberto (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-LucianoNeural', name: 'Luciano (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-MarinaNeural', name: 'Marina (Femenina)', gender: 'female' },
+                                        { id: 'es-MX-NurielNeural', name: 'Nuriel (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-PelayoNeural', name: 'Pelayo (Masculina)', gender: 'male' },
+                                        { id: 'es-MX-RenataNeural', name: 'Renata (Femenina)', gender: 'female' },
+                                        { id: 'es-MX-YagoNeural', name: 'Yago (Masculina)', gender: 'male' }
                                     ],
                                         'es-ES': [
                                             { id: 'es-ES-ElviraNeural', name: 'Elvira (Femenina)', gender: 'female' },
-                                            { id: 'es-ES-AlvaroNeural', name: 'Alvaro (Masculina)', gender: 'male' }
+                                            { id: 'es-ES-AlvaroNeural', name: 'Alvaro (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-AbrilNeural', name: 'Abril (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-ArnauNeural', name: 'Arnau (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-DarioNeural', name: 'Dario (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-EliasNeural', name: 'Elias (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-EstrellaNeural', name: 'Estrella (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-IreneNeural', name: 'Irene (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-LaiaNeural', name: 'Laia (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-LiaNeural', name: 'Lia (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-NilNeural', name: 'Nil (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-SaulNeural', name: 'Saul (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-TeoNeural', name: 'Teo (Masculina)', gender: 'male' },
+                                            { id: 'es-ES-TrianaNeural', name: 'Triana (Femenina)', gender: 'female' },
+                                            { id: 'es-ES-VeraNeural', name: 'Vera (Femenina)', gender: 'female' }
                                         ],
                                             'en-US': [
                                                 { id: 'en-US-JennyNeural', name: 'Jenny (Female)', gender: 'female' },
-                                                { id: 'en-US-GuyNeural', name: 'Guy (Male)', gender: 'male' }
+                                                { id: 'en-US-GuyNeural', name: 'Guy (Male)', gender: 'male' },
+                                                { id: 'en-US-AnaNeural', name: 'Ana (Female)', gender: 'female' },
+                                                { id: 'en-US-AriaNeural', name: 'Aria (Female)', gender: 'female' },
+                                                { id: 'en-US-ChristopherNeural', name: 'Christopher (Male)', gender: 'male' },
+                                                { id: 'en-US-EricNeural', name: 'Eric (Male)', gender: 'male' },
+                                                { id: 'en-US-MichelleNeural', name: 'Michelle (Female)', gender: 'female' },
+                                                { id: 'en-US-RogerNeural', name: 'Roger (Male)', gender: 'male' }
                                             ]
                                 },
                                 'elevenlabs': {
@@ -250,7 +374,7 @@
                                         { id: 'fable', name: 'Fable', gender: 'neutral' },
                                         { id: 'onyx', name: 'Onyx', gender: 'neutral' },
                                         { id: 'nova', name: 'Nova', gender: 'neutral' },
-                                        { id: 'shimmer', gender: 'neutral' }
+                                        { id: 'shimmer', name: 'Shimmer', gender: 'neutral' }
                                     ]
                                 }
                             },
@@ -281,66 +405,30 @@
                                     { id: 'sad', label: 'Triste (Sad)' },
                                     { id: 'whispering', label: 'Susurrando (Whispering)' },
                                     { id: 'friendly', label: 'Amigable (Friendly)' },
-                                    { id: 'excited', label: 'Entusiasmado (Excited)' },
-                                    { id: 'hopeful', label: 'Esperanzado (Hopeful)' },
-                                    { id: 'terrified', label: 'Aterrorizado (Terrified)' },
-                                    { id: 'angry', label: 'Enojado (Angry)' },
-                                    { id: 'chat', label: 'Charla (Chat)' },
+                                    { id: 'excited', label: 'Entusiasmado "Excited"' },
+                                    { id: 'hopeful', label: 'Esperanzado "Hopeful"' },
+                                    { id: 'terrified', label: 'Aterrorizado "Terrified"' },
+                                    { id: 'angry', label: 'Enojado "Angry"' },
+                                    { id: 'chat', label: 'Charla "Chat"' },
                                     { id: 'customerservice', label: 'Servicio al Cliente' }
                                 ],
-                                    'es-MX-JorgeNeural': [
-                                        { id: 'cheerful', label: 'Alegre (Cheerful)' },
-                                        { id: 'chat', label: 'Charla (Chat)' },
-                                        { id: 'sad', label: 'Triste (Sad)' },
-                                        { id: 'whispering', label: 'Susurrando (Whispering)' }
-                                    ],
-                                        'es-MX-CecilioNeural': [
-                                            { id: 'cheerful', label: 'Alegre (Cheerful)' },
-                                            { id: 'sad', label: 'Triste (Sad)' },
-                                            { id: 'angry', label: 'Enojado (Angry)' },
-                                            { id: 'hopeful', label: 'Esperanzado (Hopeful)' },
-                                            { id: 'friendly', label: 'Amigable (Friendly)' },
-                                            { id: 'unfriendly', label: 'Antipático (Unfriendly)' },
-                                            { id: 'terrified', label: 'Aterrorizado (Terrified)' },
-                                            { id: 'excited', label: 'Entusiasmado (Excited)' },
-                                            { id: 'whispering', label: 'Susurrando (Whispering)' },
-                                            { id: 'shouting', label: 'Gritando (Shouting)' }
-                                        ],
-                                            'es-MX-MarinaNeural': [
-                                                { id: 'cheerful', label: 'Alegre (Cheerful)' },
-                                                { id: 'sad', label: 'Triste (Sad)' },
-                                                { id: 'whispering', label: 'Susurrando (Whispering)' },
-                                                { id: 'friendly', label: 'Amigable (Friendly)' },
-                                                { id: 'excited', label: 'Entusiasmado (Excited)' },
-                                                { id: 'hopeful', label: 'Esperanzado (Hopeful)' },
-                                                { id: 'terrified', label: 'Aterrorizado (Terrified)' },
-                                                { id: 'angry', label: 'Enojado (Angry)' },
-                                                { id: 'chat', label: 'Charla (Chat)' },
-                                                { id: 'customerservice', label: 'Servicio al Cliente' }
-                                            ],
-                                                'en-US-JennyNeural': [
-                                                    { id: 'assistant', label: 'Asistente' },
-                                                    { id: 'chat', label: 'Charla' },
-                                                    { id: 'customerservice', label: 'Servicio Cliente' },
-                                                    { id: 'newscast', label: 'Noticias' },
-                                                    { id: 'angry', label: 'Enojado' },
-                                                    { id: 'cheerful', label: 'Alegre' },
-                                                    { id: 'sad', label: 'Triste' },
-                                                    { id: 'excited', label: 'Entusiasmado' },
-                                                    { id: 'friendly', label: 'Amigable' },
-                                                    { id: 'terrified', label: 'Aterrorizado' },
-                                                    { id: 'shouting', label: 'Gritando' },
-                                                    { id: 'unfriendly', label: 'Antipático' },
-                                                    { id: 'whispering', label: 'Susurrando' },
-                                                    { id: 'hopeful', label: 'Esperanzado' }
-                                                ],
-                                                    'default': []
+                                    // Generic fallbacks for other neural voices that often support these
+                                    'default': [
+                                        { id: 'cheerful', label: 'Alegre' },
+                                        { id: 'sad', label: 'Triste' },
+                                        { id: 'chat', label: 'Charla' },
+                                        { id: 'customerservice', label: 'Servicio al Cliente' }
+                                    ]
                             }, 
                                     
                                     get currentStyles() { return this.voiceStyles[this.activeVoice] || this.voiceStyles['default']; },
                             historyFilter: 'all',
 
-                                init() {
+                                // New Filter State
+                                currentVoiceGender: 'female',
+                                    availableGenders: [],
+
+                                        init() {
                                 this.loadProfile(this.activeProfile);
                                 this.$watch('activeProfile', val => this.loadProfile(val));
 
@@ -360,6 +448,11 @@
                                     this.configs[this.activeProfile].voiceLang = v;
                                     this.updateVoiceLists();
                                 });
+                                this.$watch('currentVoiceGender', v => {
+                                    // Gender is UI only, selects the first voice of that gender
+                                    this.updateVoiceLists();
+                                });
+
                                 this.$watch('currentVoiceId', v => {
                                     this.configs[this.activeProfile].voiceId = v;
                                     this.updateStyleList();
@@ -369,6 +462,31 @@
                                 this.$watch('currentVoicePacing', v => this.configs[this.activeProfile].voicePacing = v);
                                 this.$watch('currentBgSound', v => this.configs[this.activeProfile].voiceBgSound = v);
                                 this.$watch('currentBgUrl', v => this.configs[this.activeProfile].voiceBgUrl = v);
+
+                                // TRANSCRIBER WATCHERS
+                                this.$watch('currentSttProvider', v => this.configs[this.activeProfile].sttProvider = v);
+                                this.$watch('currentSttLang', v => this.configs[this.activeProfile].sttLang = v);
+                                this.$watch('currentInterruptWords', v => this.configs[this.activeProfile].interruptWords = v);
+                                this.$watch('currentInterruptRMS', v => this.configs[this.activeProfile].interruptRMS = v);
+                                this.$watch('currentSilence', v => this.configs[this.activeProfile].silence = v);
+                                this.$watch('currentInputMin', v => this.configs[this.activeProfile].inputMin = v);
+                                this.$watch('currentBlacklist', v => this.configs[this.activeProfile].blacklist = v);
+                                this.$watch('currentDenoise', v => this.configs[this.activeProfile].denoise = v);
+                                this.$watch('currentKrisp', v => this.configs[this.activeProfile].krisp = v);
+                                this.$watch('currentVad', v => this.configs[this.activeProfile].vad = v);
+
+                                // FUNCTIONS WATCHERS
+                                this.$watch('currentEndCall', v => this.configs[this.activeProfile].enableEndCall = v);
+                                this.$watch('currentKeypad', v => this.configs[this.activeProfile].dialKeypad = v);
+                                this.$watch('currentTransferNum', v => this.configs[this.activeProfile].transferNum = v);
+
+                                // ADVANCED WATCHERS
+                                this.$watch('currentIdleTimeout', v => this.configs[this.activeProfile].idleTimeout = v);
+                                this.$watch('currentMaxDuration', v => this.configs[this.activeProfile].maxDuration = v);
+                                this.$watch('currentIdleMessage', v => this.configs[this.activeProfile].idleMessage = v);
+                                this.$watch('currentMaxRetries', v => this.configs[this.activeProfile].maxRetries = v);
+                                this.$watch('currentEnableRecording', v => this.configs[this.activeProfile].enableRecording = v);
+                                this.$watch('currentAmdConfig', v => this.configs[this.activeProfile].amdConfig = v);
                             },
 
                             loadProfile(p) {
@@ -387,9 +505,47 @@
                                 // VOICE
                                 this.currentVoiceProvider = c.voiceProvider || 'azure';
                                 this.currentVoiceLang = c.voiceLang || 'es-MX';
-                                this.updateVoiceLists(); // Calculates available based on prov/lang
 
-                                // Set ID after lists population to ensure validity
+                                // Try to deduce gender from current ID if possible, else default female
+                                let currentId = c.voiceId;
+                                let knownGender = 'female'; // default
+                                // Search in catalog
+                                for (let prov in this.voiceCatalog) {
+                                    for (let lang in this.voiceCatalog[prov]) {
+                                        let found = this.voiceCatalog[prov][lang].find(v => v.id === currentId);
+                                        if (found) knownGender = found.gender;
+                                    }
+                                }
+                                this.currentVoiceGender = knownGender;
+
+                                // TRANSCRIBER
+                                this.currentSttProvider = c.sttProvider || 'azure';
+                                this.currentSttLang = c.sttLang || 'es-MX';
+                                this.currentInterruptWords = c.interruptWords;
+                                this.currentInterruptRMS = c.interruptRMS || 2000;
+                                this.currentSilence = c.silence;
+                                this.currentInputMin = c.inputMin;
+                                this.currentBlacklist = c.blacklist;
+                                this.currentDenoise = c.denoise;
+                                this.currentKrisp = c.krisp;
+                                this.currentVad = c.vad;
+
+                                // FUNCTIONS
+                                this.currentEndCall = c.enableEndCall;
+                                this.currentKeypad = c.dialKeypad;
+                                this.currentTransferNum = c.transferNum;
+
+                                // ADVANCED
+                                this.currentIdleTimeout = c.idleTimeout;
+                                this.currentMaxDuration = c.maxDuration;
+                                this.currentIdleMessage = c.idleMessage;
+                                this.currentMaxRetries = c.maxRetries; // Undefined for Telnyx but ignored
+                                this.currentEnableRecording = c.enableRecording; // Undefined for others
+                                this.currentAmdConfig = c.amdConfig;
+
+                                this.updateVoiceLists();
+
+                                // Set ID after lists population
                                 this.currentVoiceId = c.voiceId;
                                 this.updateStyleList();
 
@@ -414,7 +570,21 @@
                                 }
 
                                 const providerVoices = this.voiceCatalog[this.currentVoiceProvider] || {};
-                                this.availableVoices = providerVoices[this.currentVoiceLang] || [];
+                                let allVoices = providerVoices[this.currentVoiceLang] || [];
+
+                                // Calculate Genders
+                                let genders = new Set(allVoices.map(v => v.gender));
+                                this.availableGenders = Array.from(genders).map(g => ({
+                                    id: g,
+                                    name: g === 'female' ? 'Mujer (Femenina)' : (g === 'male' ? 'Hombre (Masculina)' : 'Neutral')
+                                }));
+
+                                if (!genders.has(this.currentVoiceGender) && this.availableGenders.length > 0) {
+                                    this.currentVoiceGender = this.availableGenders[0].id;
+                                }
+
+                                // Filter by Gender
+                                this.availableVoices = allVoices.filter(v => v.gender === this.currentVoiceGender);
 
                                 if (this.availableVoices.length > 0 && !this.availableVoices.find(v => v.id === this.currentVoiceId)) {
                                     this.currentVoiceId = this.availableVoices[0].id;
@@ -424,7 +594,14 @@
                             },
 
                             updateStyleList() {
-                                this.availableStyles = this.voiceStyles[this.currentVoiceId] || [];
+                                // Expanded Style Matching
+                                let styles = this.voiceStyles[this.currentVoiceId] || [];
+                                if (styles.length === 0) {
+                                    // Try generic matching
+                                    styles = this.voiceStyles['default'];
+                                }
+                                this.availableStyles = styles;
+
                                 if (this.availableStyles.length > 0) {
                                     if (!this.availableStyles.find(s => s.id === this.currentVoiceStyle)) {
                                         this.currentVoiceStyle = this.availableStyles[0].id;
@@ -505,86 +682,134 @@
 
                         <form action="/api/config/update" method="POST" class="space-y-4"
                             onsubmit="event.preventDefault(); saveConfig();">
-                            <!-- HIDDEN INPUTS AND FORM CONTENT SAME AS BEFORE (RELYING ON CONTEXT MATCH) -->
-                            <input type="hidden" name="stt_provider" value="azure">
 
 
 
-                            <!-- FROZEN CONFIGURATION STATE (AUDIT MODE) -->
+                            <!-- ALPINE SHADOW FORM (Dynamic Binding for Save) -->
                             <div style="display:none;">
-                                <!-- CORE & MODEL (MOVED TO UI) -->
-                                <input type="hidden" name="extraction_model" value="{{ config.extraction_model }}">
+                                <!-- 1. BROWSER PROFILE (Standard Names) -->
+                                <input type="hidden" name="llm_provider" :value="configs.browser.provider">
+                                <input type="hidden" name="llm_model" :value="configs.browser.model">
+                                <input type="hidden" name="temperature" :value="configs.browser.temp">
+                                <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
+                                <input type="hidden" name="first_message" :value="configs.browser.msg">
+                                <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
+                                <textarea name="system_prompt" :value="configs.browser.prompt"></textarea>
 
+                                <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
+                                <input type="hidden" name="voice_language" :value="configs.browser.voiceLang">
+                                <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
+                                <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
+                                <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
+                                <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
+                                <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
+                                <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
 
-                                <!-- CORE PHONE (MOVED TO UI) -->
+                                <!-- FUNCTIONS BROWSER -->
+                                <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
+                                <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
+                                <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
 
+                                <!-- ADVANCED BROWSER -->
+                                <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
+                                <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
+                                <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
+                                <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
 
-                                <!-- CORE TELNYX (MOVED TO UI) -->
-
-
-                                <!-- VOICE (MOVED TO UI) -->
-
-                                <!-- VOICE PHONE (MOVED TO UI) -->
-
-                                <!-- VOICE TELNYX (MOVED TO UI) -->
-
-
-                                <!-- VOICE EXTRAS (MOVED TO UI) -->
-
-                                <!-- TRANSCRIBER & FUNCTIONS -->
-                                <input type="hidden" name="stt_language" value="{{ config.stt_language }}">
-                                <input type="hidden" name="silence_timeout_ms" value="{{ config.silence_timeout_ms }}">
-                                <input type="hidden" name="segmentation_max_time"
-                                    value="{{ config.segmentation_max_time }}">
+                                <!-- TRANSCRIBER BROWSER -->
+                                <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
+                                <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
                                 <input type="hidden" name="interruption_threshold"
-                                    value="{{ config.interruption_threshold }}">
-                                <input type="hidden" name="hallucination_blacklist"
-                                    value="{{ config.hallucination_blacklist }}">
-                                <input type="hidden" name="enable_denoising" value="{{ config.enable_denoising }}">
+                                    :value="configs.browser.interruptWords">
+                                <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
+                                <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
 
-                                <!-- TRANSCRIBER PHONE -->
-                                <input type="hidden" name="stt_provider_phone" value="{{ config.stt_provider_phone }}">
-                                <input type="hidden" name="stt_language_phone" value="{{ config.stt_language_phone }}">
+                                <!-- 2. TWILIO PROFILE (_phone suffix) -->
+                                <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
+                                <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
+                                <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
+                                <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
+                                <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
+                                <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
+                                <textarea name="system_prompt_phone" :value="configs.twilio.prompt"></textarea>
+
+                                <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
+                                <input type="hidden" name="voice_language_phone" :value="configs.twilio.voiceLang">
+                                <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
+                                <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
+                                <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
+                                <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
+                                <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
+                                <input type="hidden" name="background_sound_url_phone"
+                                    :value="configs.twilio.voiceBgUrl">
+
+                                <!-- FUNCTIONS TWILIO -->
+                                <input type="hidden" name="enable_end_call_phone" :value="configs.twilio.enableEndCall">
+                                <input type="hidden" name="enable_dial_keypad_phone" :value="configs.twilio.dialKeypad">
+                                <input type="hidden" name="transfer_phone_number_phone"
+                                    :value="configs.twilio.transferNum">
+
+                                <!-- ADVANCED TWILIO -->
+                                <input type="hidden" name="idle_timeout_phone" :value="configs.twilio.idleTimeout">
+                                <input type="hidden" name="max_duration_phone" :value="configs.twilio.maxDuration">
+                                <input type="hidden" name="idle_message_phone" :value="configs.twilio.idleMessage">
+                                <input type="hidden" name="inactivity_max_retries_phone"
+                                    :value="configs.twilio.maxRetries">
+
+                                <!-- TRANSCRIBER TWILIO -->
+                                <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
+                                <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
                                 <input type="hidden" name="interruption_threshold_phone"
-                                    value="{{ config.interruption_threshold_phone }}">
-                                <input type="hidden" name="silence_timeout_ms_phone"
-                                    value="{{ config.silence_timeout_ms_phone }}">
-                                <input type="hidden" name="input_min_characters_phone"
-                                    value="{{ config.input_min_characters_phone }}">
+                                    :value="configs.twilio.interruptWords">
+                                <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
+                                <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
                                 <input type="hidden" name="hallucination_blacklist_phone"
-                                    value="{{ config.hallucination_blacklist_phone }}">
-                                <input type="hidden" name="enable_denoising_phone"
-                                    value="{{ config.enable_denoising_phone }}">
+                                    :value="configs.twilio.blacklist">
+                                <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
 
+                                <!-- 3. TELNYX PROFILE (_telnyx suffix) -->
+                                <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
+                                <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
+                                <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
+                                <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
+                                <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
+                                <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
+                                <textarea name="system_prompt_telnyx" :value="configs.telnyx.prompt"></textarea>
 
+                                <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
+                                <input type="hidden" name="voice_language_telnyx" :value="configs.telnyx.voiceLang">
+                                <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
+                                <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
+                                <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
+                                <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
+                                <input type="hidden" name="background_sound_telnyx"
+                                    :value="configs.telnyx.voiceBgSound">
+                                <input type="hidden" name="background_sound_url_telnyx"
+                                    :value="configs.telnyx.voiceBgUrl">
 
-                                <!-- TWILIO FEATURES -->
-                                <input type="hidden" name="twilio_machine_detection"
-                                    value="{{ config.twilio_machine_detection }}">
-                                <input type="hidden" name="twilio_record" value="{{ config.twilio_record }}">
-                                <input type="hidden" name="twilio_trim_silence"
-                                    value="{{ config.twilio_trim_silence }}">
+                                <!-- TRANSCRIBER TELNYX -->
+                                <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
+                                <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
+                                <input type="hidden" name="interruption_threshold_telnyx"
+                                    :value="configs.telnyx.interruptWords">
+                                <input type="hidden" name="voice_sensitivity_telnyx"
+                                    :value="configs.telnyx.interruptRMS">
+                                <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
+                                <input type="hidden" name="input_min_characters_telnyx"
+                                    :value="configs.telnyx.inputMin">
+                                <input type="hidden" name="hallucination_blacklist_telnyx"
+                                    :value="configs.telnyx.blacklist">
+                                <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
+                                <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
+                                <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
 
-                                <!-- ADVANCED (Partially moved to UI) -->
-                                <input type="hidden" name="idle_timeout" value="{{ config.idle_timeout }}">
-                                <input type="hidden" name="idle_message" value="{{ config.idle_message }}">
-                                <input type="hidden" name="max_duration" value="{{ config.max_duration }}">
-                                <input type="hidden" name="initial_silence_timeout_ms"
-                                    value="{{ config.initial_silence_timeout_ms }}">
-                                <input type="hidden" name="initial_silence_timeout_ms_phone"
-                                    value="{{ config.initial_silence_timeout_ms_phone }}">
-                                <input type="hidden" name="initial_silence_timeout_ms_telnyx"
-                                    value="{{ config.initial_silence_timeout_ms_telnyx }}">
-                                <input type="hidden" name="punctuation_boundaries"
-                                    value="{{ config.punctuation_boundaries or '' }}">
-                                <input type="hidden" name="enable_end_call" value="{{ config.enable_end_call }}">
-                                <input type="hidden" name="enable_dial_keypad" value="{{ config.enable_dial_keypad }}">
-                                <input type="hidden" name="transfer_phone_number"
-                                    value="{{ config.transfer_phone_number or '' }}">
-                                <input type="hidden" name="segmentation_strategy"
-                                    value="{{ config.segmentation_strategy }}">
-                                <input type="hidden" name="twilio_recording_channels"
-                                    value="{{ config.twilio_recording_channels }}">
+                                <!-- ADVANCED TELNYX -->
+                                <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
+                                <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
+                                <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
+                                <input type="hidden" name="enable_recording_telnyx"
+                                    :value="configs.telnyx.enableRecording">
+                                <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
                             </div>
 
                             <!-- Tab: Model -->
@@ -675,10 +900,10 @@
                 <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col min-h-[600px] border border-white/10">
                     <div class="flex justify-between items-center mb-6">
                         <script>
-                            xpose Config to Simulator
-                                imulatorConfig = {
-                                        dio: "{{ config.background_sound }}",
-                                            {{ config.background_sound_url }}"
+                            // Expose Config to Simulator
+                            window.simulatorConfig = {
+                                audio: "{{ config.background_sound }}",
+                                audioUrl: "{{ config.background_sound_url }}"
                             };
                         </script>
                         <div class="flex flex-col">
