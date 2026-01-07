@@ -1115,7 +1115,8 @@ class VoiceOrchestrator:
             # Process remaining buffer
             if sentence_buffer and self.is_bot_speaking:
                 # final cleanup
-                if "[END_CALL]" in sentence_buffer: should_hangup = True
+                if "[END_CALL]" in sentence_buffer:
+                    should_hangup = True
                 sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
                 sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
                 # Clean DTMF if any left

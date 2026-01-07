@@ -46,7 +46,8 @@ async def dashboard(
 
     # Helpers for serialization
     def model_to_dict(obj):
-        if not obj: return {}
+        if not obj:
+            return {}
         return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
     config_dict = model_to_dict(config)
@@ -496,7 +497,10 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20, db: Asy
         total = await db_service.get_total_calls(db)
         if total is None:
             total = 0
-        total_pages = (total + limit - 1) // limit if limit > 0 else 1
+        if limit > 0:
+            total_pages = (total + limit - 1) // limit
+        else:
+            total_pages = 1
 
         return templates.TemplateResponse("partials/history_panel.html", {
             "request": request,
