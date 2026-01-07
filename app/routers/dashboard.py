@@ -110,7 +110,7 @@ async def update_browser_config(
 
     except Exception as e:
         logger.error(f"Error updating Browser config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.patch("/api/config/twilio", dependencies=[Depends(verify_api_key)])
@@ -144,7 +144,7 @@ async def update_twilio_config(
 
     except Exception as e:
         logger.error(f"Error updating Twilio config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.patch("/api/config/telnyx", dependencies=[Depends(verify_api_key)])
@@ -178,7 +178,7 @@ async def update_telnyx_config(
 
     except Exception as e:
         logging.error(f"Error updating Telnyx config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.patch("/api/config/core", dependencies=[Depends(verify_api_key)])
@@ -212,7 +212,7 @@ async def update_core_config(
 
     except Exception as e:
         logging.error(f"Error updating Core config: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 # =============================================================================
 # DEPRECATED: Monolithic Endpoint (Punto A8)

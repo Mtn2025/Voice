@@ -102,7 +102,7 @@ def update_env_file(updates: dict[str, Any], env_path: str = ".env") -> bool:
         return True
 
     except Exception as e:
-        raise ConfigurationError(f"Failed to update .env file: {e!s}")
+        raise ConfigurationError(f"Failed to update .env file: {e!s}") from e
 
 def read_env_file(env_path: str = ".env") -> dict[str, str]:
     """
