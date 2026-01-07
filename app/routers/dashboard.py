@@ -1,48 +1,64 @@
-from fastapi import APIRouter, Request, Form, Depends
+import logging
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from markupsafe import Markup, escape
+from sqlalchemy.ext.asyncio import AsyncSession # NEW
+
+from app.db.database import get_db # NEW
+from app.core.auth_simple import verify_api_key
+from app.core.input_sanitization import (
+    register_template_filters,
+    sanitize_html,
+    sanitize_string,
+)
 from app.services.db_service import db_service
-from app.core.service_factory import ServiceFactory
-from app.db.models import AgentConfig
-import logging
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    config = await db_service.get_agent_config()
-    
+# Register sanitization filters for XSS protection (Punto A5)
+template_filters = register_template_filters(None)
+templates.env.filters.update(template_filters)
+
+@router.get("/dashboard", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
+async def dashboard(
+    request: Request,
+    db: AsyncSession = Depends(get_db) # Injected Session
+):
+    config = await db_service.get_agent_config(db) # Pass session explicitly
+
     # Fetch Dynamic Options
     # Use temporary instances or factory if possible.
     # We can instantiate providers directly to get static lists if methods are static/or lightweight
     from app.providers.azure import AzureProvider
     from app.providers.groq import GroqProvider
-    
+
     # Voices
     tts_provider = AzureProvider() # Lightweight init
     voices = tts_provider.get_available_voices()
     voice_styles = tts_provider.get_voice_styles() # New
     languages = tts_provider.get_available_languages()
-    
+
     # Models
     llm_provider = GroqProvider()
     models = await llm_provider.get_available_models()
-    
+
     history = await db_service.get_recent_calls(limit=10) # New
-    
+
     # Helpers for serialization
     def model_to_dict(obj):
         if not obj: return {}
         return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
     config_dict = model_to_dict(config)
-    
+
     # Serialize history manually as well
     history_list = [model_to_dict(call) for call in history]
-    
+
     return templates.TemplateResponse("dashboard.html", {
-        "request": request, 
+        "request": request,
         "config": config_dict,
         "voices": voices,
         "voice_styles": voice_styles,
@@ -53,13 +69,168 @@ async def dashboard(request: Request):
         "host": request.url.netloc
     })
 
-@router.post("/api/config/update")
+# =============================================================================
+# Punto A8: Config Endpoints Refactored (Modular by Profile)
+# =============================================================================
+
+from app.schemas.config_schemas import (
+    BrowserConfigUpdate,
+    CoreConfigUpdate,
+    TelnyxConfigUpdate,
+    TwilioConfigUpdate,
+)
+
+
+@router.patch("/api/config/browser", dependencies=[Depends(verify_api_key)])
+async def update_browser_config(
+    config: BrowserConfigUpdate,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Update Browser/Simulator profile configuration.
+    Refactored in B3 to use centralized config_utils.
+    """
+    try:
+        from app.core.config_utils import update_env_file
+        
+        update_data = config.dict(exclude_unset=True)
+        await db_service.update_agent_config(db, **update_data)
+        
+        # Persist to .env
+        updates = {}
+        for key, value in update_data.items():
+            updates[key.upper()] = value
+            
+        update_env_file(updates)
+        
+        return {
+            "status": "success",
+            "profile": "browser",
+            "updated_fields": list(update_data.keys()),
+            "count": len(update_data)
+        }
+
+    except Exception as e:
+        logger.error(f"Error updating Browser config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/api/config/twilio", dependencies=[Depends(verify_api_key)])
+async def update_twilio_config(
+    config: TwilioConfigUpdate,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Update Twilio/Phone profile configuration.
+    Refactored in B3 to use centralized config_utils.
+    """
+    try:
+        from app.core.config_utils import update_env_file
+        
+        update_data = config.dict(exclude_unset=True)
+        await db_service.update_agent_config(db, **update_data)
+        
+        # Persist to .env
+        updates = {}
+        for key, value in update_data.items():
+            updates[key.upper()] = value
+            
+        update_env_file(updates)
+        
+        return {
+            "status": "success",
+            "profile": "twilio",
+            "updated_fields": list(update_data.keys()),
+            "count": len(update_data)
+        }
+
+    except Exception as e:
+        logger.error(f"Error updating Twilio config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/api/config/telnyx", dependencies=[Depends(verify_api_key)])
+async def update_telnyx_config(
+    config: TelnyxConfigUpdate,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Update Telnyx profile configuration.
+    Refactored in B3 to use centralized config_utils.
+    """
+    try:
+        from app.core.config_utils import update_env_file
+        
+        update_data = config.dict(exclude_unset=True)
+        await db_service.update_agent_config(db, **update_data)
+        
+        # Persist to .env
+        updates = {}
+        for key, value in update_data.items():
+            updates[key.upper()] = value
+            
+        update_env_file(updates)
+        
+        return {
+            "status": "success",
+            "profile": "telnyx",
+            "updated_fields": list(update_data.keys()),
+            "count": len(update_data)
+        }
+
+    except Exception as e:
+        logging.error(f"Error updating Telnyx config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/api/config/core", dependencies=[Depends(verify_api_key)])
+async def update_core_config(
+    config: CoreConfigUpdate,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Update Core/Global configuration.
+    Refactored in B3 to use centralized config_utils.
+    """
+    try:
+        from app.core.config_utils import update_env_file
+        
+        update_data = config.dict(exclude_unset=True)
+        await db_service.update_agent_config(db, **update_data)
+        
+        # Persist to .env
+        updates = {}
+        for key, value in update_data.items():
+            updates[key.upper()] = value
+        
+        update_env_file(updates)
+        
+        return {
+            "status": "success",
+            "profile": "core",
+            "updated_fields": list(update_data.keys()),
+            "count": len(update_data)
+        }
+
+    except Exception as e:
+        logging.error(f"Error updating Core config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =============================================================================
+# DEPRECATED: Monolithic Endpoint (Punto A8)
+# =============================================================================
+# This endpoint is maintained for backward compatibility but is DEPRECATED.
+# Use the modular endpoints above: /api/config/{browser|twilio|telnyx|core}
+# This will be removed in v2.0
+# =============================================================================
+
+@router.post("/api/config/update", deprecated=True, dependencies=[Depends(verify_api_key)])
 async def update_config(
     system_prompt: str = Form(...),
     temperature: float = Form(...), # Restore temperature
     voice_speed: float = Form(...),
     voice_speed_phone: float = Form(0.9), # New
-    voice_name: str = Form("es-MX-DaliaNeural"), 
+    voice_name: str = Form("es-MX-DaliaNeural"),
     voice_style: str = Form(None), # New
     stt_language: str = Form("es-MX"), # New
     llm_model: str = Form("llama-3.3-70b-versatile"), # New
@@ -79,7 +250,7 @@ async def update_config(
     voice_name_phone: str = Form(None),
     voice_style_phone: str = Form(None),
     input_min_characters_phone: int = Form(4),
-    
+
     # Phone Model & Prompt
     system_prompt_phone: str = Form(None),
     first_message_phone: str = Form(None),
@@ -90,7 +261,7 @@ async def update_config(
     stt_provider_phone: str = Form("azure"),
     stt_language_phone: str = Form("es-US"),
     temperature_phone: float = Form(0.7),
-    
+
     # Twilio Specific
     enable_denoising_phone: bool = Form(True),
     twilio_machine_detection: str = Form("Enable"),
@@ -101,7 +272,7 @@ async def update_config(
 
     # Twilio (Renamed in UI, kept here for backend compatibility if needed, but mostly 'phone' suffixes covers it)
     # The 'phone' fields above map to Twilio.
-    
+
     # Telnyx Specific
     stt_provider_telnyx: str = Form("azure"),
     stt_language_telnyx: str = Form("es-MX"),
@@ -125,14 +296,14 @@ async def update_config(
     voice_sensitivity_telnyx: int = Form(3000),
     enable_krisp_telnyx: bool = Form(True),
     enable_vad_telnyx: bool = Form(True),
-    
+
     # Telnyx Advanced
     idle_timeout_telnyx: float = Form(20.0),
     max_duration_telnyx: int = Form(600),
     idle_message_telnyx: str = Form("¿Hola? ¿Sigue ahí?"),
     enable_recording_telnyx: bool = Form(False),
     amd_config_telnyx: str = Form("disabled"),
-    
+
     # 🔒 LOCKED: MODEL & CORE ARGS (DO NOT EDIT)
     # (Includes Voice Settings above)
     # Stage 1: Model & Voice
@@ -142,7 +313,7 @@ async def update_config(
     voice_id_manual: str = Form(None),
     background_sound_url: str = Form(None),
     input_min_characters: int = Form(3),
-    
+
     # Stage 2: Transcriber
     silence_timeout_ms: int = Form(500),
     silence_timeout_ms_phone: int = Form(1200), # New
@@ -151,7 +322,7 @@ async def update_config(
     enable_denoising: bool = Form(True), # Careful with boolean checkbox
     initial_silence_timeout_ms: int = Form(5000), # New
     punctuation_boundaries: str = Form(None), # New - FIXED
-    
+
     # 🔒 LOCKED: TRANSCRIBING & FUNCTIONS (DO NOT EDIT)
     # Stage 2: Functions
     enable_end_call: bool = Form(True),
@@ -178,7 +349,7 @@ async def update_config(
         inactivity_max_retries=inactivity_max_retries, # New
         interruption_threshold=interruption_threshold,
         interruption_threshold_phone=interruption_threshold_phone,
-        
+
         # New Audit Fields
         hallucination_blacklist=hallucination_blacklist,
         hallucination_blacklist_phone=hallucination_blacklist_phone,
@@ -187,7 +358,7 @@ async def update_config(
         voice_name_phone=voice_name_phone,
         voice_style_phone=voice_style_phone,
         input_min_characters_phone=input_min_characters_phone,
-        
+
         system_prompt_phone=system_prompt_phone,
         first_message_phone=first_message_phone,
         first_message_mode_phone=first_message_mode_phone,
@@ -197,7 +368,7 @@ async def update_config(
         stt_provider_phone=stt_provider_phone,
         stt_language_phone=stt_language_phone,
         temperature_phone=temperature_phone,
-        
+
         # Twilio
         enable_denoising_phone=enable_denoising_phone,
         twilio_machine_detection=twilio_machine_detection,
@@ -205,7 +376,7 @@ async def update_config(
         twilio_recording_channels=twilio_recording_channels,
         twilio_trim_silence=twilio_trim_silence,
         initial_silence_timeout_ms_phone=initial_silence_timeout_ms_phone,
-        
+
         # Telnyx
         stt_provider_telnyx=stt_provider_telnyx,
         stt_language_telnyx=stt_language_telnyx,
@@ -230,7 +401,7 @@ async def update_config(
         enable_krisp_telnyx=enable_krisp_telnyx,
         enable_vad_telnyx=enable_vad_telnyx,
 
-        
+
         idle_timeout_telnyx=idle_timeout_telnyx,
         max_duration_telnyx=max_duration_telnyx,
         idle_message_telnyx=idle_message_telnyx,
@@ -245,7 +416,7 @@ async def update_config(
         voice_id_manual=voice_id_manual,
         background_sound_url=background_sound_url,
         input_min_characters=input_min_characters,
-        
+
         # Stage 2
         silence_timeout_ms=silence_timeout_ms,
         silence_timeout_ms_phone=silence_timeout_ms_phone,
@@ -254,7 +425,7 @@ async def update_config(
         enable_denoising=enable_denoising,
         initial_silence_timeout_ms=initial_silence_timeout_ms,
         punctuation_boundaries=punctuation_boundaries, # FIXED
-        
+
         enable_end_call=enable_end_call,
         enable_dial_keypad=enable_dial_keypad,
         transfer_phone_number=transfer_phone_number,
@@ -266,20 +437,20 @@ async def update_config(
     )
     return RedirectResponse(url="/dashboard", status_code=303)
 
-@router.post("/api/config/patch")
-async def patch_config(request: Request):
+@router.post("/api/config/patch", dependencies=[Depends(verify_api_key)])
+async def patch_config(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Accepts JSON payload to update specific config fields.
     Example: {"input_min_characters": 30}
     """
     try:
         data = await request.json()
-        
+
         # Type Conversion Helper
         # Ensure we cast known int/float fields to avoid DB errors (AsyncPG is strict)
         int_fields = [
-            "input_min_characters", "max_tokens", "silence_timeout_ms", 
-            "initial_silence_timeout_ms", "segmentation_max_time", 
+            "input_min_characters", "max_tokens", "silence_timeout_ms",
+            "initial_silence_timeout_ms", "segmentation_max_time",
             "interruption_threshold", "interruption_threshold_phone",
             "silence_timeout_ms_phone", "max_duration",
             "max_tokens_telnyx", "initial_silence_timeout_ms_telnyx", "input_min_characters_telnyx",
@@ -300,7 +471,7 @@ async def patch_config(request: Request):
             if v is None:
                 cleaned_data[k] = None
                 continue
-                
+
             if k in int_fields:
                 cleaned_data[k] = int(v)
             elif k in float_fields:
@@ -314,21 +485,21 @@ async def patch_config(request: Request):
             else:
                 cleaned_data[k] = v
 
-        await db_service.update_agent_config(**cleaned_data)
+        await db_service.update_agent_config(db, **cleaned_data)
         return {"status": "success", "updated": cleaned_data}
     except Exception as e:
         logging.error(f"Config Patch Failed: {e}")
         return {"status": "error", "message": str(e)}
 
-@router.get("/dashboard/history-rows", response_class=HTMLResponse)
-async def history_rows(request: Request, page: int = 1, limit: int = 20):
+@router.get("/dashboard/history-rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
+async def history_rows(request: Request, page: int = 1, limit: int = 20, db: AsyncSession = Depends(get_db)):
     try:
         offset = (page - 1) * limit
-        history = await db_service.get_recent_calls(limit=limit, offset=offset)
-        total = await db_service.get_total_calls()
+        history = await db_service.get_recent_calls(db, limit=limit, offset=offset)
+        total = await db_service.get_total_calls(db)
         if total is None: total = 0
         total_pages = (total + limit - 1) // limit if limit > 0 else 1
-        
+
         return templates.TemplateResponse("partials/history_panel.html", {
             "request": request,
             "history": history,
@@ -342,33 +513,17 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20):
         traceback.print_exc()
         return HTMLResponse(content=f"<tr><td colspan='5' class='p-4 text-center text-red-400 font-bold'>Error cargando historial: {e}</td></tr>")
 
-@router.post("/api/history/delete-selected")
-async def delete_selected(request: Request):
-    data = await request.json()
-    call_ids = data.get("call_ids", [])
-    if not call_ids:
-        return {"status": "error", "message": "No IDs provided"}
-    
-    success = await db_service.delete_calls(call_ids)
-    if success:
-        return {"status": "success"}
-    else:
-        raise HTTPException(status_code=500, detail="Failed to delete calls")
+@router.post("/api/history/delete-selected", dependencies=[Depends(verify_api_key)])
+async def delete_selected(request: Request, db: AsyncSession = Depends(get_db)):
+    try:
+        data = await request.json()
+        call_ids = data.get("call_ids", [])
+        if not call_ids:
+            return {"status": "error", "message": "No IDs provided"}
 
-@router.get("/dashboard/call/{call_id}", response_class=HTMLResponse)
-async def call_details(request: Request, call_id: int):
-    call = await db_service.get_call_details(call_id)
-    if not call:
-        raise HTTPException(status_code=404, detail="Call not found")
+        await db_service.delete_calls(db, call_ids)
+        return {"status": "success", "count": len(call_ids)}
+    except Exception as e:
+        logging.error(f"Error deleting calls: {e}")
+        return {"status": "error", "message": str(e)}
 
-    return templates.TemplateResponse("call_details.html", {
-        "request": request,
-        "call": call
-    })
-
-@router.post("/api/history/clear")
-async def clear_history():
-    success = await db_service.clear_all_history()
-    if not success:
-         raise HTTPException(status_code=500, detail="Failed to clear history")
-    return RedirectResponse(url="/dashboard", status_code=303)

@@ -1,139 +1,127 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from app.core.config import settings
+
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
+# Punto B1: Logging Centralizado & Tracing
+from asgi_correlation_id import CorrelationIdMiddleware
+from app.core.logging_config import configure_logging
+
 from app.api import routes
-from app.routers import dashboard
+from app.core.config import settings
+from app.routers import dashboard, system
+
+
+# =============================================================================
+# RATE LIMITING - Punto A3 del Plan Consolidado
+# =============================================================================
+# SlowAPI para protección contra DoS y control de costos
+# Configuración: Por IP, almacenamiento en memoria (in-memory)
+# =============================================================================
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load resources
-    print("Starting Voice Orchestrator...")
-    
-    # DEBUG: Print all environment variables related to Telnyx
-    import os
-    print("=" * 60)
-    print("ENVIRONMENT VARIABLES DEBUG:")
-    print(f"TELNYX_API_KEY (os.getenv): {os.getenv('TELNYX_API_KEY', 'NOT_FOUND')[:20] if os.getenv('TELNYX_API_KEY') else 'NOT_FOUND'}...")
-    print(f"TELNYX_API_BASE (os.getenv): {os.getenv('TELNYX_API_BASE', 'NOT_FOUND')}")
-    print(f"settings.TELNYX_API_KEY: {settings.TELNYX_API_KEY[:20] if settings.TELNYX_API_KEY else 'EMPTY'}...")
-    print(f"settings.TELNYX_API_BASE: {settings.TELNYX_API_BASE}")
-    print("All env vars starting with 'TELNYX':")
-    for key, value in os.environ.items():
-        if 'TELNYX' in key.upper() or 'TELENYX' in key.upper():
-            print(f"  {key}: {value[:20]}..." if value else f"  {key}: EMPTY")
-    print("=" * 60)
+    # =============================================================================
+    # Punto B1: Configure Structured Logging
+    # =============================================================================
+    configure_logging()
+    # =============================================================================
 
+    # Load resources
+    from app.core.secure_logging import get_secure_logger
+    logger = get_secure_logger(__name__)
+    logger.info("Starting Voice Orchestrator...")
+
+    # Configuration status (secure - no keys exposed)
+    logger.info(f"Telnyx API configured: {bool(settings.TELNYX_API_KEY)}")
+    logger.info(f"Azure Speech configured: {bool(settings.AZURE_SPEECH_KEY)}")
+    logger.info(f"Groq API configured: {bool(settings.GROQ_API_KEY)}")
+
+    # =============================================================================
+    # Punto A9: Initialize Redis for Horizontal Scaling
+    # =============================================================================
+    from app.core.redis_state import redis_state
+    from app.core.http_client import http_client
+    await redis_state.connect()
+    if redis_state.is_redis_enabled:
+        logger.info("✅ [A9] Redis state management enabled - Multi-instance ready")
+    else:
+        logger.warning("⚠️ [A9] Redis unavailable - Using in-memory fallback (single instance only)")
     
-    # Init DB Tables
+    # Initialize HTTP Client (Punto C3)
+    await http_client.init()
+    logger.info("✅ [HTTP] Global HTTP Client Initialized")
+    # =============================================================================
+
+    # Run database migrations with Alembic
+    from alembic import command
+    from alembic.config import Config
+    try:
+        logger.info("Running database migrations...")
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Database migrations completed successfully")
+    except Exception as e:
+        logger.error(f"Error running migrations: {e}")
+        # Continue anyway - tables might already exist
+
+    # Init DB Tables (create_all for safety, Alembic handles schema)
     from app.db.database import engine
     from app.db.models import Base
     async with engine.begin() as conn:
+        # Create tables if they don't exist
         await conn.run_sync(Base.metadata.create_all)
-        
-        # Auto-Migration for stt_language (Lightweight)
-        from sqlalchemy import text
-        try:
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS stt_language VARCHAR DEFAULT 'es-MX'"))
-            # Also ensure llm_model col exists too if we wanted, but voice_name exists by default? 
-            # Check models.py again. voice_name exists. llm_model doesn't.
-            # Let's add llm_model too while we are at it to fulfill previous promise.
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_model VARCHAR DEFAULT 'deepseek-r1-distill-llama-70b'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS background_sound VARCHAR DEFAULT 'none'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS idle_timeout FLOAT DEFAULT 10.0"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS idle_message VARCHAR DEFAULT '¿Hola? ¿Sigue ahí?'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_duration INTEGER DEFAULT 600"))
-            
-            # VAPI Parity Stage 1
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_style VARCHAR"))
-            
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message VARCHAR DEFAULT 'Hola, soy Andrea de Ubrokers. ¿Me escucha bien?'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_mode VARCHAR DEFAULT 'speak-first'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_tokens INTEGER DEFAULT 250"))
-            
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_id_manual VARCHAR"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS background_sound_url VARCHAR"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters INTEGER DEFAULT 3"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS punctuation_boundaries VARCHAR"))
-            
-            # VAPI Parity Stage 2
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms INTEGER DEFAULT 500"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS segmentation_max_time INTEGER DEFAULT 30000"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS segmentation_strategy VARCHAR DEFAULT 'default'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_denoising BOOLEAN DEFAULT TRUE"))
-            
-            # Auto-Migration for VAD Sensitivity (Telnyx Fix)
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_sensitivity INTEGER DEFAULT 500"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_sensitivity_phone INTEGER DEFAULT 200"))
-            
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_end_call BOOLEAN DEFAULT TRUE"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_dial_keypad BOOLEAN DEFAULT FALSE"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS transfer_phone_number VARCHAR"))
-            
-            # Data Extraction
-            await conn.execute(text("ALTER TABLE calls ADD COLUMN IF NOT EXISTS extracted_data JSONB"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS extraction_model VARCHAR DEFAULT 'llama-3.1-8b-instant'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold INTEGER DEFAULT 5"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold_phone INTEGER DEFAULT 2"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms_phone INTEGER DEFAULT 1200"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS initial_silence_timeout_ms INTEGER DEFAULT 5000"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_speed_phone FLOAT DEFAULT 0.9"))
-            
-            # Audit Fixes Round 2
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS extra_settings_phone JSONB"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS hallucination_blacklist VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS hallucination_blacklist_phone VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters_phone INTEGER DEFAULT 4"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_name_phone VARCHAR"))
-            
-            # Audit Fixes Round 3: Pacing
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms INTEGER DEFAULT 300"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms_phone INTEGER DEFAULT 500"))
-            
-            # Telnyx Expansion
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS stt_provider_telnyx VARCHAR DEFAULT 'azure'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS stt_language_telnyx VARCHAR DEFAULT 'es-MX'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_provider_telnyx VARCHAR DEFAULT 'groq'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS llm_model_telnyx VARCHAR DEFAULT 'llama-3.3-70b-versatile'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS system_prompt_telnyx TEXT"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_name_telnyx VARCHAR DEFAULT 'es-MX-DaliaNeural'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_style_telnyx VARCHAR"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS temperature_telnyx FLOAT DEFAULT 0.7"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_telnyx VARCHAR DEFAULT 'Hola, soy Andrea de Ubrokers. ¿Me escucha bien?'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS first_message_mode_telnyx VARCHAR DEFAULT 'speak-first'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS max_tokens_telnyx INTEGER DEFAULT 250"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS initial_silence_timeout_ms_telnyx INTEGER DEFAULT 5000"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS input_min_characters_telnyx INTEGER DEFAULT 4"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS enable_denoising_telnyx BOOLEAN DEFAULT TRUE"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_pacing_ms_telnyx INTEGER DEFAULT 500"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS silence_timeout_ms_telnyx INTEGER DEFAULT 1200"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS interruption_threshold_telnyx INTEGER DEFAULT 2"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS hallucination_blacklist_telnyx VARCHAR DEFAULT 'Pero.,Y...,Mm.,Oye.,Ah.'"))
-            await conn.execute(text("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS voice_speed_telnyx FLOAT DEFAULT 0.9"))
-            
-            await conn.commit()
 
-        except Exception as e:
-            print(f"Migration warning: {e}")
-        
-    yield
-    # Clean up resources
-    print("Shutting down Voice Orchestrator...")
+    logger.info("✅ Application startup complete")
+
+    yield  # App is running
+
+    # Cleanup on shutdown
+    logger.info("Shutting down Voice Orchestrator...")
+    
+    # =============================================================================
+    # Punto A9: Close Redis Connection
+    # =============================================================================
+    await redis_state.disconnect()
+    logger.info("✅ [A9] Redis disconnected")
+    
+    await http_client.close()
+    logger.info("✅ [HTTP] Global HTTP Client Closed")
+    # =============================================================================
+    
+    logger.info("✅ Application shutdown complete")
 
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    title="Voice Orchestrator Agent",
+    description="AI Voice Assistant with Telnyx, Azure, and Groq integration",
+    version="1.0.0",
     lifespan=lifespan
 )
 
+# Punto B1: Add Request Tracing Middleware
+# Must be added before other middlewares/routers
+app.add_middleware(CorrelationIdMiddleware)
+
+# Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+# Rate Limiting (Punto A3)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(routes.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router)
+app.include_router(system.router)
 
 
 from fastapi.responses import RedirectResponse
+
 
 @app.get("/", include_in_schema=False)
 async def root():
@@ -147,6 +135,4 @@ async def root_post():
     """
     return {"status": "ok", "message": "Voice Orchestrator Running"}
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+

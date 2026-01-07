@@ -1,25 +1,83 @@
-FROM python:3.11-bullseye
+# =============================================================================
+# Dockerfile - Asistente Andrea (Optimized Multi-Stage Build)
+# =============================================================================
+# Production-ready image with health checks and auto-migrations
+# Compatible with Coolify deployment
+# Punto A10: Non-root user for security
+# =============================================================================
+
+# =============================================================================
+# Stage 1: Builder - Build dependencies and install packages
+# =============================================================================
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# =============================================================================
+# Stage 2: Runtime - Minimal production image
+# =============================================================================
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies required for Azure Speech SDK and standard build tools
+# Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    libssl-dev \
+    curl \
     ca-certificates \
     libasound2 \
-    wget \
-    lsb-release \
     libgstreamer1.0-0 \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-plugins-ugly \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# =============================================================================
+# Punto A10: Create non-root user for security
+# =============================================================================
+# Running as root is a security risk. Create 'app' user with UID 1000.
+# This prevents privilege escalation and reduces attack surface.
+# =============================================================================
+RUN groupadd -r app --gid=1000 && \
+    useradd -r -g app --uid=1000 --home-dir=/app --shell=/bin/bash app
 
-COPY . .
+# Copy Python packages from builder (to app user home)
+COPY --from=builder --chown=app:app /root/.local /home/app/.local
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Copy application code with correct ownership
+COPY --chown=app:app . .
+
+# Make startup script executable
+RUN chmod +x scripts/startup.sh
+
+# Set environment
+ENV PATH=/home/app/.local/bin:$PATH
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Health check - calls /health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# =============================================================================
+# Punto A10: Switch to non-root user
+# =============================================================================
+# CRITICAL: This must be BEFORE CMD. Everything after this runs as 'app' user.
+# =============================================================================
+USER app
+
+# Run startup script (includes migrations)
+CMD ["./scripts/startup.sh"]

@@ -1,5 +1,11 @@
 # Ignorar llaves y secretos
 .env
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets/
+credentials/
 
 # Python (archivos temporales)
 __pycache__/
@@ -8,6 +14,13 @@ __pycache__/
 .venv/
 env/
 venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
 
 # Docker
 .docker/
@@ -18,3 +31,29 @@ Thumbs.db
 
 # Carpeta de base de datos local (si existe)
 db-data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs (pueden contener información sensible)
+*.log
+logs/
+*.log.*
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Alembic - Keep migrations in Git, ignore temp files
+# alembic/versions/*.pyc  # Already covered by *.pyc above
+__pycache__/

@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "tu-usuario-github"  # Cambiar por tu usuario de GitHub
+    labels:
+      - "dependencies"
+      - "python"
+      - "automerge-candidate"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Agrupar actualizaciones menores y patches
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Permitir todo tipo de actualizaciones
+    allow:
+      - dependency-type: "all"
+    # Ignorar dependencias específicas problem\u00e1ticas
+    ignore:
+      # asyncpg requiere compilación C - actualizar manualmente
+      - dependency-name: "asyncpg"
+        update-types: ["version-update:semver-major"]
+      # pytest-asyncio tiene problemas con Python 3.13
+      - dependency-name: "pytest-asyncio"
+    # Rebase automático si hay CONFLICTOS
+    rebase-strategy: "auto"

@@ -1,11 +1,15 @@
-from groq import AsyncGroq
-from app.services.base import AbstractLLM
-from app.core.config import settings
-from typing import AsyncGenerator
 import io
 import json
-import base64
 import logging
+from collections.abc import AsyncGenerator
+
+from groq import AsyncGroq
+
+from app.core.config import settings
+from app.services.base import AbstractLLM
+from app.core.redis_state import redis_state
+import hashlib
+
 
 class GroqProvider(AbstractLLM):
     def __init__(self):
@@ -26,17 +30,17 @@ class GroqProvider(AbstractLLM):
             return [
                 "llama-3.3-70b-versatile",
                 "llama-3.1-70b-versatile",
-                "llama-3.1-8b-instant", 
+                "llama-3.1-8b-instant",
                 "mixtral-8x7b-32768"
             ]
 
-    async def get_stream(self, messages: list, system_prompt: str, temperature: float, model: str = None) -> AsyncGenerator[str, None]:
-        
+    async def get_stream(self, messages: list, system_prompt: str, temperature: float, model: str | None = None) -> AsyncGenerator[str, None]:
+
         target_model = model or self.default_model
 
         # Ensure correct message format for Groq
         chat_messages = [{"role": "system", "content": system_prompt}] + [m for m in messages if m["role"] != "system"]
-        
+
         try:
             completion = await self.client.chat.completions.create(
                 model=target_model,
@@ -65,7 +69,7 @@ class GroqProvider(AbstractLLM):
             # Create a file-like object
             audio_file = io.BytesIO(audio_content)
             audio_file.name = "audio.wav" # Groq needs a filename
-            
+
             transcription = await self.client.audio.transcriptions.create(
                 file=(audio_file.name, audio_file.read()),
                 model="whisper-large-v3",
@@ -92,7 +96,16 @@ class GroqProvider(AbstractLLM):
             "- whatsapp_number: (string/null) Phone number if provided.\n"
             "- key_notes: (string) Concise summary of needs or objections."
         )
+
+        # 1. Check Cache
+        transcript_hash = hashlib.md5(transcript.encode()).hexdigest()
+        cache_key = f"extraction:{transcript_hash}"
+        cached = await redis_state.cache_get(cache_key)
         
+        if cached:
+            logging.info(f"⚡ [CACHE] Extraction hit for hash {transcript_hash[:8]}")
+            return cached
+
         try:
             completion = await self.client.chat.completions.create(
                 model=model,
@@ -103,7 +116,12 @@ class GroqProvider(AbstractLLM):
                 temperature=0.0,
                 response_format={"type": "json_object"}
             )
-            return json.loads(completion.choices[0].message.content)
+            result = json.loads(completion.choices[0].message.content)
+            
+            # 2. Store in Cache (24h)
+            await redis_state.cache_set(cache_key, result, ttl=86400)
+            
+            return result
         except Exception as e:
             logging.error(f"Extraction Error: {e}")
             return {"error": str(e)}

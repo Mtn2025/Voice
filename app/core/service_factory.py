@@ -2,6 +2,7 @@ from app.db.models import AgentConfig
 from app.providers.azure import AzureProvider
 from app.providers.groq import GroqProvider
 
+
 class ServiceFactory:
     @staticmethod
     def get_stt_provider(config: AgentConfig):

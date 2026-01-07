@@ -1,11 +1,12 @@
-from fastapi import WebSocket
-from typing import Dict
 import logging
+
+from fastapi import WebSocket
+
 
 class ConnectionManager:
     def __init__(self):
         # Map client_id -> WebSocket
-        self.active_connections: Dict[str, WebSocket] = {}
+        self.active_connections: dict[str, WebSocket] = {}
 
     async def connect(self, client_id: str, websocket: WebSocket):
         # Enforce "Tunnel": If this client already has a connection, close it.
@@ -17,7 +18,7 @@ class ConnectionManager:
                 await self.active_connections[client_id].close()
             except Exception:
                 pass
-            
+
         await websocket.accept()
         self.active_connections[client_id] = websocket
 

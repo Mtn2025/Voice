@@ -1,0 +1,176 @@
+[project]
+name = "asistente-andrea"
+version = "2.0.0"
+description = "Voice AI Orchestrator - Sistema de orquestación de voz conversacional con IA"
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+license = {text = "Proprietary"}
+authors = [
+    {name = "Asistente Andrea Team"}
+]
+keywords = ["voice-ai", "conversational-ai", "azure", "groq", "twilio", "telnyx"]
+
+[project.urls]
+Homepage = "https://github.com/your-org/asistente-andrea"
+Documentation = "https://github.com/your-org/asistente-andrea/tree/main/docs"
+
+# =============================================================================
+# RUFF - Fast Python Linter (Replaces Flake8, Black, isort, etc.)
+# =============================================================================
+[tool.ruff]
+# Target Python 3.11
+target-version = "py311"
+
+# Line length (PEP 8 recommends 79, but 100 is common for modern projects)
+line-length = 100
+
+# Directories to exclude from linting
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".coverage",
+    "htmlcov",
+    "dist",
+    "build",
+    "*.egg-info",
+    "alembic/versions",  # Generated migration files
+]
+
+# =============================================================================
+# RUFF LINTING RULES
+# =============================================================================
+[tool.ruff.lint]
+# Enable specific rule sets
+# See: https://docs.astral.sh/ruff/rules/
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (modernize Python code)
+    "B",      # flake8-bugbear (catch common bugs)
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+    "RET",    # flake8-return
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "PL",     # Pylint
+    "RUF",    # Ruff-specific rules
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",    # Line too long (handled by formatter)
+    "PLR0913", # Too many arguments to function call
+    "PLR2004", # Magic value used in comparison
+    "RET504",  # Unnecessary variable assignment before return
+    "ARG002",  # Unused function argument (common in FastAPI dependencies)
+    "PTH123",  # `open()` should be replaced by `Path.open()` (not always needed)
+    "N802",    # Function name should be lowercase (Azure SDK uses PascalCase)
+    "N803",    # Argument name should be lowercase (compatibility with Azure)
+]
+
+# Allow fixes for all enabled rules (when running `ruff check --fix`)
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# =============================================================================
+# RUFF FORMATTING (Black-compatible)
+# =============================================================================
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Indent with spaces
+indent-style = "space"
+
+# Respect magic trailing commas
+skip-magic-trailing-comma = false
+
+# Auto-detect line ending
+line-ending = "auto"
+
+# =============================================================================
+# RUFF PER-FILE IGNORES
+# =============================================================================
+[tool.ruff.lint.per-file-ignores]
+# Ignore import errors in __init__.py files
+"__init__.py" = ["F401", "F403"]
+# Ignore complexity in tests
+"tests/**/*.py" = ["PLR2004", "PLR0915"]
+# Ignore unused imports in Alembic env.py
+"alembic/env.py" = ["F401"]
+
+# =============================================================================
+# RUFF IMPORT SORTING (isort replacement)
+# =============================================================================
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+split-on-trailing-comma = true
+
+# =============================================================================
+# PYTEST CONFIGURATION (Already exists in pytest.ini, but can be here too)
+# =============================================================================
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "--verbose",
+    "--strict-markers",
+    "--cov=app",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests",
+    "requires_db: Tests that require database",
+]
+
+# =============================================================================
+# COVERAGE CONFIGURATION
+# =============================================================================
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    "*/venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# =============================================================================
+# MYPY CONFIGURATION (Static type checking - for future use)
+# =============================================================================
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Set to true when ready for strict typing
+ignore_missing_imports = true

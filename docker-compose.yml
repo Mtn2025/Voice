@@ -1,36 +1,74 @@
 version: '3.8'
 
+# =============================================================================
+# Punto A7: Credenciales interpoladas desde .env (NO hardcoded)
+# =============================================================================
+# CRITICAL: Este archivo NO debe contener passwords hardcoded
+# Todas las credenciales se leen desde archivo .env mediante interpolación ${VAR}
+#
+# Para configurar:
+# 1. Copiar .env.example a .env
+# 2. Generar password seguro: python -c "import secrets; print(secrets.token_urlsafe(32))"
+# 3. Configurar POSTGRES_PASSWORD en .env
+# 4. docker compose up
+# =============================================================================
+
 services:
   app:
     build: .
     container_name: voice_orchestrator
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/voice_db
+      # ✅ Interpolación desde .env - NO hardcoded
+      # Docker Compose sustituye ${VAR} con valores de .env
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
-    expose:
-      - "8000"
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
     restart: always
 
   db:
     image: postgres:15-alpine
     container_name: voice_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: voice_db
+      # ✅ Punto A7: Variables interpoladas desde .env
+      # NEVER hardcode passwords here
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      # Usar variable interpolada para consistencia
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # =============================================================================
+  # Punto A9: Redis for Horizontal Scaling
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: voice_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 volumes:
   postgres_data:
+  redis_data:
