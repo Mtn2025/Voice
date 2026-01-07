@@ -1,4 +1,5 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Determine environment (default: development)
@@ -7,14 +8,14 @@ APP_ENV = os.getenv("APP_ENV", "development")
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Native Voice Orchestrator"
     API_V1_STR: str = "/api/v1"
-    
+
     # Expose current env for debugging
     ACTIVE_ENV: str = APP_ENV
 
     # Telephony
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
-    
+
     # Telnyx
     TELNYX_API_KEY: str = ""
     TELNYX_API_BASE: str = "https://api.telnyx.com/v2"
@@ -58,18 +59,18 @@ class Settings(BaseSettings):
     def validate_db_credentials(cls, v: str, info) -> str:
         """
         Validate database credentials are not using insecure defaults.
-        
+
         Punto A6: Remove hardcoded passwords.
         """
         field_name = info.field_name
-        
+
         # Reject empty credentials
         if not v or v.strip() == "":
             raise ValueError(
                 f"{field_name} must be set in environment variables. "
                 "Never use default passwords. Set in .env file or system environment."
             )
-        
+
         # Reject common insecure values
         insecure_values = ['postgres', 'password', '123456', 'admin', 'root']
         if v.lower() in insecure_values:
@@ -78,20 +79,20 @@ class Settings(BaseSettings):
                 "Use a strong, unique password. Generate one with: "
                 "python -c 'import secrets; print(secrets.token_urlsafe(32))'"
             )
-        
+
         # Minimum length for passwords
         if field_name == 'POSTGRES_PASSWORD' and len(v) < 12:
             raise ValueError(
                 f"POSTGRES_PASSWORD must be at least 12 characters long. "
                 f"Current length: {len(v)}. Use a strong password."
             )
-        
+
         return v
 
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-    
+
     # Pydantic V2 Configuration
     model_config = SettingsConfigDict(
         env_file=(".env", f".env.{APP_ENV}"),

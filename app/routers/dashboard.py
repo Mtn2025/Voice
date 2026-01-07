@@ -3,16 +3,13 @@ import logging
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from markupsafe import Markup, escape
-from sqlalchemy.ext.asyncio import AsyncSession # NEW
+from sqlalchemy.ext.asyncio import AsyncSession  # NEW
 
-from app.db.database import get_db # NEW
 from app.core.auth_simple import verify_api_key
 from app.core.input_sanitization import (
     register_template_filters,
-    sanitize_html,
-    sanitize_string,
 )
+from app.db.database import get_db  # NEW
 from app.services.db_service import db_service
 
 router = APIRouter()
@@ -92,17 +89,17 @@ async def update_browser_config(
     """
     try:
         from app.core.config_utils import update_env_file
-        
+
         update_data = config.dict(exclude_unset=True)
         await db_service.update_agent_config(db, **update_data)
-        
+
         # Persist to .env
         updates = {}
         for key, value in update_data.items():
             updates[key.upper()] = value
-            
+
         update_env_file(updates)
-        
+
         return {
             "status": "success",
             "profile": "browser",
@@ -126,17 +123,17 @@ async def update_twilio_config(
     """
     try:
         from app.core.config_utils import update_env_file
-        
+
         update_data = config.dict(exclude_unset=True)
         await db_service.update_agent_config(db, **update_data)
-        
+
         # Persist to .env
         updates = {}
         for key, value in update_data.items():
             updates[key.upper()] = value
-            
+
         update_env_file(updates)
-        
+
         return {
             "status": "success",
             "profile": "twilio",
@@ -160,17 +157,17 @@ async def update_telnyx_config(
     """
     try:
         from app.core.config_utils import update_env_file
-        
+
         update_data = config.dict(exclude_unset=True)
         await db_service.update_agent_config(db, **update_data)
-        
+
         # Persist to .env
         updates = {}
         for key, value in update_data.items():
             updates[key.upper()] = value
-            
+
         update_env_file(updates)
-        
+
         return {
             "status": "success",
             "profile": "telnyx",
@@ -194,17 +191,17 @@ async def update_core_config(
     """
     try:
         from app.core.config_utils import update_env_file
-        
+
         update_data = config.dict(exclude_unset=True)
         await db_service.update_agent_config(db, **update_data)
-        
+
         # Persist to .env
         updates = {}
         for key, value in update_data.items():
             updates[key.upper()] = value
-        
+
         update_env_file(updates)
-        
+
         return {
             "status": "success",
             "profile": "core",

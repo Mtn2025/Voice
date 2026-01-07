@@ -7,7 +7,7 @@ Allows multiple app instances to share Telnyx call state.
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 try:
     import redis.asyncio as redis
@@ -20,20 +20,19 @@ except ImportError:
     class PyRedisError(Exception): pass
 
 from app.core.config import settings
-from app.core.exceptions import RedisError as AppRedisError
 
 logger = logging.getLogger(__name__)
 
 
 class RedisStateManager:
     """Manage call state in Redis for horizontal scaling."""
-    
+
     def __init__(self):
         """Initialize Redis connection pool."""
-        self.redis: Optional[Any] = None
+        self.redis: Any | None = None
         self._enabled = False
         self._fallback_storage: dict[str, dict[str, Any]] = {}
-    
+
     async def connect(self):
         """Establish Redis connection. Falls back to in-memory if unavailable."""
         if not REDIS_AVAILABLE:
@@ -41,7 +40,7 @@ class RedisStateManager:
             logger.warning("   Install with: pip install 'redis[hiredis]==5.0.1'")
             self._enabled = False
             return
-        
+
         try:
             self.redis = await redis.from_url(
                 settings.REDIS_URL,
@@ -61,7 +60,7 @@ class RedisStateManager:
             # Capture unexpected errors during init (e.g. config errors)
             logger.error(f"❌ [REDIS] Unexpected initialization error: {e}", exc_info=True)
             self._enabled = False
-    
+
     async def disconnect(self):
         """Close Redis connection."""
         if self.redis and self._enabled:
@@ -70,7 +69,7 @@ class RedisStateManager:
                 logger.info("✅ [REDIS] Disconnected")
             except PyRedisError as e:
                 logger.error(f"❌ [REDIS] Error during disconnect: {e}")
-    
+
     async def set_call(self, call_id: str, data: dict[str, Any], ttl: int = 3600):
         """Store call state with TTL (default 1 hour)."""
         if self._enabled and self.redis:
@@ -88,8 +87,8 @@ class RedisStateManager:
                  self._fallback_storage[call_id] = data
         else:
             self._fallback_storage[call_id] = data
-    
-    async def get_call(self, call_id: str) -> Optional[dict[str, Any]]:
+
+    async def get_call(self, call_id: str) -> dict[str, Any] | None:
         """Retrieve call state."""
         if self._enabled and self.redis:
             try:
@@ -106,7 +105,7 @@ class RedisStateManager:
                  return None
         else:
             return self._fallback_storage.get(call_id)
-    
+
     async def delete_call(self, call_id: str):
         """Remove call state."""
         if self._enabled and self.redis:
@@ -119,7 +118,7 @@ class RedisStateManager:
                 self._fallback_storage.pop(call_id, None)
         else:
             self._fallback_storage.pop(call_id, None)
-    
+
     async def call_exists(self, call_id: str) -> bool:
         """Check if call exists."""
         if self._enabled and self.redis:
@@ -133,7 +132,7 @@ class RedisStateManager:
         else:
             return call_id in self._fallback_storage
 
-    async def cache_get(self, key: str) -> Optional[dict]:
+    async def cache_get(self, key: str) -> dict | None:
         """Generic cache get (JSON). Key will be prefixed with 'cache:'."""
         if self._enabled and self.redis:
             try:
@@ -154,7 +153,7 @@ class RedisStateManager:
                 await self.redis.setex(full_key, ttl, payload)
             except Exception as e:
                 logger.warning(f"⚠️ [REDIS-CACHE] Set failed for {key}: {e}")
-    
+
     @property
     def is_redis_enabled(self) -> bool:
         """Check if Redis is enabled."""

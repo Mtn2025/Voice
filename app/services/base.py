@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
-from typing import Any, Callable
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+
 
 class STTResultReason(Enum):
     RECOGNIZING_SPEECH = "recognizing_speech"
@@ -25,7 +26,7 @@ class AbstractSTT(ABC):
     def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio", on_interruption_callback=None, event_loop=None) -> Any:
         """Returns a recognizer interface (wrapper or specific)."""
         pass
-    
+
     @abstractmethod
     async def stop_recognition(self):
         pass

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
-from app.db.database import get_db
-from app.core.redis_state import redis_state
 import logging
+
+from fastapi import APIRouter, Depends, status
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.redis_state import redis_state
+from app.db.database import get_db
 
 router = APIRouter()
 
@@ -19,7 +21,7 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         "database": "unknown",
         "redis": "unknown"
     }
-    
+
     # 1. Check Database (Required)
     try:
         # Simple query to verify connection

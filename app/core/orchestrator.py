@@ -9,14 +9,13 @@ import time
 import uuid
 import wave
 
-import httpx  # Required for Telnyx API
 from fastapi import WebSocket
 
 from app.core.config import settings  # Required for API Keys
 from app.core.service_factory import ServiceFactory
 from app.core.vad_filter import AdaptiveInputFilter  # VAD Filter module
-from app.services.db_service import db_service
 from app.services.base import STTEvent, STTResultReason
+from app.services.db_service import db_service
 
 # AdaptiveInputFilter moved to app.core.vad_filter
 # Import: from app.core.vad_filter import AdaptiveInputFilter
@@ -277,7 +276,7 @@ class VoiceOrchestrator:
 
             # Simple fallback for now:
             if self.synthesizer:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # Use SSML helper
                 # Use SSML helper
                 audio_data = await self.tts_provider.synthesize_ssml(self.synthesizer, self._synthesize_text_ssml_only(text))
@@ -369,7 +368,7 @@ class VoiceOrchestrator:
         logging.warning(f"DEBUG CLIENT_TYPE: self.client_type = '{self.client_type}'")
         # ... (no change to start) ...
         #from app.services.db_service import db_service
-        from app.db.database import AsyncSessionLocal # NEW
+        from app.db.database import AsyncSessionLocal  # NEW
 
         # Capture the current event loop to schedule tasks from sync callbacks
         self.loop = asyncio.get_running_loop()
@@ -692,7 +691,7 @@ class VoiceOrchestrator:
         self.last_interaction_time = time.time()
 
     # REMOVED: handle_canceled, handle_session_stopped (handled by generic event logic)
-    
+
     def handle_recognition_event(self, evt: STTEvent):
         """
         Event handler for Generic STT events (Abstracted).
@@ -709,7 +708,7 @@ class VoiceOrchestrator:
             # Azure Text (Fast but maybe inaccurate)
             azure_text = evt.text
             if not azure_text: return
-            
+
             # Hybrid Mode: Capture Audio & Use Groq
             audio_snapshot = bytes(self.user_audio_buffer)
             self.user_audio_buffer = bytearray() # Reset buffer for next turn

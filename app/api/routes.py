@@ -13,15 +13,13 @@ from fastapi import APIRouter, Depends, Request, Response, WebSocket
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from starlette.websockets import WebSocketDisconnect
-from sqlalchemy.ext.asyncio import AsyncSession # NEW
 
-from app.db.database import get_db, AsyncSessionLocal # NEW
-
-from app.core.orchestrator import VoiceOrchestrator
 from app.api.connection_manager import manager
 from app.core.config import settings
+from app.core.orchestrator import VoiceOrchestrator
+from app.core.webhook_security import require_telnyx_signature, require_twilio_signature
+from app.db.database import AsyncSessionLocal  # NEW
 from app.services import db_service
-from app.core.webhook_security import require_twilio_signature, require_telnyx_signature
 
 router = APIRouter()
 
@@ -176,7 +174,7 @@ async def answer_call(call_control_id: str, request: Request):
             config = await db_service.get_agent_config(session)
             if getattr(config, 'enable_recording_telnyx', False):
                  asyncio.create_task(start_recording(call_control_id))
-            
+
             amd_mode = getattr(config, 'amd_config_telnyx', 'disabled')
     except Exception as e:
         logging.warning(f"Failed to check recording config: {e}")

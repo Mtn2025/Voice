@@ -1,19 +1,20 @@
+
 import httpx
-from typing import Optional
+
 
 class HTTPClient:
     """
     Singleton wrapper for httpx.AsyncClient.
     Enables connection pooling (keep-alive) across the application.
     """
-    _client: Optional[httpx.AsyncClient] = None
+    _client: httpx.AsyncClient | None = None
 
     @classmethod
     def get_client(cls) -> httpx.AsyncClient:
         """
         Get the shared AsyncClient instance.
         Must be initialized in main lifespan first.
-        Fallback: If not initialized (e.g. tests), returns a temporary client? 
+        Fallback: If not initialized (e.g. tests), returns a temporary client?
         No, strict singleton is better for consistency, but for safety lets create one if missing.
         However, creating one here means we don't manage its lifecycle (close).
         We should enforce lifecycle.

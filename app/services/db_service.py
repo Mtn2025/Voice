@@ -1,18 +1,17 @@
 import logging
 import traceback
-from typing import Optional, List, Dict, Any
 
 from sqlalchemy import delete, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import AsyncSessionLocal
-from app.db.models import AgentConfig, Call, Transcript as TranscriptModel
+from app.db.models import AgentConfig, Call
+from app.db.models import Transcript as TranscriptModel
 
 
 class DBService:
-    async def create_call(self, session: AsyncSession, session_id: str, client_type: str = "simulator") -> Optional[int]:
+    async def create_call(self, session: AsyncSession, session_id: str, client_type: str = "simulator") -> int | None:
         try:
             # Check if exists first to avoid IntegrityError on reconnections
             result = await session.execute(select(Call).where(Call.session_id == session_id))
@@ -30,12 +29,12 @@ class DBService:
             return None
 
     async def log_transcript(
-        self, 
+        self,
         session: AsyncSession,
-        session_id: str, 
-        role: str, 
-        content: str, 
-        call_db_id: Optional[int] = None
+        session_id: str,
+        role: str,
+        content: str,
+        call_db_id: int | None = None
     ) -> None:
         try:
             call_id = call_db_id

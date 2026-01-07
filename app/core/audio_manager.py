@@ -36,10 +36,10 @@ class AudioStreamManager:
         # Optimization B9: Pre-calculate silence payload
         # This prevents repeated base64 encoding and JSON serialization 50 times/sec
         self.silence_chunk = b'\x00' * self.chunk_size
-        
+
         # Pre-encode Base64 for silence
         silence_b64 = base64.b64encode(self.silence_chunk).decode('utf-8')
-        
+
         # Pre-build payloads
         self.silence_payload_twilio = json.dumps({
             "event": "media",
@@ -106,7 +106,7 @@ class AudioStreamManager:
                 chunk = self.background_chunks[self.background_position]
                 self.background_position = (self.background_position + 1) % len(self.background_chunks)
                 return chunk
-            
+
             # Return pre-calculated silence object (identity check possible)
             return self.silence_chunk
 
@@ -130,26 +130,25 @@ class AudioStreamManager:
                         await self.websocket.send_text(self.silence_payload_telnyx)
                     elif self.client_type == "browser":
                         await self.websocket.send_bytes(chunk)
-                else:
-                    # Dynamic content (TTS or Background)
-                    if self.client_type == "twilio":
-                        # Legacy Twilio Media Stream format
-                        payload = {
-                            "event": "media",
-                            "streamSid": "stream",
-                            "media": {
-                                "payload": base64.b64encode(chunk).decode('utf-8')
-                            }
+                # Dynamic content (TTS or Background)
+                elif self.client_type == "twilio":
+                    # Legacy Twilio Media Stream format
+                    payload = {
+                        "event": "media",
+                        "streamSid": "stream",
+                        "media": {
+                            "payload": base64.b64encode(chunk).decode('utf-8')
                         }
-                        await self.websocket.send_json(payload)
+                    }
+                    await self.websocket.send_json(payload)
 
-                    elif self.client_type == "telnyx":
-                        # Telnyx format (base64 direct)
-                        await self.websocket.send_text(base64.b64encode(chunk).decode('utf-8'))
+                elif self.client_type == "telnyx":
+                    # Telnyx format (base64 direct)
+                    await self.websocket.send_text(base64.b64encode(chunk).decode('utf-8'))
 
-                    elif self.client_type == "browser":
-                        # Browser format (binary)
-                        await self.websocket.send_bytes(chunk)
+                elif self.client_type == "browser":
+                    # Browser format (binary)
+                    await self.websocket.send_bytes(chunk)
 
             except Exception as e:
                 logging.error(f"❌ Error sending audio: {e}")

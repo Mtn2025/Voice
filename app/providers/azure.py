@@ -2,26 +2,26 @@
 import azure.cognitiveservices.speech as speechsdk
 
 from app.core.config import settings
-from app.core.config import settings
 from app.services.base import AbstractSTT, AbstractTTS, STTEvent, STTResultReason
+
 
 class AzureRecognizerWrapper:
     def __init__(self, recognizer, push_stream):
         self._recognizer = recognizer
         self._push_stream = push_stream
         self._callback = None
-        
+
         # Wire events
         self._recognizer.recognized.connect(self._on_event)
         self._recognizer.recognizing.connect(self._on_event)
         self._recognizer.canceled.connect(self._on_canceled)
-        
+
     def subscribe(self, callback):
         self._callback = callback
-        
+
     def _on_event(self, evt):
         if not self._callback: return
-        
+
         reason = STTResultReason.UNKNOWN
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
             reason = STTResultReason.RECOGNIZED_SPEECH
@@ -29,7 +29,7 @@ class AzureRecognizerWrapper:
             reason = STTResultReason.RECOGNIZING_SPEECH
         else:
             return # Ignore others
-            
+
         event = STTEvent(
             reason=reason,
             text=evt.result.text,
@@ -42,20 +42,20 @@ class AzureRecognizerWrapper:
         details = ""
         if hasattr(evt, 'result') and hasattr(evt.result, 'cancellation_details'):
              details = evt.result.cancellation_details.error_details
-             
+
         event = STTEvent(
             reason=STTResultReason.CANCELED,
             text="",
             error_details=details
         )
         self._callback(event)
-        
+
     def start_continuous_recognition_async(self):
         return self._recognizer.start_continuous_recognition_async()
-        
+
     def stop_continuous_recognition_async(self):
         return self._recognizer.stop_continuous_recognition_async()
-        
+
     def write(self, data):
         self._push_stream.write(data)
 
@@ -203,7 +203,7 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         """
         import asyncio
         loop = asyncio.get_running_loop()
-        
+
         def _blocking_synthesis():
             # This runs in a separate thread
             # speak_text_async returns a future, .get() blocks until done
@@ -211,7 +211,7 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 return result.audio_data
             return None
-            
+
         return await loop.run_in_executor(self.executor, _blocking_synthesis)
 
     async def synthesize_ssml(self, synthesizer, ssml: str) -> bytes | None:
@@ -221,13 +221,13 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         """
         import asyncio
         loop = asyncio.get_running_loop()
-        
+
         def _blocking():
             result = synthesizer.speak_ssml_async(ssml).get()
             if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
                 return result.audio_data
             return None
-            
+
         return await loop.run_in_executor(self.executor, _blocking)
 
     async def stop_recognition(self):

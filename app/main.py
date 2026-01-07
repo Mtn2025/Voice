@@ -1,19 +1,17 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+# Punto B1: Logging Centralizado & Tracing
+from asgi_correlation_id import CorrelationIdMiddleware
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-# Punto B1: Logging Centralizado & Tracing
-from asgi_correlation_id import CorrelationIdMiddleware
-from app.core.logging_config import configure_logging
-
 from app.api import routes
 from app.core.config import settings
+from app.core.logging_config import configure_logging
 from app.routers import dashboard, system
-
 
 # =============================================================================
 # RATE LIMITING - Punto A3 del Plan Consolidado
@@ -45,14 +43,14 @@ async def lifespan(app: FastAPI):
     # =============================================================================
     # Punto A9: Initialize Redis for Horizontal Scaling
     # =============================================================================
-    from app.core.redis_state import redis_state
     from app.core.http_client import http_client
+    from app.core.redis_state import redis_state
     await redis_state.connect()
     if redis_state.is_redis_enabled:
         logger.info("✅ [A9] Redis state management enabled - Multi-instance ready")
     else:
         logger.warning("⚠️ [A9] Redis unavailable - Using in-memory fallback (single instance only)")
-    
+
     # Initialize HTTP Client (Punto C3)
     await http_client.init()
     logger.info("✅ [HTTP] Global HTTP Client Initialized")
@@ -83,17 +81,17 @@ async def lifespan(app: FastAPI):
 
     # Cleanup on shutdown
     logger.info("Shutting down Voice Orchestrator...")
-    
+
     # =============================================================================
     # Punto A9: Close Redis Connection
     # =============================================================================
     await redis_state.disconnect()
     logger.info("✅ [A9] Redis disconnected")
-    
+
     await http_client.close()
     logger.info("✅ [HTTP] Global HTTP Client Closed")
     # =============================================================================
-    
+
     logger.info("✅ Application shutdown complete")
 
 

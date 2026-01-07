@@ -1,3 +1,4 @@
+import hashlib
 import io
 import json
 import logging
@@ -6,9 +7,8 @@ from collections.abc import AsyncGenerator
 from groq import AsyncGroq
 
 from app.core.config import settings
-from app.services.base import AbstractLLM
 from app.core.redis_state import redis_state
-import hashlib
+from app.services.base import AbstractLLM
 
 
 class GroqProvider(AbstractLLM):
@@ -101,7 +101,7 @@ class GroqProvider(AbstractLLM):
         transcript_hash = hashlib.md5(transcript.encode()).hexdigest()
         cache_key = f"extraction:{transcript_hash}"
         cached = await redis_state.cache_get(cache_key)
-        
+
         if cached:
             logging.info(f"⚡ [CACHE] Extraction hit for hash {transcript_hash[:8]}")
             return cached
@@ -117,10 +117,10 @@ class GroqProvider(AbstractLLM):
                 response_format={"type": "json_object"}
             )
             result = json.loads(completion.choices[0].message.content)
-            
+
             # 2. Store in Cache (24h)
             await redis_state.cache_set(cache_key, result, ttl=86400)
-            
+
             return result
         except Exception as e:
             logging.error(f"Extraction Error: {e}")
