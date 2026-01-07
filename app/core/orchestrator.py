@@ -108,7 +108,8 @@ class VoiceOrchestrator:
                 if self.bg_loop_buffer and len(self.bg_loop_buffer) > 0:
                      # Calculate needed size (default 160)
                      req_len = 160
-                     if tts_chunk: req_len = len(tts_chunk)
+                     if tts_chunk:
+                         req_len = len(tts_chunk)
 
                      if self.bg_loop_index + req_len > len(self.bg_loop_buffer):
                         part1 = self.bg_loop_buffer[self.bg_loop_index:]
@@ -169,8 +170,10 @@ class VoiceOrchestrator:
                         "event": "media",
                         "media": {"payload": b64_audio}
                     }
-                    if self.client_type == "twilio": msg["streamSid"] = self.stream_id
-                    elif self.client_type == "telnyx": msg["stream_id"] = self.stream_id
+                    if self.client_type == "twilio":
+                        msg["streamSid"] = self.stream_id
+                    elif self.client_type == "telnyx":
+                        msg["stream_id"] = self.stream_id
 
                     try:
                         await self.websocket.send_text(json.dumps(msg))
@@ -258,7 +261,8 @@ class VoiceOrchestrator:
 
     async def speak_direct(self, text: str):
         """Helper to speak text without LLM generation (e.g. Idle messages)"""
-        if not text: return
+        if not text:
+            return
         self.is_bot_speaking = True
         try:
             # We must run blocking sync calls in executor if TTS is blocking, but assume async here or fast enough
@@ -326,7 +330,8 @@ class VoiceOrchestrator:
                 logging.warning(f"🔍 [IDLE-CHECK] Speaking: {self.is_bot_speaking} | Elapsed: {now - self.last_interaction_time:.2f}s | StartDelta: {now - self.start_time:.2f}")
 
                 if not self.is_bot_speaking and (now - self.last_interaction_time > idle_timeout):
-                     if not hasattr(self, 'idle_retries'): self.idle_retries = 0
+                     if not hasattr(self, 'idle_retries'):
+                         self.idle_retries = 0
 
                      max_retries = getattr(self.config, 'inactivity_max_retries', 3)
                      logging.warning(f"zzz Idle timeout reached. Retry {self.idle_retries + 1}/{max_retries}")
@@ -399,44 +404,70 @@ class VoiceOrchestrator:
                   conf = self.config
 
                   # LLM
-                  if conf.llm_model_telnyx: conf.llm_model = conf.llm_model_telnyx
-                  if conf.llm_provider_telnyx: conf.llm_provider = conf.llm_provider_telnyx
-                  if conf.system_prompt_telnyx: conf.system_prompt = conf.system_prompt_telnyx
-                  if conf.max_tokens_telnyx: conf.max_tokens = conf.max_tokens_telnyx
-                  if conf.first_message_telnyx: conf.first_message = conf.first_message_telnyx
-                  if conf.first_message_mode_telnyx: conf.first_message_mode = conf.first_message_mode_telnyx
-                  if conf.temperature_telnyx is not None: conf.temperature = conf.temperature_telnyx
+                  if conf.llm_model_telnyx:
+                      conf.llm_model = conf.llm_model_telnyx
+                  if conf.llm_provider_telnyx:
+                      conf.llm_provider = conf.llm_provider_telnyx
+                  if conf.system_prompt_telnyx:
+                      conf.system_prompt = conf.system_prompt_telnyx
+                  if conf.max_tokens_telnyx:
+                      conf.max_tokens = conf.max_tokens_telnyx
+                  if conf.first_message_telnyx:
+                      conf.first_message = conf.first_message_telnyx
+                  if conf.first_message_mode_telnyx:
+                      conf.first_message_mode = conf.first_message_mode_telnyx
+                  if conf.temperature_telnyx is not None:
+                      conf.temperature = conf.temperature_telnyx
 
                   # VAD / Audio IN
-                  if conf.stt_provider_telnyx: conf.stt_provider = conf.stt_provider_telnyx
-                  if conf.stt_language_telnyx: conf.stt_language = conf.stt_language_telnyx
-                  if conf.silence_timeout_ms_telnyx: conf.silence_timeout_ms = conf.silence_timeout_ms_telnyx
-                  if conf.initial_silence_timeout_ms_telnyx: conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_telnyx
-                  if conf.interruption_threshold_telnyx is not None: conf.interruption_threshold = conf.interruption_threshold_telnyx
-                  if conf.input_min_characters_telnyx: conf.input_min_characters = conf.input_min_characters_telnyx
-                  if conf.enable_denoising_telnyx is not None: conf.enable_denoising = conf.enable_denoising_telnyx
-                  if conf.hallucination_blacklist_telnyx: conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
-                  if conf.voice_sensitivity_telnyx: conf.voice_sensitivity = conf.voice_sensitivity_telnyx  # Voice activation threshold
-                  if conf.enable_vad_telnyx is not None: conf.enable_vad = conf.enable_vad_telnyx
-                  if conf.enable_krisp_telnyx is not None: conf.enable_krisp = conf.enable_krisp_telnyx
+                  if conf.stt_provider_telnyx:
+                      conf.stt_provider = conf.stt_provider_telnyx
+                  if conf.stt_language_telnyx:
+                      conf.stt_language = conf.stt_language_telnyx
+                  if conf.silence_timeout_ms_telnyx:
+                      conf.silence_timeout_ms = conf.silence_timeout_ms_telnyx
+                  if conf.initial_silence_timeout_ms_telnyx:
+                      conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_telnyx
+                  if conf.interruption_threshold_telnyx is not None:
+                      conf.interruption_threshold = conf.interruption_threshold_telnyx
+                  if conf.input_min_characters_telnyx:
+                      conf.input_min_characters = conf.input_min_characters_telnyx
+                  if conf.enable_denoising_telnyx is not None:
+                      conf.enable_denoising = conf.enable_denoising_telnyx
+                  if conf.hallucination_blacklist_telnyx:
+                      conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
+                  if conf.voice_sensitivity_telnyx:
+                      conf.voice_sensitivity = conf.voice_sensitivity_telnyx
+                  if conf.enable_vad_telnyx is not None:
+                      conf.enable_vad = conf.enable_vad_telnyx
+                  if conf.enable_krisp_telnyx is not None:
+                      conf.enable_krisp = conf.enable_krisp_telnyx
 
                   # Voice / Audio OUT
-                  if conf.voice_name_telnyx: conf.voice_name = conf.voice_name_telnyx
-                  if conf.voice_style_telnyx: conf.voice_style = conf.voice_style_telnyx
-                  if conf.voice_speed_telnyx: conf.voice_speed = conf.voice_speed_telnyx
-                  if conf.voice_pacing_ms_telnyx: conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
+                  if conf.voice_name_telnyx:
+                      conf.voice_name = conf.voice_name_telnyx
+                  if conf.voice_style_telnyx:
+                      conf.voice_style = conf.voice_style_telnyx
+                  if conf.voice_speed_telnyx:
+                      conf.voice_speed = conf.voice_speed_telnyx
+                  if conf.voice_pacing_ms_telnyx:
+                      conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
 
                   # Functions (Transfer / Keypad)
-                  if conf.transfer_phone_number: conf.transfer_phone_number = conf.transfer_phone_number
+                  if conf.transfer_phone_number:
+                      conf.transfer_phone_number = conf.transfer_phone_number
                   # Note: enable_dial_keypad is global, but we can override if needed.
                   # For now, we assume if it's set in dashboard it applies.
 
                   # Flow Control Overrides (Independent Timeouts)
                   # If set in DB (and not None/0.0 if default logic differs), apply.
                   # Since default is 20.0, we just trust the DB value.
-                  if conf.idle_timeout_telnyx is not None: conf.idle_timeout = conf.idle_timeout_telnyx
-                  if conf.max_duration_telnyx is not None: conf.max_duration = conf.max_duration_telnyx
-                  if conf.idle_message_telnyx: conf.idle_message = conf.idle_message_telnyx
+                  if conf.idle_timeout_telnyx is not None:
+                      conf.idle_timeout = conf.idle_timeout_telnyx
+                  if conf.max_duration_telnyx is not None:
+                      conf.max_duration = conf.max_duration_telnyx
+                  if conf.idle_message_telnyx:
+                      conf.idle_message = conf.idle_message_telnyx
 
                   logging.warning("✅ [TELNYX] Profile overlay completed successfully")
              except Exception as e:
@@ -451,28 +482,46 @@ class VoiceOrchestrator:
              conf = self.config
 
              # LLM
-             if conf.llm_model_phone: conf.llm_model = conf.llm_model_phone
-             if conf.llm_provider_phone: conf.llm_provider = conf.llm_provider_phone
-             if conf.system_prompt_phone: conf.system_prompt = conf.system_prompt_phone
-             if conf.max_tokens_phone: conf.max_tokens = conf.max_tokens_phone
-             if conf.first_message_phone: conf.first_message = conf.first_message_phone
-             if conf.first_message_mode_phone: conf.first_message_mode = conf.first_message_mode_phone
-             if conf.temperature_phone is not None: conf.temperature = conf.temperature_phone
+             if conf.llm_model_phone:
+                 conf.llm_model = conf.llm_model_phone
+             if conf.llm_provider_phone:
+                 conf.llm_provider = conf.llm_provider_phone
+             if conf.system_prompt_phone:
+                 conf.system_prompt = conf.system_prompt_phone
+             if conf.max_tokens_phone:
+                 conf.max_tokens = conf.max_tokens_phone
+             if conf.first_message_phone:
+                 conf.first_message = conf.first_message_phone
+             if conf.first_message_mode_phone:
+                 conf.first_message_mode = conf.first_message_mode_phone
+             if conf.temperature_phone is not None:
+                 conf.temperature = conf.temperature_phone
 
              # VAD / Audio IN
-             if conf.stt_provider_phone: conf.stt_provider = conf.stt_provider_phone
-             if conf.stt_language_phone: conf.stt_language = conf.stt_language_phone
-             if conf.silence_timeout_ms_phone: conf.silence_timeout_ms = conf.silence_timeout_ms_phone
-             if conf.initial_silence_timeout_ms_phone: conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_phone
-             if conf.interruption_threshold_phone is not None: conf.interruption_threshold = conf.interruption_threshold_phone
-             if conf.input_min_characters_phone: conf.input_min_characters = conf.input_min_characters_phone
-             if getattr(conf, 'enable_denoising_phone', None) is not None: conf.enable_denoising = conf.enable_denoising_phone
-             if getattr(conf, 'hallucination_blacklist_phone', None): conf.hallucination_blacklist = conf.hallucination_blacklist_phone
+             if conf.stt_provider_phone:
+                 conf.stt_provider = conf.stt_provider_phone
+             if conf.stt_language_phone:
+                 conf.stt_language = conf.stt_language_phone
+             if conf.silence_timeout_ms_phone:
+                 conf.silence_timeout_ms = conf.silence_timeout_ms_phone
+             if conf.initial_silence_timeout_ms_phone:
+                 conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_phone
+             if conf.interruption_threshold_phone is not None:
+                 conf.interruption_threshold = conf.interruption_threshold_phone
+             if conf.input_min_characters_phone:
+                 conf.input_min_characters = conf.input_min_characters_phone
+             if getattr(conf, 'enable_denoising_phone', None) is not None:
+                 conf.enable_denoising = conf.enable_denoising_phone
+             if getattr(conf, 'hallucination_blacklist_phone', None):
+                 conf.hallucination_blacklist = conf.hallucination_blacklist_phone
 
              # Voice / Audio OUT
-             if conf.voice_name_phone: conf.voice_name = conf.voice_name_phone
-             if conf.voice_style_phone: conf.voice_style = conf.voice_style_phone
-             if conf.voice_speed_phone: conf.voice_speed = conf.voice_speed_phone
+             if conf.voice_name_phone:
+                 conf.voice_name = conf.voice_name_phone
+             if conf.voice_style_phone:
+                 conf.voice_style = conf.voice_style_phone
+             if conf.voice_speed_phone:
+                 conf.voice_speed = conf.voice_speed_phone
              # Note: voice_pacing_ms might not be on phone model yet, check if needed
 
         if self.client_type != "browser":
@@ -707,7 +756,8 @@ class VoiceOrchestrator:
         if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
             # Azure Text (Fast but maybe inaccurate)
             azure_text = evt.text
-            if not azure_text: return
+            if not azure_text:
+                return
 
             # Hybrid Mode: Capture Audio & Use Groq
             audio_snapshot = bytes(self.user_audio_buffer)
