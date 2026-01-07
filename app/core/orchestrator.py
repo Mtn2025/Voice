@@ -970,7 +970,8 @@ class VoiceOrchestrator:
         logging.info(f"📝 Generating response {response_id}...")
 
         async def process_tts(text_chunk):
-            if not text_chunk or not self.is_bot_speaking: return
+            if not text_chunk or not self.is_bot_speaking:
+                return
 
             # Delegates to provider's ThreadPoolExecutor to prevent blocking the event loop
             try:
@@ -980,11 +981,13 @@ class VoiceOrchestrator:
                 logging.error(f"TTS Synthesis Failed: {e}")
                 return
 
-            if not result: return
+            if not result:
+                return
 
             # Abstracted: result is audio bytes or None
             audio_data = result
-            if not audio_data: return
+            if not audio_data:
+                return
 
             # CRITICAL: Check if we were interrupted DURING synthesis
             if not self.is_bot_speaking:
@@ -1042,7 +1045,8 @@ class VoiceOrchestrator:
                 temperature=self.config.temperature,
                 model=self.config.llm_model
             ):
-                if not self.is_bot_speaking: break
+                if not self.is_bot_speaking:
+                    break
 
                 full_response += text_chunk
                 sentence_buffer += text_chunk
@@ -1053,8 +1057,9 @@ class VoiceOrchestrator:
 
                 # Check for [END_CALL]
                 if "[END_CALL]" in sentence_buffer:
-                    should_hangup = True
-                    sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                   # Strip control tags
+                    if "[TOOL CALL]" in sentence_buffer:
+                        sentence_buffer = sentence_buffer.replace("[TOOL CALL]", "")
 
                 # Check for [TRANSFER]
                 if "[TRANSFER]" in sentence_buffer:
@@ -1097,8 +1102,11 @@ class VoiceOrchestrator:
                 if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
                     # Safety clean again just in case tokens were re-added or split resolved
                     if "[END_CALL]" in sentence_buffer:
-                         should_hangup = True
-                         sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                        should_hangup = True
+                        sentence_buffer = sentence_buffer.replace("[END_CALL]", "")
+                    # Edge: Check for "[HANGUP]" flag (llm signals to end call)
+                    if "[HANGUP]" in sentence_buffer:
+                        sentence_buffer = sentence_buffer.replace("[HANGUP]", "")
 
                     logging.info(f"🔊 [OUT] TTS SENTENCE: {sentence_buffer}")
                     await process_tts(sentence_buffer)
