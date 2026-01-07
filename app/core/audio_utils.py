@@ -177,7 +177,8 @@ def lin2alaw(fragment: bytes, width: int) -> bytes:
     for i in range(0, len(fragment), 2):
         sample = struct.unpack_from("<h", fragment, i)[0]
         # Clamp to 16-bit
-        if sample < -32768: sample = -32768
+        if sample < -32768:
+            sample = -32768
         sample = min(sample, 32767)
 
         # Map using table for speed
@@ -194,7 +195,8 @@ def lin2ulaw(fragment: bytes, width: int) -> bytes:
     result = bytearray()
     for i in range(0, len(fragment), 2):
         sample = struct.unpack_from("<h", fragment, i)[0]
-        if sample < -32768: sample = -32768
+        if sample < -32768:
+            sample = -32768
         sample = min(sample, 32767)
         result.append(_PCM_TO_ULAW[sample + 32768])
     return bytes(result)
@@ -241,7 +243,8 @@ def mul(fragment: bytes, width: int, factor: float) -> bytes:
         new_val = int(val * factor)
         # Clip
         new_val = min(new_val, 32767)
-        if new_val < -32768: new_val = -32768
+        if new_val < -32768:
+            new_val = -32768
 
         result.extend(struct.pack("<h", new_val))
     return bytes(result)
@@ -263,7 +266,8 @@ def add(fragment1: bytes, fragment2: bytes, width: int) -> bytes:
         new_val = val1 + val2
         # Clip
         new_val = min(new_val, 32767)
-        if new_val < -32768: new_val = -32768
+        if new_val < -32768:
+            new_val = -32768
 
         result.extend(struct.pack("<h", new_val))
 
@@ -361,7 +365,8 @@ _PCM_TO_ULAW = [0] * 65536
 
 # Helper for encoding logic (Standard G.711 Encoders)
 def _linear2alaw_sample(pcm_val):
-    if pcm_val == -32768: pcm_val = -32767
+    if pcm_val == -32768:
+        pcm_val = -32767
 
     sign = 0x00
     if pcm_val < 0:
