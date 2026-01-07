@@ -81,9 +81,9 @@ class VoiceOrchestrator:
              return
 
         # For Telephony: Queue slices
-        CHUNK_SIZE = 160
-        for i in range(0, len(audio_data), CHUNK_SIZE):
-            chunk = audio_data[i : i + CHUNK_SIZE]
+        chunk_size = 160
+        for i in range(0, len(audio_data), chunk_size):
+            chunk = audio_data[i : i + chunk_size]
             self.audio_queue.put_nowait(chunk)
 
     async def _audio_stream_loop(self):
@@ -160,7 +160,7 @@ class VoiceOrchestrator:
                             final_chunk = audioop.lin2alaw(bg_lin_quiet, 2)
                         else:
                             final_chunk = audioop.lin2ulaw(bg_lin_quiet, 2)
-                    except:
+                    except Exception:
                         pass
 
                 # 5. SEND (If we have something to send)
