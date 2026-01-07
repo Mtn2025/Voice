@@ -1074,7 +1074,7 @@ class VoiceOrchestrator:
                      else:
                           logging.warning("⚠️ Transfer requested but no number configured.")
 
-                     sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
+                sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
 
                 # Check for [DTMF:...]
                 # Pattern: [DTMF:123], [DTMF:9], etc.

@@ -494,7 +494,8 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20, db: Asy
         offset = (page - 1) * limit
         history = await db_service.get_recent_calls(db, limit=limit, offset=offset)
         total = await db_service.get_total_calls(db)
-        if total is None: total = 0
+        if total is None:
+            total = 0
         total_pages = (total + limit - 1) // limit if limit > 0 else 1
 
         return templates.TemplateResponse("partials/history_panel.html", {
