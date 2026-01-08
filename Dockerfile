@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements-core.txt requirements.txt ./
+COPY requirements-core.txt requirements-prod.txt requirements.txt ./
 
 # STAGED INSTALLATION - Identify failing package
 # Stage 1: Core (FastAPI, Uvicorn) - Should NEVER fail
@@ -52,10 +52,10 @@ RUN echo "===== STAGE 3: Azure Speech SDK =====" && \
     azure-cognitiveservices-speech>=1.34.0 && \
     echo "✅ Stage 3 complete"
 
-# Stage 4: Remaining packages
-RUN echo "===== STAGE 4: Remaining packages =====" && \
-    pip install --no-cache-dir --user --prefer-binary -r requirements.txt || \
-    (echo "❌ FAILED AT STAGE 4 - Check specific package" && exit 1)
+# Stage 4: Remaining packages (PRODUCTION ONLY - no dev tools)
+RUN echo "===== STAGE 4: Production packages =====" && \
+    pip install --no-cache-dir --user --prefer-binary -r requirements-prod.txt && \
+    echo "✅ Stage 4 complete"
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
