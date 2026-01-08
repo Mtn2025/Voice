@@ -309,12 +309,12 @@ def _make_tables():
         seg = (t & 0x70) >> 4
         x = (t & 0x0F)
 
-        l = (x << 4) + 8 if seg == 0 else (x << 4) + 264 << seg - 1
+        linear_value = (x << 4) + 8 if seg == 0 else (x << 4) + 264 << seg - 1
 
         if val & 0x80:
-            l = -l
+            linear_value = -linear_value
 
-        tbl_a2p.append(l)
+        tbl_a2p.append(linear_value)
 
     # mu-law
     tbl_u2p = []
@@ -322,11 +322,11 @@ def _make_tables():
         val = ~i & 0xFF
         t = ((val & 0x0F) << 3) + 0x84
         seg = (val & 0x70) >> 4
-        l = t << seg
-        l -= 0x84
+        linear_value = t << seg
+        linear_value -= 0x84
         if val & 0x80:
-            l = -l
-        tbl_u2p.append(l)
+            linear_value = -linear_value
+        tbl_u2p.append(linear_value)
 
     # Linear to A-law (Map 65536 indices representing -32768..32767)
     # This involves search or reverse logic.

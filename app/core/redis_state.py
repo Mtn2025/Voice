@@ -17,7 +17,8 @@ except ImportError:
     REDIS_AVAILABLE = False
     redis = None
     # Dummy exception for when redis is not installed to avoid NameError in except blocks
-    class PyRedisError(Exception): pass
+    class PyRedisError(Exception):
+        pass
 
 from app.core.config import settings
 

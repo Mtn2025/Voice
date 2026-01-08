@@ -3,6 +3,8 @@ import logging
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession  # NEW
 
 from app.core.auth_simple import verify_api_key
@@ -14,6 +16,10 @@ from app.services.db_service import db_service
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+logger = logging.getLogger(__name__)
+
+# Rate limiter for dashboard endpoints (Security - H-3)
+limiter = Limiter(key_func=get_remote_address)
 
 # Register sanitization filters for XSS protection (Punto A5)
 template_filters = register_template_filters(None)
@@ -80,7 +86,9 @@ from app.schemas.config_schemas import (
 
 
 @router.patch("/api/config/browser", dependencies=[Depends(verify_api_key)])
+@limiter.limit("20/minute")
 async def update_browser_config(
+    request: Request,
     config: BrowserConfigUpdate,
     db: AsyncSession = Depends(get_db)
 ) -> dict:
@@ -114,7 +122,9 @@ async def update_browser_config(
 
 
 @router.patch("/api/config/twilio", dependencies=[Depends(verify_api_key)])
+@limiter.limit("20/minute")
 async def update_twilio_config(
+    request: Request,
     config: TwilioConfigUpdate,
     db: AsyncSession = Depends(get_db)
 ) -> dict:
@@ -148,7 +158,9 @@ async def update_twilio_config(
 
 
 @router.patch("/api/config/telnyx", dependencies=[Depends(verify_api_key)])
+@limiter.limit("20/minute")
 async def update_telnyx_config(
+    request: Request,
     config: TelnyxConfigUpdate,
     db: AsyncSession = Depends(get_db)
 ) -> dict:
@@ -182,7 +194,9 @@ async def update_telnyx_config(
 
 
 @router.patch("/api/config/core", dependencies=[Depends(verify_api_key)])
+@limiter.limit("20/minute")
 async def update_core_config(
+    request: Request,
     config: CoreConfigUpdate,
     db: AsyncSession = Depends(get_db)
 ) -> dict:
@@ -497,10 +511,7 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20, db: Asy
         total = await db_service.get_total_calls(db)
         if total is None:
             total = 0
-        if limit > 0:
-            total_pages = (total + limit - 1) // limit
-        else:
-            total_pages = 1
+        total_pages = (total + limit - 1) // limit if limit > 0 else 1
 
         return templates.TemplateResponse("partials/history_panel.html", {
             "request": request,

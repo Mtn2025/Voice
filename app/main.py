@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 # Punto B1: Logging Centralizado & Tracing
 from asgi_correlation_id import CorrelationIdMiddleware
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -105,6 +105,62 @@ app = FastAPI(
 # Punto B1: Add Request Tracing Middleware
 # Must be added before other middlewares/routers
 app.add_middleware(CorrelationIdMiddleware)
+
+# Security: Session middleware for CSRF tokens (A7)
+from starlette.middleware.sessions import SessionMiddleware
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SESSION_SECRET_KEY if hasattr(settings, 'SESSION_SECRET_KEY') else settings.ADMIN_API_KEY,
+    max_age=3600,  # 1 hour
+    same_site="strict",
+    https_only=False  # Set to True in production with HTTPS
+)
+
+# Security: Add security headers and CSRF protection (Phase 5 - M-2, M-3, L-4)
+from app.core.security_middleware import CSRFProtectionMiddleware, SecurityHeadersMiddleware
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFProtectionMiddleware)
+
+# Monitoring: Prometheus metrics middleware (B2)
+import time
+
+from app.core.metrics import (
+    http_request_duration_seconds,
+    http_requests_in_progress,
+    http_requests_total,
+)
+
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    """Record HTTP metrics for monitoring."""
+    method = request.method
+    path = request.url.path
+
+    # Skip metrics endpoint itself to avoid recursion
+    if path == "/metrics":
+        return await call_next(request)
+
+    # Track in-progress requests
+    http_requests_in_progress.labels(method=method, path=path).inc()
+
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+    except Exception:
+        status_code = 500
+        raise
+    finally:
+        # Record metrics
+        duration = time.time() - start_time
+        http_request_duration_seconds.labels(method=method, path=path).observe(duration)
+        http_requests_total.labels(method=method, path=path, status_code=status_code).inc()
+        http_requests_in_progress.labels(method=method, path=path).dec()
+
+    return response
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

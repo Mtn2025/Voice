@@ -206,7 +206,7 @@ async def require_twilio_signature(request: Request):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Signature validation failed"
-        )
+        ) from e
 
 
 async def require_telnyx_signature(request: Request):
@@ -241,4 +241,4 @@ async def require_telnyx_signature(request: Request):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Signature validation failed"
-        )
+        ) from e

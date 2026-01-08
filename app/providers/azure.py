@@ -20,7 +20,8 @@ class AzureRecognizerWrapper:
         self._callback = callback
 
     def _on_event(self, evt):
-        if not self._callback: return
+        if not self._callback:
+            return
 
         reason = STTResultReason.UNKNOWN
         if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
@@ -38,7 +39,8 @@ class AzureRecognizerWrapper:
         self._callback(event)
 
     def _on_canceled(self, evt):
-        if not self._callback: return
+        if not self._callback:
+            return
         details = ""
         if hasattr(evt, 'result') and hasattr(evt.result, 'cancellation_details'):
              details = evt.result.cancellation_details.error_details

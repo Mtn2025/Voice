@@ -44,9 +44,7 @@ class BrowserConfigUpdate(BaseModel):
     # Advanced
     hallucination_blacklist: str | None = Field(None, max_length=500)
 
-    class Config:
-        # Allow extra fields (for future compatibility)
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
 
 
 class TwilioConfigUpdate(BaseModel):
@@ -92,8 +90,7 @@ class TwilioConfigUpdate(BaseModel):
     # Advanced
     hallucination_blacklist_phone: str | None = Field(None, max_length=500)
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
 
 
 class TelnyxConfigUpdate(BaseModel):
@@ -146,8 +143,7 @@ class TelnyxConfigUpdate(BaseModel):
     # Advanced
     hallucination_blacklist_telnyx: str | None = Field(None, max_length=500)
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}
 
 
 class CoreConfigUpdate(BaseModel):
@@ -161,5 +157,4 @@ class CoreConfigUpdate(BaseModel):
     tts_provider: str | None = Field(None, max_length=50)
     extraction_model: str | None = Field(None, max_length=100)
 
-    class Config:
-        extra = "ignore"
+    model_config = {"extra": "ignore"}

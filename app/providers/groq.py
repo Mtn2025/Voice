@@ -79,7 +79,7 @@ class GroqProvider(AbstractLLM):
             )
             return transcription.text
         except Exception as e:
-            print(f"Groq STT Error: {e}")
+            logging.error(f"Groq STT Error: {e}")
             return ""
 
     async def extract_data(self, transcript: str, model: str = "llama-3.1-8b-instant"):

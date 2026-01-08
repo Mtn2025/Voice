@@ -12,14 +12,7 @@ import pytest
 
 from app.core.vad_filter import AdaptiveInputFilter
 
-AUDIOOP_AVAILABLE = importlib.util.find_spec("audioop") is not None
-
-# Importar AdaptiveInputFilter solo si audioop está disponible
-if AUDIOOP_AVAILABLE:
-    try:
-        from app.core.orchestrator import AdaptiveInputFilter
-    except ImportError:
-        AUDIOOP_AVAILABLE = False
+AUDIOOP_AVAILABLE = importlib.util.find_spec("audioop") is not None or importlib.util.find_spec("audioop_lts") is not None
 
 
 @pytest.mark.unit

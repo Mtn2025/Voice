@@ -100,7 +100,9 @@ async def telnyx_call_control(request: Request, _: None = Depends(require_telnyx
             }
 
             # Answer call only (don't stream yet)
-            asyncio.create_task(answer_call(call_control_id, request))
+            task = asyncio.create_task(answer_call(call_control_id, request))
+            # Store task reference to prevent GC (RUF006)
+            active_calls[call_control_id]["answer_task"] = task
 
         # Handle call.answered - Answer call and start streaming
         elif event_type == "call.answered":
@@ -122,7 +124,9 @@ async def telnyx_call_control(request: Request, _: None = Depends(require_telnyx
                         import traceback
                         logging.error(f"Traceback: {traceback.format_exc()}")
 
-                asyncio.create_task(_run_suppression())
+                task = asyncio.create_task(_run_suppression())
+                # Store task reference (RUF006)
+                active_calls[call_control_id]["suppression_task"] = task
                 logging.warning("✅ [DEBUG] Noise suppression task created successfully")
 
         # Handle streaming.started - Streaming is ready
@@ -173,7 +177,11 @@ async def answer_call(call_control_id: str, request: Request):
         async with AsyncSessionLocal() as session:
             config = await db_service.get_agent_config(session)
             if getattr(config, 'enable_recording_telnyx', False):
-                 asyncio.create_task(start_recording(call_control_id))
+                 task = asyncio.create_task(start_recording(call_control_id))
+                 # Store in call metadata (RUF006)
+                 if call_control_id not in active_calls:
+                     active_calls[call_control_id] = {}
+                 active_calls[call_control_id]["recording_task"] = task
 
             amd_mode = getattr(config, 'amd_config_telnyx', 'disabled')
     except Exception as e:

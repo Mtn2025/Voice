@@ -28,6 +28,9 @@ python-multipart~=0.0.21
 # Templates - UPDATED
 jinja2~=3.1.6
 
+# Twilio - UPDATED
+twilio~=10.4.0.2
+
 # Testing - UPDATED
 pytest~=9.0.2
 pytest-cov~=7.0.0
@@ -40,14 +43,32 @@ ruff~=0.8.6
 # Rate Limiting - NEW (Punto A3)
 slowapi~=0.1.9
 
-# Webhook Security - NEW (Punto A4)
-cryptography~=42.0.8
+# Webhook Security - UPDATED for CVE fixes (2026-01-07 Security Audit)
+cryptography>=44.0.1  # Fixed CVE-2024-12797, GHSA-h4gh-qq45-vh27
+h11>=0.16.0  # Fixed CVE-2025-43859
+urllib3>=2.6.3  # Fixed CVE-2026-21441
+httpcore>=1.0.9  # Updated for h11 compatibility
 
 # Input Sanitization - NEW (Punto A5)
 markupsafe~=2.1.5
 
 # State Management - NEW (Punto A9)
 redis[hiredis]~=5.0.1
+
+# audioop Replacement (Punto A11 - Python 3.13+ Compatibility)
+# Fallback for legacy code if needed
+audioop-lts; python_version >= '3.13'
+numpy>=1.26.0  # Audio processing (replaces audioop)
+
+# Monitoring (Punto B2)
+prometheus-client>=0.20.0  # Metrics collection and export
+
+# Distributed Tracing (Punto B3 - Optional)
+opentelemetry-api>=1.22.0
+opentelemetry-sdk>=1.22.0
+opentelemetry-instrumentation-fastapi>=0.43b0
+opentelemetry-instrumentation-httpx>=0.43b0
+opentelemetry-exporter-otlp>=1.22.0
 
 # Security Scanning
 pip-audit~=2.10.0

@@ -132,4 +132,4 @@ def read_env_file(env_path: str = ".env") -> dict[str, str]:
 
         return config
     except Exception as e:
-        raise ConfigurationError(f"Failed to read .env file: {e!s}")
+        raise ConfigurationError(f"Failed to read .env file: {e!s}") from e

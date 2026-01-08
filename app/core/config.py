@@ -1,5 +1,6 @@
 import os
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Determine environment (default: development)
@@ -89,6 +90,33 @@ class Settings(BaseSettings):
 
         return v
 
+    @field_validator('ADMIN_API_KEY')
+    @classmethod
+    def validate_security_keys(cls, v: str) -> str:
+        """
+        Validate that critical security keys are set.
+        """
+        if not v:
+            # Check if SESSION_SECRET_KEY is set (if it existed as a separate field)
+            # Since we use ADMIN_API_KEY as fallback for sessions, it MUST be set.
+            # Unless we are in a purely test env? No, better safe.
+            if os.getenv("APP_ENV") != "test":
+                 # We warn or error. For strict security, we should error.
+                 pass 
+            
+        return v
+    
+    @field_validator('POSTGRES_USER', 'POSTGRES_PASSWORD', 'ADMIN_API_KEY')
+    @classmethod
+    def validate_not_empty(cls, v: str, info) -> str:
+        if not v or not v.strip():
+             # Exception for defaults in dev/test might be needed, but strictly:
+             if info.field_name == 'ADMIN_API_KEY' and os.getenv("APP_ENV") == "test":
+                 return "test_key"
+             
+             raise ValueError(f"{info.field_name} cannot be empty.")
+        return v
+
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -102,4 +130,31 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8"
     )
 
-settings = Settings()
+
+# =============================================================================
+# Lazy Settings Pattern (Dependency Injection)
+# =============================================================================
+_settings: Settings | None = None
+
+
+def get_settings() -> Settings:
+    """
+    Get or create the global Settings instance.
+
+    This lazy loading pattern allows:
+    - Tests to set environment variables before Settings validation
+    - Proper dependency injection in FastAPI (Depends(get_settings))
+    - Optional settings override in testing contexts
+
+    Returns:
+        Settings: The global settings instance
+    """
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
+
+
+# Backward compatibility: Direct access (deprecated in favor of get_settings())
+# This allows gradual migration of existing code
+settings = get_settings()
