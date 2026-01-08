@@ -1,0 +1,51 @@
+# BARE MINIMUM - Nuclear option
+# Only absolute essentials to boot the app
+
+# Web Framework (NO extras - remove [standard])
+fastapi==0.128.0
+uvicorn==0.40.0
+# uvicorn needs these manually
+httptools
+uvloop
+websockets==15.0.1
+
+# Database (minimal)
+sqlalchemy==2.0.45
+asyncpg==0.31.0
+alembic==1.17.2
+
+# AI Services
+azure-cognitiveservices-speech==1.40.0
+groq==1.0.0
+
+# HTTP
+httpx==0.28.1
+
+# Config
+python-dotenv==1.2.1
+pydantic==2.10.5
+pydantic-settings==2.12.0
+
+# Templates/Forms
+jinja2==3.1.6
+python-multipart==0.0.21
+
+# Telephony
+twilio==10.4.0
+
+# Rate limit (minimal)
+slowapi==0.1.9
+
+# Security (USE OLDER STABLE VERSIONS)
+cryptography==41.0.0
+h11==0.14.0
+urllib3==2.0.7
+
+# Redis (NO hiredis extra)
+redis==5.0.1
+
+# Audio
+numpy==1.26.0
+
+# Minimal logging
+python-json-logger==2.0.7
