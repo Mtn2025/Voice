@@ -19,11 +19,14 @@ RUN apt-get update && apt-get install -y \
     g++ \
     make \
     libssl-dev \
+    libffi-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --user -r requirements.txt
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
