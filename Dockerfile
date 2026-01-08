@@ -12,32 +12,23 @@
 # =============================================================================
 # Stage 1: Builder - Build dependencies and install packages
 # =============================================================================
-# FORCE AMD64: Azure Speech SDK only supports x86_64, fails on ARM (Apple Silicon/Graviton)
-FROM --platform=linux/amd64 python:3.11-slim as builder
+# FORCE AMD64: Azure Speech SDK only supports x86_64
+FROM --platform=linux/amd64 python:3.11 as builder
 
 WORKDIR /build
 
-# Install build dependencies (incl. Rust for cryptography/pydantic if wheels miss)
+# Install build dependencies
+# Start with 'fat' image but ensure Rust is present for Cryptography if needed
 RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    make \
-    libssl-dev \
-    libffi-dev \
-    pkg-config \
-    libasound2-dev \
     cargo \
     rustc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
-# Copy and install Python dependencies
 COPY requirements.txt .
+# Use verbose output (-v) and high timeout to prevent silent OOM/Timeout kills
 RUN pip install --upgrade pip && \
-    # Strategy: Install heavy binaries first with --prefer-binary to avoid compilation
-    pip install --no-cache-dir --user --prefer-binary azure-cognitiveservices-speech>=1.34.0 && \
-    # Install the rest
-    pip install --no-cache-dir --user --prefer-binary -r requirements.txt
+    pip install --no-cache-dir --user --prefer-binary --default-timeout=1000 -v -r requirements.txt
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
