@@ -9,7 +9,11 @@
 # =============================================================================
 # Stage 1: Builder - Build dependencies and install packages
 # =============================================================================
-FROM python:3.11-slim as builder
+# =============================================================================
+# Stage 1: Builder - Build dependencies and install packages
+# =============================================================================
+# FORCE AMD64: Azure Speech SDK only supports x86_64, fails on ARM (Apple Silicon/Graviton)
+FROM --platform=linux/amd64 python:3.11-slim as builder
 
 WORKDIR /build
 
@@ -29,14 +33,12 @@ RUN apt-get update && apt-get install -y \
 # Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    # Install Azure Speech separately to isolate errors
-    pip install --no-cache-dir --user azure-cognitiveservices-speech~=1.47.0 && \
     pip install --no-cache-dir --user -r requirements.txt
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
 # =============================================================================
-FROM python:3.11-slim
+FROM --platform=linux/amd64 python:3.11-slim
 
 WORKDIR /app
 
