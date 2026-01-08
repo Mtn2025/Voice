@@ -1,5 +1,5 @@
-﻿
-cryptography==44.0.1
+
+cryptography==46.0.3
 h11==0.16.0
 httpcore==1.0.9
 urllib3==2.6.3
