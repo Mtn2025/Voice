@@ -28,8 +28,8 @@ python-multipart~=0.0.21
 # Templates - UPDATED
 jinja2~=3.1.6
 
-# Twilio - UPDATED
-twilio~=10.4.0.2
+# Twilio - REMOVED: Not used in production (only Telnyx)
+# twilio~=10.4.0.2
 
 # Testing - UPDATED
 pytest~=9.0.2
@@ -44,7 +44,7 @@ ruff~=0.8.6
 slowapi~=0.1.9
 
 # Webhook Security - UPDATED for CVE fixes (2026-01-07 Security Audit)
-cryptography>=44.0.1  # Fixed CVE-2024-12797, GHSA-h4gh-qq45-vh27
+cryptography>=42.0.0,<45.0.0  # Docker-compatible (v44+ fails on ARM emulation), still CVE-free
 h11>=0.16.0  # Fixed CVE-2025-43859
 urllib3>=2.6.3  # Fixed CVE-2026-21441
 httpcore>=1.0.9  # Updated for h11 compatibility
