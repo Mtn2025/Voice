@@ -13,7 +13,7 @@ FROM python:3.11-slim as builder
 
 WORKDIR /build
 
-# Install build dependencies
+# Install build dependencies (incl. Rust for cryptography/pydantic if wheels miss)
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -21,11 +21,16 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     pkg-config \
+    libasound2-dev \
+    cargo \
+    rustc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
+    # Install Azure Speech separately to isolate errors
+    pip install --no-cache-dir --user azure-cognitiveservices-speech~=1.47.0 && \
     pip install --no-cache-dir --user -r requirements.txt
 
 # =============================================================================
