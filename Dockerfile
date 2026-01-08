@@ -67,9 +67,7 @@ RUN echo "===== STAGE 4.3: Templates (jinja2) =====" && \
     pip install -vv --no-cache-dir --user --prefer-binary jinja2~=3.1.6 && \
     echo "✅ jinja2 installed"
 
-RUN echo "===== STAGE 4.4: Twilio SDK =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary twilio~=10.4.0 && \
-    echo "✅ twilio installed"
+# Stage 4.4: REMOVED - Twilio not used in production (only Telnyx)
 
 RUN echo "===== STAGE 4.5: Rate Limiting (slowapi) =====" && \
     pip install -vv --no-cache-dir --user --prefer-binary slowapi~=0.1.9 && \
