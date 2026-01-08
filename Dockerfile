@@ -31,9 +31,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --user -r requirements.txt
+    # Strategy: Install heavy binaries first with --prefer-binary to avoid compilation
+    pip install --no-cache-dir --user --prefer-binary azure-cognitiveservices-speech>=1.34.0 && \
+    # Install the rest
+    pip install --no-cache-dir --user --prefer-binary -r requirements.txt
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
