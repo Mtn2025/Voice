@@ -24,11 +24,38 @@ RUN apt-get update && apt-get install -y \
     rustc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
-COPY requirements.txt .
-# Use verbose output (-v) and high timeout to prevent silent OOM/Timeout kills
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --user --prefer-binary --default-timeout=1000 -v -r requirements.txt
+# Copy requirements
+COPY requirements-core.txt requirements.txt ./
+
+# STAGED INSTALLATION - Identify failing package
+# Stage 1: Core (FastAPI, Uvicorn) - Should NEVER fail
+RUN echo "===== STAGE 1: Core packages =====" && \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir --user --prefer-binary \
+    fastapi~=0.128.0 \
+    uvicorn[standard]~=0.40.0 \
+    python-dotenv~=1.2.1 \
+    pydantic-settings~=2.12.0 && \
+    echo "✅ Stage 1 complete"
+
+# Stage 2: Database
+RUN echo "===== STAGE 2: Database packages =====" && \
+    pip install --no-cache-dir --user --prefer-binary \
+    sqlalchemy~=2.0.45 \
+    asyncpg~=0.31.0 \
+    alembic~=1.17.2 && \
+    echo "✅ Stage 2 complete"
+
+# Stage 3: Azure Speech (CRITICAL TEST)
+RUN echo "===== STAGE 3: Azure Speech SDK =====" && \
+    pip install --no-cache-dir --user --prefer-binary \
+    azure-cognitiveservices-speech>=1.34.0 && \
+    echo "✅ Stage 3 complete"
+
+# Stage 4: Remaining packages
+RUN echo "===== STAGE 4: Remaining packages =====" && \
+    pip install --no-cache-dir --user --prefer-binary -r requirements.txt || \
+    (echo "❌ FAILED AT STAGE 4 - Check specific package" && exit 1)
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
