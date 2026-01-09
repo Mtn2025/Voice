@@ -80,10 +80,10 @@ class AzureProvider(AbstractSTT, AbstractTTS):
     def get_available_voices(self):
         """
         Returns a comprehensive list of Azure Neural voices with metadata.
-        Structure: List[Dict] to be processed by dashboard.
+        Source: Microsoft Azure Speech Service (2025/2026 Compatible)
         """
         return [
-            # Mexico (es-MX)
+            # --- Spanish (Mexico) ---
             {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "locale": "es-MX"},
             {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "locale": "es-MX"},
             {"id": "es-MX-BeatrizNeural", "name": "Beatriz", "gender": "Female", "locale": "es-MX"},
@@ -99,28 +99,79 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             {"id": "es-MX-PelayoNeural", "name": "Pelayo", "gender": "Male", "locale": "es-MX"},
             {"id": "es-MX-RenataNeural", "name": "Renata", "gender": "Female", "locale": "es-MX"},
             {"id": "es-MX-YagoNeural", "name": "Yago", "gender": "Male", "locale": "es-MX"},
-            
-            # Spain (es-ES)
+
+            # --- Spanish (Spain) ---
             {"id": "es-ES-ElviraNeural", "name": "Elvira", "gender": "Female", "locale": "es-ES"},
             {"id": "es-ES-AlvaroNeural", "name": "Alvaro", "gender": "Male", "locale": "es-ES"},
-            
-            # US Spanish (es-US)
+            {"id": "es-ES-AbrilNeural", "name": "Abril", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-ArnauNeural", "name": "Arnau", "gender": "Male", "locale": "es-ES"},
+            {"id": "es-ES-DarioNeural", "name": "Dario", "gender": "Male", "locale": "es-ES"},
+            {"id": "es-ES-EliasNeural", "name": "Elias", "gender": "Male", "locale": "es-ES"},
+            {"id": "es-ES-EstrellaNeural", "name": "Estrella", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-IreneNeural", "name": "Irene", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-LaiaNeural", "name": "Laia", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-LiaNeural", "name": "Lia", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-NilNeural", "name": "Nil", "gender": "Male", "locale": "es-ES"},
+            {"id": "es-ES-SaulNeural", "name": "Saul", "gender": "Male", "locale": "es-ES"},
+            {"id": "es-ES-TeoNeural", "name": "Teo", "gender": "Male", "locale": "es-ES"},
+            {"id": "es-ES-TrianaNeural", "name": "Triana", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-VeraNeural", "name": "Vera", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-XimenaNeural", "name": "Ximena", "gender": "Female", "locale": "es-ES"},
+
+            # --- Spanish (US) ---
             {"id": "es-US-PalomaNeural", "name": "Paloma", "gender": "Female", "locale": "es-US"},
             {"id": "es-US-AlonsoNeural", "name": "Alonso", "gender": "Male", "locale": "es-US"},
+            {"id": "es-US-MiguelNeural", "name": "Miguel", "gender": "Male", "locale": "es-US"},
 
-            # US English (en-US) - For reference/fallback
+            # --- English (US) ---
             {"id": "en-US-JennyNeural", "name": "Jenny", "gender": "Female", "locale": "en-US"},
-            {"id": "en-US-GuyNeural", "name": "Guy", "gender": "Male", "locale": "en-US"}
+            {"id": "en-US-GuyNeural", "name": "Guy", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-AriaNeural", "name": "Aria", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-DavisNeural", "name": "Davis", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-AmberNeural", "name": "Amber", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-AndrewNeural", "name": "Andrew", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-AshleyNeural", "name": "Ashley", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-BrandonNeural", "name": "Brandon", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-BrianNeural", "name": "Brian", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-ChristopherNeural", "name": "Christopher", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-CoraNeural", "name": "Cora", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-ElizabethNeural", "name": "Elizabeth", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-EricNeural", "name": "Eric", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-JacobNeural", "name": "Jacob", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-JaneNeural", "name": "Jane", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-JasonNeural", "name": "Jason", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-MichelleNeural", "name": "Michelle", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-MonicaNeural", "name": "Monica", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-NancyNeural", "name": "Nancy", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-RogerNeural", "name": "Roger", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-SaraNeural", "name": "Sara", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-SteffanNeural", "name": "Steffan", "gender": "Male", "locale": "en-US"},
+            {"id": "en-US-TonyNeural", "name": "Tony", "gender": "Male", "locale": "en-US"}
         ]
 
     def get_voice_styles(self):
-        """Returns a dict of voice_name -> list of styles"""
+        """
+        Returns a dict of voice_name -> list of styles.
+        NOTE: Not all voices support styles. Those not listed here imply only 'Default'.
+        """
         return {
+            # Mexico
             "es-MX-DaliaNeural": ["customerservice", "chat", "cheerful", "calm", "sad", "angry", "fearful", "disgruntled", "serious", "affectionate", "gentle"],
             "es-MX-JorgeNeural": ["chat", "conversational", "customerservice", "cheerful", "empathetic", "serious"],
+            
+            # Spain
             "es-ES-ElviraNeural": ["customerservice", "empathetic", "cheerful", "calm", "chat"],
+            
+            # English US
             "en-US-JennyNeural": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
-            "en-US-GuyNeural": ["newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"]
+            "en-US-GuyNeural": ["newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "en-US-AriaNeural": ["chat", "customerservice", "narration-professional", "newscast-casual", "newscast-formal", "cheerful", "empathetic", "angry", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "en-US-DavisNeural": ["chat", "angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+            "en-US-JaneNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+            "en-US-JasonNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+            "en-US-NancyNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+            "en-US-SaraNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+            "en-US-TonyNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"]
         }
 
     def get_available_languages(self):
