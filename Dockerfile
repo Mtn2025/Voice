@@ -59,6 +59,10 @@ RUN echo "===== STAGE 4.1: HTTP Client (httpx) =====" && \
     pip install -vv --no-cache-dir --user --prefer-binary httpx~=0.28.1 && \
     echo "✅ httpx installed"
 
+RUN echo "===== STAGE 4.1b: LLM Client (Groq) =====" && \
+    pip install -vv --no-cache-dir --user --prefer-binary "groq>=1.0.0" && \
+    echo "✅ groq installed"
+
 RUN echo "===== STAGE 4.2: Forms (python-multipart) =====" && \
     pip install -vv --no-cache-dir --user --prefer-binary python-multipart~=0.0.21 && \
     echo "✅ python-multipart installed"
