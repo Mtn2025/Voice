@@ -55,7 +55,28 @@ services:
       - postgres_data_v2:/var/lib/postgresql/data
     restart: always
 
-# ... (rest of file) ...
+    healthcheck:
+      # Usar variable interpolada para consistencia
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # Punto A9: Redis for Horizontal Scaling
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: voice_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data_v2:
