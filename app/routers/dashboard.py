@@ -46,7 +46,28 @@ async def dashboard(
 
     # Models
     llm_provider = GroqProvider()
-    models = await llm_provider.get_available_models()
+    groq_models = await llm_provider.get_available_models()
+    
+    # Structure models for frontend: { 'groq': [...], 'openai': [...], ... }
+    models = {
+        "groq": groq_models,
+        "openai": [{"id": "gpt-4o", "name": "GPT-4o"}, {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo"}], # Static fallback
+        "azure": [{"id": "gpt-4", "name": "Azure GPT-4"}] # Static fallback
+    }
+
+    # Voices - AzureProvider.get_available_voices() usually returns {lang: [voices]}
+    # Frontend expects: voices[provider][lang] -> list
+    azure_voices = tts_provider.get_available_voices()
+    voices = {
+        "azure": azure_voices,
+        "openai": {}, # Placeholder
+        "elevenlabs": {} # Placeholder
+    }
+    
+    # Styles - AzureProvider.get_voice_styles() -> {voice_id: [styles]}
+    # Frontend: this.styles[vid] -> list. This seems valid as is (keyed by Voice ID).
+    # No change needed for styles if it's keyed by Voice ID.
+
 
     history = await db_service.get_recent_calls(session=db, limit=10) # New
 
