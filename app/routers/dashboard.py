@@ -420,123 +420,131 @@ async def update_config(
     tts_provider: str = Form(None),
     extraction_model: str = Form(None)
 ):
-    def parse_float(v):
-        try: return float(v) if v else None
-        except: return None
+    try:
+        def parse_float(v):
+            try: return float(v) if v else None
+            except: return None
+        
+        def parse_int(v):
+            try: return int(v) if v else None
+            except: return None
+            
+        def parse_bool(v):
+            if not v: return None
+            return str(v).lower() in ("true", "1", "yes", "on")
+
+        # Clean Data
+        update_data = {
+            "system_prompt": system_prompt,
+            "temperature": parse_float(temperature),
+            "voice_speed": parse_float(voice_speed),
+            "voice_speed_phone": parse_float(voice_speed_phone),
+            "voice_name": voice_name,
+            "voice_style": voice_style,
+            "stt_language": stt_language,
+            "llm_model": llm_model,
+            "background_sound": background_sound,
+            "idle_timeout": parse_float(idle_timeout),
+            "idle_message": idle_message,
+            "inactivity_max_retries": parse_int(inactivity_max_retries),
+            "max_duration": parse_int(max_duration),
+            "interruption_threshold": parse_int(interruption_threshold),
+            "interruption_threshold_phone": parse_int(interruption_threshold_phone),
+            "hallucination_blacklist": hallucination_blacklist,
+            "hallucination_blacklist_phone": hallucination_blacklist_phone,
+            "voice_pacing_ms": parse_int(voice_pacing_ms),
+            "voice_pacing_ms_phone": parse_int(voice_pacing_ms_phone),
+            "voice_name_phone": voice_name_phone,
+            "voice_style_phone": voice_style_phone,
+            "input_min_characters_phone": parse_int(input_min_characters_phone),
+            
+            "system_prompt_phone": system_prompt_phone,
+            "first_message_phone": first_message_phone,
+            "first_message_mode_phone": first_message_mode_phone,
+            "max_tokens_phone": parse_int(max_tokens_phone),
+            "llm_provider_phone": llm_provider_phone,
+            "llm_model_phone": llm_model_phone,
+            "stt_provider_phone": stt_provider_phone,
+            "stt_language_phone": stt_language_phone,
+            "temperature_phone": parse_float(temperature_phone),
+            
+            "enable_denoising_phone": parse_bool(enable_denoising_phone),
+            "twilio_machine_detection": twilio_machine_detection,
+            "twilio_record": parse_bool(twilio_record),
+            "twilio_recording_channels": twilio_recording_channels,
+            "twilio_trim_silence": parse_bool(twilio_trim_silence),
+            "initial_silence_timeout_ms_phone": parse_int(initial_silence_timeout_ms_phone),
+
+            "stt_provider_telnyx": stt_provider_telnyx,
+            "stt_language_telnyx": stt_language_telnyx,
+            "llm_provider_telnyx": llm_provider_telnyx,
+            "llm_model_telnyx": llm_model_telnyx,
+            "system_prompt_telnyx": system_prompt_telnyx,
+            "voice_name_telnyx": voice_name_telnyx,
+            "voice_style_telnyx": voice_style_telnyx,
+            "temperature_telnyx": parse_float(temperature_telnyx),
+            "first_message_telnyx": first_message_telnyx,
+            "first_message_mode_telnyx": first_message_mode_telnyx,
+            "max_tokens_telnyx": parse_int(max_tokens_telnyx),
+            "initial_silence_timeout_ms_telnyx": parse_int(initial_silence_timeout_ms_telnyx),
+            "input_min_characters_telnyx": parse_int(input_min_characters_telnyx),
+            "enable_denoising_telnyx": parse_bool(enable_denoising_telnyx),
+            "voice_pacing_ms_telnyx": parse_int(voice_pacing_ms_telnyx),
+            "silence_timeout_ms_telnyx": parse_int(silence_timeout_ms_telnyx),
+            "interruption_threshold_telnyx": parse_int(interruption_threshold_telnyx),
+            "hallucination_blacklist_telnyx": hallucination_blacklist_telnyx,
+            "voice_speed_telnyx": parse_float(voice_speed_telnyx),
+            "voice_sensitivity_telnyx": parse_int(voice_sensitivity_telnyx),
+            "enable_krisp_telnyx": parse_bool(enable_krisp_telnyx),
+            "enable_vad_telnyx": parse_bool(enable_vad_telnyx),
+            
+            "idle_timeout_telnyx": parse_float(idle_timeout_telnyx),
+            "max_duration_telnyx": parse_int(max_duration_telnyx),
+            "idle_message_telnyx": idle_message_telnyx,
+            "enable_recording_telnyx": parse_bool(enable_recording_telnyx),
+            "amd_config_telnyx": amd_config_telnyx,
+
+            "first_message": first_message,
+            "first_message_mode": first_message_mode,
+            "max_tokens": parse_int(max_tokens),
+            "voice_id_manual": voice_id_manual,
+            "background_sound_url": background_sound_url,
+            "input_min_characters": parse_int(input_min_characters),
+            
+            "silence_timeout_ms": parse_int(silence_timeout_ms),
+            "silence_timeout_ms_phone": parse_int(silence_timeout_ms_phone),
+            "segmentation_max_time": parse_int(segmentation_max_time),
+            "segmentation_strategy": segmentation_strategy,
+            "enable_denoising": parse_bool(enable_denoising),
+            "initial_silence_timeout_ms": parse_int(initial_silence_timeout_ms),
+            "punctuation_boundaries": punctuation_boundaries,
+            
+            "enable_end_call": parse_bool(enable_end_call),
+            "enable_dial_keypad": parse_bool(enable_dial_keypad),
+            "transfer_phone_number": transfer_phone_number,
+
+            "stt_provider": stt_provider,
+            "llm_provider": llm_provider,
+            "tts_provider": tts_provider,
+            "extraction_model": extraction_model,
+        }
+
+        final_data = {k: v for k, v in update_data.items() if v is not None}
+        await db_service.update_agent_config(db, **final_data)
+
+        # Persist to .env
+        from app.core.config_utils import update_env_file
+        updates = {k.upper(): v for k, v in final_data.items()}
+        update_env_file(updates)
+
+        return RedirectResponse(url="/dashboard?success=true", status_code=303)
     
-    def parse_int(v):
-        try: return int(v) if v else None
-        except: return None
-        
-    def parse_bool(v):
-        if not v: return None
-        return str(v).lower() in ("true", "1", "yes", "on")
-
-    # Clean Data
-    update_data = {
-        "system_prompt": system_prompt,
-        "temperature": parse_float(temperature),
-        "voice_speed": parse_float(voice_speed),
-        "voice_speed_phone": parse_float(voice_speed_phone),
-        "voice_name": voice_name,
-        "voice_style": voice_style,
-        "stt_language": stt_language,
-        "llm_model": llm_model,
-        "background_sound": background_sound,
-        "idle_timeout": parse_float(idle_timeout),
-        "idle_message": idle_message,
-        "inactivity_max_retries": parse_int(inactivity_max_retries),
-        "max_duration": parse_int(max_duration),
-        "interruption_threshold": parse_int(interruption_threshold),
-        "interruption_threshold_phone": parse_int(interruption_threshold_phone),
-        "hallucination_blacklist": hallucination_blacklist,
-        "hallucination_blacklist_phone": hallucination_blacklist_phone,
-        "voice_pacing_ms": parse_int(voice_pacing_ms),
-        "voice_pacing_ms_phone": parse_int(voice_pacing_ms_phone),
-        "voice_name_phone": voice_name_phone,
-        "voice_style_phone": voice_style_phone,
-        "input_min_characters_phone": parse_int(input_min_characters_phone),
-        
-        "system_prompt_phone": system_prompt_phone,
-        "first_message_phone": first_message_phone,
-        "first_message_mode_phone": first_message_mode_phone,
-        "max_tokens_phone": parse_int(max_tokens_phone),
-        "llm_provider_phone": llm_provider_phone,
-        "llm_model_phone": llm_model_phone,
-        "stt_provider_phone": stt_provider_phone,
-        "stt_language_phone": stt_language_phone,
-        "temperature_phone": parse_float(temperature_phone),
-        
-        "enable_denoising_phone": parse_bool(enable_denoising_phone),
-        "twilio_machine_detection": twilio_machine_detection,
-        "twilio_record": parse_bool(twilio_record),
-        "twilio_recording_channels": twilio_recording_channels,
-        "twilio_trim_silence": parse_bool(twilio_trim_silence),
-        "initial_silence_timeout_ms_phone": parse_int(initial_silence_timeout_ms_phone),
-
-        "stt_provider_telnyx": stt_provider_telnyx,
-        "stt_language_telnyx": stt_language_telnyx,
-        "llm_provider_telnyx": llm_provider_telnyx,
-        "llm_model_telnyx": llm_model_telnyx,
-        "system_prompt_telnyx": system_prompt_telnyx,
-        "voice_name_telnyx": voice_name_telnyx,
-        "voice_style_telnyx": voice_style_telnyx,
-        "temperature_telnyx": parse_float(temperature_telnyx),
-        "first_message_telnyx": first_message_telnyx,
-        "first_message_mode_telnyx": first_message_mode_telnyx,
-        "max_tokens_telnyx": parse_int(max_tokens_telnyx),
-        "initial_silence_timeout_ms_telnyx": parse_int(initial_silence_timeout_ms_telnyx),
-        "input_min_characters_telnyx": parse_int(input_min_characters_telnyx),
-        "enable_denoising_telnyx": parse_bool(enable_denoising_telnyx),
-        "voice_pacing_ms_telnyx": parse_int(voice_pacing_ms_telnyx),
-        "silence_timeout_ms_telnyx": parse_int(silence_timeout_ms_telnyx),
-        "interruption_threshold_telnyx": parse_int(interruption_threshold_telnyx),
-        "hallucination_blacklist_telnyx": hallucination_blacklist_telnyx,
-        "voice_speed_telnyx": parse_float(voice_speed_telnyx),
-        "voice_sensitivity_telnyx": parse_int(voice_sensitivity_telnyx),
-        "enable_krisp_telnyx": parse_bool(enable_krisp_telnyx),
-        "enable_vad_telnyx": parse_bool(enable_vad_telnyx),
-        
-        "idle_timeout_telnyx": parse_float(idle_timeout_telnyx),
-        "max_duration_telnyx": parse_int(max_duration_telnyx),
-        "idle_message_telnyx": idle_message_telnyx,
-        "enable_recording_telnyx": parse_bool(enable_recording_telnyx),
-        "amd_config_telnyx": amd_config_telnyx,
-
-        "first_message": first_message,
-        "first_message_mode": first_message_mode,
-        "max_tokens": parse_int(max_tokens),
-        "voice_id_manual": voice_id_manual,
-        "background_sound_url": background_sound_url,
-        "input_min_characters": parse_int(input_min_characters),
-        
-        "silence_timeout_ms": parse_int(silence_timeout_ms),
-        "silence_timeout_ms_phone": parse_int(silence_timeout_ms_phone),
-        "segmentation_max_time": parse_int(segmentation_max_time),
-        "segmentation_strategy": segmentation_strategy,
-        "enable_denoising": parse_bool(enable_denoising),
-        "initial_silence_timeout_ms": parse_int(initial_silence_timeout_ms),
-        "punctuation_boundaries": punctuation_boundaries,
-        
-        "enable_end_call": parse_bool(enable_end_call),
-        "enable_dial_keypad": parse_bool(enable_dial_keypad),
-        "transfer_phone_number": transfer_phone_number,
-
-        "stt_provider": stt_provider,
-        "llm_provider": llm_provider,
-        "tts_provider": tts_provider,
-        "extraction_model": extraction_model,
-    }
-
-    final_data = {k: v for k, v in update_data.items() if v is not None}
-    await db_service.update_agent_config(db, **final_data)
-
-    # Persist to .env
-    from app.core.config_utils import update_env_file
-    updates = {k.upper(): v for k, v in final_data.items()}
-    update_env_file(updates)
-
-    return RedirectResponse(url="/dashboard?success=true", status_code=303)
+    except Exception as e:
+        import traceback
+        logging.error(f"Error updating config: {e}")
+        logging.error(traceback.format_exc())
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback.format_exc()})
 
 @router.post("/api/config/patch", dependencies=[Depends(verify_api_key)])
 async def patch_config(request: Request, db: AsyncSession = Depends(get_db)):
