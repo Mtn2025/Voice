@@ -6,6 +6,8 @@ from fastapi.templating import Jinja2Templates
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession  # NEW
+from pydantic import BaseModel
+from typing import Optional, Any
 
 from app.core.auth_simple import verify_api_key
 from app.core.input_sanitization import (
@@ -310,15 +312,9 @@ async def update_core_config(
 # This will be removed in v2.0
 # =============================================================================
 
-@router.post("/api/config/update", deprecated=True, dependencies=[Depends(verify_api_key)])
-async def update_config(
-    # ... (existing args) ...
-    pass
+
 
 # NEW: AJAX/JSON Endpoint
-from pydantic import BaseModel
-from typing import Optional, Any
-
 @router.post("/api/config/update-json", dependencies=[Depends(verify_api_key)])
 async def update_config_json(
     request: Request,
