@@ -681,9 +681,9 @@ class VoiceOrchestrator:
             await self._process_tts_chunk(sentence_buffer)
 
         # 2. Log Full Transcript (Success Path)
-             if self.stream_id and full_response:
-                 async with AsyncSessionLocal() as session:
-                     await db_service.log_transcript(session, self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
+        if self.stream_id and full_response:
+            async with AsyncSessionLocal() as session:
+                await db_service.log_transcript(session, self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
 
         # 3. Update Conversation History (Common Path)
         # Note: If exception occurred, finally block will double check partials.
