@@ -42,7 +42,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Note: In production, move inline scripts to separate files and use nonces
         csp_directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net",  # TODO: Remove unsafe-inline in production
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net",  # TODO: Refactor for CSP strictness
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data:",
