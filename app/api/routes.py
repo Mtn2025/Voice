@@ -19,7 +19,7 @@ from app.core.config import settings
 from app.core.orchestrator import VoiceOrchestrator
 from app.core.webhook_security import require_telnyx_signature, require_twilio_signature
 from app.db.database import AsyncSessionLocal  # NEW
-from app.services import db_service
+from app.services.db_service import db_service
 
 router = APIRouter()
 
