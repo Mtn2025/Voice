@@ -80,32 +80,45 @@ async def dashboard(
     # We must ensure they are serializable dicts
     azure_voices_raw = tts_provider.get_available_voices()
     
-    if isinstance(azure_voices_raw, dict):
+    # Updated Logic for List[Dict] from Provider (Source: AzureProvider.get_available_voices)
+    if isinstance(azure_voices_raw, list):
+        for v in azure_voices_raw:
+            # Check for required dict keys
+            if not isinstance(v, dict): continue
+            
+            locale = v.get("locale")
+            if not locale: continue
+
+            # Initialize locale list if missing
+            if locale not in voices["azure"]:
+                voices["azure"][locale] = []
+
+            # Add normalized voice object
+            voices["azure"][locale].append({
+                "id": v.get("id"),
+                "name": v.get("name"),
+                "gender": v.get("gender", "female").lower()
+            })
+            
+    # Legacy Dict Support (Backward Auto-Compat)
+    elif isinstance(azure_voices_raw, dict):
         for lang, v_list in azure_voices_raw.items():
             voices["azure"][lang] = []
             for v in v_list:
-                # v might be an object or dict. Handle both.
                 v_dict = {}
-                if hasattr(v, "id") and hasattr(v, "name"):
-                    # Extract gender if available, default to 'female'
-                    gender = getattr(v, "gender", "female")
-                    if hasattr(gender, "name"): gender = gender.name # Handle Enum
-                    v_dict = {
-                        "id": v.short_name if hasattr(v, "short_name") else v.id, 
-                        "name": v.local_name if hasattr(v, "local_name") else v.name, 
-                        "gender": str(gender).lower()
-                    }
-                    # Fallback if short_name/local_name not present but id/name are
-                    if not v_dict["id"]: v_dict["id"] = v.id
-                    if not v_dict["name"]: v_dict["name"] = v.name
-
+                # Handle Object with attributes
+                if hasattr(v, "id"):
+                     v_dict = {
+                        "id": v.id, 
+                        "name": getattr(v, "local_name", getattr(v, "name", v.id)),
+                        "gender": str(getattr(v, "gender", "female")).lower()
+                     }
+                # Handle Dict
                 elif isinstance(v, dict):
                     v_dict = v
-                elif isinstance(v, str):
-                    v_dict = {"id": v, "name": v, "gender": "female"}
                 
                 if v_dict:
-                     voices["azure"][lang].append(v_dict)
+                    voices["azure"][lang].append(v_dict)
 
     # 2. Static Fallback (CRITICAL for valid UI if API fails)
     if not voices["azure"]:
