@@ -261,113 +261,107 @@ async def update_core_config(
 
 @router.post("/api/config/update", deprecated=True, dependencies=[Depends(verify_api_key)])
 async def update_config(
-    system_prompt: str = Form(...),
-    temperature: float = Form(...), # Restore temperature
-    voice_speed: float = Form(...),
-    voice_speed_phone: float = Form(0.9), # New
-    voice_name: str = Form("es-MX-DaliaNeural"),
-    voice_style: str = Form(None), # New
-    stt_language: str = Form("es-MX"), # New
-    llm_model: str = Form("llama-3.3-70b-versatile"), # New
-    background_sound: str = Form("none"), # New
-    idle_timeout: float = Form(10.0), # New
-    idle_message: str = Form("¿Hola? ¿Sigue ahí?"), # New
-    inactivity_max_retries: int = Form(3), # New: Retries
-    max_duration: int = Form(600), # New
-    interruption_threshold: int = Form(5), # New
-    interruption_threshold_phone: int = Form(2), # New
+    system_prompt: str = Form(None),
+    temperature: float = Form(None), 
+    voice_speed: float = Form(None),
+    voice_speed_phone: float = Form(None), 
+    voice_name: str = Form(None),
+    voice_style: str = Form(None), 
+    stt_language: str = Form(None), 
+    llm_model: str = Form(None), 
+    background_sound: str = Form(None), 
+    idle_timeout: float = Form(None), 
+    idle_message: str = Form(None), 
+    inactivity_max_retries: int = Form(None), 
+    max_duration: int = Form(None), 
+    interruption_threshold: int = Form(None), 
+    interruption_threshold_phone: int = Form(None), 
 
     # Audit Fixes Round 2 & 3
-    hallucination_blacklist: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
-    hallucination_blacklist_phone: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
-    voice_pacing_ms: int = Form(300),
-    voice_pacing_ms_phone: int = Form(500),
+    hallucination_blacklist: str = Form(None),
+    hallucination_blacklist_phone: str = Form(None),
+    voice_pacing_ms: int = Form(None),
+    voice_pacing_ms_phone: int = Form(None),
     voice_name_phone: str = Form(None),
     voice_style_phone: str = Form(None),
-    input_min_characters_phone: int = Form(4),
+    input_min_characters_phone: int = Form(None),
 
     # Phone Model & Prompt
     system_prompt_phone: str = Form(None),
     first_message_phone: str = Form(None),
-    first_message_mode_phone: str = Form("speak-first"),
-    max_tokens_phone: int = Form(250),
-    llm_provider_phone: str = Form("groq"),
+    first_message_mode_phone: str = Form(None),
+    max_tokens_phone: int = Form(None),
+    llm_provider_phone: str = Form(None),
     llm_model_phone: str = Form(None),
-    stt_provider_phone: str = Form("azure"),
-    stt_language_phone: str = Form("es-US"),
-    temperature_phone: float = Form(0.7),
+    stt_provider_phone: str = Form(None),
+    stt_language_phone: str = Form(None),
+    temperature_phone: float = Form(None),
 
     # Twilio Specific
-    enable_denoising_phone: bool = Form(True),
-    twilio_machine_detection: str = Form("Enable"),
-    twilio_record: bool = Form(False),
-    twilio_recording_channels: str = Form("dual"),
-    twilio_trim_silence: bool = Form(True),
-    initial_silence_timeout_ms_phone: int = Form(5000),
-
-    # Twilio (Renamed in UI, kept here for backend compatibility if needed, but mostly 'phone' suffixes covers it)
-    # The 'phone' fields above map to Twilio.
+    enable_denoising_phone: bool = Form(None),
+    twilio_machine_detection: str = Form(None),
+    twilio_record: bool = Form(None),
+    twilio_recording_channels: str = Form(None),
+    twilio_trim_silence: bool = Form(None),
+    initial_silence_timeout_ms_phone: int = Form(None),
 
     # Telnyx Specific
-    stt_provider_telnyx: str = Form("azure"),
-    stt_language_telnyx: str = Form("es-MX"),
-    llm_provider_telnyx: str = Form("groq"),
-    llm_model_telnyx: str = Form("llama-3.3-70b-versatile"),
+    stt_provider_telnyx: str = Form(None),
+    stt_language_telnyx: str = Form(None),
+    llm_provider_telnyx: str = Form(None),
+    llm_model_telnyx: str = Form(None),
     system_prompt_telnyx: str = Form(None),
-    voice_name_telnyx: str = Form("es-MX-DaliaNeural"),
+    voice_name_telnyx: str = Form(None),
     voice_style_telnyx: str = Form(None),
-    temperature_telnyx: float = Form(0.7),
-    first_message_telnyx: str = Form("Hola, soy Andrea de Ubrokers. ¿Me escucha bien?"),
-    first_message_mode_telnyx: str = Form("speak-first"),
-    max_tokens_telnyx: int = Form(250),
-    initial_silence_timeout_ms_telnyx: int = Form(5000),
-    input_min_characters_telnyx: int = Form(4),
-    enable_denoising_telnyx: bool = Form(True),
-    voice_pacing_ms_telnyx: int = Form(500),
-    silence_timeout_ms_telnyx: int = Form(1200),
-    interruption_threshold_telnyx: int = Form(2),
-    hallucination_blacklist_telnyx: str = Form("Pero.,Y...,Mm.,Oye.,Ah."),
-    voice_speed_telnyx: float = Form(0.9),
-    voice_sensitivity_telnyx: int = Form(3000),
-    enable_krisp_telnyx: bool = Form(True),
-    enable_vad_telnyx: bool = Form(True),
+    temperature_telnyx: float = Form(None),
+    first_message_telnyx: str = Form(None),
+    first_message_mode_telnyx: str = Form(None),
+    max_tokens_telnyx: int = Form(None),
+    initial_silence_timeout_ms_telnyx: int = Form(None),
+    input_min_characters_telnyx: int = Form(None),
+    enable_denoising_telnyx: bool = Form(None),
+    voice_pacing_ms_telnyx: int = Form(None),
+    silence_timeout_ms_telnyx: int = Form(None),
+    interruption_threshold_telnyx: int = Form(None),
+    hallucination_blacklist_telnyx: str = Form(None),
+    voice_speed_telnyx: float = Form(None),
+    voice_sensitivity_telnyx: int = Form(None),
+    enable_krisp_telnyx: bool = Form(None),
+    enable_vad_telnyx: bool = Form(None),
 
     # Telnyx Advanced
-    idle_timeout_telnyx: float = Form(20.0),
-    max_duration_telnyx: int = Form(600),
-    idle_message_telnyx: str = Form("¿Hola? ¿Sigue ahí?"),
-    enable_recording_telnyx: bool = Form(False),
-    amd_config_telnyx: str = Form("disabled"),
+    idle_timeout_telnyx: float = Form(None),
+    max_duration_telnyx: int = Form(None),
+    idle_message_telnyx: str = Form(None),
+    enable_recording_telnyx: bool = Form(None),
+    amd_config_telnyx: str = Form(None),
 
-    # 🔒 LOCKED: MODEL & CORE ARGS (DO NOT EDIT)
-    # (Includes Voice Settings above)
-    # Stage 1: Model & Voice
-    first_message: str = Form("Hola, soy Andrea..."),
-    first_message_mode: str = Form("speak-first"),
-    max_tokens: int = Form(250),
+    # 🔒 LOCKED: MODEL & CORE ARGS
+    first_message: str = Form(None),
+    first_message_mode: str = Form(None),
+    max_tokens: int = Form(None),
     voice_id_manual: str = Form(None),
     background_sound_url: str = Form(None),
-    input_min_characters: int = Form(3),
+    input_min_characters: int = Form(None),
 
     # Stage 2: Transcriber
-    silence_timeout_ms: int = Form(500),
-    silence_timeout_ms_phone: int = Form(1200), # New
-    segmentation_max_time: int = Form(30000),
-    segmentation_strategy: str = Form("default"),
-    enable_denoising: bool = Form(True), # Careful with boolean checkbox
-    initial_silence_timeout_ms: int = Form(5000), # New
-    punctuation_boundaries: str = Form(None), # New - FIXED
+    silence_timeout_ms: int = Form(None),
+    silence_timeout_ms_phone: int = Form(None), 
+    segmentation_max_time: int = Form(None),
+    segmentation_strategy: str = Form(None),
+    enable_denoising: bool = Form(None), 
+    initial_silence_timeout_ms: int = Form(None), 
+    punctuation_boundaries: str = Form(None), 
 
-    # 🔒 LOCKED: TRANSCRIBING & FUNCTIONS (DO NOT EDIT)
-    # Stage 2: Functions
-    enable_end_call: bool = Form(True),
-    enable_dial_keypad: bool = Form(False),
+    # 🔒 LOCKED: TRANSCRIBING & FUNCTIONS
+    enable_end_call: bool = Form(None),
+    enable_dial_keypad: bool = Form(None),
     transfer_phone_number: str = Form(None),
 
-    stt_provider: str = Form(...),
-    llm_provider: str = Form(...),
-    tts_provider: str = Form(...),
-    extraction_model: str = Form("llama-3.1-8b-instant")
+    stt_provider: str = Form(None),
+    llm_provider: str = Form(None),
+    tts_provider: str = Form(None),
+    extraction_model: str = Form(None)
 ):
     await db_service.update_agent_config(
         system_prompt=system_prompt,
