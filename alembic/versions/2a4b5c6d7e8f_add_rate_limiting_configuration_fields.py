@@ -20,7 +20,8 @@ def upgrade():
     # Add rate limiting columns to agent_configs
     op.add_column('agent_configs', sa.Column('rate_limit_global', sa.Integer(), nullable=True, server_default='200'))
     op.add_column('agent_configs', sa.Column('rate_limit_twilio', sa.Integer(), nullable=True, server_default='30'))
-    op.add_column('agent_configs', sa.Column('rate_limit_telnyx', sa.Column('rate_limit_websocket', sa.Integer(), nullable=True, server_default='100'))
+    op.add_column('agent_configs', sa.Column('rate_limit_telnyx', sa.Integer(), nullable=True, server_default='50'))
+    op.add_column('agent_configs', sa.Column('rate_limit_websocket', sa.Integer(), nullable=True, server_default='100'))
     
     # Add provider limit columns
     op.add_column('agent_configs', sa.Column('limit_groq_tokens_per_min', sa.Integer(), nullable=True, server_default='100000'))
