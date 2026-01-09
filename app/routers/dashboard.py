@@ -418,7 +418,8 @@ async def update_config(
     stt_provider: str = Form(None),
     llm_provider: str = Form(None),
     tts_provider: str = Form(None),
-    extraction_model: str = Form(None)
+    extraction_model: str = Form(None),
+    db: AsyncSession = Depends(get_db)
 ):
     try:
         def parse_float(v):
