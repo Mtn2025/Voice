@@ -669,7 +669,10 @@ class VoiceOrchestrator:
 
             if sentence_buffer.strip():
                 logging.info(f"🔊 [OUT] TTS SENTENCE: {sentence_buffer}")
-                await self._process_tts_chunk(sentence_buffer)
+                # FIX: Synthesize text -> Audio Bytes first!
+                audio_bytes = await self._synthesize_text(sentence_buffer)
+                if audio_bytes:
+                    await self._process_tts_chunk(audio_bytes)
             sentence_buffer = ""
 
         return sentence_buffer, should_hangup
