@@ -1042,44 +1042,24 @@
                 },
 
 
-                let exponent = 0; // optimized check
-                // ... Very simplified lookup or logic
-                // Using standard G.711 algo abbreviated:
-                let mask = 0x4000;  // 1 << 14
-                for(let i = 0; i < 7; i++) {
-                if (sample & mask) { exponent = 7 - i; break; }
-                mask >>= 1;
-            }
-            let mantissa = (sample >> (exponent + 3)) & 0x0F;
-            return ~(sign | (exponent << 4) | mantissa);
-        },
 
-        arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            for (let i = 0; i < bytes.byteLength; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.btoa(binary);
-        },
+                saveConfig() {
+                    // Update Form Action with API Key
+                    const form = document.getElementById('configForm');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const apiKey = urlParams.get('api_key');
 
-        saveConfig() {
-            // Update Form Action with API Key
-            const form = document.getElementById('configForm');
-            const urlParams = new URLSearchParams(window.location.search);
-            const apiKey = urlParams.get('api_key');
+                    if (apiKey) {
+                        const actionUrl = new URL(form.action, window.location.origin);
+                        actionUrl.searchParams.set('api_key', apiKey);
+                        form.action = actionUrl.toString();
+                    }
 
-            if (apiKey) {
-                const actionUrl = new URL(form.action, window.location.origin);
-                actionUrl.searchParams.set('api_key', apiKey);
-                form.action = actionUrl.toString();
-            }
-
-            // Alpine automatically binds inputs. 
-            // The hidden inputs are populated by :value="configs..." attributes
-            // Form Submit triggers browser POST with those values.
-            form.submit();
-        }
+                    // Alpine automatically binds inputs. 
+                    // The hidden inputs are populated by :value="configs..." attributes
+                    // Form Submit triggers browser POST with those values.
+                    form.submit();
+                }
             }
         }
     </script>
