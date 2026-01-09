@@ -810,7 +810,7 @@
                 },
 
                 updateModelList() {
-                    let prov = this.c.provider;
+                    let prov = (this.c.provider || 'openai').toLowerCase();
                     this.availableModels = this.models[prov] || [];
                     // Ensure valid selection
                     if (this.c.model && !this.availableModels.find(m => m.id === this.c.model)) {
@@ -819,7 +819,7 @@
                 },
 
                 updateVoiceLists() {
-                    let prov = this.c.voiceProvider || 'azure';
+                    let prov = (this.c.voiceProvider || 'azure').toLowerCase();
                     this.availableLanguages = this.languages[prov] || [];
 
                     // Validate Lang
@@ -876,10 +876,21 @@
                 },
 
                 saveConfig() {
+                    // Update Form Action with API Key
+                    const form = document.getElementById('configForm');
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const apiKey = urlParams.get('api_key');
+                    
+                    if (apiKey) {
+                        const actionUrl = new URL(form.action, window.location.origin);
+                        actionUrl.searchParams.set('api_key', apiKey);
+                        form.action = actionUrl.toString();
+                    }
+
                     // Alpine automatically binds inputs. 
                     // The hidden inputs are populated by :value="configs..." attributes
                     // Form Submit triggers browser POST with those values.
-                    document.getElementById('configForm').submit();
+                    form.submit();
                 }
             }
         }
