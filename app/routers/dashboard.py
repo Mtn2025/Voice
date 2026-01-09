@@ -53,9 +53,7 @@ async def dashboard(
         azure_langs = [{"id": "es-MX", "name": "Español (México)"}, {"id": "en-US", "name": "English (US)"}]
 
     languages = {
-        "azure": azure_langs,
-        "openai": [{"id": "en", "name": "English"}, {"id": "es", "name": "Spanish"}],
-        "elevenlabs": [{"id": "en", "name": "English"}, {"id": "es", "name": "Spanish"}]
+        "azure": azure_langs
     }
 
     voice_styles = tts_provider.get_voice_styles()
@@ -66,17 +64,14 @@ async def dashboard(
     # Normalize: Ensure list of dicts
     groq_models = [{"id": m, "name": m} if isinstance(m, str) else m for m in groq_models_raw]
     
-    # Structure models for frontend: { 'groq': [...], 'openai': [...], ... }
+    # Structure models for frontend: { 'groq': [...], 'azure': [...] }
     models = {
         "groq": groq_models,
-        "openai": [{"id": "gpt-4o", "name": "GPT-4o"}, {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo"}], # Static fallback
         "azure": [{"id": "gpt-4", "name": "Azure GPT-4"}] # Static fallback
     }
 
     voices = {
-        "azure": {},
-        "openai": {}, 
-        "elevenlabs": {} 
+        "azure": {}
     }
 
     # Voices - AzureProvider.get_available_voices() usually returns {lang: [Voice...]}
@@ -533,10 +528,13 @@ async def update_config(
         final_data = {k: v for k, v in update_data.items() if v is not None}
         await db_service.update_agent_config(db, **final_data)
 
-        # Persist to .env
-        from app.core.config_utils import update_env_file
-        updates = {k.upper(): v for k, v in final_data.items()}
-        update_env_file(updates)
+        # Persist to .env (Best Effort)
+        try:
+            from app.core.config_utils import update_env_file
+            updates = {k.upper(): v for k, v in final_data.items()}
+            update_env_file(updates)
+        except Exception as e:
+            logging.warning(f"Could not update .env file (likely read-only permission): {e}")
 
         return RedirectResponse(url="/dashboard?success=true", status_code=303)
     
