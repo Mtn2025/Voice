@@ -969,6 +969,22 @@
                     }
                 },
 
+                stopTest() {
+                    this.simState = 'ready';
+                    if (this.ws) {
+                        this.ws.close();
+                        this.ws = null;
+                    }
+                    if (this.audioContext) {
+                        this.audioContext.close();
+                        this.audioContext = null;
+                    }
+                    if (this.mediaStream) {
+                        this.mediaStream.getTracks().forEach(t => t.stop());
+                        this.mediaStream = null;
+                    }
+                },
+
                 playAudio(base64Data) {
                     if (!base64Data) return;
                     console.log(`[AUDIO] Received ${base64Data.length} bytes. Context State: ${this.audioContext.state}`);
