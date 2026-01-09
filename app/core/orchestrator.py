@@ -234,7 +234,8 @@ class VoiceOrchestrator:
             self.conversation_history.append({"role": "assistant", "content": text})
             if self.stream_id:
                logging.info(f"💾 [LOG-DB] ASSISTANT: {text}")
-               await db_service.log_transcript(self.stream_id, "assistant", text + " [IDLE]", call_db_id=self.call_db_id)
+               async with AsyncSessionLocal() as session:
+                   await db_service.log_transcript(session, self.stream_id, "assistant", text + " [IDLE]", call_db_id=self.call_db_id)
 
         except Exception as e:
             logging.error(f"Idle/Direct output error: {e}")
@@ -547,7 +548,8 @@ class VoiceOrchestrator:
              await self.websocket.send_text(json.dumps({"type": "transcript", "role": "user", "text": text}))
 
         if self.stream_id:
-            await db_service.log_transcript(self.stream_id, "user", text, call_db_id=self.call_db_id)
+            async with AsyncSessionLocal() as session:
+                await db_service.log_transcript(session, self.stream_id, "user", text, call_db_id=self.call_db_id)
 
         self.conversation_history.append({"role": "user", "content": text})
 
@@ -679,12 +681,9 @@ class VoiceOrchestrator:
             await self._process_tts_chunk(sentence_buffer)
 
         # 2. Log Full Transcript (Success Path)
-        if self.stream_id and full_response:
-             # Use ensure_future or await? Await is safer for order.
-             # But here we might be inside a task.
-             # We need session? db_service.log_transcript usually creates one specific or uses one.
-             # Checking usage above: await db_service.log_transcript(..., call_db_id=...)
-             await db_service.log_transcript(self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
+             if self.stream_id and full_response:
+                 async with AsyncSessionLocal() as session:
+                     await db_service.log_transcript(session, self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
 
         # 3. Update Conversation History (Common Path)
         # Note: If exception occurred, finally block will double check partials.
