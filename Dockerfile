@@ -160,7 +160,7 @@ RUN chmod +x scripts/startup.sh
 
 # Set environment
 ENV PATH=/home/app/.local/bin:$PATH
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/home/app/.local/lib/python3.11/site-packages:/app
 ENV PYTHONUNBUFFERED=1
 
 # Health check - calls /health endpoint
