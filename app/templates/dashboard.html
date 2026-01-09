@@ -622,16 +622,19 @@
                         <span class="text-xl">🧪</span>
                         <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
                     </div>
-                    <button
-                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 transition-all">
-                        Iniciar Prueba
+                    <button @click="startTest()"
+                        :class="{'bg-red-600 hover:bg-red-500': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500': simState !== 'connected'}"
+                        class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 transition-all border border-white/10"
+                        x-text="simState === 'connected' ? 'Detener' : (simState === 'connecting' ? 'Conectando...' : 'Iniciar Prueba')">
                     </button>
                 </div>
 
                 <!-- VISUALIZER AREA -->
                 <div
                     class="glass-panel h-[400px] rounded-xl flex items-center justify-center p-6 mb-4 relative overflow-hidden bg-black/40">
-                    <p class="text-mono text-emerald-500/50 animate-pulse">Listo para conectar...</p>
+                    <p class="text-mono text-emerald-500/50" :class="{'animate-pulse': simState === 'connecting'}"
+                        x-text="simState === 'connected' ? 'En Línea' : (simState === 'connecting' ? 'Conectando...' : 'Listo para conectar...')">
+                    </p>
                 </div>
 
                 <!-- TRANSCRIPT -->
@@ -870,6 +873,169 @@
                 shouldShowTab(t) {
                     if (t === 'Conexión' && this.activeProfile === 'browser') return false;
                     return true;
+                },
+
+                // SIMULATOR STATE
+                simState: 'ready', // ready, connecting, connected
+                ws: null,
+                audioContext: null,
+                mediaStream: null,
+                processor: null,
+
+                async startTest() {
+                    if (this.simState === 'connected' || this.simState === 'connecting') {
+                        this.stopTest();
+                        return;
+                    }
+
+                    this.simState = 'connecting';
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
+
+                    try {
+                        this.ws = new WebSocket(wsUrl);
+
+                        this.ws.onopen = () => {
+                            console.log("WS Connected");
+                            this.simState = 'connected';
+                            this.initAudio();
+
+                            // Send Start Event (Mimic Twilio/Telnyx)
+                            this.ws.send(JSON.stringify({
+                                event: 'start',
+                                start: {
+                                    streamSid: 'browser-' + Date.now(),
+                                    callSid: 'sim-' + Date.now(),
+                                    media_format: { encoding: 'audio/x-mulaw', sample_rate: 8000, channels: 1 }
+                                }
+                            }));
+                        };
+
+                        this.ws.onmessage = (event) => {
+                            const msg = JSON.parse(event.data);
+                            if (msg.event === 'media') {
+                                this.playAudio(msg.media.payload);
+                            }
+                        };
+
+                        this.ws.onclose = () => {
+                            console.log("WS Closed");
+                            this.stopTest();
+                        };
+
+                        this.ws.onerror = (e) => {
+                            console.error("WS Error", e);
+                            this.stopTest();
+                        };
+
+                    } catch (e) {
+                        console.error("Connection failed", e);
+                        this.stopTest();
+                    }
+                },
+
+                stopTest() {
+                    this.simState = 'ready';
+                    if (this.ws) {
+                        this.ws.close();
+                        this.ws = null;
+                    }
+                    if (this.audioContext) {
+                        this.audioContext.close();
+                        this.audioContext = null;
+                    }
+                    if (this.mediaStream) {
+                        this.mediaStream.getTracks().forEach(t => t.stop());
+                        this.mediaStream = null;
+                    }
+                },
+
+                async initAudio() {
+                    try {
+                        this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 8000 });
+                        const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+
+                        // Downsample/Processing
+                        this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+
+                        source.connect(this.processor);
+                        this.processor.connect(this.audioContext.destination);
+
+                        this.processor.onaudioprocess = (e) => {
+                            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+                            const inputData = e.inputBuffer.getChannelData(0);
+                            // Convert Float32 to Int16 -> Mu-Law
+                            const mulawData = this.floatToMulaw(inputData);
+
+                            // Base64 Encode
+                            const base64Audio = this.arrayBufferToBase64(mulawData);
+
+                            this.ws.send(JSON.stringify({
+                                event: 'media',
+                                media: {
+                                    payload: base64Audio,
+                                    track: 'inbound'
+                                }
+                            }));
+                        };
+                    } catch (e) {
+                        console.error("Audio Init Failed", e);
+                        alert("Microphone access denied or error.");
+                        this.stopTest();
+                    }
+                },
+
+                playAudio(base64Data) {
+                    // Simple playback: Decode Base64 -> Mu-law -> AudioBuffer -> Source
+                    // For now, let's assuming backend sends valid audio.
+                    // Implementation of playback can be complex. 
+                    // To keep it simple, we just log "Audio Received" for verification first.
+                    console.log("Received Audio Chunk: " + base64Data.length);
+                    // TODO: Implement proper browser playback for mu-law if needed. 
+                    // Browser supports decoding via decodeAudioData if WAV header added, 
+                    // but raw chunks are harder.
+                    // Ideally we should use a worklet or just decode manually.
+                },
+
+                // Utils
+                floatToMulaw(samples) {
+                    const buffer = new Uint8Array(samples.length);
+                    for (let i = 0; i < samples.length; i++) {
+                        let sample = Math.max(-1, Math.min(1, samples[i]));
+                        sample = Math.floor(sample * 32767);
+                        buffer[i] = this.encodeMuLaw(sample);
+                    }
+                    return buffer;
+                },
+
+                encodeMuLaw(sample) {
+                    const BIAS = 0x84;
+                    const CLIP = 32635;
+                    let sign = (sample >> 8) & 0x80;
+                    if (sign !== 0) sample = -sample;
+                    if (sample > CLIP) sample = CLIP;
+                    sample += BIAS;
+                    let exponent = 0; // optimized check
+                    // ... Very simplified lookup or logic
+                    // Using standard G.711 algo abbreviated:
+                    let mask = 0x4000;  // 1 << 14
+                    for (let i = 0; i < 7; i++) {
+                        if (sample & mask) { exponent = 7 - i; break; }
+                        mask >>= 1;
+                    }
+                    let mantissa = (sample >> (exponent + 3)) & 0x0F;
+                    return ~(sign | (exponent << 4) | mantissa);
+                },
+
+                arrayBufferToBase64(buffer) {
+                    let binary = '';
+                    const bytes = new Uint8Array(buffer);
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return window.btoa(binary);
                 },
 
                 saveConfig() {
