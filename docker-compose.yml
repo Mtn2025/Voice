@@ -19,9 +19,17 @@ services:
     container_name: voice_orchestrator
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     environment:
-      # ✅ Interpolación desde .env - NO hardcoded
-      # Docker Compose sustituye ${VAR} con valores de .env
-      # - DATABASE_URL=... (Removed: constructed dynamically in app/core/config.py with URL encoding)
+      # ✅ Explicitly map Host Variables (Coolify) to Container
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_SERVER=${POSTGRES_SERVER:-db}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - TELNYX_API_KEY=${TELNYX_API_KEY}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
