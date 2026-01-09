@@ -153,7 +153,6 @@
                                     LLM</label>
                                 <select x-model="c.provider" @change="updateModelList()"
                                     class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                    <option value="openai">OpenAI</option>
                                     <option value="groq">Groq</option>
                                     <option value="azure">Azure OpenAI</option>
                                 </select>
@@ -226,8 +225,6 @@
                                 <select x-model="c.voiceProvider" @change="updateVoiceLists()"
                                     class="glass-input w-full p-2.5 rounded-lg text-sm">
                                     <option value="azure">Azure</option>
-                                    <option value="elevenlabs">ElevenLabs</option>
-                                    <option value="openai">OpenAI</option>
                                 </select>
                             </div>
                             <div>
@@ -880,7 +877,7 @@
                     const form = document.getElementById('configForm');
                     const urlParams = new URLSearchParams(window.location.search);
                     const apiKey = urlParams.get('api_key');
-                    
+
                     if (apiKey) {
                         const actionUrl = new URL(form.action, window.location.origin);
                         actionUrl.searchParams.set('api_key', apiKey);
