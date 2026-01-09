@@ -40,9 +40,25 @@ async def dashboard(
 
     # Voices
     tts_provider = AzureProvider() # Lightweight init
-    voices = tts_provider.get_available_voices()
-    voice_styles = tts_provider.get_voice_styles() # New
-    languages = tts_provider.get_available_languages()
+    # voice_styles = tts_provider.get_voice_styles() 
+    # MOVED Styles below voices to keep logic grouped
+    
+    # Languages - Mapped by Provider
+    azure_langs_raw = tts_provider.get_available_languages()
+    # Normalize
+    azure_langs = [{"id": l, "name": l} if isinstance(l, str) else l for l in azure_langs_raw]
+    
+    # Fallback
+    if not azure_langs:
+        azure_langs = [{"id": "es-MX", "name": "Español (México)"}, {"id": "en-US", "name": "English (US)"}]
+
+    languages = {
+        "azure": azure_langs,
+        "openai": [{"id": "en", "name": "English"}, {"id": "es", "name": "Spanish"}],
+        "elevenlabs": [{"id": "en", "name": "English"}, {"id": "es", "name": "Spanish"}]
+    }
+
+    voice_styles = tts_provider.get_voice_styles()
 
     # Models
     llm_provider = GroqProvider()
