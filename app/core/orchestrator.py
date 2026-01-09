@@ -613,6 +613,18 @@ class VoiceOrchestrator:
 
         await self.send_audio_chunked(audio_data)
 
+    def _build_system_prompt(self) -> str:
+        """Builds the system prompt with dynamic context (Date/Time)."""
+        base_prompt = getattr(self.config, 'system_prompt', "Eres un asistente útil.")
+        
+        # Add Time Context
+        import datetime
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        context_prompt = f"{base_prompt}\n\n[CONTEXT]\nCurrent Date/Time: {now}\n"
+        
+        return context_prompt
+
     async def _handle_stream_token(self, text_chunk: str, sentence_buffer: str, should_hangup: bool) -> tuple[str, bool]:
         """
         Processes a single token from LLM stream:
