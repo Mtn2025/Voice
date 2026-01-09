@@ -60,6 +60,10 @@ async def lifespan(app: FastAPI):
     from alembic import command
     from alembic.config import Config
     try:
+        # DB DEBUG
+        db_url_safe = settings.DATABASE_URL.split("@")[-1]  # Show only host/db part
+        logger.info(f"🔌 Connecting to Database at: ...@{db_url_safe}")
+        
         logger.info("Running database migrations...")
         alembic_cfg = Config("alembic.ini")
         command.upgrade(alembic_cfg, "head")
