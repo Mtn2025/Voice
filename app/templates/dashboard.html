@@ -866,10 +866,17 @@
 
                 updateStyleList() {
                     let vid = this.c.voiceId;
-                    this.availableStyles = this.styles[vid] || this.styles['default'] || [];
+                    let rawStyles = this.styles[vid] || this.styles['default'] || [];
+
+                    // Normalize strings to objects for UI template (which expects s.id and s.label)
+                    this.availableStyles = rawStyles.map(s => {
+                        if (typeof s === 'string') return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
+                        return s;
+                    });
+
                     // Validate Style
                     if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
-                        this.c.voiceStyle = '';
+                        this.c.voiceStyle = ''; // Reset to default if current style not valid for this voice
                     }
                 },
 
