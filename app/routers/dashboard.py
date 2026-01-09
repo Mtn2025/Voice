@@ -46,7 +46,9 @@ async def dashboard(
 
     # Models
     llm_provider = GroqProvider()
-    groq_models = await llm_provider.get_available_models()
+    groq_models_raw = await llm_provider.get_available_models()
+    # Normalize: Ensure list of dicts
+    groq_models = [{"id": m, "name": m} if isinstance(m, str) else m for m in groq_models_raw]
     
     # Structure models for frontend: { 'groq': [...], 'openai': [...], ... }
     models = {
