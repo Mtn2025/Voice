@@ -890,6 +890,19 @@
                         return;
                     }
 
+                    // 1. Initialize AudioContext on User Click (Vital for Autoplay)
+                    try {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 8000 });
+                        if (this.audioContext.state === 'suspended') {
+                            await this.audioContext.resume();
+                        }
+                        console.log("AudioContext Initialized. State:", this.audioContext.state);
+                    } catch (e) {
+                        console.error("Audio Context Init Failed", e);
+                        alert("Audio Error: " + e.message);
+                        return;
+                    }
+
                     this.simState = 'connecting';
                     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                     const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
@@ -900,7 +913,7 @@
                         this.ws.onopen = () => {
                             console.log("WS Connected");
                             this.simState = 'connected';
-                            this.initAudio();
+                            this.initMicrophone(); // Logic split
 
                             // Send Start Event (Mimic Twilio/Telnyx)
                             this.ws.send(JSON.stringify({
@@ -915,20 +928,15 @@
 
                         this.ws.onmessage = (event) => {
                             const msg = JSON.parse(event.data);
-                            if (msg.event === 'media') {
-                                this.playAudio(msg.media.payload);
+                            if (msg.event === 'media' || msg.type === 'audio') { // Handle both formats
+                                const payload = msg.media ? msg.media.payload : msg.data;
+                                this.playAudio(payload);
                             }
                         };
 
-                        this.ws.onclose = () => {
-                            console.log("WS Closed");
-                            this.stopTest();
-                        };
-
-                        this.ws.onerror = (e) => {
-                            console.error("WS Error", e);
-                            this.stopTest();
-                        };
+                        // ... (rest of WS handlers) ...
+                        this.ws.onclose = () => { console.log("WS Closed"); this.stopTest(); };
+                        this.ws.onerror = (e) => { console.error("WS Error", e); this.stopTest(); };
 
                     } catch (e) {
                         console.error("Connection failed", e);
@@ -936,76 +944,43 @@
                     }
                 },
 
-                stopTest() {
-                    this.simState = 'ready';
-                    if (this.ws) {
-                        this.ws.close();
-                        this.ws = null;
-                    }
-                    if (this.audioContext) {
-                        this.audioContext.close();
-                        this.audioContext = null;
-                    }
-                    if (this.mediaStream) {
-                        this.mediaStream.getTracks().forEach(t => t.stop());
-                        this.mediaStream = null;
-                    }
-                },
-
-                async initAudio() {
+                async initMicrophone() {
                     try {
                         this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 8000 });
                         const source = this.audioContext.createMediaStreamSource(this.mediaStream);
-
-                        // Downsample/Processing
                         this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-
                         source.connect(this.processor);
                         this.processor.connect(this.audioContext.destination);
 
                         this.processor.onaudioprocess = (e) => {
                             if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-
                             const inputData = e.inputBuffer.getChannelData(0);
-                            // Convert Float32 to Int16 -> Mu-Law
                             const mulawData = this.floatToMulaw(inputData);
-
-                            // Base64 Encode
                             const base64Audio = this.arrayBufferToBase64(mulawData);
-
                             this.ws.send(JSON.stringify({
                                 event: 'media',
-                                media: {
-                                    payload: base64Audio,
-                                    track: 'inbound'
-                                }
+                                media: { payload: base64Audio, track: 'inbound' }
                             }));
                         };
                     } catch (e) {
-                        console.error("Audio Init Failed", e);
-                        alert("Microphone access denied or error.");
+                        console.error("Mic Access Failed", e);
+                        alert("Microphone Error: " + e.message);
                         this.stopTest();
                     }
                 },
 
                 playAudio(base64Data) {
-                    // Simple playback: Decode Base64 -> Mu-law -> Float32 -> AudioBuffer -> Source
+                    if (!base64Data) return;
+                    console.log(`[AUDIO] Received ${base64Data.length} bytes. Context State: ${this.audioContext.state}`);
+
                     try {
                         const binaryString = window.atob(base64Data);
                         const len = binaryString.length;
                         const bytes = new Uint8Array(len);
-                        for (let i = 0; i < len; i++) {
-                            bytes[i] = binaryString.charCodeAt(i);
-                        }
+                        for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
 
-                        // Decode u-law to Float32
                         const float32 = new Float32Array(len);
-                        for (let i = 0; i < len; i++) {
-                            float32[i] = this.decodeMuLaw(bytes[i]);
-                        }
-
-                        if (!this.audioContext) return;
+                        for (let i = 0; i < len; i++) { float32[i] = this.decodeMuLaw(bytes[i]); }
 
                         const buffer = this.audioContext.createBuffer(1, len, 8000);
                         buffer.copyToChannel(float32, 0);
@@ -1014,7 +989,6 @@
                         source.buffer = buffer;
                         source.connect(this.audioContext.destination);
 
-                        // Schedule seamlessly
                         const currentTime = this.audioContext.currentTime;
                         if (!this.nextStartTime || this.nextStartTime < currentTime) {
                             this.nextStartTime = currentTime;
@@ -1022,7 +996,7 @@
                         source.start(this.nextStartTime);
                         this.nextStartTime += buffer.duration;
                     } catch (e) {
-                        console.error("Error playing audio chunk", e);
+                        console.error("Playback Error", e);
                     }
                 },
 

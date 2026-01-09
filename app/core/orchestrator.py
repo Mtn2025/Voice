@@ -88,6 +88,7 @@ class VoiceOrchestrator:
              # Browser is robust enough for gaps, but unification is cleaner.
              # Keeping legacy path for browser to avoid regression there.
              b64 = base64.b64encode(audio_data).decode("utf-8")
+             logging.info(f"📤 [BROWSER] Sending audio chunk: {len(audio_data)} bytes")
              await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
              return
 
