@@ -52,72 +52,12 @@ RUN echo "===== STAGE 3: Azure Speech SDK =====" && \
     azure-cognitiveservices-speech>=1.34.0 && \
     echo "✅ Stage 3 complete"
 
-# Stage 4: Individual package installation with diagnostics
-# Install EACH package separately to identify exact failure point
-
-RUN echo "===== STAGE 4.1: HTTP Client (httpx) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary httpx~=0.28.1 && \
-    echo "✅ httpx installed"
-
-RUN echo "===== STAGE 4.1b: LLM Client (Groq) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "groq>=1.0.0" && \
-    echo "✅ groq installed"
-
-RUN echo "===== STAGE 4.2: Forms (python-multipart) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary python-multipart~=0.0.21 && \
-    echo "✅ python-multipart installed"
-
-RUN echo "===== STAGE 4.3: Templates (jinja2) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary jinja2~=3.1.6 && \
-    echo "✅ jinja2 installed"
-
-# Stage 4.4: REMOVED - Twilio not used in production (only Telnyx)
-
-RUN echo "===== STAGE 4.5: Rate Limiting (slowapi) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary slowapi~=0.1.9 && \
-    echo "✅ slowapi installed"
-
-RUN echo "===== STAGE 4.6: Security - Cryptography =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "cryptography>=42.0.0,<45.0.0" && \
-    echo "✅ cryptography installed"
-
-RUN echo "===== STAGE 4.7: Security - h11 =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "h11>=0.16.0" && \
-    echo "✅ h11 installed"
-
-RUN echo "===== STAGE 4.8: Security - urllib3 =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "urllib3>=2.6.3" && \
-    echo "✅ urllib3 installed"
-
-RUN echo "===== STAGE 4.9: Security - httpcore =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "httpcore>=1.0.9" && \
-    echo "✅ httpcore installed"
-
-RUN echo "===== STAGE 4.10: Input Sanitization (markupsafe) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary markupsafe~=2.1.5 && \
-    echo "✅ markupsafe installed"
-
-RUN echo "===== STAGE 4.11: Redis Client =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "redis[hiredis]~=5.0.1" && \
-    echo "✅ redis installed"
-
-RUN echo "===== STAGE 4.12: Audio Processing (NumPy) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "numpy>=1.26.0" && \
-    echo "✅ numpy installed"
-
-RUN echo "===== STAGE 4.13: Monitoring (prometheus-client) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary "prometheus-client>=0.20.0" && \
-    echo "✅ prometheus-client installed"
-
-RUN echo "===== STAGE 4.14: Logging (python-json-logger) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary python-json-logger~=2.0.7 && \
-    echo "✅ python-json-logger installed"
-
-RUN echo "===== STAGE 4.15: Correlation ID (asgi-correlation-id) =====" && \
-    pip install -vv --no-cache-dir --user --prefer-binary asgi-correlation-id~=4.3.1 && \
-    echo "✅ asgi-correlation-id installed"
-
-RUN echo "✅✅✅ ALL STAGE 4 PACKAGES INSTALLED SUCCESSFULLY ✅✅✅"
+# Stage 4: Remaining packages
+# Reverting to standard install now that Twilio (the culprit) is removed.
+# This ensures all transitive dependencies (like itsdangerous) are correctly installed.
+RUN echo "===== STAGE 4: All Remaining Packages =====" && \
+    pip install --no-cache-dir --user --prefer-binary -r requirements.txt && \
+    echo "✅ Stage 4 complete"
 
 # =============================================================================
 # Stage 2: Runtime - Minimal production image
