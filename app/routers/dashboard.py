@@ -48,7 +48,7 @@ async def dashboard(
     llm_provider = GroqProvider()
     models = await llm_provider.get_available_models()
 
-    history = await db_service.get_recent_calls(limit=10) # New
+    history = await db_service.get_recent_calls(session=db, limit=10) # New
 
     # Helpers for serialization
     def model_to_dict(obj):
