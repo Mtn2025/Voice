@@ -57,14 +57,42 @@ async def dashboard(
         "azure": [{"id": "gpt-4", "name": "Azure GPT-4"}] # Static fallback
     }
 
-    # Voices - AzureProvider.get_available_voices() usually returns {lang: [voices]}
-    # Frontend expects: voices[provider][lang] -> list
-    azure_voices = tts_provider.get_available_voices()
     voices = {
-        "azure": azure_voices,
-        "openai": {}, # Placeholder
-        "elevenlabs": {} # Placeholder
+        "azure": {},
+        "openai": {}, 
+        "elevenlabs": {} 
     }
+
+    # Voices - AzureProvider.get_available_voices() usually returns {lang: [Voice...]}
+    # We must ensure they are serializable dicts
+    azure_voices_raw = tts_provider.get_available_voices()
+    
+    if isinstance(azure_voices_raw, dict):
+        for lang, v_list in azure_voices_raw.items():
+            voices["azure"][lang] = []
+            for v in v_list:
+                # v might be an object or dict. Handle both.
+                v_dict = {}
+                if hasattr(v, "id") and hasattr(v, "name"):
+                    # Extract gender if available, default to 'female'
+                    gender = getattr(v, "gender", "female")
+                    if hasattr(gender, "name"): gender = gender.name # Handle Enum
+                    v_dict = {
+                        "id": v.short_name if hasattr(v, "short_name") else v.id, 
+                        "name": v.local_name if hasattr(v, "local_name") else v.name, 
+                        "gender": str(gender).lower()
+                    }
+                    # Fallback if short_name/local_name not present but id/name are
+                    if not v_dict["id"]: v_dict["id"] = v.id
+                    if not v_dict["name"]: v_dict["name"] = v.name
+
+                elif isinstance(v, dict):
+                    v_dict = v
+                elif isinstance(v, str):
+                    v_dict = {"id": v, "name": v, "gender": "female"}
+                
+                if v_dict:
+                     voices["azure"][lang].append(v_dict)
     
     # Styles - AzureProvider.get_voice_styles() -> {voice_id: [styles]}
     # Frontend: this.styles[vid] -> list. This seems valid as is (keyed by Voice ID).
@@ -261,49 +289,50 @@ async def update_core_config(
 
 @router.post("/api/config/update", deprecated=True, dependencies=[Depends(verify_api_key)])
 async def update_config(
+    # Use str | None for EVERYTHING to prevent INT parsing errors on empty strings
     system_prompt: str = Form(None),
-    temperature: float = Form(None), 
-    voice_speed: float = Form(None),
-    voice_speed_phone: float = Form(None), 
+    temperature: str = Form(None), 
+    voice_speed: str = Form(None),
+    voice_speed_phone: str = Form(None), 
     voice_name: str = Form(None),
     voice_style: str = Form(None), 
     stt_language: str = Form(None), 
     llm_model: str = Form(None), 
     background_sound: str = Form(None), 
-    idle_timeout: float = Form(None), 
+    idle_timeout: str = Form(None), 
     idle_message: str = Form(None), 
-    inactivity_max_retries: int = Form(None), 
-    max_duration: int = Form(None), 
-    interruption_threshold: int = Form(None), 
-    interruption_threshold_phone: int = Form(None), 
+    inactivity_max_retries: str = Form(None), 
+    max_duration: str = Form(None), 
+    interruption_threshold: str = Form(None), 
+    interruption_threshold_phone: str = Form(None), 
 
     # Audit Fixes Round 2 & 3
     hallucination_blacklist: str = Form(None),
     hallucination_blacklist_phone: str = Form(None),
-    voice_pacing_ms: int = Form(None),
-    voice_pacing_ms_phone: int = Form(None),
+    voice_pacing_ms: str = Form(None),
+    voice_pacing_ms_phone: str = Form(None),
     voice_name_phone: str = Form(None),
     voice_style_phone: str = Form(None),
-    input_min_characters_phone: int = Form(None),
+    input_min_characters_phone: str = Form(None),
 
     # Phone Model & Prompt
     system_prompt_phone: str = Form(None),
     first_message_phone: str = Form(None),
     first_message_mode_phone: str = Form(None),
-    max_tokens_phone: int = Form(None),
+    max_tokens_phone: str = Form(None),
     llm_provider_phone: str = Form(None),
     llm_model_phone: str = Form(None),
     stt_provider_phone: str = Form(None),
     stt_language_phone: str = Form(None),
-    temperature_phone: float = Form(None),
+    temperature_phone: str = Form(None),
 
     # Twilio Specific
-    enable_denoising_phone: bool = Form(None),
+    enable_denoising_phone: str = Form(None), 
     twilio_machine_detection: str = Form(None),
-    twilio_record: bool = Form(None),
+    twilio_record: str = Form(None),
     twilio_recording_channels: str = Form(None),
-    twilio_trim_silence: bool = Form(None),
-    initial_silence_timeout_ms_phone: int = Form(None),
+    twilio_trim_silence: str = Form(None),
+    initial_silence_timeout_ms_phone: str = Form(None),
 
     # Telnyx Specific
     stt_provider_telnyx: str = Form(None),
@@ -313,49 +342,49 @@ async def update_config(
     system_prompt_telnyx: str = Form(None),
     voice_name_telnyx: str = Form(None),
     voice_style_telnyx: str = Form(None),
-    temperature_telnyx: float = Form(None),
+    temperature_telnyx: str = Form(None),
     first_message_telnyx: str = Form(None),
     first_message_mode_telnyx: str = Form(None),
-    max_tokens_telnyx: int = Form(None),
-    initial_silence_timeout_ms_telnyx: int = Form(None),
-    input_min_characters_telnyx: int = Form(None),
-    enable_denoising_telnyx: bool = Form(None),
-    voice_pacing_ms_telnyx: int = Form(None),
-    silence_timeout_ms_telnyx: int = Form(None),
-    interruption_threshold_telnyx: int = Form(None),
+    max_tokens_telnyx: str = Form(None),
+    initial_silence_timeout_ms_telnyx: str = Form(None),
+    input_min_characters_telnyx: str = Form(None),
+    enable_denoising_telnyx: str = Form(None),
+    voice_pacing_ms_telnyx: str = Form(None),
+    silence_timeout_ms_telnyx: str = Form(None),
+    interruption_threshold_telnyx: str = Form(None),
     hallucination_blacklist_telnyx: str = Form(None),
-    voice_speed_telnyx: float = Form(None),
-    voice_sensitivity_telnyx: int = Form(None),
-    enable_krisp_telnyx: bool = Form(None),
-    enable_vad_telnyx: bool = Form(None),
+    voice_speed_telnyx: str = Form(None),
+    voice_sensitivity_telnyx: str = Form(None),
+    enable_krisp_telnyx: str = Form(None),
+    enable_vad_telnyx: str = Form(None),
 
     # Telnyx Advanced
-    idle_timeout_telnyx: float = Form(None),
-    max_duration_telnyx: int = Form(None),
+    idle_timeout_telnyx: str = Form(None),
+    max_duration_telnyx: str = Form(None),
     idle_message_telnyx: str = Form(None),
-    enable_recording_telnyx: bool = Form(None),
+    enable_recording_telnyx: str = Form(None),
     amd_config_telnyx: str = Form(None),
 
     # 🔒 LOCKED: MODEL & CORE ARGS
     first_message: str = Form(None),
     first_message_mode: str = Form(None),
-    max_tokens: int = Form(None),
+    max_tokens: str = Form(None),
     voice_id_manual: str = Form(None),
     background_sound_url: str = Form(None),
-    input_min_characters: int = Form(None),
+    input_min_characters: str = Form(None),
 
     # Stage 2: Transcriber
-    silence_timeout_ms: int = Form(None),
-    silence_timeout_ms_phone: int = Form(None), 
-    segmentation_max_time: int = Form(None),
+    silence_timeout_ms: str = Form(None),
+    silence_timeout_ms_phone: str = Form(None), 
+    segmentation_max_time: str = Form(None),
     segmentation_strategy: str = Form(None),
-    enable_denoising: bool = Form(None), 
-    initial_silence_timeout_ms: int = Form(None), 
+    enable_denoising: str = Form(None), 
+    initial_silence_timeout_ms: str = Form(None), 
     punctuation_boundaries: str = Form(None), 
 
     # 🔒 LOCKED: TRANSCRIBING & FUNCTIONS
-    enable_end_call: bool = Form(None),
-    enable_dial_keypad: bool = Form(None),
+    enable_end_call: str = Form(None),
+    enable_dial_keypad: str = Form(None),
     transfer_phone_number: str = Form(None),
 
     stt_provider: str = Form(None),
