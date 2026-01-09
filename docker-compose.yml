@@ -21,7 +21,7 @@ services:
     environment:
       # ✅ Interpolación desde .env - NO hardcoded
       # Docker Compose sustituye ${VAR} con valores de .env
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
+      # - DATABASE_URL=... (Removed: constructed dynamically in app/core/config.py with URL encoding)
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
