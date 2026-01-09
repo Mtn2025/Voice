@@ -22,7 +22,9 @@ from app.db.models import Base
 config = context.config
 
 # Override sqlalchemy.url with our settings
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+# Override sqlalchemy.url with our settings
+# Escape '%' to '%%' because ConfigParser treats '%' as start of interpolation
+config.set_main_option('sqlalchemy.url', settings.DATABASE_URL.replace('%', '%%'))
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:
