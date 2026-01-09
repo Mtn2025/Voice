@@ -1,4 +1,66 @@
 import concurrent.futures
+import azure.cognitiveservices.speech as speechsdk
+
+from app.core.config import settings
+from app.services.base import AbstractSTT, AbstractTTS, STTEvent, STTResultReason
+
+
+class AzureRecognizerWrapper:
+    def __init__(self, recognizer, push_stream):
+        self._recognizer = recognizer
+        self._push_stream = push_stream
+        self._callback = None
+
+        # Wire events
+        self._recognizer.recognized.connect(self._on_event)
+        self._recognizer.recognizing.connect(self._on_event)
+        self._recognizer.canceled.connect(self._on_canceled)
+
+    def subscribe(self, callback):
+        self._callback = callback
+
+    def _on_event(self, evt):
+        if not self._callback:
+            return
+
+        reason = STTResultReason.UNKNOWN
+        if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
+            reason = STTResultReason.RECOGNIZED_SPEECH
+        elif evt.result.reason == speechsdk.ResultReason.RecognizingSpeech:
+            reason = STTResultReason.RECOGNIZING_SPEECH
+        else:
+            return # Ignore others
+
+        event = STTEvent(
+            reason=reason,
+            text=evt.result.text,
+            duration=getattr(evt.result, 'duration', 0.0)
+        )
+        self._callback(event)
+
+    def _on_canceled(self, evt):
+        if not self._callback:
+            return
+        details = ""
+        if hasattr(evt, 'result') and hasattr(evt.result, 'cancellation_details'):
+             details = evt.result.cancellation_details.error_details
+
+        event = STTEvent(
+            reason=STTResultReason.CANCELED,
+            text="",
+            error_details=details
+        )
+        self._callback(event)
+
+    def start_continuous_recognition_async(self):
+        return self._recognizer.start_continuous_recognition_async()
+
+    def stop_continuous_recognition_async(self):
+        return self._recognizer.stop_continuous_recognition_async()
+
+    def write(self, data):
+        self._push_stream.write(data)
+
 
 class AzureProvider(AbstractSTT, AbstractTTS):
     def __init__(self):
