@@ -110,7 +110,15 @@ app = FastAPI(
 # Must be added before other middlewares/routers
 app.add_middleware(CorrelationIdMiddleware)
 
+# Security: Add security headers and CSRF protection (Phase 5 - M-2, M-3, L-4)
+# Note: These are added "inner" relative to SessionMiddleware
+from app.core.security_middleware import CSRFProtectionMiddleware, SecurityHeadersMiddleware
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFProtectionMiddleware)
+
 # Security: Session middleware for CSRF tokens (A7)
+# CRITICAL: Must be added AFTER CSRF middleware so it wraps it (Runs FIRST)
 from starlette.middleware.sessions import SessionMiddleware
 
 app.add_middleware(
@@ -120,12 +128,6 @@ app.add_middleware(
     same_site="strict",
     https_only=False  # Set to True in production with HTTPS
 )
-
-# Security: Add security headers and CSRF protection (Phase 5 - M-2, M-3, L-4)
-from app.core.security_middleware import CSRFProtectionMiddleware, SecurityHeadersMiddleware
-
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(CSRFProtectionMiddleware)
 
 # Monitoring: Prometheus metrics middleware (B2)
 import time
