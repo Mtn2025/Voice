@@ -1,15 +1,7 @@
 import asyncio
 
-# Python 3.13+ compatibility: Use NumPy-based audio utilities instead of audioop
-try:
-    # Try NumPy implementation first (Python 3.13+ compatible)
-    from app.core import audio_numpy as audioop
-except ImportError:
-    # Fallback to audioop/audioop_lts for older Python versions
-    try:
-        import audioop
-    except ModuleNotFoundError:
-        import audioop_lts as audioop
+# MODERNIZED AUDIO PIPELINE (NumPy)
+from app.core.audio_processor import AudioProcessor
 
 import base64
 import contextlib
@@ -442,6 +434,7 @@ class VoiceOrchestrator:
     def handle_recognizing(self, evt):
         # Reset Idle Timer also on partial speech to avoid interrupting mid-sentence if slow
         self.last_interaction_time = time.time()
+        self.idle_retries = 0  # CRITICAL FIX: Reset retries on valid activity
 
     # REMOVED: handle_canceled, handle_session_stopped (handled by generic event logic)
 
@@ -1115,10 +1108,10 @@ class VoiceOrchestrator:
         if self.client_type in ["twilio", "telnyx"]:
               try:
                   if hasattr(self, 'audio_encoding') and self.audio_encoding == 'PCMA':
-                      audio_bytes = audioop.alaw2lin(audio_bytes, 2)
+                      audio_bytes = AudioProcessor.alaw2lin(audio_bytes, 2)
                   else:
                       # Default to PCMU (Mu-Law)
-                      audio_bytes = audioop.ulaw2lin(audio_bytes, 2)
+                      audio_bytes = AudioProcessor.ulaw2lin(audio_bytes, 2)
 
               except Exception as e_conv:
                   logging.error(f"Audio Conversion Error (Legacy): {e_conv}")
@@ -1129,9 +1122,9 @@ class VoiceOrchestrator:
         """Calculates VAD metrics, applies Noise Gating, and pushes to recognizer."""
         try:
             # RMS (Average Volume)
-            rms = audioop.rms(audio_bytes, 2)
-            # Max (Peak Volume) - use max_amplitude for NumPy compatibility
-            max_val = audioop.max_amplitude(audio_bytes, 2) if hasattr(audioop, 'max_amplitude') else audioop.max(audio_bytes, 2)
+            rms = AudioProcessor.rms(audio_bytes, 2)
+            # Max (Peak Volume)
+            max_val = AudioProcessor.max_val(audio_bytes, 2)
 
             # Dynamic Thresholds (Trust the Overlay!)
             vad_threshold = getattr(self.config, 'voice_sensitivity', 500)
@@ -1146,7 +1139,9 @@ class VoiceOrchestrator:
             elif max_val > 25000:
                 classification = "💥 SPIKE"
 
-            logging.warning(f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
+            if self._audio_chunk_count % 50 == 1:
+                logging.warning(f"🎤 [AUDIO IN] RMS: {rms:<5} | Peak: {max_val:<5} | {classification} | Bytes: {len(audio_bytes)}")
+
 
             # NOISE GATING
             enable_vad = getattr(self.config, 'enable_vad', True)
@@ -1198,24 +1193,24 @@ class VoiceOrchestrator:
         return bg_chunk
 
     def _mix_audio(self, tts_chunk: bytes | None, bg_chunk: bytes | None) -> bytes | None:
-        """Mixes TTS and Background audio chunks using Audioop."""
+        """Mixes TTS and Background audio chunks using AudioProcessor (NumPy)."""
         if tts_chunk and bg_chunk:
             # MIX
             try:
-                bg_lin = audioop.alaw2lin(bg_chunk, 2)
+                bg_lin = AudioProcessor.alaw2lin(bg_chunk, 2)
 
                 if self.client_type == 'telnyx':
-                    tts_lin = audioop.alaw2lin(tts_chunk, 2)
+                    tts_lin = AudioProcessor.alaw2lin(tts_chunk, 2)
                 else:
-                    tts_lin = audioop.ulaw2lin(tts_chunk, 2)
+                    tts_lin = AudioProcessor.ulaw2lin(tts_chunk, 2)
 
-                bg_lin_quiet = audioop.mul(bg_lin, 2, 0.15)
-                mixed_lin = audioop.add(tts_lin, bg_lin_quiet, 2)
+                bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15)
+                mixed_lin = AudioProcessor.add(tts_lin, bg_lin_quiet, 2)
 
                 if self.client_type == 'telnyx':
-                    final_chunk = audioop.lin2alaw(mixed_lin, 2)
+                    final_chunk = AudioProcessor.lin2alaw(mixed_lin, 2)
                 else:
-                    final_chunk = audioop.lin2ulaw(mixed_lin, 2)
+                    final_chunk = AudioProcessor.lin2ulaw(mixed_lin, 2)
                 return final_chunk
             except Exception as e_mix:
                 logging.error(f"Mixing error: {e_mix}")
@@ -1227,13 +1222,13 @@ class VoiceOrchestrator:
         elif bg_chunk:
             # JUST BACKGROUND
             try:
-                bg_lin = audioop.alaw2lin(bg_chunk, 2)
-                bg_lin_quiet = audioop.mul(bg_lin, 2, 0.15) # Quiet BG
+                bg_lin = AudioProcessor.alaw2lin(bg_chunk, 2)
+                bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15) # Quiet BG
 
                 if self.client_type == 'telnyx':
-                    final_chunk = audioop.lin2alaw(bg_lin_quiet, 2)
+                    final_chunk = AudioProcessor.lin2alaw(bg_lin_quiet, 2)
                 else:
-                    final_chunk = audioop.lin2ulaw(bg_lin_quiet, 2)
+                    final_chunk = AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
                 return final_chunk
             except Exception:
                 return None

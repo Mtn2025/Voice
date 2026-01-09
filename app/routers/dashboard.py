@@ -615,7 +615,18 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20, db: Asy
             "page": page,
             "limit": limit,
             "total_pages": total_pages,
-            "total_items": total
+            "total_items": total,
+            "models": {
+                "groq": [
+                    {"id": "llama-3.3-70b-versatile"},
+                    {"id": "llama-3.1-70b-versatile"},
+                    {"id": "llama-3.1-8b-instant"}
+                ],
+                "azure": [
+                    {"id": "gpt-4o"},
+                    {"id": "gpt-3.5-turbo"}
+                ]
+            }
         })
     except Exception as e:
         import traceback

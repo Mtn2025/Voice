@@ -56,9 +56,10 @@ markupsafe~=2.1.5
 # State Management - NEW (Punto A9)
 redis[hiredis]~=5.0.1
 
+# OpenAI (Azure) - NEW (Punto A1)
+openai>=1.0.0
+
 # audioop Replacement (Punto A11 - Python 3.13+ Compatibility)
-# Fallback for legacy code if needed
-# audioop-lts; python_version >= '3.13'
 numpy>=1.26.0  # Audio processing (replaces audioop)
 
 # Monitoring (Punto B2)

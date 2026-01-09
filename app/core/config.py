@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""  # Hacer opcional para testing
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
 
+    # Azure OpenAI
+    AZURE_OPENAI_API_KEY: str = ""
+    AZURE_OPENAI_ENDPOINT: str = ""
+    AZURE_OPENAI_DEPLOYMENT_NAME: str = "gpt-4o"
+    AZURE_OPENAI_API_VERSION: str = "2024-08-01-preview"
+
     # =============================================================================
     # Database - Punto A6: NO DEFAULT PASSWORDS
     # =============================================================================
@@ -102,10 +108,10 @@ class Settings(BaseSettings):
             # Unless we are in a purely test env? No, better safe.
             if os.getenv("APP_ENV") != "test":
                  # We warn or error. For strict security, we should error.
-                 pass 
-            
+                 pass
+
         return v
-    
+
     @field_validator('POSTGRES_USER', 'POSTGRES_PASSWORD', 'ADMIN_API_KEY')
     @classmethod
     def validate_not_empty(cls, v: str, info) -> str:
@@ -113,7 +119,7 @@ class Settings(BaseSettings):
              # Exception for defaults in dev/test might be needed, but strictly:
              if info.field_name == 'ADMIN_API_KEY' and os.getenv("APP_ENV") == "test":
                  return "test_key"
-             
+
              raise ValueError(f"{info.field_name} cannot be empty.")
         return v
 

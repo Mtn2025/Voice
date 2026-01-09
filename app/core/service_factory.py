@@ -1,6 +1,7 @@
 from app.db.models import AgentConfig
 from app.providers.azure import AzureProvider
 from app.providers.groq import GroqProvider
+from app.providers.azure_openai import AzureOpenAIProvider
 
 
 class ServiceFactory:
@@ -8,7 +9,6 @@ class ServiceFactory:
     def get_stt_provider(config: AgentConfig):
         if config.stt_provider == "azure":
             return AzureProvider()
-        # Add deepgram here later
         return AzureProvider()
 
     @staticmethod
@@ -19,6 +19,7 @@ class ServiceFactory:
 
     @staticmethod
     def get_llm_provider(config: AgentConfig):
-        if config.llm_provider == "groq":
-            return GroqProvider()
+        if config.llm_provider == "azure":
+            return AzureOpenAIProvider()
+        # Default to Groq
         return GroqProvider()
