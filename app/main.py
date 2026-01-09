@@ -57,17 +57,22 @@ async def lifespan(app: FastAPI):
     # =============================================================================
 
     # Run database migrations with Alembic
-    from alembic import command
-    from alembic.config import Config
+    # Run Migrations via Subprocess (avoids asyncio loop conflict in env.py)
+    import subprocess
     try:
         # DB DEBUG
         db_url_safe = settings.DATABASE_URL.split("@")[-1]  # Show only host/db part
         logger.info(f"🔌 Connecting to Database at: ...@{db_url_safe}")
         
         logger.info("Running database migrations...")
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
-        logger.info("Database migrations completed successfully")
+        # Run alembic in a separate process to avoid "loop already running" issues
+        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info("Database migrations completed successfully")
+        else:
+            logger.error(f"Migration failed: {result.stderr}")
+            # Continue anyway - tables might be created by create_all below
+            pass
     except Exception as e:
         logger.error(f"Error running migrations: {e}")
         # Continue anyway - tables might already exist
