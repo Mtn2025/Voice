@@ -78,25 +78,39 @@ class AzureProvider(AbstractSTT, AbstractTTS):
         # REMOVED hardcoded: self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, "900")
 
     def get_available_voices(self):
+        """
+        Returns a comprehensive list of Azure Neural voices with metadata.
+        Structure: List[Dict] to be processed by dashboard.
+        """
         return [
-            "es-MX-DaliaNeural",
-            "es-MX-JorgeNeural",
-            "es-MX-BeatrizNeural",
-            "es-MX-CandelaNeural",
-            "es-MX-CarlotaNeural",
-            "es-MX-CecilioNeural",
-            "es-MX-GerardoNeural",
-            "es-MX-LarissaNeural",
-            "es-MX-LibertoNeural",
-            "es-MX-LucianoNeural",
-            "es-MX-MarinaNeural",
-            "es-MX-NurielNeural",
-            "es-MX-PelayoNeural",
-            "es-MX-RenataNeural",
-            "es-MX-YagoNeural",
-            "es-ES-ElviraNeural",
-            "es-US-PalomaNeural",
-            "en-US-JennyNeural"
+            # Mexico (es-MX)
+            {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-BeatrizNeural", "name": "Beatriz", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-CandelaNeural", "name": "Candela", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-CarlotaNeural", "name": "Carlota", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-CecilioNeural", "name": "Cecilio", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-GerardoNeural", "name": "Gerardo", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-LarissaNeural", "name": "Larissa", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-LibertoNeural", "name": "Liberto", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-LucianoNeural", "name": "Luciano", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-MarinaNeural", "name": "Marina", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-NurielNeural", "name": "Nuriel", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-PelayoNeural", "name": "Pelayo", "gender": "Male", "locale": "es-MX"},
+            {"id": "es-MX-RenataNeural", "name": "Renata", "gender": "Female", "locale": "es-MX"},
+            {"id": "es-MX-YagoNeural", "name": "Yago", "gender": "Male", "locale": "es-MX"},
+            
+            # Spain (es-ES)
+            {"id": "es-ES-ElviraNeural", "name": "Elvira", "gender": "Female", "locale": "es-ES"},
+            {"id": "es-ES-AlvaroNeural", "name": "Alvaro", "gender": "Male", "locale": "es-ES"},
+            
+            # US Spanish (es-US)
+            {"id": "es-US-PalomaNeural", "name": "Paloma", "gender": "Female", "locale": "es-US"},
+            {"id": "es-US-AlonsoNeural", "name": "Alonso", "gender": "Male", "locale": "es-US"},
+
+            # US English (en-US) - For reference/fallback
+            {"id": "en-US-JennyNeural", "name": "Jenny", "gender": "Female", "locale": "en-US"},
+            {"id": "en-US-GuyNeural", "name": "Guy", "gender": "Male", "locale": "en-US"}
         ]
 
     def get_voice_styles(self):
@@ -105,18 +119,16 @@ class AzureProvider(AbstractSTT, AbstractTTS):
             "es-MX-DaliaNeural": ["customerservice", "chat", "cheerful", "calm", "sad", "angry", "fearful", "disgruntled", "serious", "affectionate", "gentle"],
             "es-MX-JorgeNeural": ["chat", "conversational", "customerservice", "cheerful", "empathetic", "serious"],
             "es-ES-ElviraNeural": ["customerservice", "empathetic", "cheerful", "calm", "chat"],
-            "en-US-JennyNeural": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"]
+            "en-US-JennyNeural": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
+            "en-US-GuyNeural": ["newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"]
         }
 
     def get_available_languages(self):
         return [
-            "es-MX",
-            "es-ES",
-            "es-US",
-            "es-AR",
-            "es-CO",
-            "es-CL",
-            "en-US"
+            {"id": "es-MX", "name": "Español (México)"},
+            {"id": "es-ES", "name": "Español (España)"},
+            {"id": "es-US", "name": "Español (Estados Unidos)"},
+            {"id": "en-US", "name": "English (United States)"}
         ]
 
     def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio",
