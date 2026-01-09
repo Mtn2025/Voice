@@ -928,9 +928,19 @@
 
                         this.ws.onmessage = (event) => {
                             const msg = JSON.parse(event.data);
-                            if (msg.event === 'media' || msg.type === 'audio') { // Handle both formats
+
+                            // 1. Handle Audio Media
+                            if (msg.event === 'media' || msg.type === 'audio') {
                                 const payload = msg.media ? msg.media.payload : msg.data;
                                 this.playAudio(payload);
+                            }
+
+                            // 2. Handle Configuration (Background Sound)
+                            else if (msg.type === 'config') {
+                                console.log("⚙️ [CONFIG] Received:", msg.config);
+                                if (msg.config.background_sound && msg.config.background_sound !== 'none') {
+                                    this.playBackgroundSound(msg.config.background_sound);
+                                }
                             }
                         };
 
@@ -1000,20 +1010,21 @@
                         this.mediaStream.getTracks().forEach(t => t.stop());
                         this.mediaStream = null;
                     }
+                    if (this.bgAudio) {
+                        this.bgAudio.pause();
+                        this.bgAudio = null;
+                    }
                 },
 
                 playAudio(base64Data) {
                     if (!base64Data) return;
-                    console.log(`[AUDIO] Received ${base64Data.length} bytes. Context State: ${this.audioContext.state}`);
-
+                    // ... (existing playAudio logic) ...
                     try {
                         const binaryString = window.atob(base64Data);
                         const len = binaryString.length;
                         const bytes = new Uint8Array(len);
                         for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
 
-                        // Incoming: PCM 16-bit 16kHz (Raw Bytes)
-                        // Convert bytes -> Int16 -> Float32
                         const pcm16 = new Int16Array(bytes.buffer);
                         const float32 = new Float32Array(pcm16.length);
 
@@ -1039,6 +1050,30 @@
                     } catch (e) {
                         console.error("Playback Error", e);
                     }
+                },
+
+                bgAudio: null, // Store reference
+
+                playBackgroundSound(soundName) {
+                    // Stop existing
+                    if (this.bgAudio) {
+                        this.bgAudio.pause();
+                        this.bgAudio = null;
+                    }
+
+                    // Map name to file path (Simple mapping)
+                    // Assuming static files are at /static/sounds/
+                    const volume = 0.1; // Low volume for background
+                    const path = `/static/sounds/${soundName}.wav`;
+
+                    console.log(`🎵 [BG-SOUND] Playing loop: ${path}`);
+
+                    this.bgAudio = new Audio(path);
+                    this.bgAudio.loop = true;
+                    this.bgAudio.volume = volume;
+
+                    // Attempt to play (user gesture usually required, but we are inside startTest so it might work)
+                    this.bgAudio.play().catch(e => console.warn("Background Audio Play failed (Autoplay policy?):", e));
                 },
 
 
