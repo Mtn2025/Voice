@@ -226,7 +226,7 @@ class VoiceOrchestrator:
                 asyncio.get_running_loop()
                 # Use SSML helper
                 # Use SSML helper
-                audio_data = await self.tts_provider.synthesize_ssml(self.synthesizer, self._synthesize_text_ssml_only(text))
+                audio_data = await self._synthesize_text(text)
                 if audio_data:
                      await self.send_audio_chunked(audio_data)
 
