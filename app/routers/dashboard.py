@@ -93,6 +93,18 @@ async def dashboard(
                 
                 if v_dict:
                      voices["azure"][lang].append(v_dict)
+
+    # 2. Static Fallback (CRITICAL for valid UI if API fails)
+    if not voices["azure"]:
+        voices["azure"] = {
+            "es-MX": [
+                {"id": "es-MX-DaliaNeural", "name": "Dalia (Neural)", "gender": "female"},
+                {"id": "es-MX-JorgeNeural", "name": "Jorge (Neural)", "gender": "male"}
+            ],
+            "en-US": [
+                {"id": "en-US-JennyNeural", "name": "Jenny (Neural)", "gender": "female"}
+            ]
+        }
     
     # Styles - AzureProvider.get_voice_styles() -> {voice_id: [styles]}
     # Frontend: this.styles[vid] -> list. This seems valid as is (keyed by Voice ID).
