@@ -3,9 +3,10 @@ Tests for dashboard API routes (config CRUD, call history).
 
 Strategic coverage of main dashboard endpoints.
 """
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, MagicMock, patch
 
 
 @pytest.fixture
@@ -28,7 +29,7 @@ def mock_db_session(mocker):
 @pytest.mark.unit
 class TestDashboardConfig:
     """Test config update endpoints."""
-    
+
     def test_update_browser_config(self, client, mocker):
         """Test: POST /api/config/browser updates browser config."""
         # Mock DB dependency
@@ -41,10 +42,10 @@ class TestDashboardConfig:
                         "voice_name": "es-MX-TestVoice"
                     }
                 )
-                
+
                 # Should process request (may return error without full DB mock, but that's OK)
                 assert response.status_code in [200, 422, 500]  # Accept validation or processing
-    
+
     def test_update_core_config(self, client):
         """Test: POST /api/config/core updates core config."""
         with patch('app.routers.dashboard.get_db'):
@@ -56,35 +57,35 @@ class TestDashboardConfig:
                         "temperature": 0.7
                     }
                 )
-                
+
                 assert response.status_code in [200, 422, 500]
 
 
-@pytest.mark.unit  
+@pytest.mark.unit
 class TestDashboardPages:
     """Test dashboard page rendering."""
-    
+
     def test_dashboard_page_loads(self, client):
         """Test: GET /dashboard returns HTML (or redirects)."""
         with patch('app.routers.dashboard.get_db'):
             response = client.get("/dashboard")
-            
+
             # Should return HTML or redirect
             assert response.status_code in [200, 307, 500]
-    
+
     def test_history_rows(self, client):
         """Test: GET /history/rows returns call history."""
         with patch('app.routers.dashboard.get_db'):
             with patch('app.services.db_service.db_service.get_call_history', new_callable=AsyncMock, return_value=[]):
                 response = client.get("/history/rows?page=1&limit=20")
-                
+
                 assert response.status_code in [200, 500]
 
 
 @pytest.mark.unit
 class TestDashboardAdmin:
     """Test admin operations."""
-    
+
     def test_delete_selected_calls(self, client):
         """Test: POST /history/delete removes selected calls."""
         with patch('app.routers.dashboard.get_db'):
@@ -92,6 +93,6 @@ class TestDashboardAdmin:
                 "/history/delete",
                 data={"call_ids": "123,456"}
             )
-            
+
             # Should process delete request
             assert response.status_code in [200, 303, 422, 500]

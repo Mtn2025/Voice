@@ -1,7 +1,10 @@
 
 import asyncio
-from app.db.database import AsyncSessionLocal
+
 from sqlalchemy import text
+
+from app.db.database import AsyncSessionLocal
+
 
 async def patch():
     async with AsyncSessionLocal() as session:

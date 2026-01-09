@@ -1,6 +1,9 @@
 import asyncio
+
 from sqlalchemy import text
+
 from app.db.database import engine
+
 
 async def check_config():
     async with engine.begin() as conn:

@@ -63,10 +63,10 @@ async def lifespan(app: FastAPI):
         # DB DEBUG
         db_url_safe = settings.DATABASE_URL.split("@")[-1]  # Show only host/db part
         logger.info(f"🔌 Connecting to Database at: ...@{db_url_safe}")
-        
+
         logger.info("Running database migrations...")
         # Run alembic in a separate process to avoid "loop already running" issues
-        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True)
+        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True, check=False)
         if result.returncode == 0:
             logger.info("Database migrations completed successfully")
         else:

@@ -1,8 +1,10 @@
 
 import asyncio
-from app.db.database import AsyncSessionLocal
-from sqlalchemy import text
 import logging
+
+from sqlalchemy import text
+
+from app.db.database import AsyncSessionLocal
 
 # Configure minimal logging
 logging.basicConfig(level=logging.INFO)
@@ -11,7 +13,7 @@ logger = logging.getLogger("migration")
 async def run_migration():
     async with AsyncSessionLocal() as session:
         logger.info("🚀 Starting database migration for Phone Config columns...")
-        
+
         # List of columns to add with their types and defaults
         # Format: (column_name, sql_type_def)
         columns_to_add = [
@@ -19,34 +21,34 @@ async def run_migration():
             ("interruption_threshold_phone", "INTEGER DEFAULT 2"),
             ("voice_style", "VARCHAR"),
             ("voice_speed_phone", "FLOAT DEFAULT 0.9"),
-            
+
             # Phone Profile Keys
             ("stt_provider_phone", "VARCHAR DEFAULT 'azure'"),
             ("stt_language_phone", "VARCHAR DEFAULT 'es-MX'"),
             ("llm_provider_phone", "VARCHAR DEFAULT 'groq'"),
             ("llm_model_phone", "VARCHAR DEFAULT 'llama-3.3-70b-versatile'"),
             ("system_prompt_phone", "TEXT"),
-            
+
             ("voice_name_phone", "VARCHAR DEFAULT 'es-MX-DaliaNeural'"),
             ("voice_style_phone", "VARCHAR"),
             ("temperature_phone", "FLOAT DEFAULT 0.7"),
-            
+
             ("first_message_phone", "VARCHAR DEFAULT 'Hola, soy Andrea de Ubrokers. ¿Me escucha bien?'"),
             ("first_message_mode_phone", "VARCHAR DEFAULT 'speak-first'"),
             ("max_tokens_phone", "INTEGER DEFAULT 250"),
-            
+
             ("initial_silence_timeout_ms_phone", "INTEGER DEFAULT 30000"),
             ("input_min_characters_phone", "INTEGER DEFAULT 1"),
             ("enable_denoising_phone", "BOOLEAN DEFAULT TRUE"),
             ("silence_timeout_ms_phone", "INTEGER DEFAULT 2000"),
-            
+
             # Twilio Specifics
             ("twilio_machine_detection", "VARCHAR DEFAULT 'Enable'"),
             ("twilio_record", "BOOLEAN DEFAULT FALSE"),
             ("twilio_recording_channels", "VARCHAR DEFAULT 'dual'"),
             ("twilio_trim_silence", "BOOLEAN DEFAULT TRUE")
         ]
-        
+
         for col_name, type_def in columns_to_add:
             try:
                 # Use nested transaction (SAVEPOINT) to isolate errors
@@ -63,7 +65,7 @@ async def run_migration():
                      logger.warning(f"⚠️ Column {col_name} already exists. Skipping.")
                 else:
                      logger.error(f"❌ Error adding {col_name}: {e}")
-        
+
         await session.commit()
         logger.info("🎉 Migration completed successfully!")
 

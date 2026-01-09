@@ -4,6 +4,7 @@ Integration Tests - Configuration Fixtures
 Shared fixtures for integration testing.
 """
 import os
+
 import pytest
 
 
@@ -24,13 +25,13 @@ def setup_test_environment():
         "TWILIO_AUTH_TOKEN": "fake-token",
         "REDIS_URL": "redis://localhost:6379",
     }
-    
+
     for key, value in test_env.items():
         if key not in os.environ:
             os.environ[key] = value
-    
+
     yield
-    
+
     # Cleanup not needed - env vars are process-scoped
 
 
@@ -38,6 +39,7 @@ def setup_test_environment():
 def integration_client():
     """Provide HTTP client for integration tests."""
     from httpx import AsyncClient
+
     from app.main import app
-    
+
     return AsyncClient(app=app, base_url="http://test")

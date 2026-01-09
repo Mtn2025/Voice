@@ -67,7 +67,12 @@ async def dashboard(
     # Structure models for frontend: { 'groq': [...], 'azure': [...] }
     models = {
         "groq": groq_models,
-        "azure": [{"id": "gpt-4", "name": "Azure GPT-4"}] # Static fallback
+        "azure": [
+            {"id": "gpt-4o", "name": "GPT-4o (Omni)"},
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini"},
+            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo"},
+            {"id": "gpt-35-turbo", "name": "GPT-3.5 Turbo"}
+        ]
     }
 
     voices = {
@@ -310,6 +315,64 @@ async def update_core_config(
 # This will be removed in v2.0
 # =============================================================================
 
+@router.post("/api/config/update", deprecated=True, dependencies=[Depends(verify_api_key)])
+async def update_config(
+    # ... (existing args) ...
+    pass
+
+# NEW: AJAX/JSON Endpoint
+from pydantic import BaseModel
+from typing import Optional, Any
+
+@router.post("/api/config/update-json", dependencies=[Depends(verify_api_key)])
+async def update_config_json(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        data = await request.json()
+        logger.info(f"🔄 [CONFIG-JSON] Received update payload: {len(data)} keys")
+        
+        # Security: Allow specific fields only? 
+        # For now, we trust the schema matches AgentConfig columns.
+        
+        # Fetch current config
+        current_config = await db_service.get_agent_config(db)
+        
+        # Iterate and Update
+        updated_count = 0
+        for key, value in data.items():
+            # Skip non-config metadata
+            if key in ["id", "name", "created_at"]:
+                continue
+                
+            # Check if key exists in model
+            if hasattr(current_config, key):
+                # Type Conversion Logic (Basic)
+                # Frontend sends correct types mostly, but handle strings->numbers if needed
+                # For JSON, we assume types are correct (e.g. integer 5 sent as 5, not "5")
+                # But empty strings "" should be None for nullable fields
+                if value == "":
+                    value = None
+                    
+                setattr(current_config, key, value)
+                updated_count += 1
+            else:
+                logger.warning(f"⚠️ [CONFIG-JSON] Ignored unknown key: {key}")
+
+        await db.commit()
+        await db.refresh(current_config)
+        logger.info(f"✅ [CONFIG-JSON] Updated {updated_count} fields.")
+        
+        return {"status": "success", "updated": updated_count, "config": current_config}
+        
+    except Exception as e:
+        logger.error(f"❌ [CONFIG-JSON] Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# =============================================================================
+# LEGACY FORM ENDPOINT (Kept for backward compatibility if needed, else deprecate)
+# =============================================================================
 @router.post("/api/config/update", deprecated=True, dependencies=[Depends(verify_api_key)])
 async def update_config(
     # Use str | None for EVERYTHING to prevent INT parsing errors on empty strings

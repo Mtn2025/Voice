@@ -5,7 +5,7 @@ Será reemplazado por sistema completo de usuarios en Etapa 2.
 import logging
 import secrets
 
-from fastapi import Header, Query, HTTPException, status
+from fastapi import Header, HTTPException, Query, status
 
 from app.core.config import settings
 
