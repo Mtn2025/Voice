@@ -170,8 +170,7 @@
                                 <label
                                     class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
                                     LLM</label>
-                                <select x-model="c.provider" @change="updateModelList()"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                <select x-model="c.provider" class="glass-input w-full p-2.5 rounded-lg text-sm">
                                     <option value="groq">Groq</option>
                                     <option value="azure">Azure OpenAI</option>
                                 </select>
@@ -962,6 +961,13 @@
 
                     // 3. SETUP WATCHERS & INITIAL UI LISTS
                     this.$watch('activeProfile', () => this.refreshUI());
+
+                    // CRITICAL: Watch provider changes to update model list (replaces @change handler)
+                    this.$watch('c.provider', () => {
+                        console.log('🔄 Provider changed, updating model list...');
+                        this.updateModelList();
+                    });
+
                     this.refreshUI();
                 },
 
