@@ -302,8 +302,6 @@ class VoiceOrchestrator:
 
 
     async def start(self) -> None:
-        logging.warning("🦄🦄🦄 CANARY TEST: SI ESTO SALE, EL CODIGO ES NUEVO 🦄🦄🦄")
-        logging.warning(f"DEBUG CLIENT_TYPE: self.client_type = '{self.client_type}'")
         # ... (no change to start) ...
 
 
@@ -700,6 +698,13 @@ class VoiceOrchestrator:
         if self.stream_id and full_response:
             async with AsyncSessionLocal() as session:
                 await db_service.log_transcript(session, self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
+
+            # UI OBSERVABILITY: Send Assistant Transcript (Browser only)
+            if self.client_type == "browser":
+                try:
+                    await self.websocket.send_text(json.dumps({"type": "transcript", "role": "assistant", "text": full_response}))
+                except Exception:
+                    pass
 
         # 3. Update Conversation History (Common Path)
         # Note: If exception occurred, finally block will double check partials.

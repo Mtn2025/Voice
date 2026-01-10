@@ -777,7 +777,7 @@
 
                     <div class="flex items-center space-x-2">
                         <!-- Animation Selector -->
-                        <select x-model="visualizerMode"
+                        <select x-model="visualizerMode" @change="setVisualizer($event.target.value)"
                             class="bg-slate-800 text-xs text-slate-400 border border-slate-700 rounded px-2 py-1 outline-none focus:border-emerald-500">
                             <option value="wave">Onda</option>
                             <option value="bars">Barras</option>
@@ -1099,445 +1099,455 @@
                         }
                     }
 
-                    this.updateStyleList();
-                },
+                    this.c.voiceId = this.availableVoices[0].id;
+                }
+            }
 
-                updateStyleList() {
-                    let vid = this.c.voiceId;
-                    let rawStyles = this.styles[vid] || this.styles['default'] || [];
+            this.updateStyleList();
+        },
 
-                    // Normalize strings to objects for UI template (which expects s.id and s.label)
-                    this.availableStyles = rawStyles.map(s => {
-                        if (typeof s === 'string') return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
-                        return s;
-                    });
+        // Watcher for UI Preferences
+        setVisualizer(mode) {
+            this.visualizerMode = mode;
+            localStorage.setItem('sim_visualizerMode', mode);
+        },
 
-                    // Validate Style
-                    if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
-                        this.c.voiceStyle = ''; // Reset to default if current style not valid for this voice
-                    }
-                },
+        updateStyleList() {
+            let vid = this.c.voiceId;
+            let rawStyles = this.styles[vid] || this.styles['default'] || [];
 
-                setGender(g) {
-                    this.currentGender = g;
-                    this.updateVoiceLists();
-                },
+            // Normalize strings to objects for UI template (which expects s.id and s.label)
+            this.availableStyles = rawStyles.map(s => {
+                if (typeof s === 'string') return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
+                return s;
+            });
 
-                shouldShowTab(t) {
-                    if (t === 'Conexión' && this.activeProfile === 'browser') return false;
-                    return true;
-                },
+            // Validate Style
+            if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
+                this.c.voiceStyle = ''; // Reset to default if current style not valid for this voice
+            }
+        },
 
-                // SIMULATOR STATE
-                simState: 'ready', // ready, connecting, connected
-                ws: null,
+        setGender(g) {
+            this.currentGender = g;
+            this.updateVoiceLists();
+        },
+
+        shouldShowTab(t) {
+            if (t === 'Conexión' && this.activeProfile === 'browser') return false;
+            return true;
+        },
+
+        // SIMULATOR STATE
+        simState: 'ready', // ready, connecting, connected
+            ws: null,
                 audioContext: null,
-                mediaStream: null,
-                processor: null,
+                    mediaStream: null,
+                        processor: null,
 
-                // Visualizer & Transcript State
-                analyser: null,
-                visualizerMode: 'wave', // wave, bars, orb
-                animationId: null,
-                transcripts: [],
+                            // Visualizer & Transcript State
+                            analyser: null,
+                                visualizerMode: 'wave', // wave, bars, orb
+                                    animationId: null,
+                                        transcripts: [],
 
-                nextStartTime: 0,
+                                            nextStartTime: 0,
 
-                async startTest() {
-                    if (this.simState === 'connected' || this.simState === 'connecting') {
-                        this.stopTest();
-                        return;
-                    }
+                                                async startTest() {
+            if (this.simState === 'connected' || this.simState === 'connecting') {
+                this.stopTest();
+                return;
+            }
 
-                    this.transcripts = []; // Clear previous chat
+            this.transcripts = []; // Clear previous chat
 
-                    // 1. Initialize AudioContext at 16kHz (Standard Wideband)
-                    try {
-                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-                        if (this.audioContext.state === 'suspended') {
-                            await this.audioContext.resume();
+            // 1. Initialize AudioContext at 16kHz (Standard Wideband)
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                if (this.audioContext.state === 'suspended') {
+                    await this.audioContext.resume();
+                }
+
+                // NEW: Setup Analyser
+                this.analyser = this.audioContext.createAnalyser();
+                this.analyser.fftSize = 2048; // Higher res for bars
+
+                // Start Visualizer Loop
+                this.drawVisualizer();
+
+                console.log("AudioContext Initialized. SampleRate:", this.audioContext.sampleRate, "State:", this.audioContext.state);
+            } catch (e) {
+                console.error("Audio Context Init Failed", e);
+                alert("Audio Error: " + e.message);
+                return;
+            }
+
+            this.simState = 'connecting';
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
+
+            try {
+                this.ws = new WebSocket(wsUrl);
+
+                this.ws.onopen = () => {
+                    console.log("WS Connected");
+                    this.simState = 'connected';
+                    this.initMicrophone(); // Logic split
+
+                    // Send Start Event - PCM 16kHz
+                    this.ws.send(JSON.stringify({
+                        event: 'start',
+                        start: {
+                            streamSid: 'browser-' + Date.now(),
+                            callSid: 'sim-' + Date.now(),
+                            media_format: { encoding: 'audio/pcm', sample_rate: 16000, channels: 1 }
                         }
+                    }));
+                };
 
-                        // NEW: Setup Analyser
-                        this.analyser = this.audioContext.createAnalyser();
-                        this.analyser.fftSize = 2048; // Higher res for bars
+                this.ws.onmessage = (event) => {
+                    const msg = JSON.parse(event.data);
 
-                        // Start Visualizer Loop
-                        this.drawVisualizer();
-
-                        console.log("AudioContext Initialized. SampleRate:", this.audioContext.sampleRate, "State:", this.audioContext.state);
-                    } catch (e) {
-                        console.error("Audio Context Init Failed", e);
-                        alert("Audio Error: " + e.message);
-                        return;
+                    // 1. Handle Audio Media
+                    if (msg.event === 'media' || msg.type === 'audio') {
+                        const payload = msg.media ? msg.media.payload : msg.data;
+                        this.playAudio(payload);
                     }
 
-                    this.simState = 'connecting';
-                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
-
-                    try {
-                        this.ws = new WebSocket(wsUrl);
-
-                        this.ws.onopen = () => {
-                            console.log("WS Connected");
-                            this.simState = 'connected';
-                            this.initMicrophone(); // Logic split
-
-                            // Send Start Event - PCM 16kHz
-                            this.ws.send(JSON.stringify({
-                                event: 'start',
-                                start: {
-                                    streamSid: 'browser-' + Date.now(),
-                                    callSid: 'sim-' + Date.now(),
-                                    media_format: { encoding: 'audio/pcm', sample_rate: 16000, channels: 1 }
-                                }
-                            }));
-                        };
-
-                        this.ws.onmessage = (event) => {
-                            const msg = JSON.parse(event.data);
-
-                            // 1. Handle Audio Media
-                            if (msg.event === 'media' || msg.type === 'audio') {
-                                const payload = msg.media ? msg.media.payload : msg.data;
-                                this.playAudio(payload);
-                            }
-
-                            // 2. Handle Configuration (Background Sound)
-                            else if (msg.type === 'config') {
-                                console.log("⚙️ [CONFIG] Received:", msg.config);
-                                if (msg.config.background_sound && msg.config.background_sound !== 'none') {
-                                    this.playBackgroundSound(msg.config.background_sound);
-                                }
-                            }
-
-                            // 3. NEW: Handle Transcripts from Backend
-                            else if (msg.type === 'transcript') {
-                                console.log("📝 [TRANSCRIPT]", msg);
-                                this.transcripts.push({
-                                    role: msg.role,
-                                    text: msg.text,
-                                    timestamp: new Date().toLocaleTimeString()
-                                });
-                                // Auto-scroll
-                                this.$nextTick(() => {
-                                    const container = document.getElementById('transcript-container');
-                                    if (container) container.scrollTop = container.scrollHeight;
-                                });
-                            }
-                        };
-
-                        // ... (rest of WS handlers) ...
-                        this.ws.onclose = () => { console.log("WS Closed"); this.stopTest(); };
-                        this.ws.onerror = (e) => { console.error("WS Error", e); this.stopTest(); };
-
-                    } catch (e) {
-                        console.error("Connection failed", e);
-                        this.stopTest();
+                    // 2. Handle Configuration (Background Sound)
+                    else if (msg.type === 'config') {
+                        console.log("⚙️ [CONFIG] Received:", msg.config);
+                        if (msg.config.background_sound && msg.config.background_sound !== 'none') {
+                            this.playBackgroundSound(msg.config.background_sound);
+                        }
                     }
-                },
+
+                    // 3. NEW: Handle Transcripts from Backend
+                    else if (msg.type === 'transcript') {
+                        console.log("📝 [TRANSCRIPT]", msg);
+                        this.transcripts.push({
+                            role: msg.role,
+                            text: msg.text,
+                            timestamp: new Date().toLocaleTimeString()
+                        });
+                        // Auto-scroll
+                        this.$nextTick(() => {
+                            const container = document.getElementById('transcript-container');
+                            if (container) container.scrollTop = container.scrollHeight;
+                        });
+                    }
+                };
+
+                // ... (rest of WS handlers) ...
+                this.ws.onclose = () => { console.log("WS Closed"); this.stopTest(); };
+                this.ws.onerror = (e) => { console.error("WS Error", e); this.stopTest(); };
+
+            } catch (e) {
+                console.error("Connection failed", e);
+                this.stopTest();
+            }
+        },
 
                 async initMicrophone() {
-                    try {
-                        const constraints = {
-                            audio: {
-                                echoCancellation: this.c.denoise,
-                                noiseSuppression: this.c.denoise,
-                                autoGainControl: true
-                            }
-                        };
-                        this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-                        const source = this.audioContext.createMediaStreamSource(this.mediaStream);
-                        this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-
-                        // Connect Graph: Mic -> Analyser (Visuals) & Mic -> Processor (logic)
-                        source.connect(this.analyser);
-                        source.connect(this.processor);
-
-                        // Create Mute Gain to prevent feedback (Microphone -> Speakers)
-                        // ScriptProcessor needs downstream connection to fire 'onaudioprocess' in some browsers
-                        const muteGain = this.audioContext.createGain();
-                        muteGain.gain.value = 0;
-                        this.processor.connect(muteGain);
-                        muteGain.connect(this.audioContext.destination);
-
-                        this.processor.onaudioprocess = (e) => {
-                            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-
-                            const inputData = e.inputBuffer.getChannelData(0); // Float32
-
-                            // Convert Float32 (-1.0 to 1.0) -> Int16 PCM
-                            // We need to send RAW BYTES (Int16, little-endian)
-                            const pcm16 = new Int16Array(inputData.length);
-                            for (let i = 0; i < inputData.length; i++) {
-                                let s = Math.max(-1, Math.min(1, inputData[i]));
-                                pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-                            }
-
-                            // Convert Int16Array -> Byte String -> Base64
-                            const bytes = new Uint8Array(pcm16.buffer);
-                            let binary = '';
-                            const len = bytes.byteLength;
-                            for (let i = 0; i < len; i++) {
-                                binary += String.fromCharCode(bytes[i]);
-                            }
-                            const base64Audio = window.btoa(binary);
-
-                            this.ws.send(JSON.stringify({
-                                event: 'media',
-                                media: { payload: base64Audio, track: 'inbound' }
-                            }));
-                        };
-                    } catch (e) {
-                        console.error("Mic Access Failed", e);
-                        alert("Microphone Error: " + e.message);
-                        this.stopTest();
+            try {
+                const constraints = {
+                    audio: {
+                        echoCancellation: this.c.denoise,
+                        noiseSuppression: this.c.denoise,
+                        autoGainControl: true
                     }
-                },
+                };
+                this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+                this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
 
-                stopTest() {
-                    this.simState = 'ready';
-                    if (this.ws) {
-                        this.ws.close();
-                        this.ws = null;
-                    }
-                    if (this.audioContext) {
-                        this.audioContext.close();
-                        this.audioContext = null;
-                    }
-                    if (this.mediaStream) {
-                        this.mediaStream.getTracks().forEach(t => t.stop());
-                        this.mediaStream = null;
-                    }
-                    if (this.bgAudio) {
-                        this.bgAudio.pause();
-                        this.bgAudio = null;
+                // Connect Graph: Mic -> Analyser (Visuals) & Mic -> Processor (logic)
+                source.connect(this.analyser);
+                source.connect(this.processor);
+
+                // Create Mute Gain to prevent feedback (Microphone -> Speakers)
+                // ScriptProcessor needs downstream connection to fire 'onaudioprocess' in some browsers
+                const muteGain = this.audioContext.createGain();
+                muteGain.gain.value = 0;
+                this.processor.connect(muteGain);
+                muteGain.connect(this.audioContext.destination);
+
+                this.processor.onaudioprocess = (e) => {
+                    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+                    const inputData = e.inputBuffer.getChannelData(0); // Float32
+
+                    // Convert Float32 (-1.0 to 1.0) -> Int16 PCM
+                    // We need to send RAW BYTES (Int16, little-endian)
+                    const pcm16 = new Int16Array(inputData.length);
+                    for (let i = 0; i < inputData.length; i++) {
+                        let s = Math.max(-1, Math.min(1, inputData[i]));
+                        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
                     }
 
-                    if (this.animationId) cancelAnimationFrame(this.animationId);
-
-                    // Clear Canvas
-                    const canvas = document.getElementById('visualizer');
-                    if (canvas) {
-                        const ctx = canvas.getContext('2d');
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Convert Int16Array -> Byte String -> Base64
+                    const bytes = new Uint8Array(pcm16.buffer);
+                    let binary = '';
+                    const len = bytes.byteLength;
+                    for (let i = 0; i < len; i++) {
+                        binary += String.fromCharCode(bytes[i]);
                     }
-                },
+                    const base64Audio = window.btoa(binary);
 
-                playAudio(base64Data) {
-                    if (!base64Data) return;
-                    // ... (existing playAudio logic) ...
-                    try {
-                        const binaryString = window.atob(base64Data);
-                        const len = binaryString.length;
-                        const bytes = new Uint8Array(len);
-                        for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
+                    this.ws.send(JSON.stringify({
+                        event: 'media',
+                        media: { payload: base64Audio, track: 'inbound' }
+                    }));
+                };
+            } catch (e) {
+                console.error("Mic Access Failed", e);
+                alert("Microphone Error: " + e.message);
+                this.stopTest();
+            }
+        },
 
-                        const pcm16 = new Int16Array(bytes.buffer);
-                        const float32 = new Float32Array(pcm16.length);
+        stopTest() {
+            this.simState = 'ready';
+            if (this.ws) {
+                this.ws.close();
+                this.ws = null;
+            }
+            if (this.audioContext) {
+                this.audioContext.close();
+                this.audioContext = null;
+            }
+            if (this.mediaStream) {
+                this.mediaStream.getTracks().forEach(t => t.stop());
+                this.mediaStream = null;
+            }
+            if (this.bgAudio) {
+                this.bgAudio.pause();
+                this.bgAudio = null;
+            }
 
-                        for (let i = 0; i < pcm16.length; i++) {
-                            float32[i] = pcm16[i] / 32768.0;
-                        }
+            if (this.animationId) cancelAnimationFrame(this.animationId);
 
-                        if (!this.audioContext) return;
+            // Clear Canvas
+            const canvas = document.getElementById('visualizer');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        },
 
-                        const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
-                        buffer.copyToChannel(float32, 0);
+        playAudio(base64Data) {
+            if (!base64Data) return;
+            // ... (existing playAudio logic) ...
+            try {
+                const binaryString = window.atob(base64Data);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
 
-                        const source = this.audioContext.createBufferSource();
-                        source.buffer = buffer;
+                const pcm16 = new Int16Array(bytes.buffer);
+                const float32 = new Float32Array(pcm16.length);
 
-                        // PARALLEL ROUTING: 
-                        // 1. Hear it (Source -> Speakers)
-                        source.connect(this.audioContext.destination);
+                for (let i = 0; i < pcm16.length; i++) {
+                    float32[i] = pcm16[i] / 32768.0;
+                }
 
-                        // 2. See it (Source -> Analyser)
-                        // CRITICAL: Do NOT connect analyser to destination, as Mic also feeds into it!
-                        source.connect(this.analyser);
+                if (!this.audioContext) return;
 
-                        const currentTime = this.audioContext.currentTime;
-                        if (!this.nextStartTime || this.nextStartTime < currentTime) {
-                            this.nextStartTime = currentTime;
-                        }
-                        source.start(this.nextStartTime);
-                        this.nextStartTime += buffer.duration;
-                    } catch (e) {
-                        console.error("Playback Error", e);
+                const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
+                buffer.copyToChannel(float32, 0);
+
+                const source = this.audioContext.createBufferSource();
+                source.buffer = buffer;
+
+                // PARALLEL ROUTING: 
+                // 1. Hear it (Source -> Speakers)
+                source.connect(this.audioContext.destination);
+
+                // 2. See it (Source -> Analyser)
+                // CRITICAL: Do NOT connect analyser to destination, as Mic also feeds into it!
+                source.connect(this.analyser);
+
+                const currentTime = this.audioContext.currentTime;
+                if (!this.nextStartTime || this.nextStartTime < currentTime) {
+                    this.nextStartTime = currentTime;
+                }
+                source.start(this.nextStartTime);
+                this.nextStartTime += buffer.duration;
+            } catch (e) {
+                console.error("Playback Error", e);
+            }
+        },
+
+        bgAudio: null, // Store reference
+
+            playBackgroundSound(soundName) {
+            // ... (existing logic) ...
+            // Stop existing
+            if (this.bgAudio) {
+                this.bgAudio.pause();
+                this.bgAudio = null;
+            }
+
+            // Map name to file path (Simple mapping)
+            // Assuming static files are at /static/sounds/
+            const volume = 0.1; // Low volume for background
+            const path = `/static/sounds/${soundName}.wav`;
+
+            console.log(`🎵 [BG-SOUND] Playing loop: ${path}`);
+
+            this.bgAudio = new Audio(path);
+            this.bgAudio.loop = true;
+            this.bgAudio.volume = volume;
+
+            // Attempt to play (user gesture usually required, but we are inside startTest so it might work)
+            this.bgAudio.play().catch(e => console.warn("Background Audio Play failed (Autoplay policy?):", e));
+        },
+
+        drawVisualizer() {
+            const canvas = document.getElementById('visualizer');
+            if (!canvas || !this.analyser) return;
+
+            const ctx = canvas.getContext('2d');
+            // Resize handler (naive)
+            if (canvas.width !== canvas.offsetWidth) canvas.width = canvas.offsetWidth;
+            if (canvas.height !== canvas.offsetHeight) canvas.height = canvas.offsetHeight;
+
+            const bufferLength = this.analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
+
+            const draw = () => {
+                this.animationId = requestAnimationFrame(draw);
+                if (!this.analyser) return;
+
+                ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+                // Mode Selection
+                if (this.visualizerMode === 'wave') {
+                    this.analyser.getByteTimeDomainData(dataArray);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#34d399'; // Emerald-400
+                    ctx.beginPath();
+                    const sliceWidth = WIDTH * 1.0 / bufferLength;
+                    let x = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        const v = dataArray[i] / 128.0;
+                        const y = v * HEIGHT / 2;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                        x += sliceWidth;
                     }
-                },
+                    ctx.lineTo(canvas.width, canvas.height / 2);
+                    ctx.stroke();
 
-                bgAudio: null, // Store reference
+                } else if (this.visualizerMode === 'bars') {
+                    this.analyser.getByteFrequencyData(dataArray);
+                    const barWidth = (WIDTH / bufferLength) * 2.5;
+                    let barHeight;
+                    let x = 0;
 
-                playBackgroundSound(soundName) {
-                    // ... (existing logic) ...
-                    // Stop existing
-                    if (this.bgAudio) {
-                        this.bgAudio.pause();
-                        this.bgAudio = null;
+                    for (let i = 0; i < bufferLength; i++) {
+                        barHeight = dataArray[i] / 2; // Scale down
+                        // Gradient color
+                        const r = barHeight + 25 * (i / bufferLength);
+                        const g = 250 * (i / bufferLength);
+                        const b = 50;
+                        ctx.fillStyle = `rgb(${r},${g},${b})`;
+                        ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+                        x += barWidth + 1;
                     }
+                } else if (this.visualizerMode === 'orb') {
+                    this.analyser.getByteFrequencyData(dataArray);
+                    // Average volume
+                    let sum = 0;
+                    for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                    let avg = sum / bufferLength;
 
-                    // Map name to file path (Simple mapping)
-                    // Assuming static files are at /static/sounds/
-                    const volume = 0.1; // Low volume for background
-                    const path = `/static/sounds/${soundName}.wav`;
+                    const centerX = WIDTH / 2;
+                    const centerY = HEIGHT / 2;
+                    const radius = 50 + (avg); // Pulse effect
 
-                    console.log(`🎵 [BG-SOUND] Playing loop: ${path}`);
+                    const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius);
+                    gradient.addColorStop(0, "rgba(52, 211, 153, 0.8)"); // Inner Emerald
+                    gradient.addColorStop(1, "rgba(5, 150, 105, 0)");   // Outer Fade
 
-                    this.bgAudio = new Audio(path);
-                    this.bgAudio.loop = true;
-                    this.bgAudio.volume = volume;
-
-                    // Attempt to play (user gesture usually required, but we are inside startTest so it might work)
-                    this.bgAudio.play().catch(e => console.warn("Background Audio Play failed (Autoplay policy?):", e));
-                },
-
-                drawVisualizer() {
-                    const canvas = document.getElementById('visualizer');
-                    if (!canvas || !this.analyser) return;
-
-                    const ctx = canvas.getContext('2d');
-                    // Resize handler (naive)
-                    if (canvas.width !== canvas.offsetWidth) canvas.width = canvas.offsetWidth;
-                    if (canvas.height !== canvas.offsetHeight) canvas.height = canvas.offsetHeight;
-
-                    const bufferLength = this.analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    const WIDTH = canvas.width;
-                    const HEIGHT = canvas.height;
-
-                    const draw = () => {
-                        this.animationId = requestAnimationFrame(draw);
-                        if (!this.analyser) return;
-
-                        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-                        // Mode Selection
-                        if (this.visualizerMode === 'wave') {
-                            this.analyser.getByteTimeDomainData(dataArray);
-                            ctx.lineWidth = 2;
-                            ctx.strokeStyle = '#34d399'; // Emerald-400
-                            ctx.beginPath();
-                            const sliceWidth = WIDTH * 1.0 / bufferLength;
-                            let x = 0;
-                            for (let i = 0; i < bufferLength; i++) {
-                                const v = dataArray[i] / 128.0;
-                                const y = v * HEIGHT / 2;
-                                if (i === 0) ctx.moveTo(x, y);
-                                else ctx.lineTo(x, y);
-                                x += sliceWidth;
-                            }
-                            ctx.lineTo(canvas.width, canvas.height / 2);
-                            ctx.stroke();
-
-                        } else if (this.visualizerMode === 'bars') {
-                            this.analyser.getByteFrequencyData(dataArray);
-                            const barWidth = (WIDTH / bufferLength) * 2.5;
-                            let barHeight;
-                            let x = 0;
-
-                            for (let i = 0; i < bufferLength; i++) {
-                                barHeight = dataArray[i] / 2; // Scale down
-                                // Gradient color
-                                const r = barHeight + 25 * (i / bufferLength);
-                                const g = 250 * (i / bufferLength);
-                                const b = 50;
-                                ctx.fillStyle = `rgb(${r},${g},${b})`;
-                                ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
-                                x += barWidth + 1;
-                            }
-                        } else if (this.visualizerMode === 'orb') {
-                            this.analyser.getByteFrequencyData(dataArray);
-                            // Average volume
-                            let sum = 0;
-                            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-                            let avg = sum / bufferLength;
-
-                            const centerX = WIDTH / 2;
-                            const centerY = HEIGHT / 2;
-                            const radius = 50 + (avg); // Pulse effect
-
-                            const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius);
-                            gradient.addColorStop(0, "rgba(52, 211, 153, 0.8)"); // Inner Emerald
-                            gradient.addColorStop(1, "rgba(5, 150, 105, 0)");   // Outer Fade
-
-                            ctx.beginPath();
-                            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                            ctx.fillStyle = gradient;
-                            ctx.fill();
-                        }
-                    };
-                    draw();
-                },
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                }
+            };
+            draw();
+        },
 
                 async saveConfig() {
-                    const form = document.getElementById('configForm');
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const apiKey = urlParams.get('api_key');
+            const form = document.getElementById('configForm');
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('api_key');
 
-                    // Construct Payload
-                    // Flattens the 'c' (current profile) back into the hidden inputs structure?
-                    // actually, the hidden inputs are bound to :value="configs..."
-                    // We need to send the ENTIRE state (all profiles) to match the Backend Schema expecting "temperature_phone", etc.
+            // Construct Payload
+            // Flattens the 'c' (current profile) back into the hidden inputs structure?
+            // actually, the hidden inputs are bound to :value="configs..."
+            // We need to send the ENTIRE state (all profiles) to match the Backend Schema expecting "temperature_phone", etc.
 
-                    // Better approach for JSON: Send the flattened key-value pairs that the backend expects.
-                    // We can construct this by reading the form data (which has the hidden inputs with correct names)
-                    const formData = new FormData(form);
-                    const payload = {};
-                    formData.forEach((value, key) => payload[key] = value);
+            // Better approach for JSON: Send the flattened key-value pairs that the backend expects.
+            // We can construct this by reading the form data (which has the hidden inputs with correct names)
+            const formData = new FormData(form);
+            const payload = {};
+            formData.forEach((value, key) => payload[key] = value);
 
-                    // Add dynamic API Key if missing
-                    let endpoint = '/api/config/update-json';
-                    if (apiKey) endpoint += `?api_key=${apiKey}`;
+            // Add dynamic API Key if missing
+            let endpoint = '/api/config/update-json';
+            if (apiKey) endpoint += `?api_key=${apiKey}`;
 
-                    let btn = document.querySelector('button[type="submit"]');
+            let btn = document.querySelector('button[type="submit"]');
 
-                    try {
-                        if (btn) btn.innerHTML = '💾 Guardando...';
+            try {
+                if (btn) btn.innerHTML = '💾 Guardando...';
 
-                        const res = await fetch(endpoint, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(payload)
-                        });
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-                        if (res.ok) {
-                            const data = await res.json();
-                            console.log("✅ Config Saved:", data);
-                            this.showToast("Configuración guardada correctamente", "success");
-                        } else {
-                            throw new Error(`Server Error: ${res.status}`);
-                        }
-                    } catch (e) {
-                        console.error("Save Failed", e);
-                        this.showToast("Error al guardar: " + e.message, "error");
-                    } finally {
-                        if (btn) btn.innerHTML = '<span class="mr-2">💾</span> Guardar Cambios';
-                    }
-                },
-
-                // Toast Logic
-                showToast(msg, type = 'success') {
-                    // Create element dynamically
-                    const div = document.createElement('div');
-                    div.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl text-sm font-medium transform transition-all duration-300 translate-y-10 opacity-0 z-50 ${type === 'success' ? 'bg-emerald-600/90 text-white' : 'bg-red-600/90 text-white'}`;
-                    div.textContent = msg;
-                    document.body.appendChild(div);
-
-                    // Animate In
-                    requestAnimationFrame(() => {
-                        div.classList.remove('translate-y-10', 'opacity-0');
-                    });
-
-                    // Remove
-                    setTimeout(() => {
-                        div.classList.add('translate-y-10', 'opacity-0');
-                        setTimeout(() => div.remove(), 300);
-                    }, 3000);
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log("✅ Config Saved:", data);
+                    this.showToast("Configuración guardada correctamente", "success");
+                } else {
+                    throw new Error(`Server Error: ${res.status}`);
                 }
+            } catch (e) {
+                console.error("Save Failed", e);
+                this.showToast("Error al guardar: " + e.message, "error");
+            } finally {
+                if (btn) btn.innerHTML = '<span class="mr-2">💾</span> Guardar Cambios';
+            }
+        },
+
+        // Toast Logic
+        showToast(msg, type = 'success') {
+            // Create element dynamically
+            const div = document.createElement('div');
+            div.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl text-sm font-medium transform transition-all duration-300 translate-y-10 opacity-0 z-50 ${type === 'success' ? 'bg-emerald-600/90 text-white' : 'bg-red-600/90 text-white'}`;
+            div.textContent = msg;
+            document.body.appendChild(div);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                div.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            // Remove
+            setTimeout(() => {
+                div.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
+        }
             }
         }
     </script>
