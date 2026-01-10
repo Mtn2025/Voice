@@ -1074,67 +1074,54 @@
                     };
                 },
 
+                ensureModelExists(provider, modelId) {
+                    if (!provider || !modelId) return;
+                    const p = provider.trim().toLowerCase();
+                    const m = modelId.trim();
+
+                    if (!this.models[p]) this.models[p] = [];
+
+                    const exists = this.models[p].find(x => x.id === m);
+                    if (!exists) {
+                        console.log(`🔧 [DATA-FIX] Injecting missing model '${m}' into provider '${p}'`);
+                        this.models[p].unshift({ id: m, name: m + ' (Saved)' });
+                    }
+                },
+
+                sanitizeAllProfiles() {
+                    // Pre-scan all profiles and ensure their saved models exist in the catalog
+                    const s = this.serverConfig || {};
+
+                    // Browser
+                    this.ensureModelExists(s.llm_provider, s.llm_model);
+                    // Twilio
+                    this.ensureModelExists(s.llm_provider_phone, s.llm_model_phone);
+                    // Telnyx
+                    this.ensureModelExists(s.llm_provider_telnyx, s.llm_model_telnyx);
+                },
+
                 refreshUI() {
+                    // 1. Sanitize Data Source first
+                    this.sanitizeAllProfiles();
+
+                    // 2. Update computed lists
                     this.updateModelList();
                     this.updateVoiceLists();
-                    // Styles autom update via voice list
                 },
 
                 updateModelList() {
+                    // Pure MAPPING logic - No side effects
                     let prov = (this.c.provider || 'openai').trim().toLowerCase();
-                    // 1. Build List LOCALLY (Don't touch reactive state yet)
-                    let tmpList = [...(this.models[prov] || [])];
+                    this.availableModels = this.models[prov] || [];
 
-                    // SOURCE OF TRUTH (Server Config)
-                    const s = this.serverConfig || {};
-                    let savedProvider = '';
-                    let savedModel = '';
-
-                    // Resolve saved config based on profile
-                    if (this.activeProfile === 'browser') {
-                        savedProvider = s.llm_provider;
-                        savedModel = s.llm_model;
-                    } else if (this.activeProfile === 'twilio') {
-                        savedProvider = s.llm_provider_phone;
-                        savedModel = s.llm_model_phone;
-                    } else if (this.activeProfile === 'telnyx') {
-                        savedProvider = s.llm_provider_telnyx;
-                        savedModel = s.llm_model_telnyx;
+                    // Fallback only if selection is truly invalid
+                    if (this.c.model && !this.availableModels.find(m => m.id === this.c.model)) {
+                        console.warn("⚠️ Model selection invalid even after sanitization, resetting.");
+                        this.c.model = this.availableModels[0]?.id || '';
                     }
 
-                    savedProvider = (savedProvider || 'openai').trim().toLowerCase();
-                    savedModel = (savedModel || '').trim();
-
-                    // LOGIC: If we match saved provider, seek and destroy (inject)
-                    if (prov === savedProvider && savedModel) {
-                        const exists = tmpList.find(m => m.id === savedModel);
-                        if (!exists) {
-                            console.log("🔒 [PERSISTENCE] Pre-injecting saved model:", savedModel);
-                            // Atomic Injection - This ensures the list has it BEFORE Alpine sees it
-                            tmpList.unshift({
-                                id: savedModel,
-                                name: savedModel + ' (Guardado)'
-                            });
-                        }
-                    }
-
-                    // 2. ATOMIC ASSIGNMENT (Reactivity triggers ONCE here)
-                    this.availableModels = tmpList;
-
-                    // 3. ENFORCE SELECTION (After list is safe)
-                    if (prov === savedProvider && savedModel) {
-                        if (this.c.model !== savedModel) {
-                            console.log("🔒 [PERSISTENCE] Forcing saved model:", savedModel);
-                            this.c.model = savedModel;
-                        }
-                    } else {
-                        // Standard fallback
-                        if (this.c.model && !this.availableModels.find(m => m.id === this.c.model)) {
-                            this.c.model = this.availableModels[0]?.id || '';
-                        }
-                        if (!this.c.model && this.availableModels.length > 0) {
-                            this.c.model = this.availableModels[0].id;
-                        }
+                    if (!this.c.model && this.availableModels.length > 0) {
+                        this.c.model = this.availableModels[0].id;
                     }
                 },
 
