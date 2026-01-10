@@ -680,6 +680,22 @@ async def patch_config(request: Request, db: AsyncSession = Depends(get_db)):
         logging.error(f"Config Patch Failed: {e}")
         return {"status": "error", "message": str(e)}
 
+@router.get("/dashboard/call/{call_id}", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
+async def dashboard_call_detail(request: Request, call_id: int, db: AsyncSession = Depends(get_db)):
+    try:
+        call = await db_service.get_call_details(db, call_id)
+        if not call:
+             # Fallback for invalid ID
+             return RedirectResponse("/dashboard?error=call_not_found")
+        
+        return templates.TemplateResponse("call_details.html", {
+            "request": request,
+            "call": call
+        })
+    except Exception as e:
+        logger.error(f"Error fetching call details {call_id}: {e}")
+        return RedirectResponse("/dashboard?error=server_error")
+
 @router.get("/dashboard/history-rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
 async def history_rows(request: Request, page: int = 1, limit: int = 20, db: AsyncSession = Depends(get_db)):
     try:
