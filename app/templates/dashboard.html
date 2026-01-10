@@ -422,243 +422,240 @@
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <!-- TAB START: FUNCIONES -->
-                    <div x-show="activeTab === 'funciones'" class="space-y-5 animate-fade-in-up">
-                        <div class="space-y-4">
-                            <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-sm font-medium">Colgar Llamada</h4>
-                                    <p class="text-xs text-slate-400">Permite al bot finalizar la llamada.</p>
+                <!-- TAB START: FUNCIONES -->
+                <div x-show="activeTab === 'funciones'" class="space-y-5 animate-fade-in-up">
+                    <div class="space-y-4">
+                        <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium">Colgar Llamada</h4>
+                                <p class="text-xs text-slate-400">Permite al bot finalizar la llamada.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" x-model="c.enableEndCall" class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="c.enableEndCall" class="sr-only peer">
-                                    <div
-                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                    </div>
-                                </label>
-                            </div>
+                            </label>
+                        </div>
 
-                            <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-sm font-medium">Teclado Numérico</h4>
-                                    <p class="text-xs text-slate-400">Interacción DTMF.</p>
+                        <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium">Teclado Numérico</h4>
+                                <p class="text-xs text-slate-400">Interacción DTMF.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" x-model="c.dialKeypad" class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="c.dialKeypad" class="sr-only peer">
-                                    <div
-                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                    </div>
-                                </label>
-                            </div>
+                            </label>
+                        </div>
 
-                            <div class="glass-panel p-4 rounded-lg space-y-3">
-                                <h4 class="text-sm font-medium">Transferencia</h4>
-                                <input type="text" x-model="c.transferNum"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm" placeholder="+52...">
-                            </div>
+                        <div class="glass-panel p-4 rounded-lg space-y-3">
+                            <h4 class="text-sm font-medium">Transferencia</h4>
+                            <input type="text" x-model="c.transferNum"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm" placeholder="+52...">
                         </div>
                     </div>
+                </div>
 
-                    <!-- TAB START: AVANZADO -->
-                    <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Duración
-                                    Máx (seg)</label>
-                                <input type="number" x-model="c.maxDuration"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
-                            </div>
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Max
-                                    Retries</label>
-                                <input type="number" x-model="c.maxRetries"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
-                            </div>
-                        </div>
-
+                <!-- TAB START: AVANZADO -->
+                <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label
-                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
-                                <span>Timeout Inactividad (seg)</span>
-                                <span class="text-blue-400" x-text="c.idleTimeout"></span>
-                            </label>
-                            <input type="range" x-model="c.idleTimeout" min="5" max="60" step="1"
-                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                        </div>
-
-                        <div>
-                            <label
-                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
-                                Inactividad</label>
-                            <input type="text" x-model="c.idleMessage"
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Duración
+                                Máx (seg)</label>
+                            <input type="number" x-model="c.maxDuration"
                                 class="glass-input w-full p-2.5 rounded-lg text-sm">
                         </div>
-
-                        <div x-show="activeProfile === 'telnyx'" class="pt-4 border-t border-slate-700">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3">Telnyx Only</h4>
-                            <div class="space-y-3">
-                                <label class="flex items-center space-x-2 cursor-pointer">
-                                    <input type="checkbox" x-model="c.enableRecording"
-                                        class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
-                                    <span class="text-sm">Grabar Llamada</span>
-                                </label>
-                                <div>
-                                    <label class="text-xs text-slate-400 block mb-1">AMD Config</label>
-                                    <select x-model="c.amdConfig" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                        <option value="disabled">Disabled</option>
-                                        <option value="premium">Premium</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Max
+                                Retries</label>
+                            <input type="number" x-model="c.maxRetries"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm">
                         </div>
                     </div>
 
-                    <!-- HIDDEN INPUTS (MAPPED TO FLATTENED FORM FOR BACKEND) -->
-                    <!-- This ensures backend receives expected fields regardless of active tab -->
-                    <div class="hidden">
-                        <!-- Browser/Common -->
-                        <input type="hidden" name="llm_provider" :value="configs.browser.provider">
-                        <input type="hidden" name="llm_model" :value="configs.browser.model">
-                        <input type="hidden" name="temperature" :value="configs.browser.temp">
-                        <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
-                        <input type="hidden" name="system_prompt" :value="configs.browser.prompt">
-                        <input type="hidden" name="first_message" :value="configs.browser.msg">
-                        <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
-
-                        <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
-                        <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
-                        <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
-                        <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
-                        <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
-                        <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
-                        <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
-
-                        <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
-                        <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
-                        <input type="hidden" name="interruption_threshold" :value="configs.browser.interruptWords">
-                        <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
-                        <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
-
-                        <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
-                        <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
-                        <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
-
-                        <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
-                        <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
-                        <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
-                        <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
-
-                        <!-- Twilio -->
-                        <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
-                        <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
-                        <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
-                        <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
-                        <input type="hidden" name="system_prompt_phone" :value="configs.twilio.prompt">
-                        <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
-                        <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
-
-                        <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
-                        <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
-                        <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
-                        <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
-                        <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
-                        <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
-
-                        <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
-                        <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
-                        <input type="hidden" name="interruption_threshold_phone" :value="configs.twilio.interruptWords">
-                        <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
-                        <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
-                        <input type="hidden" name="hallucination_blacklist_phone" :value="configs.twilio.blacklist">
-                        <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
-
-                        <!-- Telnyx -->
-                        <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
-                        <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
-                        <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
-                        <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
-                        <input type="hidden" name="system_prompt_telnyx" :value="configs.telnyx.prompt">
-                        <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
-                        <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
-
-                        <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
-                        <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
-                        <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
-                        <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
-                        <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
-                        <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
-                        <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
-
-                        <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
-                        <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
-                        <input type="hidden" name="interruption_threshold_telnyx"
-                            :value="configs.telnyx.interruptWords">
-                        <input type="hidden" name="voice_sensitivity_telnyx" :value="configs.telnyx.interruptRMS">
-                        <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
-                        <input type="hidden" name="input_min_characters_telnyx" :value="configs.telnyx.inputMin">
-                        <input type="hidden" name="hallucination_blacklist_telnyx" :value="configs.telnyx.blacklist">
-                        <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
-                        <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
-                        <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
-
-                        <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
-                        <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
-                        <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
-                        <input type="hidden" name="enable_recording_telnyx" :value="configs.telnyx.enableRecording">
-                        <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
+                    <div>
+                        <label
+                            class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                            <span>Timeout Inactividad (seg)</span>
+                            <span class="text-blue-400" x-text="c.idleTimeout"></span>
+                        </label>
+                        <input type="range" x-model="c.idleTimeout" min="5" max="60" step="1"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                     </div>
 
-                    <!-- FOOTER ACTIONS -->
-                    <div
-                        class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
-                        <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                            </svg>
-                            <span>Guardar Cambios</span>
-                        </button>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
+                            Inactividad</label>
+                        <input type="text" x-model="c.idleMessage" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                    </div>
+
+                    <div x-show="activeProfile === 'telnyx'" class="pt-4 border-t border-slate-700">
+                        <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3">Telnyx Only</h4>
+                        <div class="space-y-3">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" x-model="c.enableRecording"
+                                    class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                                <span class="text-sm">Grabar Llamada</span>
+                            </label>
+                            <div>
+                                <label class="text-xs text-slate-400 block mb-1">AMD Config</label>
+                                <select x-model="c.amdConfig" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                    <option value="disabled">Disabled</option>
+                                    <option value="premium">Premium</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </form>
-        </div>
 
-        <!-- RIGHT COLUMN: SIMULATOR (7/12) -->
-        <div class="lg:col-span-7 space-y-6">
-            <div class="sticky top-6">
-                <!-- SIMULATOR HEADER -->
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xl">🧪</span>
-                        <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
-                    </div>
-                    <button @click="startTest()"
-                        :class="{'bg-red-600 hover:bg-red-500': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500': simState !== 'connected'}"
-                        class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 transition-all border border-white/10"
-                        x-text="simState === 'connected' ? 'Detener' : (simState === 'connecting' ? 'Conectando...' : 'Iniciar Prueba')">
+                <!-- HIDDEN INPUTS (MAPPED TO FLATTENED FORM FOR BACKEND) -->
+                <!-- This ensures backend receives expected fields regardless of active tab -->
+                <div class="hidden">
+                    <!-- Browser/Common -->
+                    <input type="hidden" name="llm_provider" :value="configs.browser.provider">
+                    <input type="hidden" name="llm_model" :value="configs.browser.model">
+                    <input type="hidden" name="temperature" :value="configs.browser.temp">
+                    <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
+                    <input type="hidden" name="system_prompt" :value="configs.browser.prompt">
+                    <input type="hidden" name="first_message" :value="configs.browser.msg">
+                    <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
+
+                    <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
+                    <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
+                    <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
+                    <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
+                    <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
+                    <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
+                    <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
+
+                    <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
+                    <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
+                    <input type="hidden" name="interruption_threshold" :value="configs.browser.interruptWords">
+                    <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
+                    <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
+
+                    <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
+                    <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
+                    <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
+
+                    <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
+                    <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
+                    <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
+                    <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
+
+                    <!-- Twilio -->
+                    <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
+                    <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
+                    <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
+                    <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
+                    <input type="hidden" name="system_prompt_phone" :value="configs.twilio.prompt">
+                    <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
+                    <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
+
+                    <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
+                    <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
+                    <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
+                    <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
+                    <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
+                    <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
+
+                    <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
+                    <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
+                    <input type="hidden" name="interruption_threshold_phone" :value="configs.twilio.interruptWords">
+                    <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
+                    <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
+                    <input type="hidden" name="hallucination_blacklist_phone" :value="configs.twilio.blacklist">
+                    <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
+
+                    <!-- Telnyx -->
+                    <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
+                    <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
+                    <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
+                    <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
+                    <input type="hidden" name="system_prompt_telnyx" :value="configs.telnyx.prompt">
+                    <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
+                    <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
+
+                    <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
+                    <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
+                    <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
+                    <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
+                    <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
+                    <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
+                    <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
+
+                    <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
+                    <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
+                    <input type="hidden" name="interruption_threshold_telnyx" :value="configs.telnyx.interruptWords">
+                    <input type="hidden" name="voice_sensitivity_telnyx" :value="configs.telnyx.interruptRMS">
+                    <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
+                    <input type="hidden" name="input_min_characters_telnyx" :value="configs.telnyx.inputMin">
+                    <input type="hidden" name="hallucination_blacklist_telnyx" :value="configs.telnyx.blacklist">
+                    <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
+                    <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
+                    <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
+
+                    <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
+                    <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
+                    <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
+                    <input type="hidden" name="enable_recording_telnyx" :value="configs.telnyx.enableRecording">
+                    <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
+                </div>
+
+                <!-- FOOTER ACTIONS -->
+                <div
+                    class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        <span>Guardar Cambios</span>
                     </button>
                 </div>
+        </div>
+        </form>
+    </div>
 
-                <!-- VISUALIZER AREA -->
-                <div
-                    class="glass-panel h-[400px] rounded-xl flex items-center justify-center p-6 mb-4 relative overflow-hidden bg-black/40">
-                    <p class="text-mono text-emerald-500/50" :class="{'animate-pulse': simState === 'connecting'}"
-                        x-text="simState === 'connected' ? 'En Línea' : (simState === 'connecting' ? 'Conectando...' : 'Listo para conectar...')">
-                    </p>
+    <!-- RIGHT COLUMN: SIMULATOR (7/12) -->
+    <div class="lg:col-span-7 space-y-6">
+        <div class="sticky top-6">
+            <!-- SIMULATOR HEADER -->
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🧪</span>
+                    <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
                 </div>
+                <button @click="startTest()"
+                    :class="{'bg-red-600 hover:bg-red-500': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500': simState !== 'connected'}"
+                    class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 transition-all border border-white/10"
+                    x-text="simState === 'connected' ? 'Detener' : (simState === 'connecting' ? 'Conectando...' : 'Iniciar Prueba')">
+                </button>
+            </div>
 
-                <!-- TRANSCRIPT -->
-                <div
-                    class="glass-panel h-[200px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50">
-                    <div class="text-slate-500 mb-2">TRANSCRIPCIÓN EN VIVO</div>
-                </div>
+            <!-- VISUALIZER AREA -->
+            <div
+                class="glass-panel h-[400px] rounded-xl flex items-center justify-center p-6 mb-4 relative overflow-hidden bg-black/40">
+                <p class="text-mono text-emerald-500/50" :class="{'animate-pulse': simState === 'connecting'}"
+                    x-text="simState === 'connected' ? 'En Línea' : (simState === 'connecting' ? 'Conectando...' : 'Listo para conectar...')">
+                </p>
+            </div>
+
+            <!-- TRANSCRIPT -->
+            <div
+                class="glass-panel h-[200px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50">
+                <div class="text-slate-500 mb-2">TRANSCRIPCIÓN EN VIVO</div>
             </div>
         </div>
+    </div>
 
     </div>
 
