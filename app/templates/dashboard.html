@@ -1597,11 +1597,13 @@
                     const payload = {};
                     formData.forEach((value, key) => payload[key] = value);
 
-                    // Add API Key
-                    if (apiKey) payload.api_key = apiKey;
-
                     try {
-                        const res = await fetch('/api/config/update-json', {
+                        // CRITICAL: API Key must be in query params for FastAPI dependency
+                        const url = apiKey
+                            ? `/api/config/update-json?api_key=${encodeURIComponent(apiKey)}`
+                            : '/api/config/update-json';
+
+                        const res = await fetch(url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
