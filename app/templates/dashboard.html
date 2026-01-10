@@ -1081,7 +1081,7 @@
                 },
 
                 updateModelList() {
-                    let prov = (this.c.provider || 'openai').toLowerCase();
+                    let prov = (this.c.provider || 'openai').trim().toLowerCase();
                     // 1. Build List LOCALLY (Don't touch reactive state yet)
                     let tmpList = [...(this.models[prov] || [])];
 
@@ -1102,8 +1102,8 @@
                         savedModel = s.llm_model_telnyx;
                     }
 
-                    savedProvider = (savedProvider || 'openai').toLowerCase();
-                    savedModel = savedModel || '';
+                    savedProvider = (savedProvider || 'openai').trim().toLowerCase();
+                    savedModel = (savedModel || '').trim();
 
                     // LOGIC: If we match saved provider, seek and destroy (inject)
                     if (prov === savedProvider && savedModel) {
@@ -1139,7 +1139,7 @@
                 },
 
                 updateVoiceLists() {
-                    let prov = (this.c.voiceProvider || 'azure').toLowerCase();
+                    let prov = (this.c.voiceProvider || 'azure').trim().toLowerCase();
                     this.availableLanguages = this.languages[prov] || [];
 
                     // Validate Lang
