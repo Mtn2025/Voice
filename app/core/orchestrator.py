@@ -1321,13 +1321,16 @@ class VoiceOrchestrator:
             logging.warning(f"🔔 [GREETING] Message to speak: {message}")
             if self.client_type != "browser":
                 logging.info("⏳ Waiting for Media Stream START event before greeting...")
-                for _ in range(50): # Wait up to 5 seconds
+                for _ in range(50): # Wait up to 5 seconds for Twilio/Telnyx
                     if self.stream_id:
                         logging.info(f"✅ StreamID obtained ({self.stream_id}). Speaking now.")
                         break
                     await asyncio.sleep(0.1)
                 else:
                     logging.warning("⚠️ Timed out waiting for StreamID. Speaking anyway (might fail).")
+            else:
+                # Browser: Give a tiny pause to ensure WebSocket is fully ready to receive audio
+                await asyncio.sleep(0.5)
 
             logging.info(f"🗣️ Triggering First Message: {message}")
             await self.speak_direct(message)
