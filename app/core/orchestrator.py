@@ -466,6 +466,13 @@ class VoiceOrchestrator:
     async def _handle_recognized_async(self, text: str, audio_data: bytes | None = None) -> None:
         logging.info(f"Azure VAD Detected: {text}")
 
+        # UI OBSERVABILITY: Send transcript immediately (Browser only)
+        if self.client_type == "browser":
+             try:
+                 await self.websocket.send_text(json.dumps({"type": "transcript", "role": "user", "text": text}))
+             except Exception:
+                 pass
+
         # FILTER: Minimum Characters (Noise Reduction)
         min_chars = getattr(self.config, 'input_min_characters', 1)
         if len(text.strip()) < min_chars:
@@ -537,9 +544,9 @@ class VoiceOrchestrator:
             logging.info("🛑 Cancelling previous response task used to avoid double audio.")
             self.response_task.cancel()
 
-        # Send transcript to UI immediately
-        if self.client_type == "browser":
-             await self.websocket.send_text(json.dumps({"type": "transcript", "role": "user", "text": text}))
+        # Send transcript to UI immediately - MOVED TO TOP
+        # if self.client_type == "browser":
+        #      await self.websocket.send_text(json.dumps({"type": "transcript", "role": "user", "text": text}))
 
         if self.stream_id:
             async with AsyncSessionLocal() as session:

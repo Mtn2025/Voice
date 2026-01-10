@@ -1253,7 +1253,13 @@
                         // Connect Graph: Mic -> Analyser (Visuals) & Mic -> Processor (logic)
                         source.connect(this.analyser);
                         source.connect(this.processor);
-                        this.processor.connect(this.audioContext.destination);
+
+                        // Create Mute Gain to prevent feedback (Microphone -> Speakers)
+                        // ScriptProcessor needs downstream connection to fire 'onaudioprocess' in some browsers
+                        const muteGain = this.audioContext.createGain();
+                        muteGain.gain.value = 0;
+                        this.processor.connect(muteGain);
+                        muteGain.connect(this.audioContext.destination);
 
                         this.processor.onaudioprocess = (e) => {
                             if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
