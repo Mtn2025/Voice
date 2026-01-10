@@ -142,9 +142,12 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     llm_model_phone = Column(String, default="llama-3.3-70b-versatile")
     system_prompt_phone = Column(Text, default=None) # If None, fallback to system_prompt
 
+    tts_provider_phone = Column(String, default="azure")  # FIX: Added missing field
+    voice_language_phone = Column(String, default="es-MX")  # FIX: Added missing field
     voice_name_phone = Column(String, default="es-MX-DaliaNeural")
     voice_style_phone = Column(String, nullable=True)
     temperature_phone = Column(Float, default=0.7)
+    background_sound_phone = Column(String, default="none")  # FIX: Added missing field
 
     first_message_phone = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
     first_message_mode_phone = Column(String, default="speak-first")
@@ -193,9 +196,13 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     llm_model_telnyx = Column(String, default="llama-3.3-70b-versatile")
     system_prompt_telnyx = Column(Text, default=None)
 
+    tts_provider_telnyx = Column(String, default="azure")  # FIX: Added missing field
+    voice_language_telnyx = Column(String, default="es-MX")  # FIX: Added missing field
     voice_name_telnyx = Column(String, default="es-MX-DaliaNeural")
     voice_style_telnyx = Column(String, nullable=True)
     temperature_telnyx = Column(Float, default=0.7)
+    background_sound_telnyx = Column(String, default="none")  # FIX: Added missing field
+    background_sound_url_telnyx = Column(String, nullable=True)  # FIX: Added missing field
 
     first_message_telnyx = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
     first_message_mode_telnyx = Column(String, default="speak-first")
