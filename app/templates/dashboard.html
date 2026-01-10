@@ -769,30 +769,65 @@
         <div class="lg:col-span-7 space-y-6">
             <div class="sticky top-6">
                 <!-- SIMULATOR HEADER -->
-                <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center space-x-2">
                         <span class="text-xl">🧪</span>
                         <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
                     </div>
-                    <button @click="startTest()"
-                        :class="{'bg-red-600 hover:bg-red-500': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500': simState !== 'connected'}"
-                        class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg shadow-emerald-500/20 transition-all border border-white/10"
-                        x-text="simState === 'connected' ? 'Detener' : (simState === 'connecting' ? 'Conectando...' : 'Iniciar Prueba')">
-                    </button>
+
+                    <div class="flex items-center space-x-2">
+                        <!-- Animation Selector -->
+                        <select x-model="visualizerMode"
+                            class="bg-slate-800 text-xs text-slate-400 border border-slate-700 rounded px-2 py-1 outline-none focus:border-emerald-500">
+                            <option value="wave">Onda</option>
+                            <option value="bars">Barras</option>
+                            <option value="orb">Orbe</option>
+                        </select>
+
+                        <button @click="startTest()"
+                            :class="{'bg-red-600 hover:bg-red-500 shadow-red-500/20': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20': simState !== 'connected'}"
+                            class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-all border border-white/10 flex items-center space-x-2">
+                            <span
+                                x-text="simState === 'connected' ? '⏹ Detener' : (simState === 'connecting' ? '⏳ Conectando...' : '▶ Iniciar Prueba')"></span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- VISUALIZER AREA -->
                 <div
-                    class="glass-panel h-[400px] rounded-xl flex items-center justify-center p-6 mb-4 relative overflow-hidden bg-black/40">
-                    <p class="text-mono text-emerald-500/50" :class="{'animate-pulse': simState === 'connecting'}"
-                        x-text="simState === 'connected' ? 'En Línea' : (simState === 'connecting' ? 'Conectando...' : 'Listo para conectar...')">
+                    class="glass-panel h-[400px] rounded-xl flex items-center justify-center mb-4 relative overflow-hidden bg-black border border-slate-800 shadow-inner">
+                    <!-- Status Text Overlay -->
+                    <p class="absolute font-mono text-emerald-500/50 pointer-events-none z-10 transition-opacity duration-500"
+                        :class="{'animate-pulse': simState === 'connecting', 'opacity-0': simState === 'connected'}"
+                        x-text="simState === 'connected' ? '' : (simState === 'connecting' ? 'Estableciendo Conexión...' : 'Listo para conectar...')">
                     </p>
+
+                    <!-- Canvas -->
+                    <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
                 </div>
 
                 <!-- TRANSCRIPT -->
-                <div
-                    class="glass-panel h-[200px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50">
-                    <div class="text-slate-500 mb-2">TRANSCRIPCIÓN EN VIVO</div>
+                <div class="glass-panel h-[250px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50 flex flex-col space-y-3 bg-slate-900/50"
+                    id="transcript-container">
+                    <div
+                        class="text-slate-500 mb-2 uppercase text-[10px] tracking-wider sticky top-0 bg-slate-900/90 pb-2 border-b border-slate-800">
+                        Transcripción en Vivo</div>
+
+                    <template x-for="msg in transcripts">
+                        <div class="flex flex-col space-y-1"
+                            :class="{'items-end': msg.role === 'user', 'items-start': msg.role === 'assistant'}">
+                            <span class="text-[9px] text-slate-500"
+                                x-text="msg.role === 'user' ? 'Tú' : 'Andrea'"></span>
+                            <div class="px-3 py-2 rounded-lg max-w-[85%]"
+                                :class="{'bg-blue-600/20 text-blue-200 border border-blue-500/30': msg.role === 'user', 'bg-emerald-600/20 text-emerald-200 border border-emerald-500/30': msg.role === 'assistant'}">
+                                <span x-text="msg.text"></span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div x-show="transcripts.length === 0" class="text-center text-slate-600 italic py-4">
+                        Esperando audio...
+                    </div>
                 </div>
             </div>
         </div>
@@ -1100,6 +1135,12 @@
                 mediaStream: null,
                 processor: null,
 
+                // Visualizer & Transcript State
+                analyser: null,
+                visualizerMode: 'wave', // wave, bars, orb
+                animationId: null,
+                transcripts: [],
+
                 nextStartTime: 0,
 
                 async startTest() {
@@ -1108,12 +1149,22 @@
                         return;
                     }
 
+                    this.transcripts = []; // Clear previous chat
+
                     // 1. Initialize AudioContext at 16kHz (Standard Wideband)
                     try {
                         this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
                         if (this.audioContext.state === 'suspended') {
                             await this.audioContext.resume();
                         }
+
+                        // NEW: Setup Analyser
+                        this.analyser = this.audioContext.createAnalyser();
+                        this.analyser.fftSize = 2048; // Higher res for bars
+
+                        // Start Visualizer Loop
+                        this.drawVisualizer();
+
                         console.log("AudioContext Initialized. SampleRate:", this.audioContext.sampleRate, "State:", this.audioContext.state);
                     } catch (e) {
                         console.error("Audio Context Init Failed", e);
@@ -1160,6 +1211,20 @@
                                     this.playBackgroundSound(msg.config.background_sound);
                                 }
                             }
+
+                            // 3. NEW: Handle Transcripts from Backend
+                            else if (msg.type === 'transcript') {
+                                this.transcripts.push({
+                                    role: msg.role,
+                                    text: msg.text,
+                                    timestamp: new Date().toLocaleTimeString()
+                                });
+                                // Auto-scroll
+                                this.$nextTick(() => {
+                                    const container = document.getElementById('transcript-container');
+                                    if (container) container.scrollTop = container.scrollHeight;
+                                });
+                            }
                         };
 
                         // ... (rest of WS handlers) ...
@@ -1184,6 +1249,9 @@
                         this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
                         const source = this.audioContext.createMediaStreamSource(this.mediaStream);
                         this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+
+                        // Connect Graph: Mic -> Analyser (Visuals) & Mic -> Processor (logic)
+                        source.connect(this.analyser);
                         source.connect(this.processor);
                         this.processor.connect(this.audioContext.destination);
 
@@ -1239,6 +1307,15 @@
                         this.bgAudio.pause();
                         this.bgAudio = null;
                     }
+
+                    if (this.animationId) cancelAnimationFrame(this.animationId);
+
+                    // Clear Canvas
+                    const canvas = document.getElementById('visualizer');
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
                 },
 
                 playAudio(base64Data) {
@@ -1264,7 +1341,10 @@
 
                         const source = this.audioContext.createBufferSource();
                         source.buffer = buffer;
-                        source.connect(this.audioContext.destination);
+
+                        // Connect Source -> Analyser -> Destination
+                        source.connect(this.analyser);
+                        this.analyser.connect(this.audioContext.destination);
 
                         const currentTime = this.audioContext.currentTime;
                         if (!this.nextStartTime || this.nextStartTime < currentTime) {
@@ -1280,6 +1360,7 @@
                 bgAudio: null, // Store reference
 
                 playBackgroundSound(soundName) {
+                    // ... (existing logic) ...
                     // Stop existing
                     if (this.bgAudio) {
                         this.bgAudio.pause();
@@ -1301,7 +1382,83 @@
                     this.bgAudio.play().catch(e => console.warn("Background Audio Play failed (Autoplay policy?):", e));
                 },
 
+                drawVisualizer() {
+                    const canvas = document.getElementById('visualizer');
+                    if (!canvas || !this.analyser) return;
 
+                    const ctx = canvas.getContext('2d');
+                    // Resize handler (naive)
+                    if (canvas.width !== canvas.offsetWidth) canvas.width = canvas.offsetWidth;
+                    if (canvas.height !== canvas.offsetHeight) canvas.height = canvas.offsetHeight;
+
+                    const bufferLength = this.analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    const WIDTH = canvas.width;
+                    const HEIGHT = canvas.height;
+
+                    const draw = () => {
+                        this.animationId = requestAnimationFrame(draw);
+                        if (!this.analyser) return;
+
+                        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+                        // Mode Selection
+                        if (this.visualizerMode === 'wave') {
+                            this.analyser.getByteTimeDomainData(dataArray);
+                            ctx.lineWidth = 2;
+                            ctx.strokeStyle = '#34d399'; // Emerald-400
+                            ctx.beginPath();
+                            const sliceWidth = WIDTH * 1.0 / bufferLength;
+                            let x = 0;
+                            for (let i = 0; i < bufferLength; i++) {
+                                const v = dataArray[i] / 128.0;
+                                const y = v * HEIGHT / 2;
+                                if (i === 0) ctx.moveTo(x, y);
+                                else ctx.lineTo(x, y);
+                                x += sliceWidth;
+                            }
+                            ctx.lineTo(canvas.width, canvas.height / 2);
+                            ctx.stroke();
+
+                        } else if (this.visualizerMode === 'bars') {
+                            this.analyser.getByteFrequencyData(dataArray);
+                            const barWidth = (WIDTH / bufferLength) * 2.5;
+                            let barHeight;
+                            let x = 0;
+
+                            for (let i = 0; i < bufferLength; i++) {
+                                barHeight = dataArray[i] / 2; // Scale down
+                                // Gradient color
+                                const r = barHeight + 25 * (i / bufferLength);
+                                const g = 250 * (i / bufferLength);
+                                const b = 50;
+                                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                                ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+                                x += barWidth + 1;
+                            }
+                        } else if (this.visualizerMode === 'orb') {
+                            this.analyser.getByteFrequencyData(dataArray);
+                            // Average volume
+                            let sum = 0;
+                            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                            let avg = sum / bufferLength;
+
+                            const centerX = WIDTH / 2;
+                            const centerY = HEIGHT / 2;
+                            const radius = 50 + (avg); // Pulse effect
+
+                            const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.2, centerX, centerY, radius);
+                            gradient.addColorStop(0, "rgba(52, 211, 153, 0.8)"); // Inner Emerald
+                            gradient.addColorStop(1, "rgba(5, 150, 105, 0)");   // Outer Fade
+
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                            ctx.fillStyle = gradient;
+                            ctx.fill();
+                        }
+                    };
+                    draw();
+                },
 
                 async saveConfig() {
                     const form = document.getElementById('configForm');
