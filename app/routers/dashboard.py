@@ -332,9 +332,60 @@ async def update_core_config(
 # This will be removed in v2.0
 # =============================================================================
 
+# =============================================================================
+# FIELD NAME NORMALIZATION
+# =============================================================================
+# CRITICAL: UI uses camelCase, Schema uses snake_case
+# This mapping ensures proper persistence of all configuration fields
+FIELD_ALIASES = {
+    # LLM Configuration
+    'provider': 'llm_provider',
+    'model': 'llm_model',
+    'temp': 'temperature',
+    'tokens': 'max_tokens',
+    'prompt': 'system_prompt',
+    'msg': 'first_message',
+    'mode': 'first_message_mode',
+    'extractionModel': 'extraction_model',
+    
+    # TTS Configuration
+    'voiceProvider': 'tts_provider',
+    'voiceId': 'voice_name',
+    'voiceStyle': 'voice_style',
+    'voiceSpeed': 'voice_speed',
+    'voicePacing': 'voice_pacing_ms',
+    'voiceBgSound': 'background_sound',
+    'voiceBgUrl': 'background_sound_url',
+    'voiceLang': 'voice_language',  # NEW: Missing in schema, will need to be added
+    
+    # STT Configuration
+    'sttProvider': 'stt_provider',
+    'sttLang': 'stt_language',
+    'interruptWords': 'interruption_threshold',
+    'interruptRMS': 'voice_sensitivity',
+    'silence': 'silence_timeout_ms',
+    'blacklist': 'hallucination_blacklist',
+    'inputMin': 'input_min_characters',
+    
+    # Advanced Features
+    'denoise': 'enable_denoising',
+    'krisp': 'enable_krisp_telnyx',
+    'vad': 'enable_vad_telnyx',
+    'maxDuration': 'max_duration',
+    'maxRetries': 'inactivity_max_retries',
+    'idleTimeout': 'idle_timeout',
+    'idleMessage': 'idle_message',
+    'enableRecording': 'enable_recording_telnyx',
+    'amdConfig': 'amd_config_telnyx',
+    'enableEndCall': 'enable_end_call',
+    'dialKeypad': 'enable_dial_keypad',
+    'transferNum': 'transfer_phone_number',
+}
 
+# =============================================================================
+# AJAX/JSON Config Update Endpoint
+# =============================================================================
 
-# NEW: AJAX/JSON Endpoint
 @router.post("/api/config/update-json", dependencies=[Depends(verify_api_key)])
 async def update_config_json(
     request: Request,
@@ -344,52 +395,54 @@ async def update_config_json(
         data = await request.json()
         logger.info(f"🔄 [CONFIG-JSON] Received update payload: {len(data)} keys")
         
-        # Security: Allow specific fields only? 
-        # For now, we trust the schema matches AgentConfig columns.
-        
         # Fetch current config
         current_config = await db_service.get_agent_config(db)
         
-        # Iterate and Update
+        # Iterate and Update with Field Normalization
         updated_count = 0
+        normalized_count = 0
+        
         for key, value in data.items():
             # Skip non-config metadata
-            if key in ["id", "name", "created_at"]:
+            if key in ["id", "name", "created_at", "api_key"]:
                 continue
-                
+            
+            # CRITICAL: Normalize field names (UI camelCase → Schema snake_case)
+            normalized_key = FIELD_ALIASES.get(key, key)
+            if normalized_key != key:
+                normalized_count += 1
+                logger.debug(f"🔀 [NORMALIZE] {key} → {normalized_key}")
+            
             # Check if key exists in model
-            if hasattr(current_config, key):
-                # Type Conversion Logic (Basic)
-                # Frontend sends correct types mostly, but handle strings->numbers if needed
-                # For JSON, we assume types are correct (e.g. integer 5 sent as 5, not "5")
-                # But empty strings "" should be None for nullable fields
+            if hasattr(current_config, normalized_key):
+                # Type Conversion Logic
                 if value == "":
                     value = None
                 
-                # Type Conversion for AJAX Form Data (which sends everything as strings)
+                # Type Conversion for AJAX Form Data (strings → proper types)
                 if isinstance(value, str):
                     # Boolean Conversion
                     if value.lower() == 'true':
                         value = True
                     elif value.lower() == 'false':
                         value = False
-                    # Numeric Conversion (Simple inference)
-                    elif value.replace('.', '', 1).isdigit():
+                    # Numeric Conversion
+                    elif value.replace('.', '', 1).replace('-', '', 1).isdigit():
                         if '.' in value:
                             value = float(value)
                         else:
                             value = int(value)
-                    
-                setattr(current_config, key, value)
+                
+                setattr(current_config, normalized_key, value)
                 updated_count += 1
             else:
-                logger.warning(f"⚠️ [CONFIG-JSON] Ignored unknown key: {key}")
+                logger.warning(f"⚠️ [CONFIG-JSON] Ignored unknown key: {key} (normalized: {normalized_key})")
 
         await db.commit()
         await db.refresh(current_config)
-        logger.info(f"✅ [CONFIG-JSON] Updated {updated_count} fields.")
+        logger.info(f"✅ [CONFIG-JSON] Updated {updated_count} fields ({normalized_count} normalized).")
         
-        return {"status": "success", "updated": updated_count, "config": current_config}
+        return {"status": "success", "updated": updated_count, "normalized": normalized_count}
         
     except Exception as e:
         logger.error(f"❌ [CONFIG-JSON] Error: {e}")

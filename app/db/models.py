@@ -116,6 +116,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
 - SI NO LE INTERESA: "Entiendo, gracias por su tiempo." (Corta cortésmente).
 </rules>""")
     voice_name = Column(String, default="es-MX-DaliaNeural")
+    voice_language = Column(String, default="es-MX")  # FIX: Added missing field for Browser profile
     voice_style = Column(String, nullable=True) # New: Style/Emotion
     voice_speed = Column(Float, default=1.0)
     voice_speed_phone = Column(Float, default=0.9) # Slower for phone
