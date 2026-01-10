@@ -1070,7 +1070,8 @@
 
                 updateModelList() {
                     let prov = (this.c.provider || 'openai').toLowerCase();
-                    this.availableModels = this.models[prov] || [];
+                    // 1. Build List LOCALLY (Don't touch reactive state yet)
+                    let tmpList = [...(this.models[prov] || [])];
 
                     // SOURCE OF TRUTH (Server Config)
                     const s = this.serverConfig || {};
@@ -1092,31 +1093,31 @@
                     savedProvider = (savedProvider || 'openai').toLowerCase();
                     savedModel = savedModel || '';
 
-                    // LOGIC: If we are on the Saved Provider, we MUST enforce the Saved Model.
-                    // This creates a "Sticky" effect that resists AlpineJS resets.
+                    // LOGIC: If we match saved provider, seek and destroy (inject)
                     if (prov === savedProvider && savedModel) {
-
-                        // 1. Ensure it exists in the list (Injection)
-                        const exists = this.availableModels.find(m => m.id === savedModel);
+                        const exists = tmpList.find(m => m.id === savedModel);
                         if (!exists) {
-                            console.log("🔒 [PERSISTENCE] Injecting saved model:", savedModel);
-                            this.availableModels.unshift({
+                            console.log("🔒 [PERSISTENCE] Pre-injecting saved model:", savedModel);
+                            // Atomic Injection - This ensures the list has it BEFORE Alpine sees it
+                            tmpList.unshift({
                                 id: savedModel,
                                 name: savedModel + ' (Guardado)'
                             });
                         }
+                    }
 
-                        // 2. Force Selection (Override any transient state)
+                    // 2. ATOMIC ASSIGNMENT (Reactivity triggers ONCE here)
+                    this.availableModels = tmpList;
+
+                    // 3. ENFORCE SELECTION (After list is safe)
+                    if (prov === savedProvider && savedModel) {
                         if (this.c.model !== savedModel) {
                             console.log("🔒 [PERSISTENCE] Forcing saved model:", savedModel);
                             this.c.model = savedModel;
                         }
-
                     } else {
-                        // User has changed provider (or new config).
-                        // Standard behavior: Validitate current selection or default to first.
+                        // Standard fallback
                         if (this.c.model && !this.availableModels.find(m => m.id === this.c.model)) {
-                            // Current model is invalid for this provider -> Reset
                             this.c.model = this.availableModels[0]?.id || '';
                         }
                         if (!this.c.model && this.availableModels.length > 0) {
@@ -1150,7 +1151,8 @@
                     }
 
                     // Filter by Gender
-                    this.availableVoices = allVoices.filter(v => v.gender === this.currentGender);
+                    // 1. Build List LOCALLY
+                    let tmpVoices = allVoices.filter(v => v.gender === this.currentGender);
 
 
                     // SOURCE OF TRUTH (Voices)
@@ -1171,20 +1173,27 @@
 
                     savedVoiceProvider = (savedVoiceProvider || 'azure').toLowerCase();
 
-                    // LOGIC: Same Sticky Persistence for Voices
+                    // LOGIC: Atomic Injection
                     if (prov === savedVoiceProvider && savedVoiceId) {
-                        const exists = this.availableVoices.find(v => v.id === savedVoiceId);
+                        const exists = tmpVoices.find(v => v.id === savedVoiceId);
 
                         if (!exists) {
-                            console.log("🔒 [PERSISTENCE] Injecting saved voice:", savedVoiceId);
-                            this.availableVoices.unshift({
+                            console.log("🔒 [PERSISTENCE] Pre-injecting saved voice:", savedVoiceId);
+                            tmpVoices.unshift({
                                 id: savedVoiceId,
                                 name: savedVoiceId + ' (Guardado)',
                                 gender: 'unknown'
                             });
                         }
+                    }
 
+                    // 2. ATOMIC ASSIGNMENT (Reactivity triggers ONCE here)
+                    this.availableVoices = tmpVoices;
+
+                    // 3. ENFORCE
+                    if (prov === savedVoiceProvider && savedVoiceId) {
                         if (this.c.voiceId !== savedVoiceId) {
+                            console.log("🔒 [PERSISTENCE] Forcing saved voice:", savedVoiceId);
                             this.c.voiceId = savedVoiceId;
                         }
                     } else {
