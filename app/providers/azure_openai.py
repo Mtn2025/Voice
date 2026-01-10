@@ -33,6 +33,7 @@ class AzureOpenAIProvider(AbstractLLM):
                 messages=chat_messages,
                 temperature=temperature,
                 max_tokens=600,
+                stop=["User:", "System:", "\n\nUser", "\n\nSystem"],
                 stream=True
             )
 

@@ -46,7 +46,8 @@ class GroqProvider(AbstractLLM):
                 model=target_model,
                 messages=chat_messages,
                 temperature=temperature,
-                max_tokens=600, # Increased for DeepSeek reasoning if needed
+                max_tokens=600, 
+                stop=["User:", "System:", "\n\nUser", "\n\nSystem"], # Prevent Hallucination of conversation turns
                 stream=True
             )
 
