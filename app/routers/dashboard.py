@@ -358,6 +358,20 @@ async def update_config_json(
                 # But empty strings "" should be None for nullable fields
                 if value == "":
                     value = None
+                
+                # Type Conversion for AJAX Form Data (which sends everything as strings)
+                if isinstance(value, str):
+                    # Boolean Conversion
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    # Numeric Conversion (Simple inference)
+                    elif value.replace('.', '', 1).isdigit():
+                        if '.' in value:
+                            value = float(value)
+                        else:
+                            value = int(value)
                     
                 setattr(current_config, key, value)
                 updated_count += 1
