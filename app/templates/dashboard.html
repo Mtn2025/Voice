@@ -181,7 +181,7 @@
                                     class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Modelo</label>
                                 <select x-model="c.model" class="glass-input w-full p-2.5 rounded-lg text-sm">
                                     <template x-for="m in availableModels">
-                                        <option :value="m.id" x-text="m.id"></option>
+                                        <option :value="m.id" x-text="m.name || m.id"></option>
                                     </template>
                                 </select>
                             </div>
@@ -787,7 +787,6 @@
                 </div>
             </form>
         </div>
-
         <!-- RIGHT COLUMN: SIMULATOR (7/12) -->
         <div class="lg:col-span-7 space-y-6">
             <div class="sticky top-6">
@@ -856,7 +855,6 @@
         </div>
 
     </div>
-
     <!-- APP LOGIC -->
     <script>
         // --- HISTORY TAB HELPERS ---
@@ -1599,104 +1597,77 @@
                     const payload = {};
                     formData.forEach((value, key) => payload[key] = value);
 
-                    // Add dynamic API Key if missing
-                    let endpoint = '/api/config/update-json';
-                    if (apiKey) endpoint += `?api_key=${apiKey}`;
-
-                    let btn = document.querySelector('button[type="submit"]');
+                    // Add API Key
+                    if (apiKey) payload.api_key = apiKey;
 
                     try {
-                        if (btn) btn.innerHTML = '💾 Guardando...';
-
-                        const res = await fetch(endpoint, {
+                        const res = await fetch('/api/config/update-json', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
 
                         if (res.ok) {
-                            const data = await res.json();
-                            console.log("✅ Config Saved:", data);
-                            this.showToast("Configuración guardada correctamente", "success");
+                            this.showToast('Configuración Guardada', 'success');
+                            // Update serverConfig local cache to match what we just saved
+                            // To be safe, we might want to reload or update specific fields
                         } else {
-                            throw new Error(`Server Error: ${res.status}`);
+                            this.showToast('Error al guardar', 'error');
                         }
                     } catch (e) {
-                        console.error("Save Failed", e);
-                        this.showToast("Error al guardar: " + e.message, "error");
-                    } finally {
-                        if (btn) btn.innerHTML = '<span class="mr-2">💾</span> Guardar Cambios';
+                        console.error(e);
+                        this.showToast('Error de conexión', 'error');
                     }
                 },
 
-                // Toast Logic
-                showToast(msg, type = 'success') {
-                    // Create element dynamically
+                showToast(msg, type = 'info') {
+                    // Simple toast implementation
                     const div = document.createElement('div');
-                    div.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-xl text-sm font-medium transform transition-all duration-300 translate-y-10 opacity-0 z-50 ${type === 'success' ? 'bg-emerald-600/90 text-white' : 'bg-red-600/90 text-white'}`;
-                    div.textContent = msg;
+                    div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg text-white text-sm z-50 ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+                    div.innerText = msg;
                     document.body.appendChild(div);
-
-                    // Animate In
-                    requestAnimationFrame(() => {
-                        div.classList.remove('translate-y-10', 'opacity-0');
-                    });
-
-                    // Remove
-                    setTimeout(() => {
-                        div.classList.add('translate-y-10', 'opacity-0');
-                        setTimeout(() => div.remove(), 300);
-                    }, 3000);
+                    setTimeout(() => div.remove(), 3000);
                 }
             }
         }
     </script>
-    <!-- DEBUG SCRIPT FOR PERSISTENCE DIAGNOSIS -->
+
+    <!-- Debug Script to Populate Overlay -->
     <script>
         setInterval(() => {
-            try {
-                const el = document.querySelector('[x-data]');
-                if (!el) return;
-                const data = el._x_dataStack ? el._x_dataStack[0] : null; // Alpine v3 internal access
-                if (!data) return;
+            if (!window.Alpine) return;
+            // Access Alpine scope
+            const el = document.querySelector('[x-data]');
+            if (!el || !el.__x) return;
+            const scope = el.__x.$data;
 
-                const s = data.serverConfig || {};
-                let sp = '', sm = '';
+            if (!scope.serverConfig) return;
 
-                // Determine saved values based on active profile
-                if (data.activeProfile === 'browser') { sp = s.llm_provider; sm = s.llm_model; }
-                else if (data.activeProfile === 'twilio') { sp = s.llm_provider_phone; sm = s.llm_model_phone; }
-                else if (data.activeProfile === 'telnyx') { sp = s.llm_provider_telnyx; sm = s.llm_model_telnyx; }
+            document.getElementById('dbg-profile').innerText = scope.activeProfile;
 
-                // Safe access to current values
-                const cp = (data.c && data.c.provider) ? data.c.provider : 'N/A';
-                const cm = (data.c && data.c.model) ? data.c.model : 'N/A';
+            // Resolve what "Saved" means for current profile
+            let savedP = '', savedM = '';
+            const s = scope.serverConfig;
+            if (scope.activeProfile === 'browser') { savedP = s.llm_provider; savedM = s.llm_model; }
+            else if (scope.activeProfile === 'twilio') { savedP = s.llm_provider_phone; savedM = s.llm_model_phone; }
+            else if (scope.activeProfile === 'telnyx') { savedP = s.llm_provider_telnyx; savedM = s.llm_model_telnyx; }
 
-                // Update UI
-                const setText = (id, val) => {
-                    const e = document.getElementById(id);
-                    if (e) e.innerText = val || 'EMPTY';
-                };
+            document.getElementById('dbg-saved-prov').innerText = savedP;
+            document.getElementById('dbg-saved-model').innerText = savedM;
 
-                setText('dbg-profile', data.activeProfile);
-                setText('dbg-saved-prov', sp);
-                setText('dbg-saved-model', sm);
-                setText('dbg-curr-prov', cp);
-                setText('dbg-curr-model', cm);
+            // Current state
+            const c = scope.configs[scope.activeProfile];
+            if (c) {
+                document.getElementById('dbg-curr-prov').innerText = c.provider;
+                document.getElementById('dbg-curr-model').innerText = c.model;
 
-                const match = (sm === cm);
-                const matchEl = document.getElementById('dbg-match');
-                if (matchEl) {
-                    matchEl.innerText = match ? 'YES' : 'NO';
-                    matchEl.style.color = match ? '#0f0' : '#f00';
-                }
-
-            } catch (e) {
-                // Silent catch to avoid console spam
+                const match = (c.provider === savedP && c.model === savedM);
+                const span = document.getElementById('dbg-match');
+                span.innerText = match ? "OK" : "MISMATCH";
+                span.style.color = match ? "#0f0" : "#f00";
             }
-        }, 500);
+
+        }, 1000);
     </script>
 </body>
 
