@@ -1214,6 +1214,7 @@
 
                             // 3. NEW: Handle Transcripts from Backend
                             else if (msg.type === 'transcript') {
+                                console.log("📝 [TRANSCRIPT]", msg);
                                 this.transcripts.push({
                                     role: msg.role,
                                     text: msg.text,
@@ -1348,9 +1349,13 @@
                         const source = this.audioContext.createBufferSource();
                         source.buffer = buffer;
 
-                        // Connect Source -> Analyser -> Destination
+                        // PARALLEL ROUTING: 
+                        // 1. Hear it (Source -> Speakers)
+                        source.connect(this.audioContext.destination);
+
+                        // 2. See it (Source -> Analyser)
+                        // CRITICAL: Do NOT connect analyser to destination, as Mic also feeds into it!
                         source.connect(this.analyser);
-                        this.analyser.connect(this.audioContext.destination);
 
                         const currentTime = this.audioContext.currentTime;
                         if (!this.nextStartTime || this.nextStartTime < currentTime) {
