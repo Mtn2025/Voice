@@ -1059,18 +1059,35 @@
                     let prov = (this.c.provider || 'openai').toLowerCase();
                     this.availableModels = this.models[prov] || [];
 
+                    // RECOVERY: If c.model is empty, try to recover from serverConfig explicitly
+                    // This handles race conditions where Alpine might have wiped the value
+                    if (!this.c.model) {
+                        const s = this.serverConfig || {};
+                        let recovered = '';
+                        if (this.activeProfile === 'browser') recovered = s.llm_model;
+                        else if (this.activeProfile === 'twilio') recovered = s.llm_model_phone;
+                        else if (this.activeProfile === 'telnyx') recovered = s.llm_model_telnyx;
+
+                        if (recovered) {
+                            console.log("🔄 [MODEL] Recovered lost model value:", recovered);
+                            this.c.model = recovered;
+                        }
+                    }
+
                     // CRITICAL: Preserve saved selection even if not in list
                     if (this.c.model) {
                         const exists = this.availableModels.find(m => m.id === this.c.model);
-                        if (!exists && this.c.model.trim() !== '') {
-                            console.log("⚠️ [MODEL] Preserving custom/deprecated model:", this.c.model);
+                        const modelVal = String(this.c.model); // Safety conversion
+
+                        if (!exists && modelVal.trim() !== '') {
+                            console.log("⚠️ [MODEL] Preserving custom/deprecated model:", modelVal);
                             this.availableModels.unshift({
-                                id: this.c.model,
-                                name: this.c.model + ' (Guardado)'
+                                id: modelVal,
+                                name: modelVal + ' (Guardado)'
                             });
                         }
                     } else if (this.availableModels.length > 0) {
-                        // Only default if absolutely nothing is set
+                        // Only default if absolutely nothing is set AND we couldn't recover anything
                         this.c.model = this.availableModels[0].id;
                     }
                 },
