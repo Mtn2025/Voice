@@ -744,3 +744,13 @@ async def delete_selected(request: Request, db: AsyncSession = Depends(get_db)):
         logging.error(f"Error deleting calls: {e}")
         return {"status": "error", "message": str(e)}
 
+
+@router.post("/api/history/clear", dependencies=[Depends(verify_api_key)])
+async def clear_history(request: Request, db: AsyncSession = Depends(get_db)):
+    try:
+        await db_service.clear_all_history(db)
+        return RedirectResponse("/dashboard?api_key=" + (request.query_params.get("api_key") or ""), status_code=303)
+    except Exception as e:
+        logger.error(f"Error clearing history: {e}")
+        # Redirect back with error
+        return RedirectResponse("/dashboard?error=clear_failed", status_code=303)
