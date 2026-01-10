@@ -460,6 +460,14 @@
                                 <input type="number" x-model="c.maxRetries"
                                     class="glass-input w-full p-2.5 rounded-lg text-sm">
                             </div>
+                            <!-- New Extraction Model Field -->
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Modelo
+                                    Extracción</label>
+                                <input type="text" x-model="c.extractionModel" placeholder="llama-3.1-8b-instant"
+                                    class="glass-input w-full p-2.5 rounded-lg text-sm font-mono border-slate-700 bg-slate-800/50">
+                            </div>
                         </div>
 
                         <div>
@@ -700,6 +708,8 @@
                         <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
                         <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
                         <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
+                        <input type="hidden" name="enable_denoising" :value="configs.browser.denoise">
+                        <input type="hidden" name="extraction_model" :value="configs.browser.extractionModel">
 
                         <!-- Twilio -->
                         <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
@@ -990,7 +1000,9 @@
                         idleTimeout: s.idle_timeout || 10,
                         maxDuration: s.max_duration || 600,
                         idleMessage: s.idle_message || '',
-                        maxRetries: s.inactivity_max_retries || 3
+                        maxRetries: s.inactivity_max_retries || 3,
+                        denoise: s.enable_denoising || false,
+                        extractionModel: s.extraction_model || 'llama-3.1-8b-instant'
                     };
                 },
 
@@ -1440,7 +1452,7 @@
 
                 playAudio(base64Data) {
                     if (!base64Data) return;
-                    // ... (existing playAudio logic) ...
+
                     try {
                         const binaryString = window.atob(base64Data);
                         const len = binaryString.length;
@@ -1484,7 +1496,7 @@
                 bgAudio: null, // Store reference
 
                 playBackgroundSound(soundName) {
-                    // ... (existing logic) ...
+
                     // Stop existing
                     if (this.bgAudio) {
                         this.bgAudio.pause();
