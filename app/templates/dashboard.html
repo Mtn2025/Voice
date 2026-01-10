@@ -1113,9 +1113,10 @@
                     let endpoint = '/api/config/update-json';
                     if (apiKey) endpoint += `?api_key=${apiKey}`;
 
+                    let btn = document.querySelector('button[type="submit"]');
+
                     try {
-                        const btn = document.querySelector('button[type="submit"]'); // Assuming there is one, or we use the Save button ID
-                        if (btn) btn.innerHTML = "💾 Guardando...";
+                        if (btn) btn.innerHTML = '💾 Guardando...';
 
                         const res = await fetch(endpoint, {
                             method: 'POST',
