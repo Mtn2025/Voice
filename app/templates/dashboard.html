@@ -68,8 +68,8 @@
 
 <body class="min-h-screen bg-slate-900 selection:bg-blue-500/30">
 
-    <!-- DEBUG OVERLAY (VERIFICATION) -->
-    <div
+    <!-- DEBUG OVERLAY (VERIFICATION) - Conditional via ?debug=1 -->
+    <div x-data="{ showDebug: new URLSearchParams(window.location.search).get('debug') === '1' }" x-show="showDebug"
         style="position:fixed; bottom:10px; right:10px; z-index:9999; background:rgba(0,0,0,0.9); color:#0f0; padding:10px; border:1px solid #0f0; font-family:monospace; font-size:11px; max-width:300px; pointer-events:none;">
         <div style="font-weight:bold; border-bottom:1px solid #040; margin-bottom:5px;">🔍 DEBUG PERSISTENCE</div>
         <div>Profile: <span id="dbg-profile">...</span></div>
