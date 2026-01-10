@@ -337,17 +337,25 @@
                                 <label
                                     class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
                                     STT</label>
-                                <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                    <option value="azure">Azure</option>
-                                    <option value="deepgram">Deepgram</option>
-                                    <option value="gladia">Gladia</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
-                                <input type="text" x-model="c.sttLang"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                <div>
+                                    <label
+                                        class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                                        STT</label>
+                                    <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                        <template x-for="p in ['azure']">
+                                            <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
+                                    <select x-model="c.sttLang" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                        <template x-for="l in availableLanguages">
+                                            <option :value="l.id" x-text="l.name"></option>
+                                        </template>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
