@@ -135,8 +135,7 @@
                 <div class="glass-panel p-6 rounded-2xl relative overflow-hidden min-h-[600px] pb-24">
                     <!-- Settings Tabs -->
                     <div class="flex space-x-6 border-b border-slate-700/50 pb-4 mb-6 overflow-x-auto">
-                        <template
-                            x-for="t in ['Model', 'Voz', 'Transcriptor', 'Funciones', 'Avanzado', 'Historial', 'Conexión']">
+                        <template x-for="t in ['Model', 'Voz', 'Transcriptor', 'Avanzado', 'Historial', 'Conexión']">
                             <button type="button" @click="activeTab = t.toLowerCase()" x-show="shouldShowTab(t)"
                                 :class="{'text-blue-400 border-b-2 border-blue-400': activeTab === t.toLowerCase(), 'text-slate-400 hover:text-white': activeTab !== t.toLowerCase()}"
                                 class="pb-2 text-sm font-medium whitespace-nowrap transition-colors" x-text="t">
@@ -423,42 +422,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB START: FUNCIONES -->
-                    <div x-show="activeTab === 'funciones'" class="space-y-5 animate-fade-in-up">
-                        <div class="space-y-4">
-                            <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-sm font-medium">Colgar Llamada</h4>
-                                    <p class="text-xs text-slate-400">Permite al bot finalizar la llamada.</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="c.enableEndCall" class="sr-only peer">
-                                    <div
-                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="glass-panel p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-sm font-medium">Teclado Numérico</h4>
-                                    <p class="text-xs text-slate-400">Interacción DTMF.</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="c.dialKeypad" class="sr-only peer">
-                                    <div
-                                        class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                    </div>
-                                </label>
-                            </div>
-
-                            <div class="glass-panel p-4 rounded-lg space-y-3">
-                                <h4 class="text-sm font-medium">Transferencia</h4>
-                                <input type="text" x-model="c.transferNum"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm" placeholder="+52...">
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- TAB START: AVANZADO -->
                     <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
