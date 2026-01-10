@@ -150,7 +150,7 @@ async def dashboard(
     # Serialize history manually as well
     history_list = [model_to_dict(call) for call in history]
 
-    return templates.TemplateResponse("dashboard.html", {
+    response = templates.TemplateResponse("dashboard.html", {
         "request": request,
         "config": config_dict,
         "voices": voices,
@@ -161,6 +161,13 @@ async def dashboard(
         "protocol": request.url.scheme,
         "host": request.url.netloc
     })
+    
+    # CRITICAL: Prevent caching of the dashboard to ensure server-config is always fresh
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
+    return response
 
 # =============================================================================
 # Punto A8: Config Endpoints Refactored (Modular by Profile)
