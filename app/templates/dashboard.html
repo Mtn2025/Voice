@@ -971,7 +971,14 @@
 
                 async initMicrophone() {
                     try {
-                        this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        const constraints = {
+                            audio: {
+                                echoCancellation: this.c.denoise,
+                                noiseSuppression: this.c.denoise,
+                                autoGainControl: true
+                            }
+                        };
+                        this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
                         const source = this.audioContext.createMediaStreamSource(this.mediaStream);
                         this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
                         source.connect(this.processor);
