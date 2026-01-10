@@ -1059,12 +1059,20 @@
                     let prov = (this.c.provider || 'openai').toLowerCase();
                     this.availableModels = this.models[prov] || [];
 
-                    // Only auto-select default if NO model is currently set
-                    if (!this.c.model && this.availableModels.length > 0) {
+                    // CRITICAL: Preserve saved selection even if not in list
+                    if (this.c.model) {
+                        const exists = this.availableModels.find(m => m.id === this.c.model);
+                        if (!exists && this.c.model.trim() !== '') {
+                            console.log("⚠️ [MODEL] Preserving custom/deprecated model:", this.c.model);
+                            this.availableModels.unshift({
+                                id: this.c.model,
+                                name: this.c.model + ' (Guardado)'
+                            });
+                        }
+                    } else if (this.availableModels.length > 0) {
+                        // Only default if absolutely nothing is set
                         this.c.model = this.availableModels[0].id;
                     }
-                    // If model IS set but not in list, we KEEP it (could be deprecated or custom)
-                    // This fixes the bug where reloading resets the model if the list changed slightly or logic matched poorly
                 },
 
                 updateVoiceLists() {
@@ -1094,15 +1102,21 @@
                     // Filter by Gender
                     this.availableVoices = allVoices.filter(v => v.gender === this.currentGender);
 
-                    // Ensure Voice ID Selection
-                    if (this.availableVoices.length > 0) {
-                        let found = this.availableVoices.find(v => v.id === this.c.voiceId);
-                        if (!found) {
-                            this.c.voiceId = this.availableVoices[0].id;
+                    // CRITICAL: Preserve saved voice even if missing from filter/list
+                    if (this.c.voiceId) {
+                        const exists = this.availableVoices.find(v => v.id === this.c.voiceId);
+                        if (!exists && this.c.voiceId.trim() !== '') {
+                            console.log("⚠️ [VOICE] Preserving custom/deprecated voice:", this.c.voiceId);
+                            this.availableVoices.unshift({
+                                id: this.c.voiceId,
+                                name: this.c.voiceId + ' (Guardado)',
+                                gender: 'unknown'
+                            });
                         }
+                    } else if (this.availableVoices.length > 0) {
+                        this.c.voiceId = this.availableVoices[0].id;
                     }
 
-                    this.c.voiceId = this.availableVoices[0].id;
                     this.updateStyleList();
                 },
 
