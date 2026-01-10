@@ -1059,36 +1059,56 @@
                     let prov = (this.c.provider || 'openai').toLowerCase();
                     this.availableModels = this.models[prov] || [];
 
-                    // RECOVERY: If c.model is empty, try to recover from serverConfig explicitly
-                    // This handles race conditions where Alpine might have wiped the value
-                    if (!this.c.model) {
-                        const s = this.serverConfig || {};
-                        let recovered = '';
-                        if (this.activeProfile === 'browser') recovered = s.llm_model;
-                        else if (this.activeProfile === 'twilio') recovered = s.llm_model_phone;
-                        else if (this.activeProfile === 'telnyx') recovered = s.llm_model_telnyx;
+                    // SOURCE OF TRUTH (Server Config)
+                    const s = this.serverConfig || {};
+                    let savedProvider = '';
+                    let savedModel = '';
 
-                        if (recovered) {
-                            console.log("🔄 [MODEL] Recovered lost model value:", recovered);
-                            this.c.model = recovered;
-                        }
+                    // Resolve saved config based on profile
+                    if (this.activeProfile === 'browser') {
+                        savedProvider = s.llm_provider;
+                        savedModel = s.llm_model;
+                    } else if (this.activeProfile === 'twilio') {
+                        savedProvider = s.llm_provider_phone;
+                        savedModel = s.llm_model_phone;
+                    } else if (this.activeProfile === 'telnyx') {
+                        savedProvider = s.llm_provider_telnyx;
+                        savedModel = s.llm_model_telnyx;
                     }
 
-                    // CRITICAL: Preserve saved selection even if not in list
-                    if (this.c.model) {
-                        const exists = this.availableModels.find(m => m.id === this.c.model);
-                        const modelVal = String(this.c.model); // Safety conversion
+                    savedProvider = (savedProvider || 'openai').toLowerCase();
+                    savedModel = savedModel || '';
 
-                        if (!exists && modelVal.trim() !== '') {
-                            console.log("⚠️ [MODEL] Preserving custom/deprecated model:", modelVal);
+                    // LOGIC: If we are on the Saved Provider, we MUST enforce the Saved Model.
+                    // This creates a "Sticky" effect that resists AlpineJS resets.
+                    if (prov === savedProvider && savedModel) {
+
+                        // 1. Ensure it exists in the list (Injection)
+                        const exists = this.availableModels.find(m => m.id === savedModel);
+                        if (!exists) {
+                            console.log("🔒 [PERSISTENCE] Injecting saved model:", savedModel);
                             this.availableModels.unshift({
-                                id: modelVal,
-                                name: modelVal + ' (Guardado)'
+                                id: savedModel,
+                                name: savedModel + ' (Guardado)'
                             });
                         }
-                    } else if (this.availableModels.length > 0) {
-                        // Only default if absolutely nothing is set AND we couldn't recover anything
-                        this.c.model = this.availableModels[0].id;
+
+                        // 2. Force Selection (Override any transient state)
+                        if (this.c.model !== savedModel) {
+                            console.log("🔒 [PERSISTENCE] Forcing saved model:", savedModel);
+                            this.c.model = savedModel;
+                        }
+
+                    } else {
+                        // User has changed provider (or new config).
+                        // Standard behavior: Validitate current selection or default to first.
+                        if (this.c.model && !this.availableModels.find(m => m.id === this.c.model)) {
+                            // Current model is invalid for this provider -> Reset
+                            this.c.model = this.availableModels[0]?.id || '';
+                        }
+                        if (!this.c.model && this.availableModels.length > 0) {
+                            this.c.model = this.availableModels[0].id;
+                        }
                     }
                 },
 
@@ -1119,19 +1139,49 @@
                     // Filter by Gender
                     this.availableVoices = allVoices.filter(v => v.gender === this.currentGender);
 
-                    // CRITICAL: Preserve saved voice even if missing from filter/list
-                    if (this.c.voiceId) {
-                        const exists = this.availableVoices.find(v => v.id === this.c.voiceId);
-                        if (!exists && this.c.voiceId.trim() !== '') {
-                            console.log("⚠️ [VOICE] Preserving custom/deprecated voice:", this.c.voiceId);
+
+                    // SOURCE OF TRUTH (Voices)
+                    const s = this.serverConfig || {};
+                    let savedVoiceProvider = '';
+                    let savedVoiceId = '';
+
+                    if (this.activeProfile === 'browser') {
+                        savedVoiceProvider = s.tts_provider;
+                        savedVoiceId = s.voice_name;
+                    } else if (this.activeProfile === 'twilio') {
+                        savedVoiceProvider = s.tts_provider_phone;
+                        savedVoiceId = s.voice_name_phone;
+                    } else if (this.activeProfile === 'telnyx') {
+                        savedVoiceProvider = s.tts_provider_telnyx;
+                        savedVoiceId = s.voice_name_telnyx;
+                    }
+
+                    savedVoiceProvider = (savedVoiceProvider || 'azure').toLowerCase();
+
+                    // LOGIC: Same Sticky Persistence for Voices
+                    if (prov === savedVoiceProvider && savedVoiceId) {
+                        const exists = this.availableVoices.find(v => v.id === savedVoiceId);
+
+                        if (!exists) {
+                            console.log("🔒 [PERSISTENCE] Injecting saved voice:", savedVoiceId);
                             this.availableVoices.unshift({
-                                id: this.c.voiceId,
-                                name: this.c.voiceId + ' (Guardado)',
+                                id: savedVoiceId,
+                                name: savedVoiceId + ' (Guardado)',
                                 gender: 'unknown'
                             });
                         }
-                    } else if (this.availableVoices.length > 0) {
-                        this.c.voiceId = this.availableVoices[0].id;
+
+                        if (this.c.voiceId !== savedVoiceId) {
+                            this.c.voiceId = savedVoiceId;
+                        }
+                    } else {
+                        // Fallback logic
+                        if (this.availableVoices.length > 0) {
+                            let found = this.availableVoices.find(v => v.id === this.c.voiceId);
+                            if (!found) {
+                                this.c.voiceId = this.availableVoices[0].id;
+                            }
+                        }
                     }
 
                     this.updateStyleList();
