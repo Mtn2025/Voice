@@ -887,6 +887,13 @@
                         return; // Stop execution if critical data missing
                     }
 
+                    // 1.1 RESTORE TAB STATE
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const requestedTab = urlParams.get('tab');
+                    if (requestedTab) {
+                        this.activeTab = requestedTab.toLowerCase();
+                    }
+
                     // 2. INITIALIZE CONFIG STORE FROM SERVER DATA
                     this.initBrowserConfig();
                     this.initTwilioConfig();
