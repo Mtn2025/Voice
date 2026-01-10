@@ -18,7 +18,7 @@
 
     <div class="max-w-4xl mx-auto">
         <div class="flex justify-between items-center mb-4">
-            <a href="/dashboard"
+            <a href="/dashboard?api_key={{ request.query_params.get('api_key', '') }}"
                 class="text-blue-400 hover:text-blue-300 inline-flex items-center space-x-1 cursor-pointer font-medium mb-4">
                 <span>&larr; Volver al Dashboard</span>
             </a>

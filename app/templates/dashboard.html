@@ -545,7 +545,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="px-4 py-2">
-                                            <a href="/dashboard/call/{{ call.id }}"
+                                            <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
                                                 class="text-blue-400 hover:underline">Ver</a>
                                         </td>
                                     </tr>
