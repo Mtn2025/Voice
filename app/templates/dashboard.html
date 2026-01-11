@@ -1114,15 +1114,12 @@
                 },
 
                 updateModelList() {
-                    // CRITICAL: Use CURRENT UI provider for filtering list
-                    let currentProvider = (this.c.provider || 'openai').trim().toLowerCase();
-                    this.availableModels = this.models[currentProvider] || [];
-
-                    // CRITICAL: Get SAVED provider/model from server (source of truth)
+                    // CRITICAL FIX: Always get saved provider/model from server FIRST
                     const s = this.serverConfig || {};
                     let savedProvider = '';
                     let savedModel = '';
 
+                    // Get saved config based on active profile
                     if (this.activeProfile === 'browser') {
                         savedProvider = s.llm_provider;
                         savedModel = s.llm_model;
@@ -1134,32 +1131,28 @@
                         savedModel = s.llm_model_telnyx;
                     }
 
-                    savedProvider = (savedProvider || 'openai').trim().toLowerCase();
+                    // Normalize saved provider (NO DEFAULT - use actual saved value or groq as last resort)
+                    savedProvider = savedProvider ? savedProvider.trim().toLowerCase() : 'groq';
 
-                    // STRATEGY: Only reset model if:
-                    // 1. Current provider matches saved provider AND
-                    // 2. Current model doesn't exist in list AND
-                    // 3. Current model is NOT the saved model
-
-                    if (currentProvider === savedProvider && savedModel) {
-                        // We're viewing the SAVED provider
-                        // Force UI to show saved model (sanitizeAllProfiles already injected it)
-                        if (this.c.model !== savedModel) {
-                            console.log(`🔒 [PERSISTENCE-FORCE] Restoring saved model: ${savedModel}`);
-                            this.c.model = savedModel;
-                        }
-                    } else {
-                        // User switched to a DIFFERENT provider in UI (not saved yet)
-                        // Reset to first available for that provider
-                        const modelExists = this.availableModels.find(m => m.id === this.c.model);
-                        if (!modelExists) {
-                            console.log(`🔄 [UI-TEMPORARY] Switching provider, selecting first model`);
-                            this.c.model = this.availableModels[0]?.id || '';
-                        }
+                    // CRITICAL: Ensure UI provider matches saved provider
+                    // This prevents race condition where c.provider is stale
+                    if (this.c.provider !== savedProvider) {
+                        console.log(`🔄 [SYNC] Syncing UI provider to saved: ${savedProvider}`);
+                        this.c.provider = savedProvider;
                     }
 
-                    // Final safety: ensure SOMETHING is selected
+                    // Update available models list for current provider
+                    this.availableModels = this.models[savedProvider] || [];
+
+                    // CRITICAL: ALWAYS restore saved model if it exists
+                    if (savedModel && this.c.model !== savedModel) {
+                        console.log(`🔒 [PERSISTENCE-FORCE] Restoring saved model: ${savedModel}`);
+                        this.c.model = savedModel;
+                    }
+
+                    // Safety fallback: if no saved model, select first available
                     if (!this.c.model && this.availableModels.length > 0) {
+                        console.log(`⚠️ [FALLBACK] No saved model, selecting first available`);
                         this.c.model = this.availableModels[0].id;
                     }
                 },
