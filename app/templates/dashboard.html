@@ -972,6 +972,7 @@
 
                 initBrowserConfig() {
                     const s = this.serverConfig;
+                    console.log('🟦 [INIT-BROWSER] Starting. serverConfig.llm_model:', s.llm_model);
                     this.configs.browser = {
                         provider: s.llm_provider || 'groq',
                         model: s.llm_model || '',
@@ -1104,6 +1105,7 @@
                 },
 
                 refreshUI() {
+                    console.log('🔄 [REFRESH-UI] Starting...');
                     // 1. Sanitize Data Source first
                     this.sanitizeAllProfiles();
 
@@ -1113,6 +1115,7 @@
                 },
 
                 updateModelList() {
+                    console.log('📋 [UPDATE-MODEL-LIST] Starting. c.model BEFORE:', this.c.model);
                     // CRITICAL FIX: Always get saved provider/model from server FIRST
                     const s = this.serverConfig || {};
                     let savedProvider = '';
@@ -1138,18 +1141,21 @@
 
                     // Update available models list for current provider
                     this.availableModels = this.models[savedProvider] || [];
+                    console.log('📋 [UPDATE-MODEL-LIST] availableModels count:', this.availableModels.length);
+                    console.log('📋 [UPDATE-MODEL-LIST] savedModel from server:', savedModel);
 
                     // CRITICAL: ALWAYS restore saved model if it exists
                     if (savedModel && this.c.model !== savedModel) {
-                        console.log(`🔒 [PERSISTENCE-FORCE] Restoring saved model: ${savedModel}`);
+                        console.log(`🔒 [RESTORE] savedModel exists and c.model !== savedModel. Setting to: ${savedModel}`);
                         this.c.model = savedModel;
                     }
 
                     // Safety fallback: if no saved model, select first available
                     if (!this.c.model && this.availableModels.length > 0) {
-                        console.log(`⚠️ [FALLBACK] No saved model, selecting first available`);
+                        console.log(`⚠️ [FALLBACK] c.model is empty, selecting first available:`, this.availableModels[0].id);
                         this.c.model = this.availableModels[0].id;
                     }
+                    console.log('📋 [UPDATE-MODEL-LIST] FINISHED. c.model AFTER:', this.c.model);
                 },
 
                 updateVoiceLists() {
