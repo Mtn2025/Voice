@@ -1144,18 +1144,22 @@
                     console.log('📋 [UPDATE-MODEL-LIST] availableModels count:', this.availableModels.length);
                     console.log('📋 [UPDATE-MODEL-LIST] savedModel from server:', savedModel);
 
-                    // CRITICAL: ALWAYS restore saved model if it exists
-                    if (savedModel && this.c.model !== savedModel) {
-                        console.log(`🔒 [RESTORE] savedModel exists and c.model !== savedModel. Setting to: ${savedModel}`);
-                        this.c.model = savedModel;
-                    }
+                    // CRITICAL FIX: Use $nextTick to wait for Alpine.js to render <option> elements
+                    // BEFORE setting c.model, otherwise browser can't select an option that doesn't exist yet
+                    this.$nextTick(() => {
+                        // CRITICAL: ALWAYS restore saved model if it exists
+                        if (savedModel && this.c.model !== savedModel) {
+                            console.log(`🔒 [RESTORE] savedModel exists. Setting to: ${savedModel}`);
+                            this.c.model = savedModel;
+                        }
 
-                    // Safety fallback: if no saved model, select first available
-                    if (!this.c.model && this.availableModels.length > 0) {
-                        console.log(`⚠️ [FALLBACK] c.model is empty, selecting first available:`, this.availableModels[0].id);
-                        this.c.model = this.availableModels[0].id;
-                    }
-                    console.log('📋 [UPDATE-MODEL-LIST] FINISHED. c.model AFTER:', this.c.model);
+                        // Safety fallback: if no saved model, select first available
+                        if (!this.c.model && this.availableModels.length > 0) {
+                            console.log(`⚠️ [FALLBACK] c.model is empty, selecting first available:`, this.availableModels[0].id);
+                            this.c.model = this.availableModels[0].id;
+                        }
+                        console.log('📋 [UPDATE-MODEL-LIST] FINISHED. c.model AFTER:', this.c.model);
+                    });
                 },
 
                 updateVoiceLists() {
