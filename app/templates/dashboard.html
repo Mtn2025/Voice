@@ -974,8 +974,8 @@
                 initBrowserConfig() {
                     const s = this.serverConfig;
                     this.configs.browser = {
-                        provider: s.llm_provider || 'openai',
-                        model: s.llm_model || 'gpt-3.5-turbo',
+                        provider: s.llm_provider || 'groq',
+                        model: s.llm_model || '',
                         temp: s.temperature || 0.7,
                         tokens: s.max_tokens || 250,
                         msg: s.first_message || '',
@@ -1013,8 +1013,8 @@
                 initTwilioConfig() {
                     const s = this.serverConfig;
                     this.configs.twilio = {
-                        provider: s.llm_provider_phone || s.llm_provider || 'openai',
-                        model: s.llm_model_phone || s.llm_model || 'gpt-3.5-turbo',
+                        provider: s.llm_provider_phone || s.llm_provider || 'groq',
+                        model: s.llm_model_phone || s.llm_model || '',
                         temp: s.temperature_phone || s.temperature || 0.7,
                         tokens: s.max_tokens_phone || s.max_tokens || 250,
                         msg: s.first_message_phone || s.first_message || '',
@@ -1042,8 +1042,8 @@
                 initTelnyxConfig() {
                     const s = this.serverConfig;
                     this.configs.telnyx = {
-                        provider: s.llm_provider_telnyx || s.llm_provider || 'openai',
-                        model: s.llm_model_telnyx || s.llm_model || 'gpt-3.5-turbo',
+                        provider: s.llm_provider_telnyx || s.llm_provider || 'groq',
+                        model: s.llm_model_telnyx || s.llm_model || '',
                         temp: s.temperature_telnyx || s.temperature || 0.7,
                         tokens: s.max_tokens_telnyx || s.max_tokens || 250,
                         msg: s.first_message_telnyx || s.first_message || '',
@@ -1134,12 +1134,8 @@
                     // Normalize saved provider (NO DEFAULT - use actual saved value or groq as last resort)
                     savedProvider = savedProvider ? savedProvider.trim().toLowerCase() : 'groq';
 
-                    // CRITICAL: Ensure UI provider matches saved provider
-                    // This prevents race condition where c.provider is stale
-                    if (this.c.provider !== savedProvider) {
-                        console.log(`🔄 [SYNC] Syncing UI provider to saved: ${savedProvider}`);
-                        this.c.provider = savedProvider;
-                    }
+                    // REMOVED: Do NOT modify c.provider here - it triggers watcher loop
+                    // Provider is already set correctly in init functions
 
                     // Update available models list for current provider
                     this.availableModels = this.models[savedProvider] || [];
