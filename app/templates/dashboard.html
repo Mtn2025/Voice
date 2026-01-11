@@ -962,12 +962,11 @@
                     // 3. SETUP WATCHERS & INITIAL UI LISTS
                     this.$watch('activeProfile', () => this.refreshUI());
 
-                    // CRITICAL: Watch provider changes to update model list (replaces @change handler)
-                    this.$watch('c.provider', () => {
-                        console.log('🔄 Provider changed, updating model list...');
-                        this.updateModelList();
-                    });
+                    // REMOVED: Provider watcher - CAUSES PREMATURE updateModelList() execution
+                    // The watcher fired BEFORE refreshUI() prepared data, causing wrong model selection
+                    // this.$watch('c.provider', () => { this.updateModelList(); });
 
+                    // refreshUI() will call updateModelList() at the correct time
                     this.refreshUI();
                 },
 
