@@ -1147,18 +1147,22 @@
                     // CRITICAL FIX: Use $nextTick to wait for Alpine.js to render <option> elements
                     // BEFORE setting c.model, otherwise browser can't select an option that doesn't exist yet
                     this.$nextTick(() => {
-                        // CRITICAL: ALWAYS restore saved model if it exists
-                        if (savedModel && this.c.model !== savedModel) {
-                            console.log(`🔒 [RESTORE] savedModel exists. Setting to: ${savedModel}`);
-                            this.c.model = savedModel;
-                        }
-
-                        // Safety fallback: if no saved model, select first available
-                        if (!this.c.model && this.availableModels.length > 0) {
+                        // CRITICAL: FORCE model update even if value seems the same
+                        // This ensures HTML <select> syncs with Alpine.js state
+                        if (savedModel) {
+                            console.log(`🔒 [FORCE-SYNC] Forcing model to: ${savedModel}`);
+                            // Force update by setting to empty first, then to saved value
+                            this.c.model = '';
+                            this.$nextTick(() => {
+                                this.c.model = savedModel;
+                                console.log('✅ [SYNC-COMPLETE] Model set to:', this.c.model);
+                            });
+                        } else if (this.availableModels.length > 0) {
+                            // Safety fallback: if no saved model, select first available
                             console.log(`⚠️ [FALLBACK] c.model is empty, selecting first available:`, this.availableModels[0].id);
                             this.c.model = this.availableModels[0].id;
                         }
-                        console.log('📋 [UPDATE-MODEL-LIST] FINISHED. c.model AFTER:', this.c.model);
+                        console.log('📋 [UPDATE-MODEL-LIST] FINISHED.');
                     });
                 },
 
