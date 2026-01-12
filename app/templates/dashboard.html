@@ -963,9 +963,13 @@
                     // 3. SETUP WATCHERS & INITIAL UI LISTS
                     this.$watch('activeProfile', () => this.refreshUI());
 
-                    // REMOVED: Provider watcher - CAUSES PREMATURE updateModelList() execution
-                    // The watcher fired BEFORE refreshUI() prepared data, causing wrong model selection
-                    // this.$watch('c.provider', () => { this.updateModelList(); });
+                    // Watch provider changes AFTER init - user changing provider should update models
+                    this.$watch('c.provider', (newVal, oldVal) => {
+                        // Only call if value actually changed (not during init)
+                        if (oldVal !== undefined && newVal !== oldVal) {
+                            this.updateModelList();
+                        }
+                    });
 
                     // refreshUI() will call updateModelList() at the correct time
                     this.refreshUI();
@@ -1114,48 +1118,40 @@
                 },
 
                 updateModelList() {
-                    // CRITICAL FIX: Always get saved provider/model from server FIRST
+                    // Get CURRENT provider from UI (what user selected NOW)
+                    const currentProvider = (this.c.provider || 'groq').trim().toLowerCase();
+
+                    // Update available models list based on CURRENT provider selection
+                    this.availableModels = this.models[currentProvider] || [];
+
+                    // Get saved model from server for persistence
                     const s = this.serverConfig || {};
-                    let savedProvider = '';
                     let savedModel = '';
 
-                    // Get saved config based on active profile
                     if (this.activeProfile === 'browser') {
-                        savedProvider = s.llm_provider;
                         savedModel = s.llm_model;
                     } else if (this.activeProfile === 'twilio') {
-                        savedProvider = s.llm_provider_phone;
                         savedModel = s.llm_model_phone;
                     } else if (this.activeProfile === 'telnyx') {
-                        savedProvider = s.llm_provider_telnyx;
                         savedModel = s.llm_model_telnyx;
                     }
 
-                    // Normalize saved provider (NO DEFAULT - use actual saved value or groq as last resort)
-                    savedProvider = savedProvider ? savedProvider.trim().toLowerCase() : 'groq';
-
-                    // REMOVED: Do NOT modify c.provider here - it triggers watcher loop
-                    // Provider is already set correctly in init functions
-
-                    // Update available models list for current provider
-                    this.availableModels = this.models[savedProvider] || [];
-
-                    // CRITICAL FIX: Use $nextTick to wait for Alpine.js to render <option> elements
-                    // BEFORE setting c.model, otherwise browser can't select an option that doesn't exist yet
+                    // Use $nextTick to wait for <option> elements to render
                     this.$nextTick(() => {
-                        // CRITICAL FIX: Force model sync by resetting to empty first
-                        // This ensures HTML <select> element syncs with Alpine.js state
-                        // even when the value appears to be the same
-                        if (savedModel) {
-                            // Force update by setting to empty first, then to saved value
+                        // Check if current model is valid for new provider
+                        const currentModelValid = this.availableModels.find(m => m.id === this.c.model);
+
+                        if (savedModel && this.availableModels.find(m => m.id === savedModel)) {
+                            // Saved model exists in available models - use it
                             this.c.model = '';
                             this.$nextTick(() => {
                                 this.c.model = savedModel;
                             });
-                        } else if (this.availableModels.length > 0) {
-                            // Safety fallback: if no saved model, select first available
+                        } else if (!currentModelValid && this.availableModels.length > 0) {
+                            // Current model invalid for new provider - select first available
                             this.c.model = this.availableModels[0].id;
                         }
+                        // If currentModelValid, keep current selection (user might be switching back)
                     });
                 },
 
