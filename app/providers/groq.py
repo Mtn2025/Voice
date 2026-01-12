@@ -11,6 +11,27 @@ from app.core.redis_state import redis_state
 from app.services.base import AbstractLLM
 
 
+# Model Safety Constants
+# ✅ SAFE MODELS: Do NOT generate <think> tags, suitable for voice
+SAFE_MODELS_FOR_VOICE = [
+    "llama-3.3-70b-versatile",
+    "llama-3.3-70b-specdec",
+    "llama-3.1-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama-4-maverick-17b-128e",
+    "gemma-2-9b-it",
+    "gemma-7b",
+    "mixtral-8x7b-32768"
+]
+
+# ⚠️ REASONING MODELS: Generate <think> tags, NOT recommended for voice
+REASONING_MODELS = [
+    "deepseek-r1-distill-llama-70b",
+    "deepseek-chat",
+    "deepseek-reasoner"
+]
+
+
 class GroqProvider(AbstractLLM):
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
@@ -37,6 +58,14 @@ class GroqProvider(AbstractLLM):
     async def get_stream(self, messages: list, system_prompt: str, temperature: float, model: str | None = None) -> AsyncGenerator[str, None]:
 
         target_model = model or self.default_model
+        
+        # ⚠️ Model Validation: Warn if reasoning model used for voice
+        if target_model in REASONING_MODELS:
+            logging.warning(
+                f"⚠️ REASONING MODEL ALERT: '{target_model}' generates <think> tags! "
+                f"This may cause verbalized thinking in voice output. "
+                f"Recommended safe models: {', '.join(SAFE_MODELS_FOR_VOICE[:3])}"
+            )
 
         # Ensure correct message format for Groq
         chat_messages = [{"role": "system", "content": system_prompt}] + [m for m in messages if m["role"] != "system"]
