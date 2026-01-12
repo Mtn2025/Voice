@@ -662,7 +662,19 @@ class VoiceOrchestrator:
         if "[END_CALL]" in sentence_buffer and "[TOOL CALL]" in sentence_buffer:
              sentence_buffer = sentence_buffer.replace("[TOOL CALL]", "")
 
-        # 4. Sentence Boundary Check
+        # 4. Filter <think> tags (model's internal reasoning - should NOT be spoken)
+        import re
+        if "<think>" in sentence_buffer or "</think>" in sentence_buffer:
+            # Remove everything between <think> and </think> including tags
+            sentence_buffer = re.sub(r'<think>.*?</think>', '', sentence_buffer, flags=re.DOTALL)
+            # Also handle unclosed think tags
+            sentence_buffer = sentence_buffer.replace("<think>", "").replace("</think>", "")
+            sentence_buffer = sentence_buffer.strip()
+            # If buffer is now empty, skip TTS
+            if not sentence_buffer:
+                return should_hangup
+
+        # 5. Sentence Boundary Check
         if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
             # Final check for End Call before speaking
             if "[END_CALL]" in sentence_buffer:
@@ -692,7 +704,12 @@ class VoiceOrchestrator:
             sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
             import re
             sentence_buffer = re.sub(r"\[DTMF:[0-9\*\#]+\]", "", sentence_buffer)
-            await self._process_tts_chunk(sentence_buffer)
+            # Filter think tags from final buffer too
+            sentence_buffer = re.sub(r'<think>.*?</think>', '', sentence_buffer, flags=re.DOTALL)
+            sentence_buffer = sentence_buffer.replace("<think>", "").replace("</think>", "")
+            sentence_buffer = sentence_buffer.strip()
+            if sentence_buffer:  # Only process if not empty after filtering
+                await self._process_tts_chunk(sentence_buffer)
 
         # 2. Log Full Transcript (Success Path)
         if self.stream_id and full_response:
@@ -725,7 +742,6 @@ class VoiceOrchestrator:
         if should_hangup:
             logging.info("📞 LLM requested hangup. Sending End-Control-Packet.")
             if self.stream_id:
-                 from app.db import AsyncSessionLocal
                  async with AsyncSessionLocal() as session:
                      await db_service.log_transcript(session, self.stream_id, "system", "Call ended by AI ([END_CALL] token generated)", call_db_id=self.call_db_id)
 
