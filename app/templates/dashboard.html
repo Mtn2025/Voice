@@ -1181,58 +1181,40 @@
                     }
 
                     // Filter by Gender
-                    // 1. Build List LOCALLY
                     let tmpVoices = allVoices.filter(v => v.gender === this.currentGender);
 
-
-                    // SOURCE OF TRUTH (Voices)
+                    // Get saved voice for persistence
                     const s = this.serverConfig || {};
-                    let savedVoiceProvider = '';
                     let savedVoiceId = '';
 
                     if (this.activeProfile === 'browser') {
-                        savedVoiceProvider = s.tts_provider;
                         savedVoiceId = s.voice_name;
                     } else if (this.activeProfile === 'twilio') {
-                        savedVoiceProvider = s.tts_provider_phone;
                         savedVoiceId = s.voice_name_phone;
                     } else if (this.activeProfile === 'telnyx') {
-                        savedVoiceProvider = s.tts_provider_telnyx;
                         savedVoiceId = s.voice_name_telnyx;
                     }
 
-                    savedVoiceProvider = savedVoiceProvider ? savedVoiceProvider.trim().toLowerCase() : 'azure';
-
-                    // LOGIC: Atomic Injection
-                    if (prov === savedVoiceProvider && savedVoiceId) {
-                        const exists = tmpVoices.find(v => v.id === savedVoiceId);
-
-                        if (!exists) {
-                            console.log("🔒 [PERSISTENCE] Pre-injecting saved voice:", savedVoiceId);
-                            tmpVoices.unshift({
-                                id: savedVoiceId,
-                                name: savedVoiceId + ' (Guardado)',
-                                gender: 'unknown'
-                            });
-                        }
-                    }
-
-                    // 2. ATOMIC ASSIGNMENT (Reactivity triggers ONCE here)
+                    // Set available voices
                     this.availableVoices = tmpVoices;
 
-                    // 3. ENFORCE with $nextTick (consistent with updateModelList pattern)
+                    // Restore saved voice with $nextTick for DOM timing
                     this.$nextTick(() => {
-                        if (prov === savedVoiceProvider && savedVoiceId) {
-                            // Force sync by resetting to empty first
+                        // Check if saved voice exists in current available voices
+                        const voiceExists = savedVoiceId && this.availableVoices.find(v => v.id === savedVoiceId);
+
+                        if (voiceExists) {
+                            // Saved voice is valid for current selection - restore it
                             this.c.voiceId = '';
                             this.$nextTick(() => {
-                                console.log("🔒 [PERSISTENCE] Forcing saved voice:", savedVoiceId);
+                                console.log("🔒 [PERSISTENCE] Restoring saved voice:", savedVoiceId);
                                 this.c.voiceId = savedVoiceId;
                             });
                         } else if (this.availableVoices.length > 0) {
-                            // Fallback logic
-                            let found = this.availableVoices.find(v => v.id === this.c.voiceId);
-                            if (!found) {
+                            // Saved voice not valid - select first available
+                            const currentValid = this.availableVoices.find(v => v.id === this.c.voiceId);
+                            if (!currentValid) {
+                                console.log("🔄 [AUTO-SELECT] Selecting first available voice");
                                 this.c.voiceId = this.availableVoices[0].id;
                             }
                         }
