@@ -692,6 +692,7 @@
                         <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
                         <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
                         <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
+                        <input type="hidden" name="voice_language" :value="configs.browser.voiceLang">
 
                         <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
                         <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
@@ -1203,7 +1204,7 @@
                         savedVoiceId = s.voice_name_telnyx;
                     }
 
-                    savedVoiceProvider = (savedVoiceProvider || 'azure').toLowerCase();
+                    savedVoiceProvider = savedVoiceProvider ? savedVoiceProvider.trim().toLowerCase() : 'azure';
 
                     // LOGIC: Atomic Injection
                     if (prov === savedVoiceProvider && savedVoiceId) {
@@ -1222,21 +1223,23 @@
                     // 2. ATOMIC ASSIGNMENT (Reactivity triggers ONCE here)
                     this.availableVoices = tmpVoices;
 
-                    // 3. ENFORCE
-                    if (prov === savedVoiceProvider && savedVoiceId) {
-                        if (this.c.voiceId !== savedVoiceId) {
-                            console.log("🔒 [PERSISTENCE] Forcing saved voice:", savedVoiceId);
-                            this.c.voiceId = savedVoiceId;
-                        }
-                    } else {
-                        // Fallback logic
-                        if (this.availableVoices.length > 0) {
+                    // 3. ENFORCE with $nextTick (consistent with updateModelList pattern)
+                    this.$nextTick(() => {
+                        if (prov === savedVoiceProvider && savedVoiceId) {
+                            // Force sync by resetting to empty first
+                            this.c.voiceId = '';
+                            this.$nextTick(() => {
+                                console.log("🔒 [PERSISTENCE] Forcing saved voice:", savedVoiceId);
+                                this.c.voiceId = savedVoiceId;
+                            });
+                        } else if (this.availableVoices.length > 0) {
+                            // Fallback logic
                             let found = this.availableVoices.find(v => v.id === this.c.voiceId);
                             if (!found) {
                                 this.c.voiceId = this.availableVoices[0].id;
                             }
                         }
-                    }
+                    });
 
                     this.updateStyleList();
                 },
