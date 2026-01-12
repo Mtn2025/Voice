@@ -807,19 +807,7 @@ Session Type: Voice conversation
         if "[END_CALL]" in sentence_buffer and "[TOOL CALL]" in sentence_buffer:
              sentence_buffer = sentence_buffer.replace("[TOOL CALL]", "")
 
-        # 4. Filter <think> tags (model's internal reasoning - should NOT be spoken)
-        import re
-        if "<think>" in sentence_buffer or "</think>" in sentence_buffer:
-            # Remove everything between <think> and </think> including tags
-            sentence_buffer = re.sub(r'<think>.*?</think>', '', sentence_buffer, flags=re.DOTALL)
-            # Also handle unclosed think tags
-            sentence_buffer = sentence_buffer.replace("<think>", "").replace("</think>", "")
-            sentence_buffer = sentence_buffer.strip()
-            # If buffer is now empty, return empty buffer and current hangup status
-            if not sentence_buffer:
-                return sentence_buffer, should_hangup  # Must return tuple!
-
-        # 5. Sentence Boundary Check
+        # 4. Sentence Boundary Check
         if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
             # Final check for End Call before speaking
             if "[END_CALL]" in sentence_buffer:
@@ -849,9 +837,6 @@ Session Type: Voice conversation
             sentence_buffer = sentence_buffer.replace("[TRANSFER]", "")
             import re
             sentence_buffer = re.sub(r"\[DTMF:[0-9\*\#]+\]", "", sentence_buffer)
-            # Filter think tags from final buffer too
-            sentence_buffer = re.sub(r'<think>.*?</think>', '', sentence_buffer, flags=re.DOTALL)
-            sentence_buffer = sentence_buffer.replace("<think>", "").replace("</think>", "")
             sentence_buffer = sentence_buffer.strip()
             if sentence_buffer:  # Only process if not empty after filtering
                 await self._process_tts_chunk(sentence_buffer)
