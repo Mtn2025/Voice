@@ -670,9 +670,9 @@ class VoiceOrchestrator:
             # Also handle unclosed think tags
             sentence_buffer = sentence_buffer.replace("<think>", "").replace("</think>", "")
             sentence_buffer = sentence_buffer.strip()
-            # If buffer is now empty, skip TTS
+            # If buffer is now empty, return empty buffer and current hangup status
             if not sentence_buffer:
-                return should_hangup
+                return sentence_buffer, should_hangup  # Must return tuple!
 
         # 5. Sentence Boundary Check
         if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
