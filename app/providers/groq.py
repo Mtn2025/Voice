@@ -55,7 +55,8 @@ class GroqProvider(AbstractLLM):
                 "mixtral-8x7b-32768"
             ]
 
-    async def get_stream(self, messages: list, system_prompt: str, temperature: float, model: str | None = None) -> AsyncGenerator[str, None]:
+    async def get_stream(self, messages: list, system_prompt: str, temperature: float, 
+                         max_tokens: int = 600, model: str | None = None) -> AsyncGenerator[str, None]:
 
         target_model = model or self.default_model
         
@@ -75,7 +76,7 @@ class GroqProvider(AbstractLLM):
                 model=target_model,
                 messages=chat_messages,
                 temperature=temperature,
-                max_tokens=600, 
+                max_tokens=max_tokens,  # ✅ Use parameter instead of hardcoded 600
                 stop=["User:", "System:", "\n\nUser", "\n\nSystem"], # Prevent Hallucination of conversation turns
                 stream=True
             )

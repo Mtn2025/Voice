@@ -175,14 +175,36 @@
                                     <option value="azure">Azure OpenAI</option>
                                 </select>
                             </div>
+                            <!-- Modelo -->
                             <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Modelo</label>
+                                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">
+                                    Modelo LLM
+                                </label>
                                 <select x-model="c.model" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                    <template x-for="m in availableModels">
-                                        <option :value="m.id" x-text="m.name || m.id"></option>
-                                    </template>
+                                    <!-- ✅ SAFE MODELS - Recommended for Voice -->
+                                    <optgroup label="🚀 Groq - Recomendado (Rápido, Sin think tags)">
+                                        <option value="llama-3.3-70b-versatile">⭐ Llama 3.3 70B Versatile (MEJOR)
+                                        </option>
+                                        <option value="llama-3.3-70b-specdec">Llama 3.3 70B SpecDec (Ultra Rápido)
+                                        </option>
+                                        <option value="llama-3.1-70b-versatile">Llama 3.1 70B Versatile</option>
+                                        <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (Económico)</option>
+                                        <option value="gemma-2-9b-it">Gemma 2 9B IT</option>
+                                        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                    </optgroup>
+
+                                    <!-- ⚠️ REASONING MODELS - Not recommended for voice -->
+                                    <optgroup label="⚠️ Modelos de Razonamiento (NO para voz)">
+                                        <option value="deepseek-r1-distill-llama-70b"
+                                            title="⚠️ Genera tags de razonamiento, puede hablar en inglés">
+                                            ⚠️ DeepSeek R1 (Genera &lt;think&gt; tags)
+                                        </option>
+                                    </optgroup>
                                 </select>
+                                <p class="text-xs text-purple-400 mt-1">
+                                    💡 Llama 3.3 70B es la mejor opción: rápido, español perfecto, sin tags de
+                                    razonamiento
+                                </p>
                             </div>
                         </div>
 
