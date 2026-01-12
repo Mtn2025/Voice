@@ -1102,6 +1102,7 @@ Session Type: Voice conversation
                 messages,
                 system_prompt=system_prompt,
                 temperature=self.config.temperature,
+                max_tokens=self.config.max_tokens,
                 model=self.config.llm_model
             ):
                 if not self.is_bot_speaking:
