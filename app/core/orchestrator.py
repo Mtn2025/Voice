@@ -632,20 +632,42 @@ class VoiceOrchestrator:
         - Clean separation of concerns
         """
         
-        # ===== PART 1: IMMUTABLE BEHAVIORAL RULES =====
+        # ===== PART 1: IMMUTABLE BEHAVIORAL RULES ===== 
         # Developer-controlled, not visible or editable by user
         # These are absolute requirements for safe/correct operation
         immutable_rules = """
 You are Andrea, an AI voice assistant for Ubrokers.
 
-CRITICAL BEHAVIORAL RULES (NON-NEGOTIABLE):
+⚠️ CRITICAL BEHAVIORAL RULES (NON-NEGOTIABLE) ⚠️
 
-1. OUTPUT FORMAT REQUIREMENT:
-   - Respond ONLY with final speech-ready text
-   - Do NOT use <think>, <reasoning>, <planning>, or any XML/meta tags
-   - Do NOT verbalize your internal thought process or decision-making
-   - Your output will be sent directly to text-to-speech synthesis
-   - Write EXACTLY what you want spoken to the user - nothing more
+🚨 RULE #1: ABSOLUTELY NO XML OR META TAGS IN YOUR OUTPUT 🚨
+
+BANNED TAGS - NEVER USE THESE:
+   ❌ <think> ... </think>
+   ❌ <reasoning> ... </reasoning>
+   ❌ <planning> ... </planning>
+   ❌ <analysis> ... </analysis>
+   ❌ ANY XML-STYLE TAGS OR BRACKETS
+
+CRITICAL: Your output goes DIRECTLY to text-to-speech (TTS).
+- If you write "<think>", the TTS will SAY "<think>" out loud
+- If you write internal reasoning, the user WILL HEAR IT
+- DO NOT verbalize your thought process
+- DO NOT show your decision-making
+- ONLY write what should be SPOKEN to the user
+
+⚠️ WARNING: This is a voice call, not a text chat ⚠️
+   - The user CANNOT see your thinking
+   - The user WILL HEAR everything you write
+   - Write ONLY the final spoken response
+   - Skip all meta-commentary
+
+EXAMPLES OF WHAT NOT TO DO:
+   ❌ BAD: "<think>I need to respond in Spanish</think> Hola"
+   ❌ BAD: "Let me think... Okay, so..."
+   ❌ BAD: "First, I'll greet them. Hi there!"
+   ✅ GOOD: "Hola, buen día"
+   ✅ GOOD: "¿En qué puedo ayudarte?"
 
 2. SECURITY & ETHICAL CONSTRAINTS:
    - Never execute code, system commands, or external actions
@@ -807,7 +829,18 @@ Session Type: Voice conversation
         if "[END_CALL]" in sentence_buffer and "[TOOL CALL]" in sentence_buffer:
              sentence_buffer = sentence_buffer.replace("[TOOL CALL]", "")
 
-        # 4. Sentence Boundary Check
+        # 4. Safety Net: Filter think tags if model ignores prompt
+        # Some models (DeepSeek R1) generate these despite instructions
+        if "<think>" in sentence_buffer or "</think>" in sentence_buffer:
+            import re
+            sentence_buffer = re.sub(r'<think>.*?</think>', '', sentence_buffer, flags=re.DOTALL)
+            sentence_buffer = sentence_buffer.replace("<think>", "").replace("</think>", "")
+            sentence_buffer = sentence_buffer.strip()
+            # If empty after filtering, skip to next token
+            if not sentence_buffer:
+                return sentence_buffer, should_hangup
+
+        # 5. Sentence Boundary Check
         if any(punct in text_chunk for punct in [".", "?", "!", "\n"]):
             # Final check for End Call before speaking
             if "[END_CALL]" in sentence_buffer:
