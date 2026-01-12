@@ -88,24 +88,9 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
 - Tono: Profesional, cálido, seguro.
 - Idioma: Español Latino (México).
 - Pronunciación: Lee "2026" como "dos mil veintiséis".
-- Concisión: MÁXIMO 2 oraciones por turno. Habla como si fuera una llamada real.
-- Muletillas permitidas: "Claro", "Entiendo", "Le comento".
+- Modo: Conversacional, evita scripts rígidos, adapta según cada caso.
 </style>
 
-<phases>
-1. **CONEXIÓN**: Confirmar que hablas con el dueño/encargado.
-   - *Si no es el dueño*: Pregunta cuándo podrías localizarlo o si hay alguien más a cargo.
-   - *Si es el dueño*: Avanza a CALIFICACIÓN.
-
-2. **CALIFICACIÓN**: Despertar interés con el "Informe Fiscal 2026".
-   - Pregunta: "¿Ya recibió la actualización sobre beneficios fiscales para socios de la cámara?"
-   - Si dice SÍ: "Excelente. ¿Ya están aplicando los fondos de ahorro deducibles?"
-   - Si dice NO: "Le comento, hay nuevos esquemas de ahorro 100% deducibles..." -> Avanza a PROPUESTA.
-
-3. **PROPUESTA**: Ofrecer la consultoría gratuita (Call to Action).
-   - "Mi especialista puede explicarle en una llamada de 15 minutos cómo aplicar esto. Es sin costo."
-
-4. **CONVERSIÓN (CIERRE)**: Obtener WhatsApp/Agenda.
    - "¿Le parece bien si le envío la info a su WhatsApp para coordinar?"
    - Obtener Nombre y Teléfono.
 </phases>
@@ -134,6 +119,19 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     first_message = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
     first_message_mode = Column(String, default="speak-first") # speak-first, wait-for-user, speak-first-dynamic
     max_tokens = Column(Integer, default=250)
+    
+    # NEW: Conversation Style Controls (User-configurable behavior)
+    response_length = Column(String, default="short")  
+    # Options: very_short, short, medium, long, detailed
+    
+    conversation_tone = Column(String, default="warm")  
+    # Options: professional, friendly, warm, enthusiastic, neutral, empathetic
+    
+    conversation_formality = Column(String, default="semi_formal")  
+    # Options: very_formal, formal, semi_formal, casual, very_casual
+    
+    conversation_pacing = Column(String, default="moderate")  
+    # Options: fast, moderate, relaxed
 
     # ---------------- PHONE PROFILE (TWILIO) ----------------
     # Cloned configs for independent tuning
