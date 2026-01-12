@@ -700,10 +700,13 @@ class VoiceOrchestrator:
                 await db_service.log_transcript(session, self.stream_id, "assistant", full_response, call_db_id=self.call_db_id)
 
             # UI OBSERVABILITY: Send Assistant Transcript (Browser only)
+            logging.warning(f"🔍 [TRANSCRIPT DEBUG] client_type='{self.client_type}', sending={'YES' if self.client_type == 'browser' else 'NO'}")
             if self.client_type == "browser":
                 try:
                     await self.websocket.send_text(json.dumps({"type": "transcript", "role": "assistant", "text": full_response}))
-                except Exception:
+                    logging.warning(f"✅ [TRANSCRIPT] Sent assistant message to UI: {full_response[:50]}...")
+                except Exception as e:
+                    logging.error(f"❌ [TRANSCRIPT] Failed to send: {e}")
                     pass
 
         # 3. Update Conversation History (Common Path)
