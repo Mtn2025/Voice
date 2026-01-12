@@ -1156,6 +1156,7 @@
                 },
 
                 updateVoiceLists() {
+                    // Get CURRENT provider and language from UI (what user selected NOW)
                     let prov = (this.c.voiceProvider || 'azure').trim().toLowerCase();
                     this.availableLanguages = this.languages[prov] || [];
 
@@ -1164,7 +1165,7 @@
                         this.c.voiceLang = this.availableLanguages[0]?.id || '';
                     }
 
-                    // Get Voices for Prov + Lang
+                    // Get Voices for CURRENT Prov + Lang
                     let allVoices = (this.voices[prov] || {})[this.c.voiceLang] || [];
 
                     // Extract Genders
