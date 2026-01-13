@@ -182,37 +182,12 @@
                                     Modelo LLM
                                 </label>
                                 <select x-model="c.model" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                    <!-- ✅ GROQ MODELS - Recommended for Voice -->
-                                    <optgroup label="🚀 Groq - Recomendado (Rápido, Sin think tags)">
-                                        <option value="llama-3.3-70b-versatile">⭐ Llama 3.3 70B Versatile (MEJOR)
-                                        </option>
-                                        <option value="llama-3.3-70b-specdec">Llama 3.3 70B SpecDec (Ultra Rápido)
-                                        </option>
-                                        <option value="llama-3.1-70b-versatile">Llama 3.1 70B Versatile</option>
-                                        <option value="llama-3.1-8b-instant">Llama 3.1 8b Instant (Económico)</option>
-                                        <option value="gemma-2-9b-it">Gemma 2 9B IT</option>
-                                        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-                                    </optgroup>
-
-                                    <!-- ⚠️ GROQ REASONING MODELS - Not recommended for voice -->
-                                    <optgroup label="⚠️ Groq Razonamiento (NO para voz)">
-                                        <option value="deepseek-r1-distill-llama-70b"
-                                            title="⚠️ Genera tags de razonamiento, puede hablar en inglés">
-                                            ⚠️ DeepSeek R1 (Genera &lt;think&gt; tags)
-                                        </option>
-                                    </optgroup>
-
-                                    <!-- ✅ AZURE MODELS - Premium Quality -->
-                                    <optgroup label="🔷 Azure OpenAI - Premium (Multimodal)">
-                                        <option value="gpt-4o">⭐ GPT-4o (Omni - MEJOR)</option>
-                                        <option value="gpt-4o-mini">GPT-4o Mini (Rápido + Económico)</option>
-                                        <option value="gpt-4-turbo">GPT-4 Turbo (Alta capacidad)</option>
-                                        <option value="gpt-35-turbo">GPT-3.5 Turbo (Económico)</option>
-                                    </optgroup>
+                                    <template x-for="model in availableModels" :key="model.id">
+                                        <option :value="model.id" x-text="model.name"></option>
+                                    </template>
                                 </select>
-                                <p class="text-xs text-purple-400 mt-1">
-                                    💡 Llama 3.3 70B es la mejor opción: rápido, español perfecto, sin tags de
-                                    razonamiento
+                                <p class="text-xs text-slate-500 mt-1">
+                                    ℹ️ Solo se muestran modelos del proveedor seleccionado
                                 </p>
                             </div>
                         </div>
