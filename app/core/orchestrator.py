@@ -132,61 +132,45 @@ class VoiceOrchestrator:
 
     async def _synthesize_text(self, text: str) -> bytes | None:
         """
-        Wraps text in SSML with configured voice and style, respecting client_type.
+        Synthesizes text using SSML for Azure TTS.
+        Uses SSML builder for clean, professional SSML generation.
+        
+        Note: Profile overlay (twilio/telnyx) already applied in _apply_profile_overlay(),
+        so self.config.voice_name, voice_speed, etc. are already correct.
         """
-        # Default to Browser/Simulator settings
-        voice = getattr(self.config, 'voice_name', 'es-MX-DaliaNeural')
-        style = getattr(self.config, 'voice_style', None)
-        speed = getattr(self.config, 'voice_speed', 1.0)
-
-        # Override for Twilio
-        if self.client_type == 'twilio':
-            voice = getattr(self.config, 'voice_name_phone', voice)
-            style = getattr(self.config, 'voice_style_phone', style)
-            speed = getattr(self.config, 'voice_speed_phone', 0.9)
-
-        # Override for Telnyx
-        elif self.client_type == 'telnyx':
-            voice = getattr(self.config, 'voice_name_telnyx', voice)
-            style = getattr(self.config, 'voice_style_telnyx', style)
-            speed = getattr(self.config, 'voice_speed_telnyx', 0.9) # Default to 0.9 if missing
-
-        # Manual Override (Generic) - Check if this should apply to all or just browser?
-        # Assuming manual override is for testing/browser primarily, but let's leave it generic if set.
-        if getattr(self.config, 'voice_id_manual', None):
-             voice = self.config.voice_id_manual
-
-        # Build SSML
-        ssml_parts = [
-            '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" ',
-            'xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="es-MX">',
-            f'<voice name="{voice}">'
-        ]
-
-        # Open Prosody (Speed)
-        ssml_parts.append(f'<prosody rate="{speed}">')
-
-        if style and style.strip():
-            ssml_parts.append(f'<mstts:express-as style="{style}">')
-            ssml_parts.append(text)
-            ssml_parts.append('</mstts:express-as>')
-        else:
-            ssml_parts.append(text)
-
-        # Close Prosody
-        ssml_parts.append('</prosody>')
-
-        ssml_parts.append('</voice></speak>')
-
-        ssml = "".join(ssml_parts)
-        ssml = "".join(ssml_parts)
-        # Assuming synthesizer is set up
+        from app.utils.ssml_builder import build_azure_ssml
+        from app.providers.azure import AzureProvider
+        
+        # Check if Azure provider
+        if not isinstance(self.tts_provider, AzureProvider):
+            # Fallback for non-Azure providers (future: ElevenLabs, etc)
+            logging.warning(f"[TTS] Non-Azure provider detected, using basic synthesis")
+            # Would need provider-specific synthesis here
+            return None
+        
+        # Build SSML using professional builder
+        ssml = build_azure_ssml(
+            voice_name=self.config.voice_name,
+            text=text,
+            rate=getattr(self.config, 'voice_speed', 1.0),
+            pitch=getattr(self.config, 'voice_pitch', 0),
+            volume=getattr(self.config, 'voice_volume', 100),
+            style=getattr(self.config, 'voice_style', None),
+            style_degree=getattr(self.config, 'voice_style_degree', 1.0)
+        )
+        
+        # Synthesize using Azure SSML method
         if not self.synthesizer:
-            logging.error("Synthesizer not initialized in _synthesize_text")
+            logging.error("❌ [TTS] Synthesizer not initialized")
+            return None
+        
+        try:
+            audio_data = await self.tts_provider.synthesize_ssml(self.synthesizer, ssml)
+            return audio_data if audio_data else b''
+        except Exception as e:
+            logging.error(f"❌ [TTS] SSML synthesis error: {e}")
             return None
 
-        # Abstracted TTS call
-        return await self.tts_provider.synthesize_ssml(self.synthesizer, ssml)
 
     def update_vad_stats(self, rms: float) -> None:
         """Called by routes.py when client sends VAD stats."""
@@ -914,134 +898,105 @@ Session Type: Voice conversation
                  await asyncio.sleep(1.0)
                  await self.websocket.close()
 
-    def _apply_profile_overlay(self) -> None: # noqa: PLR0912, PLR0915
-        """Applies Telnyx/Phone specific overrides to the configuration."""
-        # ---------------- PROFILE OVERLAY (PHONE / TELNYX) ----------------
-        logging.warning(f"🔍 [TRACE] About to check client_type condition: '{self.client_type}' == 'telnyx' ? {self.client_type == 'telnyx'}")
+    def _apply_profile_overlay(self) -> None:
+        """
+        Applies profile-specific configuration (twilio/telnyx).
+        Uses dictionary mapping to avoid code duplication.
+        """
+        # Profile field mappings: {target_field: source_field}
+        PROFILE_MAPPINGS = {
+            'telnyx': {
+                # LLM
+                'llm_model': 'llm_model_telnyx',
+                'llm_provider': 'llm_provider_telnyx',
+                'system_prompt': 'system_prompt_telnyx',
+                'max_tokens': 'max_tokens_telnyx',
+                'first_message': 'first_message_telnyx',
+                'first_message_mode': 'first_message_mode_telnyx',
+                'temperature': 'temperature_telnyx',
+                #  STT
+                'stt_provider': 'stt_provider_telnyx',
+                'stt_language': 'stt_language_telnyx',
+                'silence_timeout_ms': 'silence_timeout_ms_telnyx',
+                'initial_silence_timeout_ms': 'initial_silence_timeout_ms_telnyx',
+                'interruption_threshold': 'interruption_threshold_telnyx',
+                'input_min_characters': 'input_min_characters_telnyx',
+                'enable_denoising': 'enable_denoising_telnyx',
+                'hallucination_blacklist': 'hallucination_blacklist_telnyx',
+                'voice_sensitivity': 'voice_sensitivity_telnyx',
+                'enable_vad': 'enable_vad_telnyx',
+                'enable_krisp': 'enable_krisp_telnyx',
+                # TTS / Voice
+                'voice_name': 'voice_name_telnyx',
+                'voice_style': 'voice_style_telnyx',
+                'voice_speed': 'voice_speed_telnyx',
+                'voice_pitch': 'voice_pitch_telnyx',
+                'voice_volume': 'voice_volume_telnyx',
+                'voice_style_degree': 'voice_style_degree_telnyx',
+                'voice_pacing_ms': 'voice_pacing_ms_telnyx',
+                'background_sound': 'background_sound_telnyx',
+                # Flow Control
+                'idle_timeout': 'idle_timeout_telnyx',
+                'max_duration': 'max_duration_telnyx',
+                'idle_message': 'idle_message_telnyx',
+            },
+            'twilio': {
+                # LLM
+                'llm_model': 'llm_model_phone',
+                'llm_provider': 'llm_provider_phone',
+                'system_prompt': 'system_prompt_phone',
+                'max_tokens': 'max_tokens_phone',
+                'first_message': 'first_message_phone',
+                'first_message_mode': 'first_message_mode_phone',
+                'temperature': 'temperature_phone',
+                # STT
+                'stt_provider': 'stt_provider_phone',
+                'stt_language': 'stt_language_phone',
+                'silence_timeout_ms': 'silence_timeout_ms_phone',
+                'initial_silence_timeout_ms': 'initial_silence_timeout_ms_phone',
+                'interruption_threshold': 'interruption_threshold_phone',
+                'input_min_characters': 'input_min_characters_phone',
+                'enable_denoising': 'enable_denoising_phone',
+                'hallucination_blacklist': 'hallucination_blacklist_phone',
+                # TTS / Voice
+                'voice_name': 'voice_name_phone',
+                'voice_style': 'voice_style_phone',
+                'voice_speed': 'voice_speed_phone',
+                'voice_pitch': 'voice_pitch_phone',
+                'voice_volume': 'voice_volume_phone',
+                'voice_style_degree': 'voice_style_degree_phone',
+                'voice_pacing_ms': 'voice_pacing_ms_phone',
+                'background_sound': 'background_sound_phone',
+            }
+        }
+        
+        # Determine which profile to use
+        profile_key = None
         if self.client_type == "telnyx":
-             try:
-                  logging.warning("📱 [TELNYX] ENTERED Telnyx profile overlay block")
-                  logging.warning("📱 [ORCHESTRATOR] Applying TELNYX Profile Configuration")
-                  # Explicitly map TELNYX fields
-                  conf = self.config
+            profile_key = 'telnyx'
+        elif self.client_type == "twilio" or self.client_type not in ("browser", "telnyx"):
+            profile_key = 'twilio'
+        
+        # Apply profile if found
+        if profile_key:
+            mapping = PROFILE_MAPPINGS.get(profile_key, {})
+            conf = self.config
+            applied_count = 0
+            
+            logging.info(f"📱 [ORCHESTRATOR] Applying {profile_key.upper()} Profile Configuration")
+            
+            for target_field, source_field in mapping.items():
+                source_value = getattr(conf, source_field, None)
+                if source_value is not None:
+                    setattr(conf, target_field, source_value)
+                    applied_count += 1
+                    logging.debug(f"  ↳ {target_field} = {source_value}")
+            
+            logging.info(f"✅ [{profile_key.upper()}] Applied {applied_count} field overrides")
+            logging.info(f"📱 [PROFILE APPLIED] Client: {self.client_type} | Voice: {self.config.voice_name} | STT: {self.config.stt_provider}")
+        else:
+            logging.info(f"ℹ️  [BROWSER] No profile overlay needed for {self.client_type}")
 
-                  # LLM
-                  if conf.llm_model_telnyx:
-                      conf.llm_model = conf.llm_model_telnyx
-                  if conf.llm_provider_telnyx:
-                      conf.llm_provider = conf.llm_provider_telnyx
-                  if conf.system_prompt_telnyx:
-                      conf.system_prompt = conf.system_prompt_telnyx
-                  if conf.max_tokens_telnyx:
-                      conf.max_tokens = conf.max_tokens_telnyx
-                  if conf.first_message_telnyx:
-                      conf.first_message = conf.first_message_telnyx
-                  if conf.first_message_mode_telnyx:
-                      conf.first_message_mode = conf.first_message_mode_telnyx
-                  if conf.temperature_telnyx is not None:
-                      conf.temperature = conf.temperature_telnyx
-
-                  # VAD / Audio IN
-                  if conf.stt_provider_telnyx:
-                      conf.stt_provider = conf.stt_provider_telnyx
-                  if conf.stt_language_telnyx:
-                      conf.stt_language = conf.stt_language_telnyx
-                  if conf.silence_timeout_ms_telnyx:
-                      conf.silence_timeout_ms = conf.silence_timeout_ms_telnyx
-                  if conf.initial_silence_timeout_ms_telnyx:
-                      conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_telnyx
-                  if conf.interruption_threshold_telnyx is not None:
-                      conf.interruption_threshold = conf.interruption_threshold_telnyx
-                  if conf.input_min_characters_telnyx:
-                      conf.input_min_characters = conf.input_min_characters_telnyx
-                  if conf.enable_denoising_telnyx is not None:
-                      conf.enable_denoising = conf.enable_denoising_telnyx
-                  if conf.hallucination_blacklist_telnyx:
-                      conf.hallucination_blacklist = conf.hallucination_blacklist_telnyx
-                  if conf.voice_sensitivity_telnyx:
-                      conf.voice_sensitivity = conf.voice_sensitivity_telnyx
-                  if conf.enable_vad_telnyx is not None:
-                      conf.enable_vad = conf.enable_vad_telnyx
-                  if conf.enable_krisp_telnyx is not None:
-                      conf.enable_krisp = conf.enable_krisp_telnyx
-
-                  # Voice / Audio OUT
-                  if conf.voice_name_telnyx:
-                      conf.voice_name = conf.voice_name_telnyx
-                  if conf.voice_style_telnyx:
-                      conf.voice_style = conf.voice_style_telnyx
-                  if conf.voice_speed_telnyx:
-                      conf.voice_speed = conf.voice_speed_telnyx
-                  if conf.voice_pacing_ms_telnyx:
-                      conf.voice_pacing_ms = conf.voice_pacing_ms_telnyx
-
-                  # --- Functions (Transfer / Keypad) ---
-                  if conf.transfer_phone_number:
-                      conf.transfer_phone_number = conf.transfer_phone_number
-
-                  # Flow Control Overrides
-                  if conf.idle_timeout_telnyx is not None:
-                      conf.idle_timeout = conf.idle_timeout_telnyx
-                  if conf.max_duration_telnyx is not None:
-                      conf.max_duration = conf.max_duration_telnyx
-                  if conf.idle_message_telnyx:
-                      conf.idle_message = conf.idle_message_telnyx
-
-                  logging.warning("✅ [TELNYX] Profile overlay completed successfully")
-             except Exception as e:
-                  logging.error(f"❌❌❌ EXCEPTION in Telnyx profile overlay: {e}")
-                  import traceback
-                  logging.error(f"Traceback: {traceback.format_exc()}")
-
-        elif self.client_type == "twilio" or (self.client_type not in ("browser", "telnyx")):
-             # Default fallback for "phone" matches Twilio behavior
-             logging.info("📱 [ORCHESTRATOR] Applying TWILIO/PHONE Profile Configuration")
-             conf = self.config
-
-             # LLM
-             if conf.llm_model_phone:
-                 conf.llm_model = conf.llm_model_phone
-             if conf.llm_provider_phone:
-                 conf.llm_provider = conf.llm_provider_phone
-             if conf.system_prompt_phone:
-                 conf.system_prompt = conf.system_prompt_phone
-             if conf.max_tokens_phone:
-                 conf.max_tokens = conf.max_tokens_phone
-             if conf.first_message_phone:
-                 conf.first_message = conf.first_message_phone
-             if conf.first_message_mode_phone:
-                 conf.first_message_mode = conf.first_message_mode_phone
-             if conf.temperature_phone is not None:
-                 conf.temperature = conf.temperature_phone
-
-             # VAD / Audio IN
-             if conf.stt_provider_phone:
-                 conf.stt_provider = conf.stt_provider_phone
-             if conf.stt_language_phone:
-                 conf.stt_language = conf.stt_language_phone
-             if conf.silence_timeout_ms_phone:
-                 conf.silence_timeout_ms = conf.silence_timeout_ms_phone
-             if conf.initial_silence_timeout_ms_phone:
-                 conf.initial_silence_timeout_ms = conf.initial_silence_timeout_ms_phone
-             if conf.interruption_threshold_phone is not None:
-                 conf.interruption_threshold = conf.interruption_threshold_phone
-             if conf.input_min_characters_phone:
-                 conf.input_min_characters = conf.input_min_characters_phone
-             if getattr(conf, 'enable_denoising_phone', None) is not None:
-                 conf.enable_denoising = conf.enable_denoising_phone
-             if getattr(conf, 'hallucination_blacklist_phone', None):
-                 conf.hallucination_blacklist = conf.hallucination_blacklist_phone
-
-             # Voice / Audio OUT
-             if conf.voice_name_phone:
-                 conf.voice_name = conf.voice_name_phone
-             if conf.voice_style_phone:
-                 conf.voice_style = conf.voice_style_phone
-             if conf.voice_speed_phone:
-                 conf.voice_speed = conf.voice_speed_phone
-
-        if self.client_type != "browser":
-             logging.info(f"📱 [PROFILE APPLIED] Client: {self.client_type} | Voice: {self.config.voice_name} | STT: {self.config.stt_provider}")
 
     def _load_background_audio(self) -> None:
         """Loads background audio (WAV/Raw) if configured."""

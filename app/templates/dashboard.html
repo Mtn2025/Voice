@@ -451,6 +451,55 @@
                             </div>
                         </div>
 
+                        <!-- Voice Expression Controls (NEW - Azure TTS SSML) -->
+                        <div class="space-y-4 mt-6 pt-6 border-t border-slate-700">
+                            <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">
+                                🎭 Control de Expresión
+                            </h3>
+
+                            <!-- Pitch Control -->
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                    <span>Tono (Pitch)</span>
+                                    <span class="text-blue-400" x-text="c.voicePitch + 'st'"></span>
+                                </label>
+                                <input type="range" x-model.number="c.voicePitch" min="-12" max="12" step="1"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                <p class="text-[10px] text-slate-500 mt-1">
+                                    -12 = Más grave, 0 = Normal, +12 = Más agudo
+                                </p>
+                            </div>
+
+                            <!-- Volume Control -->
+                            <div>
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                    <span>Volumen</span>
+                                    <span class="text-blue-400" x-text="c.voiceVolume"></span>
+                                </label>
+                                <input type="range" x-model.number="c.voiceVolume" min="50" max="100" step="5"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                <p class="text-[10px] text-slate-500 mt-1">
+                                    50 = Suave, 100 = Normal (recomendado)
+                                </p>
+                            </div>
+
+                            <!-- Style Degree (only visible when style is selected) -->
+                            <div x-show="c.voiceStyle !== ''">
+                                <label
+                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                                    <span>Intensidad Emocional</span>
+                                    <span class="text-blue-400" x-text="c.voiceStyleDegree"></span>
+                                </label>
+                                <input type="range" x-model.number="c.voiceStyleDegree" min="0.5" max="2.0" step="0.1"
+                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                <p class="text-[10px] text-slate-500 mt-1">
+                                    0.5 = Sutil, 1.0 = Normal, 2.0 = Exagerado
+                                </p>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- TAB START: TRANSCRIPTOR -->
@@ -794,6 +843,9 @@
                         <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
                         <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
                         <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
+                        <input type="hidden" name="voice_pitch" :value="configs.browser.voicePitch">
+                        <input type="hidden" name="voice_volume" :value="configs.browser.voiceVolume">
+                        <input type="hidden" name="voice_style_degree" :value="configs.browser.voiceStyleDegree">
                         <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
                         <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
                         <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
@@ -829,6 +881,9 @@
                         <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
                         <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
                         <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
+                        <input type="hidden" name="voice_pitch_phone" :value="configs.twilio.voicePitch">
+                        <input type="hidden" name="voice_volume_phone" :value="configs.twilio.voiceVolume">
+                        <input type="hidden" name="voice_style_degree_phone" :value="configs.twilio.voiceStyleDegree">
                         <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
                         <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
 
@@ -853,6 +908,9 @@
                         <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
                         <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
                         <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
+                        <input type="hidden" name="voice_pitch_telnyx" :value="configs.telnyx.voicePitch">
+                        <input type="hidden" name="voice_volume_telnyx" :value="configs.telnyx.voiceVolume">
+                        <input type="hidden" name="voice_style_degree_telnyx" :value="configs.telnyx.voiceStyleDegree">
                         <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
                         <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
                         <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
@@ -1102,6 +1160,9 @@
                         voiceId: s.voice_name || '',
                         voiceStyle: s.voice_style || '',
                         voiceSpeed: s.voice_speed || 1.0,
+                        voicePitch: s.voice_pitch || 0,
+                        voiceVolume: s.voice_volume || 100,
+                        voiceStyleDegree: s.voice_style_degree || 1.0,
                         voicePacing: s.voice_pacing_ms || 0,
                         voiceBgSound: s.background_sound || 'none',
                         voiceBgUrl: s.background_sound_url || '',
@@ -1141,6 +1202,9 @@
                         voiceId: s.voice_name_phone || '',
                         voiceStyle: s.voice_style_phone || '',
                         voiceSpeed: s.voice_speed_phone || 1.0,
+                        voicePitch: s.voice_pitch_phone || 0,
+                        voiceVolume: s.voice_volume_phone || 100,
+                        voiceStyleDegree: s.voice_style_degree_phone || 1.0,
                         voicePacing: s.voice_pacing_ms_phone || 0,
                         voiceBgSound: s.background_sound_phone || 'none',
 
@@ -1170,6 +1234,9 @@
                         voiceId: s.voice_name_telnyx || '',
                         voiceStyle: s.voice_style_telnyx || '',
                         voiceSpeed: s.voice_speed_telnyx || 1.0,
+                        voicePitch: s.voice_pitch_telnyx || 0,
+                        voiceVolume: s.voice_volume_telnyx || 100,
+                        voiceStyleDegree: s.voice_style_degree_telnyx || 1.0,
                         voicePacing: s.voice_pacing_ms_telnyx || 0,
                         voiceBgSound: s.background_sound_telnyx || 'none',
                         voiceBgUrl: s.background_sound_url_telnyx || '',
