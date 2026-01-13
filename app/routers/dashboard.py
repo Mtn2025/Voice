@@ -55,20 +55,25 @@ async def dashboard(
 
     voice_styles = tts_provider.get_voice_styles()
 
-    # Models
-    llm_provider = GroqProvider()
-    groq_models_raw = await llm_provider.get_available_models()
-    # Normalize: Ensure list of dicts
-    groq_models = [{"id": m, "name": m} if isinstance(m, str) else m for m in groq_models_raw]
-    
-    # Structure models for frontend: { 'groq': [...], 'azure': [...] }
+    # Models - CURATED lists with descriptive labels
+    # We DON'T use groq_models_raw directly to avoid exposing non-voice models
     models = {
-        "groq": groq_models,
+        "groq": [
+            # ✅ RECOMMENDED MODELS - Fast, Spanish-friendly, No reasoning tags
+            {"id": "llama-3.3-70b-versatile", "name": "⭐ Llama 3.3 70B Versatile (MEJOR)"},
+            {"id": "llama-3.3-70b-specdec", "name": "Llama 3.3 70B SpecDec (Ultra Rápido)"},
+            {"id": "llama-3.1-70b-versatile", "name": "Llama 3.1 70B Versatile"},
+            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8B Instant (Económico)"},
+            {"id": "gemma-2-9b-it", "name": "Gemma 2 9B IT"},
+            {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B"},
+            # ⚠️ REASONING MODEL - Not recommended for voice
+            {"id": "deepseek-r1-distill-llama-70b", "name": "⚠️ DeepSeek R1 (Genera <think> tags - NO para voz)"},
+        ],
         "azure": [
-            {"id": "gpt-4o", "name": "GPT-4o (Omni)"},
-            {"id": "gpt-4o-mini", "name": "GPT-4o Mini"},
-            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo"},
-            {"id": "gpt-35-turbo", "name": "GPT-3.5 Turbo"}
+            {"id": "gpt-4o", "name": "⭐ GPT-4o (Omni - MEJOR)"},
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini (Rápido + Económico)"},
+            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo (Alta capacidad)"},
+            {"id": "gpt-35-turbo", "name": "GPT-3.5 Turbo (Económico)"}
         ]
     }
 
