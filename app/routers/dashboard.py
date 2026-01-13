@@ -56,18 +56,15 @@ async def dashboard(
     voice_styles = tts_provider.get_voice_styles()
 
     # Models - CURATED lists with descriptive labels
-    # We DON'T use groq_models_raw directly to avoid exposing non-voice models
+    # Only voice-appropriate models are included
     models = {
         "groq": [
-            # ✅ RECOMMENDED MODELS - Fast, Spanish-friendly, No reasoning tags
             {"id": "llama-3.3-70b-versatile", "name": "⭐ Llama 3.3 70B Versatile (MEJOR)"},
             {"id": "llama-3.3-70b-specdec", "name": "Llama 3.3 70B SpecDec (Ultra Rápido)"},
             {"id": "llama-3.1-70b-versatile", "name": "Llama 3.1 70B Versatile"},
-            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8B Instant (Económico)"},
+            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8b Instant (Económico)"},
             {"id": "gemma-2-9b-it", "name": "Gemma 2 9B IT"},
             {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B"},
-            # ⚠️ REASONING MODEL - Not recommended for voice
-            {"id": "deepseek-r1-distill-llama-70b", "name": "⚠️ DeepSeek R1 (Genera <think> tags - NO para voz)"},
         ],
         "azure": [
             {"id": "gpt-4o", "name": "⭐ GPT-4o (Omni - MEJOR)"},
