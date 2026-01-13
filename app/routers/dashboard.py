@@ -358,6 +358,12 @@ FIELD_ALIASES = {
     'voiceBgUrl': 'background_sound_url',
     'voiceLang': 'voice_language',  # NEW: Missing in schema, will need to be added
     
+    # Conversation Style Configuration (NEW)
+    'responseLength': 'response_length',
+    'conversationTone': 'conversation_tone',
+    'conversationFormality': 'conversation_formality',
+    'conversationPacing': 'conversation_pacing',
+    
     # STT Configuration
     'sttProvider': 'stt_provider',
     'sttLang': 'stt_language',
@@ -555,6 +561,25 @@ async def update_config(
     llm_provider: str = Form(None),
     tts_provider: str = Form(None),
     extraction_model: str = Form(None),
+
+    # Browser - Conversation Style
+    response_length: str = Form(None),
+    conversation_tone: str = Form(None),
+    conversation_formality: str = Form(None),
+    conversation_pacing: str = Form(None),
+
+    # Phone - Conversation Style
+    response_length_phone: str = Form(None),
+    conversation_tone_phone: str = Form(None),
+    conversation_formality_phone: str = Form(None),
+    conversation_pacing_phone: str = Form(None),
+
+    # Telnyx - Conversation Style
+    response_length_telnyx: str = Form(None),
+    conversation_tone_telnyx: str = Form(None),
+    conversation_formality_telnyx: str = Form(None),
+    conversation_pacing_telnyx: str = Form(None),
+
     db: AsyncSession = Depends(get_db)
 ):
     try:
@@ -664,6 +689,24 @@ async def update_config(
             "llm_provider": llm_provider,
             "tts_provider": tts_provider,
             "extraction_model": extraction_model,
+
+            # Conversation Style - Browser
+            "response_length": response_length,
+            "conversation_tone": conversation_tone,
+            "conversation_formality": conversation_formality,
+            "conversation_pacing": conversation_pacing,
+
+            # Conversation Style - Phone
+            "response_length_phone": response_length_phone,
+            "conversation_tone_phone": conversation_tone_phone,
+            "conversation_formality_phone": conversation_formality_phone,
+            "conversation_pacing_phone": conversation_pacing_phone,
+
+            # Conversation Style - Telnyx
+            "response_length_telnyx": response_length_telnyx,
+            "conversation_tone_telnyx": conversation_tone_telnyx,
+            "conversation_formality_telnyx": conversation_formality_telnyx,
+            "conversation_pacing_telnyx": conversation_pacing_telnyx,
         }
 
         final_data = {k: v for k, v in update_data.items() if v is not None}
