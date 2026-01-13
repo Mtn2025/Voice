@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 from openai import AsyncAzureOpenAI
 from app.core.config import settings
 from app.services.base import AbstractLLM
-from app.services.redis_service import redis_state
+from app.core.redis_state import redis_state
 
 class AzureOpenAIProvider(AbstractLLM):
     def __init__(self):
