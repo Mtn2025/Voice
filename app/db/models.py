@@ -207,7 +207,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     llm_model_telnyx = Column(String, default="llama-3.3-70b-versatile")
     system_prompt_telnyx = Column(Text, default=None)
 
-   tts_provider_telnyx = Column(String, default="azure")  # FIX: Added missing field
+    tts_provider_telnyx = Column(String, default="azure")  # FIX: Added missing field
     voice_language_telnyx = Column(String, default="es-MX")  # FIX: Added missing field
     voice_name_telnyx = Column(String, default="es-MX-DaliaNeural")
     voice_style_telnyx = Column(String, nullable=True)
