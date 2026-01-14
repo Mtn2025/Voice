@@ -859,3 +859,59 @@ async def clear_history(request: Request, db: AsyncSession = Depends(get_db)):
         logger.error(f"Error clearing history: {e}")
         # Redirect back with error
         return RedirectResponse("/dashboard?error=clear_failed", status_code=303)
+
+
+@router.post("/api/voice/preview", dependencies=[Depends(verify_api_key)])
+async def preview_voice(
+    voice_name: str = Form(...),
+    voice_speed: float = Form(1.0),
+    voice_pitch: int = Form(0),
+    voice_volume: int = Form(100),
+    voice_style: str = Form(None),
+    voice_style_degree: float = Form(1.0)
+):
+    """
+    Generate voice preview with current configuration.
+    Returns audio file for immediate playback.
+    """
+    try:
+        from app.utils.ssml_builder import build_azure_ssml
+        from app.providers.azure import AzureProvider
+        
+        # Build SSML with parameters
+        ssml = build_azure_ssml(
+            voice_name=voice_name,
+            text="Hola, esta es una muestra de mi voz con la configuración actual.",
+            rate=voice_speed,
+            pitch=voice_pitch,
+            volume=voice_volume,
+            style=voice_style if voice_style and voice_style.strip() else None,
+            style_degree=voice_style_degree
+        )
+        
+        logger.info(f"🎤 Preview request: voice={voice_name}, speed={voice_speed}, pitch={voice_pitch}")
+        
+        # Synthesize audio
+        azure_provider = AzureProvider()
+        synthesizer = azure_provider.create_synthesizer(voice_name, "browser")
+        audio_bytes = azure_provider.synthesize_ssml(synthesizer, ssml)
+        
+        if not audio_bytes:
+            raise HTTPException(status_code=500, detail="Failed to generate audio")
+        
+        # Return audio
+        return Response(
+            content=audio_bytes,
+            media_type="audio/wav",
+            headers={
+                "Content-Disposition": "inline; filename=voice_preview.wav",
+                "Cache-Control": "no-cache"
+            }
+        )
+    except Exception as e:
+        logger.error(f"❌ Voice preview error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to generate preview: {str(e)}"}
+        )
+

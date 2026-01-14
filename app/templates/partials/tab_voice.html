@@ -239,5 +239,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- 4. Voice Preview -->
+        <div class="glass-panel p-6 rounded-xl border border-white/5 text-center">
+            <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Prueba de Voz</h4>
+            <p class="text-xs text-slate-500 mb-4">
+                Genera una muestra de audio con la configuración actual para escuchar cómo suena la voz
+            </p>
+            <button type="button" @click="previewVoice()" :disabled="isPreviewLoading"
+                class="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2 mx-auto">
+                <span x-show="!isPreviewLoading">🔊</span>
+                <span x-show="isPreviewLoading" class="animate-spin">⏳</span>
+                <span x-text="isPreviewLoading ? 'Generando...' : 'Escuchar Muestra de Voz'"></span>
+            </button>
+            <p class="text-[10px] text-slate-600 mt-2" x-show="isPreviewLoading">
+                Generando audio con Azure TTS...
+            </p>
+        </div>
     </div>
 </div>

@@ -1101,6 +1101,7 @@
                 availableStyles: [],
                 availableGenders: [],
                 currentGender: 'female',
+                isPreviewLoading: false,
 
                 // CURRENT CONFIG POINTER (Convenience accessor for UI binding)
                 get c() { return this.configs[this.activeProfile]; },
@@ -1781,6 +1782,62 @@
                         }
                     };
                     draw();
+                },
+
+                async previewVoice() {
+                    this.isPreviewLoading = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('voice_name', this.c.voiceId || 'es-MX-DaliaNeural');
+                        formData.append('voice_speed', this.c.voiceSpeed || 1.0);
+                        formData.append('voice_pitch', this.c.voicePitch || 0);
+                        formData.append('voice_volume', this.c.voiceVolume || 100);
+                        formData.append('voice_style', this.c.voiceStyle || '');
+                        formData.append('voice_style_degree', this.c.voiceStyleDegree || 1.0);
+
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const apiKey = urlParams.get('api_key');
+                        if (apiKey) formData.append('api_key', apiKey);
+
+                        console.log('🎤 Preview request:', {
+                            voice: this.c.voiceId,
+                            speed: this.c.voiceSpeed,
+                            pitch: this.c.voicePitch,
+                            style: this.c.voiceStyle
+                        });
+
+                        const response = await fetch('/api/voice/preview', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Preview failed');
+                        }
+
+                        const audioBlob = await response.blob();
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            console.log('✅ Preview playback finished');
+                        };
+
+                        audio.onerror = (e) => {
+                            console.error('Audio playback error:', e);
+                            alert('Error al reproducir audio');
+                        };
+
+                        await audio.play();
+                        console.log('🔊 Playing preview...');
+                    } catch (e) {
+                        console.error('❌ Preview error:', e);
+                        alert('Error al generar muestra: ' + e.message);
+                    } finally {
+                        this.isPreviewLoading = false;
+                    }
                 },
 
                 async saveConfig() {
