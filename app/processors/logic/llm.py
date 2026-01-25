@@ -59,21 +59,19 @@ class LLMProcessor(FrameProcessor):
         if not self.conversation_history or self.conversation_history[-1].get("content") != text:
              self.conversation_history.append({"role": "user", "content": text})
         
-        # 2. Add System Prompt (if not handled by provider internal context)
-        # In Andrea, orchestrator builds system prompt. 
-        # We assume provider.generate_response handles the context or we pass it.
-        # Looking at Orchestrator, it calls `self.llm_provider.generate_response(transcript, ...)`
-        # Actually it calls `generate_response_stream` or similar.
-        # Let's assume standard Andrea provider interface: `generate_stream(messages, ...)`
-        
-        messages = [{"role": "system", "content": self._build_system_prompt()}] + self.conversation_history
+        # 2. Add System Prompt
+        system_content = self._build_system_prompt()
         
         try:
             # 3. Stream Generation
             # We need to buffer text to form sentences for TTS
             sentence_buffer = ""
             
-            async for token in self.provider.generate_stream(messages):
+            async for token in self.provider.get_stream(
+                messages=self.conversation_history, # Only conversation history
+                system_prompt=system_content,
+                temperature=getattr(self.config, 'temperature', 0.7)
+            ):
                 # Check for control tokens
                 token_text = token
                 
