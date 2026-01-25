@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
-
+from typing import Any, List, Optional
 
 class STTResultReason(Enum):
     RECOGNIZING_SPEECH = "recognizing_speech"
@@ -19,9 +18,7 @@ class STTEvent:
     duration: float = 0.0
     error_details: str = ""
 
-
-class AbstractSTT(ABC):
-    @abstractmethod
+class STTProvider(ABC):
     @abstractmethod
     def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio", on_interruption_callback=None, event_loop=None) -> Any:
         """Returns a recognizer interface (wrapper or specific)."""
@@ -31,17 +28,22 @@ class AbstractSTT(ABC):
     async def stop_recognition(self):
         pass
 
-class AbstractLLM(ABC):
+class LLMProvider(ABC):
     @abstractmethod
-    async def get_stream(self, messages: list, system_prompt: str, temperature: float) -> AsyncGenerator[str, None]:
+    async def get_stream(self, messages: list, system_prompt: str, temperature: float, max_tokens: int = 600, model: Optional[str] = None) -> AsyncGenerator[str, None]:
         pass
 
-class AbstractTTS(ABC):
+class TTSProvider(ABC):
     @abstractmethod
-    def create_synthesizer(self, voice_name: str) -> Any:
+    def create_synthesizer(self, voice_name: str, audio_mode: str = "twilio") -> Any:
         pass
 
     @abstractmethod
-    async def synthesize_stream(self, text: str) -> bytes:
-        """Yields audio bytes or returns full buffer"""
+    async def synthesize_ssml(self, synthesizer: Any, ssml: str) -> bytes:
+        """Synthesizes SSML to audio bytes."""
         pass
+
+# Aliases for backward compatibility if needed (though we encourage using the new names)
+AbstractSTT = STTProvider
+AbstractLLM = LLMProvider
+AbstractTTS = TTSProvider

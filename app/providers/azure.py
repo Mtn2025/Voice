@@ -2,8 +2,7 @@ import concurrent.futures
 import azure.cognitiveservices.speech as speechsdk
 
 from app.core.config import settings
-from app.services.base import AbstractSTT, AbstractTTS, STTEvent, STTResultReason
-
+from app.services.base import STTProvider, TTSProvider, STTEvent, STTResultReason
 
 class AzureRecognizerWrapper:
     def __init__(self, recognizer, push_stream):
@@ -31,9 +30,14 @@ class AzureRecognizerWrapper:
         else:
             return # Ignore others
 
+        text = evt.result.text
+        # Safety for None text
+        if not text:
+            return
+
         event = STTEvent(
             reason=reason,
-            text=evt.result.text,
+            text=text,
             duration=getattr(evt.result, 'duration', 0.0)
         )
         self._callback(event)
@@ -62,7 +66,7 @@ class AzureRecognizerWrapper:
         self._push_stream.write(data)
 
 
-class AzureProvider(AbstractSTT, AbstractTTS):
+class AzureProvider(STTProvider, TTSProvider):
     def __init__(self):
         self.speech_config = speechsdk.SpeechConfig(
             subscription=settings.AZURE_SPEECH_KEY,
