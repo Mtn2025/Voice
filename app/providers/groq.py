@@ -90,7 +90,6 @@ class GroqProvider(AbstractLLM):
             if "429" in str(e):
                 yield "Lo siento, mis sistemas están un poco saturados en este momento. Por favor espera unos segundos."
             else:
-            else:
                 yield f"Error del sistema: {str(e)}. Por favor revisa los logs."
 
     async def transcribe_audio(self, audio_content: bytes, language: str = "es") -> str:
