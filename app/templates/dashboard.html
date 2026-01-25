@@ -1553,6 +1553,18 @@
 
                 async initMicrophone() {
                     try {
+                        // Ensure AudioContext exists (Fix for null error)
+                        if (!this.audioContext) {
+                            this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                        }
+                        if (!this.analyser) {
+                            this.analyser = this.audioContext.createAnalyser();
+                            this.analyser.fftSize = 256;
+                        }
+                        if (this.audioContext.state === 'suspended') {
+                            await this.audioContext.resume();
+                        }
+
                         const constraints = {
                             audio: {
                                 echoCancellation: this.c.denoise,
@@ -1892,7 +1904,7 @@
             }
         }
     </script>
-    
+
     <!-- History Management Scripts -->
     <script>
         function toggleAllHistory(source) {
@@ -1908,11 +1920,11 @@
                 if (checked > 0) {
                     btn.style.display = 'inline-flex';
                     // Update text if needed, but the button has inner HTML structure
-                    const countSpan = btn.querySelector('span'); 
+                    const countSpan = btn.querySelector('span');
                     // btn.innerHTML re-write might break icon, so let's just show it.
                     // The template has "🗑️ Borrar Seleccionados", we can append count or just show.
                     btn.innerHTML = `<span>🗑️</span> Borrar (${checked})`;
-                    
+
                 } else {
                     btn.style.display = 'none';
                 }
@@ -1924,7 +1936,7 @@
 
             const checkedBoxes = document.querySelectorAll('.history-checkbox:checked');
             const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-            
+
             // Get API Key from URL
             const urlParams = new URLSearchParams(window.location.search);
             const apiKey = urlParams.get('api_key') || '';
@@ -1939,15 +1951,15 @@
                 if (res.ok) {
                     // Trigger HTMX refresh if available, else reload
                     if (window.htmx) {
-                         htmx.trigger('#history-body', 'refreshHistory');
+                        htmx.trigger('#history-body', 'refreshHistory');
                     } else {
                         window.location.reload();
                     }
-                    
+
                     // Uncheck main toggle
                     const mainToggle = document.querySelector('thead input[type="checkbox"]');
-                    if(mainToggle) mainToggle.checked = false;
-                    
+                    if (mainToggle) mainToggle.checked = false;
+
                     updateDeleteButton();
                 } else {
                     alert('Error al borrar');
