@@ -3,7 +3,7 @@ from typing import Any, Dict
 import uuid
 import time
 
-@dataclass
+@dataclass(kw_only=True)
 class Frame:
     """Base class for all frames in the pipeline."""
     id: str = field(init=False)
@@ -15,44 +15,44 @@ class Frame:
         self.id = str(uuid.uuid4())
         self.name = self.__class__.__name__
 
-@dataclass
+@dataclass(kw_only=True)
 class SystemFrame(Frame):
     """Frames that have high priority and control the pipeline flow."""
     pass
 
-@dataclass
+@dataclass(kw_only=True)
 class DataFrame(Frame):
     """Frames that carry content (audio, text, etc.)."""
     pass
 
-@dataclass
+@dataclass(kw_only=True)
 class ControlFrame(Frame):
     """Frames that modify the behavior of processors."""
     pass
 
-@dataclass
+@dataclass(kw_only=True)
 class UserStartedSpeakingFrame(SystemFrame):
     pass
 
-@dataclass
+@dataclass(kw_only=True)
 class UserStoppedSpeakingFrame(SystemFrame):
     pass
 
 # --- System Frames ---
 
-@dataclass
+@dataclass(kw_only=True)
 class StartFrame(SystemFrame):
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-@dataclass
+@dataclass(kw_only=True)
 class EndFrame(SystemFrame):
     reason: str = "normal"
 
-@dataclass
+@dataclass(kw_only=True)
 class CancelFrame(SystemFrame):
     reason: str = "cancelled"
 
-@dataclass
+@dataclass(kw_only=True)
 class ErrorFrame(SystemFrame):
     error: str
     fatal: bool = False
@@ -60,13 +60,13 @@ class ErrorFrame(SystemFrame):
 
 # --- Data Frames ---
 
-@dataclass
+@dataclass(kw_only=True)
 class AudioFrame(DataFrame):
     data: bytes
     sample_rate: int
     channels: int = 1
 
-@dataclass
+@dataclass(kw_only=True)
 class TextFrame(DataFrame):
     text: str
     is_final: bool = True
