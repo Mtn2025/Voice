@@ -447,10 +447,8 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
                 payload = msg["media"]["payload"]
                 await orchestrator.process_audio(payload)
 
-            elif msg["event"] == "mark":
                 if msg.get("mark") == "speech_ended":
                     logging.info("🔊 Client Playback Finished")
-                    orchestrator.last_interaction_time = time.time()
                     orchestrator.is_bot_speaking = False
 
             elif msg["event"] == "stop":

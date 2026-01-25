@@ -1,0 +1,6760 @@
+[
+  {
+    "cell": null,
+    "code": "SIM105",
+    "end_location": {
+      "column": 21,
+      "row": 20
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\api\\connection_manager.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 15
+    },
+    "message": "Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`",
+    "noqa_row": 15,
+    "url": "https://docs.astral.sh/ruff/rules/suppressible-exception"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 30,
+      "row": 58
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\api\\routes.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 58
+    },
+    "message": "Too many statements (57 > 50)",
+    "noqa_row": 58,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 52,
+      "row": 169
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\api\\routes.py",
+    "fix": null,
+    "location": {
+      "column": 45,
+      "row": 169
+    },
+    "message": "Unused function argument: `request`",
+    "noqa_row": 169,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 23,
+      "row": 367
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\api\\routes.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 367
+    },
+    "message": "Too many branches (23 > 12)",
+    "noqa_row": 367,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "PLR0915",
+    "end_location": {
+      "column": 23,
+      "row": 367
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\api\\routes.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 367
+    },
+    "message": "Too many statements (89 > 50)",
+    "noqa_row": 367,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-statements"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 4
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "import logging\r\n\r\nimport numpy as np\r\n\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 4
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 15,
+      "row": 2
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 3
+          },
+          "location": {
+            "column": 1,
+            "row": 2
+          }
+        }
+      ],
+      "message": "Remove unused import: `logging`"
+    },
+    "location": {
+      "column": 8,
+      "row": 2
+    },
+    "message": "`logging` imported but unused",
+    "noqa_row": 2,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 10,
+      "row": 25
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 25
+          },
+          "location": {
+            "column": 9,
+            "row": 25
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `u`"
+    },
+    "location": {
+      "column": 9,
+      "row": 25
+    },
+    "message": "Local variable `u` is assigned to but never used",
+    "noqa_row": 25,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 30
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 30
+          },
+          "location": {
+            "column": 1,
+            "row": 30
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 30
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 30,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "SIM108",
+    "end_location": {
+      "column": 69,
+      "row": 57
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "sample = (mantissa << 4) + 8 if exponent == 0 else (mantissa << 4) + 264 << exponent - 1",
+          "end_location": {
+            "column": 69,
+            "row": 57
+          },
+          "location": {
+            "column": 13,
+            "row": 54
+          }
+        }
+      ],
+      "message": "Replace `if`-`else`-block with `sample = (mantissa << 4) + 8 if exponent == 0 else (mantissa << 4) + 264 << exponent - 1`"
+    },
+    "location": {
+      "column": 13,
+      "row": 54
+    },
+    "message": "Use ternary operator `sample = (mantissa << 4) + 8 if exponent == 0 else (mantissa << 4) + 264 << exponent - 1` instead of `if`-`else`-block",
+    "noqa_row": 54,
+    "url": "https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp"
+  },
+  {
+    "cell": null,
+    "code": "ARG003",
+    "end_location": {
+      "column": 45,
+      "row": 96
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 40,
+      "row": 96
+    },
+    "message": "Unused class method argument: `width`",
+    "noqa_row": 96,
+    "url": "https://docs.astral.sh/ruff/rules/unused-class-method-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG003",
+    "end_location": {
+      "column": 45,
+      "row": 106
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 40,
+      "row": 106
+    },
+    "message": "Unused class method argument: `width`",
+    "noqa_row": 106,
+    "url": "https://docs.astral.sh/ruff/rules/unused-class-method-argument"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 95,
+      "row": 116
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 95,
+            "row": 116
+          },
+          "location": {
+            "column": 94,
+            "row": 116
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 94,
+      "row": 116
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 116,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 119
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 119
+          },
+          "location": {
+            "column": 1,
+            "row": 119
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 119
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 119,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 122
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 122
+          },
+          "location": {
+            "column": 1,
+            "row": 122
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 122
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 122,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "N806",
+    "end_location": {
+      "column": 13,
+      "row": 124
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 124
+    },
+    "message": "Variable `BIAS` in function should be lowercase",
+    "noqa_row": 124,
+    "url": "https://docs.astral.sh/ruff/rules/non-lowercase-variable-in-function"
+  },
+  {
+    "cell": null,
+    "code": "N806",
+    "end_location": {
+      "column": 13,
+      "row": 125
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 125
+    },
+    "message": "Variable `CLIP` in function should be lowercase",
+    "noqa_row": 125,
+    "url": "https://docs.astral.sh/ruff/rules/non-lowercase-variable-in-function"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 126
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 126
+          },
+          "location": {
+            "column": 1,
+            "row": 126
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 126
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 126,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "F841",
+    "end_location": {
+      "column": 13,
+      "row": 128
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 129
+          },
+          "location": {
+            "column": 1,
+            "row": 128
+          }
+        }
+      ],
+      "message": "Remove assignment to unused variable `sign`"
+    },
+    "location": {
+      "column": 9,
+      "row": 128
+    },
+    "message": "Local variable `sign` is assigned to but never used",
+    "noqa_row": 128,
+    "url": "https://docs.astral.sh/ruff/rules/unused-variable"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 130
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 130
+          },
+          "location": {
+            "column": 1,
+            "row": 130
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 130
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 130,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 133
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 133
+          },
+          "location": {
+            "column": 1,
+            "row": 133
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 133
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 133,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 136
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 136
+          },
+          "location": {
+            "column": 1,
+            "row": 136
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 136
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 136,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 38,
+      "row": 138
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 38,
+            "row": 138
+          },
+          "location": {
+            "column": 37,
+            "row": 138
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 37,
+      "row": 138
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 138,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 143
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 143
+          },
+          "location": {
+            "column": 1,
+            "row": 143
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 143
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 143,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 64,
+      "row": 146
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 64,
+            "row": 146
+          },
+          "location": {
+            "column": 63,
+            "row": 146
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 63,
+      "row": 146
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 146,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 148
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 148
+          },
+          "location": {
+            "column": 1,
+            "row": 148
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 148
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 148,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 14,
+      "row": 151
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 14,
+            "row": 151
+          },
+          "location": {
+            "column": 1,
+            "row": 151
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 151
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 151,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "ARG004",
+    "end_location": {
+      "column": 40,
+      "row": 159
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 35,
+      "row": 159
+    },
+    "message": "Unused static method argument: `width`",
+    "noqa_row": 159,
+    "url": "https://docs.astral.sh/ruff/rules/unused-static-method-argument"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 162
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 162
+          },
+          "location": {
+            "column": 1,
+            "row": 162
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 162
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 162,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 48,
+      "row": 177
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "pcm_val = min(pcm_val, 32635)",
+          "end_location": {
+            "column": 48,
+            "row": 177
+          },
+          "location": {
+            "column": 13,
+            "row": 177
+          }
+        }
+      ],
+      "message": "Replace with `pcm_val = min(pcm_val, 32635)`"
+    },
+    "location": {
+      "column": 13,
+      "row": 177
+    },
+    "message": "Replace `if` statement with `pcm_val = min(pcm_val, 32635)`",
+    "noqa_row": 177,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 32,
+      "row": 177
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 31,
+      "row": 177
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 177,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 49,
+      "row": 198
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "pcm_val = min(pcm_val, 32635)",
+          "end_location": {
+            "column": 49,
+            "row": 198
+          },
+          "location": {
+            "column": 14,
+            "row": 198
+          }
+        }
+      ],
+      "message": "Replace with `pcm_val = min(pcm_val, 32635)`"
+    },
+    "location": {
+      "column": 14,
+      "row": 198
+    },
+    "message": "Replace `if` statement with `pcm_val = min(pcm_val, 32635)`",
+    "noqa_row": 198,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 33,
+      "row": 198
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 32,
+      "row": 198
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 198,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 14,
+      "row": 199
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 14,
+            "row": 199
+          },
+          "location": {
+            "column": 1,
+            "row": 199
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 199
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 199,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 18,
+      "row": 210
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 18,
+            "row": 210
+          },
+          "location": {
+            "column": 1,
+            "row": 210
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 210
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 210,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 31,
+      "row": 218
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": null,
+    "location": {
+      "column": 30,
+      "row": 218
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 218,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 231
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 231
+          },
+          "location": {
+            "column": 1,
+            "row": 231
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 231
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 231,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 237
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_processor.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 237
+          },
+          "location": {
+            "column": 1,
+            "row": 237
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 237
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 237,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 28,
+      "row": 181
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_utils.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 180
+    },
+    "message": "Replace `if` statement with `sample = max(sample, -32768)`",
+    "noqa_row": 180,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 28,
+      "row": 199
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_utils.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 198
+    },
+    "message": "Replace `if` statement with `sample = max(sample, -32768)`",
+    "noqa_row": 198,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 26,
+      "row": 231
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_utils.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 230
+    },
+    "message": "Replace `if` statement with `max_val = max(val, max_val)`",
+    "noqa_row": 230,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 29,
+      "row": 247
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_utils.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 246
+    },
+    "message": "Replace `if` statement with `new_val = max(new_val, -32768)`",
+    "noqa_row": 246,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "PLR1730",
+    "end_location": {
+      "column": 29,
+      "row": 270
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\audio_utils.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 269
+    },
+    "message": "Replace `if` statement with `new_val = max(new_val, -32768)`",
+    "noqa_row": 269,
+    "url": "https://docs.astral.sh/ruff/rules/if-stmt-min-max"
+  },
+  {
+    "cell": null,
+    "code": "SIM102",
+    "end_location": {
+      "column": 47,
+      "row": 109
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\config.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 105
+    },
+    "message": "Use a single `if` statement instead of nested `if` statements",
+    "noqa_row": 105,
+    "url": "https://docs.astral.sh/ruff/rules/collapsible-if"
+  },
+  {
+    "cell": null,
+    "code": "PLW0603",
+    "end_location": {
+      "column": 21,
+      "row": 159
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\config.py",
+    "fix": null,
+    "location": {
+      "column": 12,
+      "row": 159
+    },
+    "message": "Using the global statement to update `_settings` is discouraged",
+    "noqa_row": 159,
+    "url": "https://docs.astral.sh/ruff/rules/global-statement"
+  },
+  {
+    "cell": null,
+    "code": "PLW2901",
+    "end_location": {
+      "column": 17,
+      "row": 121
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\config_utils.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 121
+    },
+    "message": "`for` loop variable `line` overwritten by assignment target",
+    "noqa_row": 121,
+    "url": "https://docs.astral.sh/ruff/rules/redefined-loop-name"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 82,
+      "row": 46
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\conversation_helpers.py",
+    "fix": null,
+    "location": {
+      "column": 67,
+      "row": 46
+    },
+    "message": "Unused function argument: `is_bot_speaking`",
+    "noqa_row": 46,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 25,
+      "row": 75
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\conversation_helpers.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 75
+    },
+    "message": "Unused function argument: `conversation_history`",
+    "noqa_row": 75,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 35,
+      "row": 116
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\conversation_helpers.py",
+    "fix": null,
+    "location": {
+      "column": 22,
+      "row": 116
+    },
+    "message": "Unused function argument: `previous_text`",
+    "noqa_row": 116,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 34,
+      "row": 330
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\input_sanitization.py",
+    "fix": null,
+    "location": {
+      "column": 31,
+      "row": 330
+    },
+    "message": "Unused function argument: `app`",
+    "noqa_row": 330,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 23
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "import asyncio\r\nimport base64\r\nimport contextlib\r\nimport json\r\nimport logging\r\nimport pathlib\r\nimport time\r\nimport uuid\r\n\r\nfrom fastapi import WebSocket\r\n\r\n# MODERNIZED AUDIO PIPELINE (NumPy)\r\nfrom app.core.audio_processor import AudioProcessor\r\nfrom app.core.config import settings  # conftest.py sets env vars before import\r\nfrom app.core.service_factory import ServiceFactory\r\nfrom app.core.vad_filter import AdaptiveInputFilter  # VAD Filter module\r\nfrom app.db.database import AsyncSessionLocal\r\nfrom app.services.base import STTEvent, STTResultReason\r\nfrom app.services.db_service import db_service\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 23
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 137
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 137
+          },
+          "location": {
+            "column": 1,
+            "row": 137
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 137
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 140,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 143
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "        from app.providers.azure import AzureProvider\r\n        from app.utils.ssml_builder import build_azure_ssml\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 143
+          },
+          "location": {
+            "column": 1,
+            "row": 141
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 141
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 141,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 143
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 143
+          },
+          "location": {
+            "column": 1,
+            "row": 143
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 143
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 143,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "F541",
+    "end_location": {
+      "column": 88,
+      "row": 147
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "\"[TTS] Non-Azure provider detected, using basic synthesis\"",
+          "end_location": {
+            "column": 88,
+            "row": 147
+          },
+          "location": {
+            "column": 29,
+            "row": 147
+          }
+        }
+      ],
+      "message": "Remove extraneous `f` prefix"
+    },
+    "location": {
+      "column": 29,
+      "row": 147
+    },
+    "message": "f-string without any placeholders",
+    "noqa_row": 147,
+    "url": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 150
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 150
+          },
+          "location": {
+            "column": 1,
+            "row": 150
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 150
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 150,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 161
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 161
+          },
+          "location": {
+            "column": 1,
+            "row": 161
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 161
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 161,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 166
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 166
+          },
+          "location": {
+            "column": 1,
+            "row": 166
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 166
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 166,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 39,
+      "row": 448
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 448
+    },
+    "message": "Too many branches (13 > 12)",
+    "noqa_row": 448,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "SIM105",
+    "end_location": {
+      "column": 22,
+      "row": 456
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "import contextlib",
+          "end_location": {
+            "column": 18,
+            "row": 7
+          },
+          "location": {
+            "column": 1,
+            "row": 7
+          }
+        },
+        {
+          "content": "with contextlib.suppress(Exception)",
+          "end_location": {
+            "column": 17,
+            "row": 453
+          },
+          "location": {
+            "column": 14,
+            "row": 453
+          }
+        },
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 457
+          },
+          "location": {
+            "column": 1,
+            "row": 455
+          }
+        }
+      ],
+      "message": "Replace with `contextlib.suppress(Exception)`"
+    },
+    "location": {
+      "column": 14,
+      "row": 453
+    },
+    "message": "Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`",
+    "noqa_row": 453,
+    "url": "https://docs.astral.sh/ruff/rules/suppressible-exception"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 608
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 608
+          },
+          "location": {
+            "column": 1,
+            "row": 608
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 608
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 617,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 73,
+      "row": 610
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 73,
+            "row": 610
+          },
+          "location": {
+            "column": 71,
+            "row": 610
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 71,
+      "row": 610
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 617,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 612
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 612
+          },
+          "location": {
+            "column": 1,
+            "row": 612
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 612
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 617,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 618
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 618
+          },
+          "location": {
+            "column": 1,
+            "row": 618
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 618
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 618,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 58,
+      "row": 619
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 58,
+            "row": 619
+          },
+          "location": {
+            "column": 57,
+            "row": 619
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 57,
+      "row": 619
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 619,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 673
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 673
+          },
+          "location": {
+            "column": 1,
+            "row": 673
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 673
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 673,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 677
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 677
+          },
+          "location": {
+            "column": 1,
+            "row": 677
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 677
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 677,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 683
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 683
+          },
+          "location": {
+            "column": 1,
+            "row": 683
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 683
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 683,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 693
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 693
+          },
+          "location": {
+            "column": 1,
+            "row": 693
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 693
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 693,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 696
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 696
+          },
+          "location": {
+            "column": 1,
+            "row": 696
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 696
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 696,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 705
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 705
+          },
+          "location": {
+            "column": 1,
+            "row": 705
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 705
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 705,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 715
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 715
+          },
+          "location": {
+            "column": 1,
+            "row": 715
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 715
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 715,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 724
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 724
+          },
+          "location": {
+            "column": 1,
+            "row": 724
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 724
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 724,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 731
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 731
+          },
+          "location": {
+            "column": 1,
+            "row": 731
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 731
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 731,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 757
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 757
+          },
+          "location": {
+            "column": 1,
+            "row": 757
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 757
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 757,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 761
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 761
+          },
+          "location": {
+            "column": 1,
+            "row": 761
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 761
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 761,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 765
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 765
+          },
+          "location": {
+            "column": 1,
+            "row": 765
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 765
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 765,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 781
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 781
+          },
+          "location": {
+            "column": 1,
+            "row": 781
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 781
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 781,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 35,
+      "row": 784
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": null,
+    "location": {
+      "column": 15,
+      "row": 784
+    },
+    "message": "Too many branches (13 > 12)",
+    "noqa_row": 784,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "N806",
+    "end_location": {
+      "column": 25,
+      "row": 907
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 907
+    },
+    "message": "Variable `PROFILE_MAPPINGS` in function should be lowercase",
+    "noqa_row": 907,
+    "url": "https://docs.astral.sh/ruff/rules/non-lowercase-variable-in-function"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 972
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 972
+          },
+          "location": {
+            "column": 1,
+            "row": 972
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 972
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 972,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 979
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 979
+          },
+          "location": {
+            "column": 1,
+            "row": 979
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 979
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 979,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 985
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 985
+          },
+          "location": {
+            "column": 1,
+            "row": 985
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 985
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 985,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 987
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 987
+          },
+          "location": {
+            "column": 1,
+            "row": 987
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 987
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 987,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 994
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 994
+          },
+          "location": {
+            "column": 1,
+            "row": 994
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 994
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 994,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "RUF001",
+    "end_location": {
+      "column": 29,
+      "row": 998
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\orchestrator.py",
+    "fix": null,
+    "location": {
+      "column": 28,
+      "row": 998
+    },
+    "message": "String contains ambiguous `ℹ` (INFORMATION SOURCE). Did you mean `i` (LATIN SMALL LETTER I)?",
+    "noqa_row": 998,
+    "url": "https://docs.astral.sh/ruff/rules/ambiguous-unicode-character-string"
+  },
+  {
+    "cell": null,
+    "code": "RUF012",
+    "end_location": {
+      "column": 6,
+      "row": 90
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\security_middleware.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 86
+    },
+    "message": "Mutable class attributes should be annotated with `typing.ClassVar`",
+    "noqa_row": 86,
+    "url": "https://docs.astral.sh/ruff/rules/mutable-class-default"
+  },
+  {
+    "cell": null,
+    "code": "F821",
+    "end_location": {
+      "column": 36,
+      "row": 135
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\security_middleware.py",
+    "fix": null,
+    "location": {
+      "column": 23,
+      "row": 135
+    },
+    "message": "Undefined name `HTTPException`",
+    "noqa_row": 135,
+    "url": "https://docs.astral.sh/ruff/rules/undefined-name"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 7
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\service_factory.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "from app.db.models import AgentConfig\r\nfrom app.providers.azure import AzureProvider\r\nfrom app.providers.azure_openai import AzureOpenAIProvider\r\nfrom app.providers.groq import GroqProvider\r\n\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 7
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "PLR0911",
+    "end_location": {
+      "column": 30,
+      "row": 96
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\core\\webhook_security.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 96
+    },
+    "message": "Too many return statements (10 > 6)",
+    "noqa_row": 96,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-return-statements"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 108
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 108
+          },
+          "location": {
+            "column": 1,
+            "row": 108
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 108
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 108,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 113
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 113
+          },
+          "location": {
+            "column": 1,
+            "row": 113
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 113
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 113,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 128
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 128
+          },
+          "location": {
+            "column": 1,
+            "row": 128
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 128
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 128,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 56,
+      "row": 130
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 56,
+            "row": 130
+          },
+          "location": {
+            "column": 54,
+            "row": 130
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 54,
+      "row": 130
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 130,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 132
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 132
+          },
+          "location": {
+            "column": 1,
+            "row": 132
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 132
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 132,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 57,
+      "row": 133
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 57,
+            "row": 133
+          },
+          "location": {
+            "column": 55,
+            "row": 133
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 55,
+      "row": 133
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 133,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 135
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 135
+          },
+          "location": {
+            "column": 1,
+            "row": 135
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 135
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 135,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 69,
+      "row": 136
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 69,
+            "row": 136
+          },
+          "location": {
+            "column": 67,
+            "row": 136
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 67,
+      "row": 136
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 136,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 138
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 138
+          },
+          "location": {
+            "column": 1,
+            "row": 138
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 138
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 138,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 63,
+      "row": 139
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 63,
+            "row": 139
+          },
+          "location": {
+            "column": 61,
+            "row": 139
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 61,
+      "row": 139
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 139,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 154
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 154
+          },
+          "location": {
+            "column": 1,
+            "row": 154
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 154
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 154,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 159
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 159
+          },
+          "location": {
+            "column": 1,
+            "row": 159
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 159
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 159,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 214
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 214
+          },
+          "location": {
+            "column": 1,
+            "row": 214
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 214
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 214,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 219
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\db\\models.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 219
+          },
+          "location": {
+            "column": 1,
+            "row": 219
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 219
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 219,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 23,
+      "row": 26
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\main.py",
+    "fix": null,
+    "location": {
+      "column": 20,
+      "row": 26
+    },
+    "message": "Unused function argument: `app`",
+    "noqa_row": 26,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 93,
+      "row": 120
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\main.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 120
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 120,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 60,
+      "row": 127
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\main.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 127
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 127,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 12,
+      "row": 138
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\main.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 138
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 138,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 2,
+      "row": 144
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\main.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 140
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 140,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 47,
+      "row": 188
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\main.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 188
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 188,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 8
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "import concurrent.futures\r\n\r\nimport azure.cognitiveservices.speech as speechsdk\r\n\r\nfrom app.core.config import settings\r\nfrom app.services.base import AbstractSTT, AbstractTTS, STTEvent, STTResultReason\r\n\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 8
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 161
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 161
+          },
+          "location": {
+            "column": 1,
+            "row": 161
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 161
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 161,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 164
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 164
+          },
+          "location": {
+            "column": 1,
+            "row": 164
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 164
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 164,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 10
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure_openai.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "import hashlib\r\nimport json\r\nimport logging\r\nfrom collections.abc import AsyncGenerator\r\n\r\nfrom openai import AsyncAzureOpenAI\r\n\r\nfrom app.core.config import settings\r\nfrom app.core.redis_state import redis_state\r\nfrom app.services.base import AbstractLLM\r\n\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 10
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 16
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure_openai.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 16
+          },
+          "location": {
+            "column": 1,
+            "row": 16
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 16
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 16,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 88,
+      "row": 26
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure_openai.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 88,
+            "row": 26
+          },
+          "location": {
+            "column": 87,
+            "row": 26
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 87,
+      "row": 26
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 26,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 82,
+      "row": 99
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure_openai.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 82,
+            "row": 99
+          },
+          "location": {
+            "column": 81,
+            "row": 99
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 81,
+      "row": 99
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 99,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 55,
+      "row": 100
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\azure_openai.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 55,
+            "row": 100
+          },
+          "location": {
+            "column": 54,
+            "row": 100
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 54,
+      "row": 100
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 100,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 14
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\groq.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "import hashlib\r\nimport io\r\nimport json\r\nimport logging\r\nfrom collections.abc import AsyncGenerator\r\n\r\nfrom groq import AsyncGroq\r\n\r\nfrom app.core.config import settings\r\nfrom app.core.redis_state import redis_state\r\nfrom app.services.base import AbstractLLM\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 14
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 88,
+      "row": 58
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\groq.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 88,
+            "row": 58
+          },
+          "location": {
+            "column": 87,
+            "row": 58
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 87,
+      "row": 58
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 58,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 62
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\providers\\groq.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 62
+          },
+          "location": {
+            "column": 1,
+            "row": 62
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 62
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 62,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 19
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "import logging\r\nfrom typing import Any, Optional\r\n\r\nfrom fastapi import APIRouter, Depends, Form, HTTPException, Request\r\nfrom fastapi.responses import HTMLResponse, RedirectResponse\r\nfrom fastapi.templating import Jinja2Templates\r\nfrom pydantic import BaseModel\r\nfrom slowapi import Limiter\r\nfrom slowapi.util import get_remote_address\r\nfrom sqlalchemy.ext.asyncio import AsyncSession  # NEW\r\n\r\nfrom app.core.auth_simple import verify_api_key\r\nfrom app.core.input_sanitization import (\r\n    register_template_filters,\r\n)\r\nfrom app.db.database import get_db  # NEW\r\nfrom app.services.db_service import db_service\r\n\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 19
+          },
+          "location": {
+            "column": 1,
+            "row": 1
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 1
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 1,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 31,
+      "row": 9
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 10
+          },
+          "location": {
+            "column": 1,
+            "row": 9
+          }
+        }
+      ],
+      "message": "Remove unused import: `pydantic.BaseModel`"
+    },
+    "location": {
+      "column": 22,
+      "row": 9
+    },
+    "message": "`pydantic.BaseModel` imported but unused",
+    "noqa_row": 9,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 28,
+      "row": 10
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 11
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 20,
+      "row": 10
+    },
+    "message": "`typing.Optional` imported but unused",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 33,
+      "row": 10
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 11
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Remove unused import"
+    },
+    "location": {
+      "column": 30,
+      "row": 10
+    },
+    "message": "`typing.Any` imported but unused",
+    "noqa_row": 10,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 33
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 33
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 33,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "F401",
+    "end_location": {
+      "column": 48,
+      "row": 41
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 1,
+            "row": 42
+          },
+          "location": {
+            "column": 1,
+            "row": 41
+          }
+        }
+      ],
+      "message": "Remove unused import: `app.providers.groq.GroqProvider`"
+    },
+    "location": {
+      "column": 36,
+      "row": 41
+    },
+    "message": "`app.providers.groq.GroqProvider` imported but unused",
+    "noqa_row": 41,
+    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 54,
+      "row": 45
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 54,
+            "row": 45
+          },
+          "location": {
+            "column": 53,
+            "row": 45
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 53,
+      "row": 45
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 45,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 47
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 47
+          },
+          "location": {
+            "column": 1,
+            "row": 47
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 47
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 47,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 84
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 84
+          },
+          "location": {
+            "column": 1,
+            "row": 84
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 84
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 84,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 40,
+      "row": 89
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 39,
+      "row": 89
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 89,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 90
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 90
+          },
+          "location": {
+            "column": 1,
+            "row": 90
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 90
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 90,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 27,
+      "row": 92
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 26,
+      "row": 92
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 92,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 104
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 104
+          },
+          "location": {
+            "column": 1,
+            "row": 104
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 104
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 104,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 37,
+      "row": 114
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 37,
+            "row": 114
+          },
+          "location": {
+            "column": 36,
+            "row": 114
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 36,
+      "row": 114
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 114,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 17,
+      "row": 121
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 17,
+            "row": 121
+          },
+          "location": {
+            "column": 1,
+            "row": 121
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 121
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 121,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 136
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 136
+          },
+          "location": {
+            "column": 1,
+            "row": 136
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 136
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 136,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 166
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 166
+          },
+          "location": {
+            "column": 1,
+            "row": 166
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 166
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 166,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 171
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 171
+          },
+          "location": {
+            "column": 1,
+            "row": 171
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 171
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 171,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 2,
+      "row": 183
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 178
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 178,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 12,
+      "row": 189
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 189
+    },
+    "message": "Unused function argument: `request`",
+    "noqa_row": 189,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 191
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 191
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 191,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 12,
+      "row": 225
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 225
+    },
+    "message": "Unused function argument: `request`",
+    "noqa_row": 225,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 227
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 227
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 227,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 12,
+      "row": 261
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 261
+    },
+    "message": "Unused function argument: `request`",
+    "noqa_row": 261,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 263
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 263
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 263,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "ARG001",
+    "end_location": {
+      "column": 12,
+      "row": 297
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 5,
+      "row": 297
+    },
+    "message": "Unused function argument: `request`",
+    "noqa_row": 297,
+    "url": "https://docs.astral.sh/ruff/rules/unused-function-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 299
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 299
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 299,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 352
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 352
+          },
+          "location": {
+            "column": 1,
+            "row": 352
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 352
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 352,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 362
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 362
+          },
+          "location": {
+            "column": 1,
+            "row": 362
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 362
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 362,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 368
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 368
+          },
+          "location": {
+            "column": 1,
+            "row": 368
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 368
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 368,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 377
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 377
+          },
+          "location": {
+            "column": 1,
+            "row": 377
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 377
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 377,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLR0912",
+    "end_location": {
+      "column": 29,
+      "row": 398
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 11,
+      "row": 398
+    },
+    "message": "Too many branches (13 > 12)",
+    "noqa_row": 398,
+    "url": "https://docs.astral.sh/ruff/rules/too-many-branches"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 400
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 400
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 400,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 405
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 405
+          },
+          "location": {
+            "column": 1,
+            "row": 405
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 405
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 405,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 408
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 408
+          },
+          "location": {
+            "column": 1,
+            "row": 408
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 408
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 408,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 412
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 412
+          },
+          "location": {
+            "column": 1,
+            "row": 412
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 412
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 412,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 417
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 417
+          },
+          "location": {
+            "column": 1,
+            "row": 417
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 417
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 417,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 423
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 423
+          },
+          "location": {
+            "column": 1,
+            "row": 423
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 423
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 423,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLW2901",
+    "end_location": {
+      "column": 26,
+      "row": 428
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 428
+    },
+    "message": "`for` loop variable `value` overwritten by assignment target",
+    "noqa_row": 428,
+    "url": "https://docs.astral.sh/ruff/rules/redefined-loop-name"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 17,
+      "row": 429
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 17,
+            "row": 429
+          },
+          "location": {
+            "column": 1,
+            "row": 429
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 429
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 429,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "PLW2901",
+    "end_location": {
+      "column": 30,
+      "row": 434
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 25,
+      "row": 434
+    },
+    "message": "`for` loop variable `value` overwritten by assignment target",
+    "noqa_row": 434,
+    "url": "https://docs.astral.sh/ruff/rules/redefined-loop-name"
+  },
+  {
+    "cell": null,
+    "code": "PLW2901",
+    "end_location": {
+      "column": 30,
+      "row": 436
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 25,
+      "row": 436
+    },
+    "message": "`for` loop variable `value` overwritten by assignment target",
+    "noqa_row": 436,
+    "url": "https://docs.astral.sh/ruff/rules/redefined-loop-name"
+  },
+  {
+    "cell": null,
+    "code": "SIM108",
+    "end_location": {
+      "column": 47,
+      "row": 442
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "value = float(value) if \".\" in value else int(value)",
+          "end_location": {
+            "column": 47,
+            "row": 442
+          },
+          "location": {
+            "column": 25,
+            "row": 439
+          }
+        }
+      ],
+      "message": "Replace `if`-`else`-block with `value = float(value) if \".\" in value else int(value)`"
+    },
+    "location": {
+      "column": 25,
+      "row": 439
+    },
+    "message": "Use ternary operator `value = float(value) if \".\" in value else int(value)` instead of `if`-`else`-block",
+    "noqa_row": 439,
+    "url": "https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp"
+  },
+  {
+    "cell": null,
+    "code": "PLW2901",
+    "end_location": {
+      "column": 34,
+      "row": 440
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 29,
+      "row": 440
+    },
+    "message": "`for` loop variable `value` overwritten by assignment target",
+    "noqa_row": 440,
+    "url": "https://docs.astral.sh/ruff/rules/redefined-loop-name"
+  },
+  {
+    "cell": null,
+    "code": "PLW2901",
+    "end_location": {
+      "column": 34,
+      "row": 442
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 29,
+      "row": 442
+    },
+    "message": "`for` loop variable `value` overwritten by assignment target",
+    "noqa_row": 442,
+    "url": "https://docs.astral.sh/ruff/rules/redefined-loop-name"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 17,
+      "row": 443
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 17,
+            "row": 443
+          },
+          "location": {
+            "column": 1,
+            "row": 443
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 443
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 443,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 452
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 452
+          },
+          "location": {
+            "column": 1,
+            "row": 452
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 452
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 452,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 454
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 454
+          },
+          "location": {
+            "column": 1,
+            "row": 454
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 454
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 454,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "B904",
+    "end_location": {
+      "column": 60,
+      "row": 457
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 9,
+      "row": 457
+    },
+    "message": "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+    "noqa_row": 457,
+    "url": "https://docs.astral.sh/ruff/rules/raise-without-from-inside-except"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 36,
+      "row": 466
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 36,
+            "row": 466
+          },
+          "location": {
+            "column": 35,
+            "row": 466
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 35,
+      "row": 466
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 466,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 42,
+      "row": 468
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 42,
+            "row": 468
+          },
+          "location": {
+            "column": 41,
+            "row": 468
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 41,
+      "row": 468
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 468,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 36,
+      "row": 470
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 36,
+            "row": 470
+          },
+          "location": {
+            "column": 35,
+            "row": 470
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 35,
+      "row": 470
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 470,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 37,
+      "row": 471
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 37,
+            "row": 471
+          },
+          "location": {
+            "column": 36,
+            "row": 471
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 36,
+      "row": 471
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 471,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 34,
+      "row": 472
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 34,
+            "row": 472
+          },
+          "location": {
+            "column": 33,
+            "row": 472
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 33,
+      "row": 472
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 472,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 41,
+      "row": 473
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 41,
+            "row": 473
+          },
+          "location": {
+            "column": 40,
+            "row": 473
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 40,
+      "row": 473
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 473,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 37,
+      "row": 474
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 37,
+            "row": 474
+          },
+          "location": {
+            "column": 36,
+            "row": 474
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 36,
+      "row": 474
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 474,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 37,
+      "row": 475
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 37,
+            "row": 475
+          },
+          "location": {
+            "column": 36,
+            "row": 475
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 36,
+      "row": 475
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 475,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 47,
+      "row": 476
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 47,
+            "row": 476
+          },
+          "location": {
+            "column": 46,
+            "row": 476
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 46,
+      "row": 476
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 476,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 37,
+      "row": 477
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 37,
+            "row": 477
+          },
+          "location": {
+            "column": 36,
+            "row": 477
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 36,
+      "row": 477
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 477,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 47,
+      "row": 478
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 47,
+            "row": 478
+          },
+          "location": {
+            "column": 46,
+            "row": 478
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 46,
+      "row": 478
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 478,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 53,
+      "row": 479
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 53,
+            "row": 479
+          },
+          "location": {
+            "column": 52,
+            "row": 479
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 52,
+      "row": 479
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 479,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 47,
+      "row": 502
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 47,
+            "row": 502
+          },
+          "location": {
+            "column": 46,
+            "row": 502
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 46,
+      "row": 502
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 502,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 49,
+      "row": 550
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 49,
+            "row": 550
+          },
+          "location": {
+            "column": 48,
+            "row": 550
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 48,
+      "row": 550
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 550,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 41,
+      "row": 553
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 41,
+            "row": 553
+          },
+          "location": {
+            "column": 40,
+            "row": 553
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 40,
+      "row": 553
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 553,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 51,
+      "row": 554
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 51,
+            "row": 554
+          },
+          "location": {
+            "column": 50,
+            "row": 554
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 50,
+      "row": 554
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 554,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W291",
+    "end_location": {
+      "column": 47,
+      "row": 555
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 47,
+            "row": 555
+          },
+          "location": {
+            "column": 46,
+            "row": 555
+          }
+        }
+      ],
+      "message": "Remove trailing whitespace"
+    },
+    "location": {
+      "column": 46,
+      "row": 555
+    },
+    "message": "Trailing whitespace",
+    "noqa_row": 555,
+    "url": "https://docs.astral.sh/ruff/rules/trailing-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 39,
+      "row": 585
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 24,
+      "row": 585
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 585,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 17,
+      "row": 589
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 589
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 589,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 19,
+      "row": 590
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 590
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 590,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 20,
+      "row": 590
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 19,
+      "row": 590
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 590,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 591
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 591
+          },
+          "location": {
+            "column": 1,
+            "row": 591
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 591
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 591,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 17,
+      "row": 593
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 593
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 593,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "E722",
+    "end_location": {
+      "column": 19,
+      "row": 594
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 13,
+      "row": 594
+    },
+    "message": "Do not use bare `except`",
+    "noqa_row": 594,
+    "url": "https://docs.astral.sh/ruff/rules/bare-except"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 20,
+      "row": 594
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 19,
+      "row": 594
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 594,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 595
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 595
+          },
+          "location": {
+            "column": 1,
+            "row": 595
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 595
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 595,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "E701",
+    "end_location": {
+      "column": 22,
+      "row": 597
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 21,
+      "row": 597
+    },
+    "message": "Multiple statements on one line (colon)",
+    "noqa_row": 597,
+    "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-colon"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 624
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 624
+          },
+          "location": {
+            "column": 1,
+            "row": 624
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 624
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 624,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 634
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 634
+          },
+          "location": {
+            "column": 1,
+            "row": 634
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 634
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 634,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 664
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 664
+          },
+          "location": {
+            "column": 1,
+            "row": 664
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 664
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 664,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 677
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 677
+          },
+          "location": {
+            "column": 1,
+            "row": 677
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 677
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 677,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 685
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 685
+          },
+          "location": {
+            "column": 1,
+            "row": 685
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 685
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 685,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 726
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 726
+          },
+          "location": {
+            "column": 1,
+            "row": 726
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 726
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 726,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 76,
+      "row": 735
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 61,
+      "row": 735
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 735,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 99,
+      "row": 789
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 84,
+      "row": 789
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 789,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 795
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 795
+          },
+          "location": {
+            "column": 1,
+            "row": 795
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 795
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 795,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 108,
+      "row": 805
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 93,
+      "row": 805
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 805,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 79,
+      "row": 839
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 64,
+      "row": 839
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 839,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 77,
+      "row": 854
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 62,
+      "row": 854
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 854,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "I001",
+    "end_location": {
+      "column": 1,
+      "row": 880
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "        from app.providers.azure import AzureProvider\r\n        from app.utils.ssml_builder import build_azure_ssml\r\n",
+          "end_location": {
+            "column": 1,
+            "row": 880
+          },
+          "location": {
+            "column": 1,
+            "row": 878
+          }
+        }
+      ],
+      "message": "Organize imports"
+    },
+    "location": {
+      "column": 1,
+      "row": 878
+    },
+    "message": "Import block is un-sorted or un-formatted",
+    "noqa_row": 878,
+    "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 880
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 880
+          },
+          "location": {
+            "column": 1,
+            "row": 880
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 880
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 880,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 891
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 891
+          },
+          "location": {
+            "column": 1,
+            "row": 891
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 891
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 891,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 893
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 893
+          },
+          "location": {
+            "column": 1,
+            "row": 893
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 893
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 893,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 898
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 898
+          },
+          "location": {
+            "column": 1,
+            "row": 898
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 898
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 898,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 901
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 901
+          },
+          "location": {
+            "column": 1,
+            "row": 901
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 901
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 901,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "F821",
+    "end_location": {
+      "column": 24,
+      "row": 903
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 903
+    },
+    "message": "Undefined name `Response`",
+    "noqa_row": 903,
+    "url": "https://docs.astral.sh/ruff/rules/undefined-name"
+  },
+  {
+    "cell": null,
+    "code": "F821",
+    "end_location": {
+      "column": 28,
+      "row": 913
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": null,
+    "location": {
+      "column": 16,
+      "row": 913
+    },
+    "message": "Undefined name `JSONResponse`",
+    "noqa_row": 913,
+    "url": "https://docs.astral.sh/ruff/rules/undefined-name"
+  },
+  {
+    "cell": null,
+    "code": "RUF010",
+    "end_location": {
+      "column": 68,
+      "row": 915
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\dashboard.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "f\"Failed to generate preview: {e!s}\"",
+          "end_location": {
+            "column": 70,
+            "row": 915
+          },
+          "location": {
+            "column": 31,
+            "row": 915
+          }
+        }
+      ],
+      "message": "Replace with conversion flag"
+    },
+    "location": {
+      "column": 62,
+      "row": 915
+    },
+    "message": "Use explicit conversion flag",
+    "noqa_row": 915,
+    "url": "https://docs.astral.sh/ruff/rules/explicit-f-string-type-conversion"
+  },
+  {
+    "cell": null,
+    "code": "B008",
+    "end_location": {
+      "column": 58,
+      "row": 13
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\routers\\system.py",
+    "fix": null,
+    "location": {
+      "column": 43,
+      "row": 13
+    },
+    "message": "Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/function-call-in-default-argument"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 10
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 10
+          },
+          "location": {
+            "column": 1,
+            "row": 10
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 10
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 15,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 16
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 16
+          },
+          "location": {
+            "column": 1,
+            "row": 16
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 16
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 16,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 27
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 27
+          },
+          "location": {
+            "column": 1,
+            "row": 27
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 27
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 27,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 39
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 39
+          },
+          "location": {
+            "column": 1,
+            "row": 39
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 39
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 50,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 47
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 47
+          },
+          "location": {
+            "column": 1,
+            "row": 47
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 47
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 50,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 55
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 55
+          },
+          "location": {
+            "column": 1,
+            "row": 55
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 55
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 55,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 58
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 58
+          },
+          "location": {
+            "column": 1,
+            "row": 58
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 58
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 58,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 66
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 66
+          },
+          "location": {
+            "column": 1,
+            "row": 66
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 66
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 66,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 69
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 69
+          },
+          "location": {
+            "column": 1,
+            "row": 69
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 69
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 69,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 75
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 75
+          },
+          "location": {
+            "column": 1,
+            "row": 75
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 75
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 75,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 80
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 80
+          },
+          "location": {
+            "column": 1,
+            "row": 80
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 80
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 80,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 83
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 83
+          },
+          "location": {
+            "column": 1,
+            "row": 83
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 83
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 83,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 86
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 86
+          },
+          "location": {
+            "column": 1,
+            "row": 86
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 86
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 86,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 90
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 90
+          },
+          "location": {
+            "column": 1,
+            "row": 90
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 90
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 90,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 94
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 94
+          },
+          "location": {
+            "column": 1,
+            "row": 94
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 94
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 94,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 96
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "safe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 96
+          },
+          "location": {
+            "column": 1,
+            "row": 96
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 96
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 96,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 101
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 101
+          },
+          "location": {
+            "column": 1,
+            "row": 101
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 101
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 107,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 13,
+      "row": 104
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 13,
+            "row": 104
+          },
+          "location": {
+            "column": 1,
+            "row": 104
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 104
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 107,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 5,
+      "row": 121
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 5,
+            "row": 121
+          },
+          "location": {
+            "column": 1,
+            "row": 121
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 121
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 140,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 126
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 126
+          },
+          "location": {
+            "column": 1,
+            "row": 126
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 126
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 140,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  },
+  {
+    "cell": null,
+    "code": "W293",
+    "end_location": {
+      "column": 9,
+      "row": 129
+    },
+    "filename": "C:\\Users\\Martin\\Desktop\\Asistente Andrea\\app\\utils\\ssml_builder.py",
+    "fix": {
+      "applicability": "unsafe",
+      "edits": [
+        {
+          "content": "",
+          "end_location": {
+            "column": 9,
+            "row": 129
+          },
+          "location": {
+            "column": 1,
+            "row": 129
+          }
+        }
+      ],
+      "message": "Remove whitespace from blank line"
+    },
+    "location": {
+      "column": 1,
+      "row": 129
+    },
+    "message": "Blank line contains whitespace",
+    "noqa_row": 140,
+    "url": "https://docs.astral.sh/ruff/rules/blank-line-with-whitespace"
+  }
+]

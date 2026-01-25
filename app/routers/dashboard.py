@@ -801,7 +801,7 @@ async def dashboard_call_detail(request: Request, call_id: int, db: AsyncSession
         logger.error(f"Error fetching call details {call_id}: {e}")
         return RedirectResponse("/dashboard?error=server_error")
 
-@router.get("/dashboard/history-rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
+@router.get("/api/history/rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
 async def history_rows(request: Request, page: int = 1, limit: int = 20, db: AsyncSession = Depends(get_db)):
     try:
         offset = (page - 1) * limit
