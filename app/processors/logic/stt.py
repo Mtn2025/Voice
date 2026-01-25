@@ -31,7 +31,7 @@ class STTProcessor(FrameProcessor):
         try:
              self.recognizer, self.push_stream = self.provider.create_recognizer(
                 language=stt_lang,
-                client_type=client_type
+                audio_mode=client_type
             )
              
              # Register unified callback via Wrapper's subscribe
