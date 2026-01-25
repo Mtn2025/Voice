@@ -26,7 +26,7 @@ class TTSProcessor(FrameProcessor):
          if self.provider:
              self.synthesizer = self.provider.create_synthesizer(
                  voice_name=getattr(self.config, 'voice_name', 'en-US-JennyNeural'),
-                 audio_mode='twilio' # Assume telephony default
+                 audio_mode=getattr(self.config, 'client_type', 'twilio')
              )
 
     async def process_frame(self, frame: Frame, direction: int):
