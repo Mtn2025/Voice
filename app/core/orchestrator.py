@@ -229,8 +229,9 @@ class VoiceOrchestrator:
                 return
                 
             # 2. Push to Pipeline
-            # 8000Hz PCM 16-bit Mono is standard for telephony
-            await self.pipeline.queue_frame(AudioFrame(data=audio_bytes, sample_rate=8000, channels=1))
+            # 8000Hz PCM 16-bit Mono is standard for telephony, but Browser is 16kHz
+            sr = 16000 if self.client_type == "browser" else 8000
+            await self.pipeline.queue_frame(AudioFrame(data=audio_bytes, sample_rate=sr, channels=1))
             
         except Exception as e:
             logger.error(f"Error processing audio input: {e}")
@@ -311,6 +312,15 @@ class VoiceOrchestrator:
         self.tts_provider = ServiceFactory.get_tts_provider(self.config)
 
     async def _build_pipeline(self):
+        # Inject client context into config for processors
+        if self.config:
+             # Dynamically attach client_type so processors (VAD, STT, TTS) know context
+             # Helper to bypass Pydantic frozencheck if needed, or just set attribute
+             try:
+                 setattr(self.config, 'client_type', self.client_type)
+             except Exception:
+                 pass # Fallback if immutable
+
         # 1. STT
         stt = STTProcessor(self.stt_provider, self.config, self.loop)
         await stt.initialize()

@@ -30,8 +30,12 @@ class VADProcessor(FrameProcessor):
         
         # Initialize Analyzer (Lazy load or here?)
         # Better here to fail fast if model missing
+        # Determine Sample Rate based on client context
+        client_type = getattr(self.config, 'client_type', 'twilio')
+        target_sr = 16000 if client_type == 'browser' else 8000
+
         try:
-            self.vad_analyzer = SileroVADAnalyzer(sample_rate=8000) # Assuming 8k for telephony
+            self.vad_analyzer = SileroVADAnalyzer(sample_rate=target_sr)
         except Exception as e:
             logger.error(f"Could not init SileroVAD: {e}. VAD will be disabled.")
 
