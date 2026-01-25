@@ -29,7 +29,7 @@ class STTProcessor(FrameProcessor):
         stt_lang = getattr(self.config, 'stt_language', 'es-MX')
         
         try:
-             self.recognizer, self.push_stream = self.provider.create_recognizer(
+             self.recognizer = self.provider.create_recognizer(
                 language=stt_lang,
                 audio_mode=client_type
             )
@@ -58,9 +58,9 @@ class STTProcessor(FrameProcessor):
         if direction == FrameDirection.DOWNSTREAM:
             if isinstance(frame, AudioFrame):
                 # Write to Azure Stream
-                if self.push_stream:
+                if self.recognizer and hasattr(self.recognizer, 'write'):
                     # push_stream.write() expects bytes
-                    self.push_stream.write(frame.data)
+                    self.recognizer.write(frame.data)
             else:
                 # Pass through other frames
                 await self.push_frame(frame, direction)

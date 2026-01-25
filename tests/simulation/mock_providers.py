@@ -33,17 +33,15 @@ class MockRecognizer:
                 duration=1.5
             )
             self._callback(evt)
-
-class MockPushStream:
+    
     def write(self, data: bytes):
-        pass # Consume bytes
+        pass # Mock writing
 
 class MockSTTProvider(STTProvider):
     def create_recognizer(self, language: str = "es-MX", audio_mode: str = "twilio", on_interruption_callback=None, event_loop=None) -> Any:
         print(f"🛠️ [MOCK STT] Creating Recognizer (Lang={language}, Mode={audio_mode})")
         recognizer = MockRecognizer()
-        push_stream = MockPushStream()
-        return recognizer, push_stream
+        return recognizer
 
     async def stop_recognition(self):
         print("🛠️ [MOCK STT] Stopping")
