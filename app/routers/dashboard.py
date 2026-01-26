@@ -450,11 +450,48 @@ async def update_config_json(
         await db.refresh(current_config)
         logger.info(f"✅ [CONFIG-JSON] Updated {updated_count} fields ({normalized_count} normalized).")
         
-        return {"status": "success", "updated": updated_count, "normalized": normalized_count}
+        # Validation Result
+        warnings = []
+        if hasattr(current_config, 'system_prompt') and current_config.system_prompt:
+             unknowns = validate_prompt_variables(current_config.system_prompt)
+             if unknowns:
+                 warnings.append(f"Variables desconocidas en Prompt: {', '.join(unknowns)}")
+
+        return {
+            "status": "success", 
+            "updated": updated_count, 
+            "normalized": normalized_count,
+            "warnings": warnings
+        }
         
     except Exception as e:
         logger.error(f"❌ [CONFIG-JSON] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+def validate_prompt_variables(prompt: str) -> list[str]:
+    """
+    Parses prompt for {{variable}} syntax and checks against known keys.
+    Returns list of unknown variables.
+    """
+    import re
+    if not prompt:
+        return []
+    
+    # improved regex to catch {{ variable }} with spaces
+    matches = re.findall(r'\{\{\s*(\w+)\s*\}\}', prompt)
+    
+    # Whitelist of Standard + Potential CRM Keys
+    known_keys = {
+        # Standard
+        "name", "phone", "date", "time", "agent_name",
+        # CRM/Debt Common
+        "debt_amount", "due_date", "last_payment", "address", "email", "notes",
+        # Baserow ID
+        "baserow_row_id"
+    }
+    
+    unknowns = [m for m in matches if m.lower() not in known_keys]
+    return list(set(unknowns))
 
 # =============================================================================
 # LEGACY FORM ENDPOINT (Kept for backward compatibility if needed, else deprecate)

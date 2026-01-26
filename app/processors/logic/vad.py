@@ -34,6 +34,17 @@ class VADProcessor(FrameProcessor):
         client_type = getattr(self.config, 'client_type', 'twilio')
         self.target_sr = 16000 if client_type == 'browser' else 8000
         
+        # Determine VAD Threshold
+        # Default 0.5 if not found
+        if client_type == 'browser':
+            self.threshold_start = getattr(self.config, 'vad_threshold', 0.5)
+        elif client_type == 'telnyx':
+            self.threshold_start = getattr(self.config, 'vad_threshold_telnyx', 0.5)
+        else:
+            self.threshold_start = getattr(self.config, 'vad_threshold_phone', 0.5)
+            
+        logger.info(f"🎤 [VAD] Init | Client: {client_type} | SR: {self.target_sr} | Threshold: {self.threshold_start}")
+        
         # Calculate Frames for Timeout (Chunk duration is ~32ms for Silero standard chunks)
         # 512 samples @ 16k = 32ms. 256 samples @ 8k = 32ms.
         chunk_duration_ms = 32

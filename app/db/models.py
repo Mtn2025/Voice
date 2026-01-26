@@ -198,6 +198,11 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     # VAD Sensitivity (Lower = More Sensitive)
     voice_sensitivity = Column(Integer, default=500)
     voice_sensitivity_phone = Column(Integer, default=3000) # Phone: Higher threshold to filter noise
+    
+    # Silero VAD Threshold (0.0 - 1.0)
+    vad_threshold = Column(Float, default=0.5)
+    vad_threshold_phone = Column(Float, default=0.5)
+    vad_threshold_telnyx = Column(Float, default=0.5)
 
     # ---------------- TELNYX PROFILE ----------------
     # Cloned configs for independent tuning
@@ -251,6 +256,16 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     enable_end_call = Column(Boolean, default=True)
     enable_dial_keypad = Column(Boolean, default=False)
     transfer_phone_number = Column(String, nullable=True)
+
+    # ---------------- CRM INTEGRATION (BASEROW) ----------------
+    crm_enabled = Column(Boolean, default=False)
+    baserow_token = Column(String, nullable=True)
+    baserow_table_id = Column(Integer, nullable=True)
+    
+    # ---------------- WEBHOOK INTEGRATION (Phase 9) ----------------
+    webhook_url = Column(String, nullable=True)
+    webhook_secret = Column(String, nullable=True)
+    # ---------------------------------------------------------------
 
     # Flow Control (Legacy/Simple)
 

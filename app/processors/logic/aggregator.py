@@ -93,8 +93,10 @@ class ContextAggregator(FrameProcessor):
             await asyncio.sleep(self.turn_timeout)
             
             # 2. Semantic Check (if enabled and provider available)
-            # Only check if text is long enough to be ambiguous
-            if self.llm_provider and len(self.current_turn_text) > 5:
+            # Only check if text is long enough to be ambiguous AND strategy is semantic
+            strategy = getattr(self.config, 'segmentation_strategy', 'default')
+            
+            if strategy == 'semantic' and self.llm_provider and len(self.current_turn_text) > 5:
                 is_complete = await self._check_semantic_completion(self.current_turn_text)
                 if not is_complete:
                     logger.info(f"🤔 [SEMANTIC] Sentence incomplete: '{self.current_turn_text}'. Extending wait.")

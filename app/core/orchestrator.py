@@ -174,6 +174,11 @@ class VoiceOrchestrator:
             
             # Send Initial System/Greeting Frames
             # System Prompt is handled by LLMProcessor via config, but we can update history
+            
+            # --- CRM FETCH ---
+            await self._fetch_crm_context()
+            # -----------------
+
             if self.config.system_prompt:
                 final_prompt = self.config.system_prompt
                 # Inject Variables from Campaign Context
@@ -232,6 +237,15 @@ class VoiceOrchestrator:
                 pass
                 
         # Close DB Record
+        
+        # --- CRM UPDATE ---
+        await self._update_crm_status("Call Ended")
+        
+        # --- WEBHOOK REPORT ---
+        # Fire and forget? Or await? Await to ensure delivery before process death.
+        await self._send_webhook_report("Call Ended")
+        # ----------------------
+
         if self.call_db_id:
              try:
                  async with AsyncSessionLocal() as session:
@@ -601,4 +615,144 @@ class VoiceOrchestrator:
         # Assuming kept for safety.
         # Implementation omitted for brevity in this scratchpad, but should be included.
         pass
+
+    # --- CRM INTEGRATION (Baserow) ---
+    async def _fetch_crm_context(self):
+        """
+        Fetches contact details from Baserow and merges into initial_context_data.
+        """
+        if not self.config or not getattr(self.config, 'crm_enabled', False):
+            return
+
+        token = getattr(self.config, 'baserow_token', None)
+        table_id = getattr(self.config, 'baserow_table_id', None)
+
+        if not token or not table_id:
+            logger.warning("⚠️ [CRM] Enabled but missing token/table_id")
+            return
+
+        # Identify Phone Number
+        # Different providers use different keys. 
+        # Twilio: 'From', Telnyx: 'from' (in sip headers or payload?). 
+        # Logic: Check standard keys in initial_context_data
+        phone = self.initial_context_data.get('from') or self.initial_context_data.get('From') or self.initial_context_data.get('caller_number')
+        
+        if not phone and self.client_type == 'simulator':
+             # For testing, check if simulated phone provided
+             phone = self.initial_context_data.get('phone')
+
+        if not phone:
+            logger.info("ℹ️ [CRM] No phone number found in context. Skipping lookup.")
+            return
+
+        try:
+            from app.services.baserow import BaserowClient
+            client = BaserowClient(token)
+            
+            logger.info(f"🔍 [CRM] Searching Baserow for {phone}...")
+            row = await client.find_contact(table_id, phone)
+            
+            if row:
+                logger.info(f"✅ [CRM] Found Context: {row.keys()}")
+                # Store Row ID for updates
+                self.initial_context_data['baserow_row_id'] = row['id']
+                
+                # Merge Row Data into Context (Prefixing optional, but merging flat for prompt ease)
+                # We prioritize existing keys if overlap? Or CRM?
+                # Let's overwrite with CRM data as it's likely more rich/correct.
+                self.initial_context_data.update(row)
+            else:
+                logger.info("ℹ️ [CRM] Contact not found in DB.")
+                
+        except Exception as e:
+            logger.error(f"❌ [CRM] Lookup failed: {e}")
+
+    async def _update_crm_status(self, status: str = "Call Ended"):
+        """
+        Updates Baserow row with call outcome.
+        """
+        if not self.config or not getattr(self.config, 'crm_enabled', False):
+            return
+
+        row_id = self.initial_context_data.get('baserow_row_id')
+        if not row_id:
+            return
+
+        token = getattr(self.config, 'baserow_token', None)
+        table_id = getattr(self.config, 'baserow_table_id', None)
+        
+        if not token or not table_id:
+            return
+
+        try:
+            from app.services.baserow import BaserowClient
+            client = BaserowClient(token)
+            
+            # Construct Update Payload
+            # Ideally we have a 'Notes' or 'Last Call Status' field.
+            # We map standard fields.
+            # Assuming fields: 'Status', 'Last Call', 'Duration'
+            
+            data = {
+                "Status": status,
+                # "Last Call": datetime.now().isoformat(), # If field exists
+            }
+            
+            # Add Duration if available
+            duration = int(time.time() - self.start_time)
+            data["Duration"] = str(duration) # Text or Number depending on schema
+
+            logger.info(f"📝 [CRM] Updating Row {row_id}: {data}")
+            await client.update_contact(table_id, row_id, data)
+            
+        except Exception as e:
+            logger.error(f"❌ [CRM] Update failed: {e}")
+
+    # --- WEBHOOK INTEGRATION (Phase 9) ---
+    async def _send_webhook_report(self, status: str = "finished"):
+        """
+        Sends End-of-Call Report to configured Webhook.
+        """
+        if not self.config or not getattr(self.config, 'webhook_url', None):
+            return
+
+        url = self.config.webhook_url
+        secret = getattr(self.config, 'webhook_secret', None)
+        
+        try:
+            from app.services.webhook import WebhookService
+            service = WebhookService(url, secret)
+            
+            # Metadata
+            duration = int(time.time() - self.start_time)
+            meta = {
+                "duration_seconds": duration,
+                "client_type": self.client_type,
+                "status": status,
+                "stream_id": self.stream_id,
+                "db_call_id": self.call_db_id
+            }
+            
+            # Merge Context (Baserow ID, Campaign, etc.)
+            if self.initial_context_data:
+                meta.update(self.initial_context_data)
+            
+            # Analysis (Placeholder for now, could use LLM here later)
+            analysis = {
+                "success": True if duration > 10 else False,
+                "summary": "Call completed successfully."
+            }
+
+            logger.info("📡 [WEBHOOK] Triggering Report...")
+            await service.send_end_call_report(
+                call_id=self.stream_id or str(uuid.uuid4()),
+                agent_config_name=getattr(self.config, 'name', 'default'),
+                metadata=meta,
+                transcript=self.conversation_history, # Full Transcript
+                analysis=analysis,
+                recording_url=None # TODO: Fetch from Telnyx if available
+            )
+            
+        except Exception as e:
+            logger.error(f"❌ [WEBHOOK] Trigger failed: {e}")
 

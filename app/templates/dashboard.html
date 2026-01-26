@@ -152,6 +152,7 @@
                             {id: 'model', label: 'Model'}, 
                             {id: 'voz', label: 'Voz'}, 
                             {id: 'transcriptor', label: 'Transcriptor'}, 
+                            {id: 'campaigns', label: 'Campañas'}, 
                             {id: 'avanzado', label: 'Avanzado'}, 
                             {id: 'historial', label: 'Historial'}, 
                             {id: 'conexion', label: 'Conexión'}
@@ -476,522 +477,657 @@
                         </div>
 
                     </div>
+                </div>
 
-                    <!-- TAB START: TRANSCRIPTOR -->
-                    <div x-show="activeTab === 'transcriptor'" class="space-y-5 animate-fade-in-up">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
-                                    STT</label>
-                                <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                    <template x-for="p in ['azure']">
-                                        <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
-                                    </template>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
-                                <select x-model="c.sttLang" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                    <template x-for="l in availableLanguages">
-                                        <option :value="l.id" x-text="l.name"></option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
+                <!-- Control de Interrupción y VAD (NUEVO) -->
+                <div class="space-y-4 mt-6 pt-6 border-t border-slate-700">
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">
+                        🧠 Inteligencia de Voz (VAD)
+                    </h3>
 
-                        <div class="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
-                            <label
-                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">Control
-                                de Interrupciones</label>
-
-                            <div class="mb-4">
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm">Umbral de Palabras</span>
-                                    <span class="text-blue-400 font-mono" x-text="c.interruptWords"></span>
-                                </div>
-                                <input type="range" x-model="c.interruptWords" min="0" max="10" step="1"
-                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                                <p class="text-[10px] text-slate-500 mt-1">Palabras requeridas para detener al bot.</p>
-                            </div>
-
-                            <div x-show="activeProfile === 'telnyx'">
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm">Sensibilidad (RMS)</span>
-                                    <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
-                                </div>
-                                <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
-                                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-                                <p class="text-[10px] text-slate-500 mt-1">Nivel de audio para detectar voz humana.</p>
-                            </div>
-                        </div>
-
-                        <!-- Removed Redundant Silence Slider (Managed by Velocidad de Interacción) -->
-
+                    <!-- Smart Interruption Toggle -->
+                    <div class="flex items-center justify-between">
                         <div>
                             <label
-                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
-                                Alucinaciones</label>
-                            <input type="text" x-model="c.blacklist"
-                                class="glass-input w-full p-2.5 rounded-lg text-sm">
+                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Interrupción
+                                Inteligente</label>
+                            <p class="text-[10px] text-slate-500">Usa IA para evitar cortes cuando el usuario duda.</p>
                         </div>
-
-                        <div class="flex items-center space-x-4 pt-2">
-                            <!-- Removed Denoising Toggle (Azure Default is Always On) -->
-                            <label class="flex items-center space-x-2 cursor-pointer"
-                                x-show="activeProfile === 'telnyx'">
-                                <input type="checkbox" x-model="c.krisp"
-                                    class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
-                                <span class="text-sm">Krisp AI</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer"
-                                x-show="activeProfile === 'telnyx'">
-                                <input type="checkbox" x-model="c.vad"
-                                    class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
-                                <span class="text-sm">VAD</span>
-                            </label>
-                        </div>
-                    </div>
-
-
-                    <!-- TAB START: AVANZADO -->
-                    <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Duración
-                                    Máx (seg)</label>
-                                <input type="number" x-model="c.maxDuration"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer"
+                                :checked="c.segmentation_strategy === 'semantic'"
+                                @change="c.segmentation_strategy = $event.target.checked ? 'semantic' : 'default'">
+                            <div
+                                class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600">
                             </div>
-                            <div>
-                                <label
-                                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Max
-                                    Retries</label>
-                                <input type="number" x-model="c.maxRetries"
-                                    class="glass-input w-full p-2.5 rounded-lg text-sm">
-                            </div>
-                            <!-- New Extraction Model Field -->
-                            <!-- Removed Extraction Model (Unused) -->
-                        </div>
-
-                        <div>
-                            <label
-                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
-                                <span>Timeout Inactividad (seg)</span>
-                                <span class="text-blue-400" x-text="c.idleTimeout"></span>
-                            </label>
-                            <input type="range" x-model="c.idleTimeout" min="5" max="60" step="1"
-                                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                        </div>
-
-                        <div>
-                            <label
-                                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
-                                Inactividad</label>
-                            <input type="text" x-model="c.idleMessage"
-                                class="glass-input w-full p-2.5 rounded-lg text-sm">
-                        </div>
-
-                        <div x-show="activeProfile === 'telnyx'" class="pt-4 border-t border-slate-700">
-                            <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3">Telnyx Only</h4>
-                            <div class="space-y-3">
-                                <label class="flex items-center space-x-2 cursor-pointer">
-                                    <input type="checkbox" x-model="c.enableRecording"
-                                        class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
-                                    <span class="text-sm">Grabar Llamada</span>
-                                </label>
-                                <div>
-                                    <label class="text-xs text-slate-400 block mb-1">AMD Config</label>
-                                    <select x-model="c.amdConfig" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                                        <option value="disabled">Disabled</option>
-                                        <option value="premium">Premium</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+                        </label>
                     </div>
 
-                    <!-- TAB START: HISTORIAL -->
-                    <div x-show="activeTab === 'historial'" class="space-y-4 animate-fade-in-up">
-                        <!-- Filters -->
-                        <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
-                            <button type="button" @click="activeHistoryFilter = 'all'"
-                                :class="{'bg-blue-600 text-white': activeHistoryFilter === 'all', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'all'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
-                            <button type="button" @click="activeHistoryFilter = 'browser'"
-                                :class="{'bg-blue-600 text-white': activeHistoryFilter === 'browser', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'browser'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
-                            <button type="button" @click="activeHistoryFilter = 'twilio'"
-                                :class="{'bg-red-600 text-white': activeHistoryFilter === 'twilio', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'twilio'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Twilio</button>
-                            <button type="button" @click="activeHistoryFilter = 'telnyx'"
-                                :class="{'bg-emerald-600 text-white': activeHistoryFilter === 'telnyx', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'telnyx'}"
-                                class="px-3 py-1 rounded text-xs font-bold transition-all">Telnyx</button>
+                    <!-- VAD Threshold Slider -->
+                    <div>
+                        <label
+                            class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                            <span>Sensibilidad VAD (Silero)</span>
+                            <span class="text-blue-400 font-mono" x-text="c.vad_threshold || 0.5"></span>
+                        </label>
+                        <input type="range" x-model.number="c.vad_threshold" min="0.1" max="0.9" step="0.05"
+                            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                            <span>0.1 (Muy Sensible)</span>
+                            <span>0.9 (Estricto)</span>
                         </div>
-
-                        <!-- Table -->
-                        <div class="overflow-x-auto rounded border border-slate-700">
-                            <table class="w-full text-xs text-left text-slate-400">
-                                <thead class="text-xs text-slate-300 uppercase bg-slate-800">
-                                    <tr>
-                                        <!-- Checkbox for Bulk Actions -->
-                                        <th scope="col" class="px-4 py-2 w-8">
-                                            <input type="checkbox" onclick="toggleAllHistory(this)"
-                                                class="rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2">
-                                        </th>
-                                        <th scope="col" class="px-4 py-2">Fecha</th>
-                                        <th scope="col" class="px-4 py-2">Fuente</th>
-                                        <th scope="col" class="px-4 py-2">Duración</th>
-                                        <th scope="col" class="px-4 py-2">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-body" hx-get="/api/history/rows"
-                                    hx-trigger="refreshHistory from:body">
-                                    {% for call in history %}
-                                    <tr class="border-b border-slate-800 hover:bg-slate-800/50"
-                                        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'browser' }}'">
-                                        <td class="px-4 py-2">
-                                            <input type="checkbox" value="{{ call.id }}"
-                                                class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
-                                                onchange="updateDeleteButton()">
-                                        </td>
-                                        <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            {% if call.client_type == 'telnyx' %}
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
-                                            {% elif call.client_type == 'twilio' %}
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
-                                            {% else %}
-                                            <span
-                                                class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="px-4 py-2 font-mono">
-                                            {% if call.end_time %}
-                                            {{ (call.end_time - call.start_time).seconds }}s
-                                            {% else %}
-                                            <span class="text-yellow-500 animate-pulse">En curso</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="px-4 py-2">
-                                            <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
-                                                class="text-blue-400 hover:underline">Ver</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% if not history %}
-                                    <tr>
-                                        <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">
-                                            No hay historial disponible.
-                                        </td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Bulk Actions Footer -->
-                        <div class="pt-2 flex justify-between items-center">
-                            <button id="btn-delete-selected" onclick="deleteSelectedCalls()" style="display: none;"
-                                class="text-xs bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-800 hover:bg-red-900/50 transition-all items-center space-x-1">
-                                <span>🗑️</span> Borrar Seleccionados
-                            </button>
-
-                            <form action="/api/history/clear?api_key={{ request.query_params.get('api_key', '') }}"
-                                method="POST" onsubmit="return confirm('¿Borrar todo el historial?');">
-                                <button type="submit"
-                                    class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
-                                    🗑️ Borrar Historial Completo
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- TAB CONEXIÓN -->
-                    <div x-show="activeTab === 'conexion'">
-                        <div class="space-y-6">
-                            <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                                <h3 class="text-lg font-medium text-white mb-4 flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
-                                        </path>
-                                    </svg>
-                                    Conexión Telefónica
-                                </h3>
-
-                                <p class="text-slate-400 mb-6 font-light">
-                                    Configura tu proveedor de telefonía para redirigir las llamadas a este
-                                    Asistente.
-                                    Copia la URL correspondiente y pégala en la configuración de Webhook.
-                                </p>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- TWILIO CARD -->
-                                    <div class="bg-slate-900 p-4 rounded border border-slate-700 relative group">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <h4 class="font-bold text-red-400">Twilio</h4>
-                                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-500">Twilio
-                                                Stream</span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="text-xs text-slate-500 uppercase font-bold">WebSocket
-                                                URL:</label>
-                                            <div class="flex mt-1">
-                                                <code
-                                                    class="flex-1 bg-black p-2 rounded text-sm text-green-400 overflow-x-auto whitespace-nowrap"
-                                                    id="twilio-url">wss://{{ host }}/api/v1/twilio/ws</code>
-                                                <button onclick="copyToClipboard('twilio-url')"
-                                                    class="ml-2 bg-slate-700 hover:bg-slate-600 text-white px-3 rounded transition">
-                                                    📋
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- TELNYX CARD -->
-                                    <div class="bg-slate-900 p-4 rounded border border-slate-700 relative group">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <h4 class="font-bold text-emerald-400">Telnyx</h4>
-                                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-500">Call
-                                                Control</span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="text-xs text-slate-500 uppercase font-bold">Webhook
-                                                URL:</label>
-                                            <div class="flex mt-1">
-                                                <code
-                                                    class="flex-1 bg-black p-2 rounded text-sm text-green-400 overflow-x-auto whitespace-nowrap"
-                                                    id="telnyx-url">https://{{ host }}/api/v1/telnyx/incoming-call</code>
-                                                <button onclick="copyToClipboard('telnyx-url')"
-                                                    class="ml-2 bg-slate-700 hover:bg-slate-600 text-white px-3 rounded transition">
-                                                    📋
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- This ensures backend receives expected fields regardless of active tab -->
-                    <div class="hidden">
-                        <!-- Browser/Common -->
-                        <input type="hidden" name="llm_provider" :value="configs.browser.provider">
-                        <input type="hidden" name="llm_model" :value="configs.browser.model">
-                        <input type="hidden" name="temperature" :value="configs.browser.temp">
-                        <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
-                        <input type="hidden" name="system_prompt" :value="configs.browser.prompt">
-                        <input type="hidden" name="first_message" :value="configs.browser.msg">
-                        <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
-
-                        <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
-                        <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
-                        <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
-                        <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
-                        <input type="hidden" name="voice_pitch" :value="configs.browser.voicePitch">
-                        <input type="hidden" name="voice_volume" :value="configs.browser.voiceVolume">
-                        <input type="hidden" name="voice_style_degree" :value="configs.browser.voiceStyleDegree">
-                        <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
-                        <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
-                        <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
-                        <input type="hidden" name="voice_language" :value="configs.browser.voiceLang">
-
-                        <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
-                        <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
-                        <input type="hidden" name="interruption_threshold" :value="configs.browser.interruptWords">
-                        <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
-                        <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
-
-                        <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
-                        <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
-                        <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
-
-                        <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
-                        <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
-                        <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
-                        <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
-                        <input type="hidden" name="enable_denoising" :value="configs.browser.denoise">
-                        <input type="hidden" name="extraction_model" :value="configs.browser.extractionModel">
-
-                        <!-- Browser - Conversation Style (NEW) -->
-                        <input type="hidden" name="response_length" :value="configs.browser.responseLength">
-                        <input type="hidden" name="conversation_tone" :value="configs.browser.conversationTone">
-                        <input type="hidden" name="conversation_formality"
-                            :value="configs.browser.conversationFormality">
-                        <input type="hidden" name="conversation_pacing" :value="configs.browser.conversationPacing">
-
-                        <!-- Twilio -->
-                        <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
-                        <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
-                        <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
-                        <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
-                        <input type="hidden" name="system_prompt_phone" :value="configs.twilio.prompt">
-                        <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
-                        <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
-
-                        <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
-                        <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
-                        <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
-                        <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
-                        <input type="hidden" name="voice_pitch_phone" :value="configs.twilio.voicePitch">
-                        <input type="hidden" name="voice_volume_phone" :value="configs.twilio.voiceVolume">
-                        <input type="hidden" name="voice_style_degree_phone" :value="configs.twilio.voiceStyleDegree">
-                        <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
-                        <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
-
-                        <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
-                        <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
-                        <input type="hidden" name="interruption_threshold_phone" :value="configs.twilio.interruptWords">
-                        <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
-                        <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
-                        <input type="hidden" name="hallucination_blacklist_phone" :value="configs.twilio.blacklist">
-                        <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
-
-                        <!-- Twilio - Conversation Style (NEW) -->
-                        <input type="hidden" name="response_length_phone" :value="configs.twilio.responseLength">
-                        <input type="hidden" name="conversation_tone_phone" :value="configs.twilio.conversationTone">
-                        <input type="hidden" name="conversation_formality_phone"
-                            :value="configs.twilio.conversationFormality">
-                        <input type="hidden" name="conversation_pacing_phone"
-                            :value="configs.twilio.conversationPacing">
-
-                        <!-- Telnyx -->
-                        <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
-                        <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
-                        <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
-                        <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
-                        <input type="hidden" name="system_prompt_telnyx" :value="configs.telnyx.prompt">
-                        <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
-                        <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
-
-                        <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
-                        <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
-                        <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
-                        <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
-                        <input type="hidden" name="voice_pitch_telnyx" :value="configs.telnyx.voicePitch">
-                        <input type="hidden" name="voice_volume_telnyx" :value="configs.telnyx.voiceVolume">
-                        <input type="hidden" name="voice_style_degree_telnyx" :value="configs.telnyx.voiceStyleDegree">
-                        <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
-                        <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
-                        <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
-
-                        <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
-                        <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
-                        <input type="hidden" name="interruption_threshold_telnyx"
-                            :value="configs.telnyx.interruptWords">
-                        <input type="hidden" name="voice_sensitivity_telnyx" :value="configs.telnyx.interruptRMS">
-                        <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
-                        <input type="hidden" name="input_min_characters_telnyx" :value="configs.telnyx.inputMin">
-                        <input type="hidden" name="hallucination_blacklist_telnyx" :value="configs.telnyx.blacklist">
-                        <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
-                        <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
-                        <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
-
-                        <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
-                        <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
-                        <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
-                        <input type="hidden" name="enable_recording_telnyx" :value="configs.telnyx.enableRecording">
-                        <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
-
-                        <!-- Telnyx - Conversation Style (NEW) -->
-                        <input type="hidden" name="response_length_telnyx" :value="configs.telnyx.responseLength">
-                        <input type="hidden" name="conversation_tone_telnyx" :value="configs.telnyx.conversationTone">
-                        <input type="hidden" name="conversation_formality_telnyx"
-                            :value="configs.telnyx.conversationFormality">
-                        <input type="hidden" name="conversation_pacing_telnyx"
-                            :value="configs.telnyx.conversationPacing">
-                    </div>
-
-                    <!-- FOOTER ACTIONS -->
-                    <div x-show="activeTab !== 'historial'"
-                        class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
-                        <button type="submit"
-                            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                            </svg>
-                            <span>Guardar Cambios</span>
-                        </button>
                     </div>
                 </div>
-            </form>
+
         </div>
-        <!-- RIGHT COLUMN: SIMULATOR (7/12) -->
-        <div class="lg:col-span-7 space-y-6">
-            <div class="sticky top-6">
-                <!-- SIMULATOR HEADER -->
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xl">🧪</span>
-                        <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
-                    </div>
 
-                    <div class="flex items-center space-x-2">
-                        <!-- Animation Selector -->
-                        <select x-model="visualizerMode" @change="setVisualizer($event.target.value)"
-                            class="bg-slate-800 text-xs text-slate-400 border border-slate-700 rounded px-2 py-1 outline-none focus:border-emerald-500">
-                            <option value="wave">Onda</option>
-                            <option value="bars">Barras</option>
-                            <option value="orb">Orbe</option>
-                        </select>
+        <!-- TAB START: TRANSCRIPTOR -->
+        <div x-show="activeTab === 'transcriptor'" class="space-y-5 animate-fade-in-up">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                        STT</label>
+                    <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                        <template x-for="p in ['azure']">
+                            <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
+                        </template>
+                    </select>
+                </div>
+                <div>
+                    <label
+                        class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
+                    <select x-model="c.sttLang" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                        <template x-for="l in availableLanguages">
+                            <option :value="l.id" x-text="l.name"></option>
+                        </template>
+                    </select>
+                </div>
+            </div>
 
-                        <button @click="startTest()"
-                            :class="{'bg-red-600 hover:bg-red-500 shadow-red-500/20': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20': simState !== 'connected'}"
-                            class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-all border border-white/10 flex items-center space-x-2">
-                            <span
-                                x-text="simState === 'connected' ? '⏹ Detener' : (simState === 'connecting' ? '⏳ Conectando...' : '▶ Iniciar Prueba')"></span>
-                        </button>
+            <div class="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">Control
+                    de Interrupciones</label>
+
+                <div class="mb-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm">Umbral de Palabras</span>
+                        <span class="text-blue-400 font-mono" x-text="c.interruptWords"></span>
                     </div>
+                    <input type="range" x-model="c.interruptWords" min="0" max="10" step="1"
+                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    <p class="text-[10px] text-slate-500 mt-1">Palabras requeridas para detener al bot.</p>
                 </div>
 
-                <!-- VISUALIZER AREA -->
-                <div
-                    class="glass-panel h-[400px] rounded-xl flex items-center justify-center mb-4 relative overflow-hidden bg-black border border-slate-800 shadow-inner">
-                    <!-- Status Text Overlay -->
-                    <p class="absolute font-mono text-emerald-500/50 pointer-events-none z-10 transition-opacity duration-500"
-                        :class="{'animate-pulse': simState === 'connecting', 'opacity-0': simState === 'connected'}"
-                        x-text="simState === 'connected' ? '' : (simState === 'connecting' ? 'Estableciendo Conexión...' : 'Listo para conectar...')">
-                    </p>
-
-                    <!-- Canvas -->
-                    <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
+                <div x-show="activeProfile === 'telnyx'">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm">Sensibilidad (RMS)</span>
+                        <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
+                    </div>
+                    <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
+                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <p class="text-[10px] text-slate-500 mt-1">Nivel de audio para detectar voz humana.</p>
                 </div>
+            </div>
 
-                <!-- TRANSCRIPT -->
-                <div class="glass-panel h-[250px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50 flex flex-col space-y-3 bg-slate-900/50"
-                    id="transcript-container">
-                    <div
-                        class="text-slate-500 mb-2 uppercase text-[10px] tracking-wider sticky top-0 bg-slate-900/90 pb-2 border-b border-slate-800">
-                        Transcripción en Vivo</div>
+            <!-- Removed Redundant Silence Slider (Managed by Velocidad de Interacción) -->
 
-                    <template x-for="msg in transcripts">
-                        <div class="flex flex-col space-y-1"
-                            :class="{'items-end': msg.role === 'user', 'items-start': msg.role === 'assistant'}">
-                            <span class="text-[9px] text-slate-500"
-                                x-text="msg.role === 'user' ? 'Tú' : 'Andrea'"></span>
-                            <div class="px-3 py-2 rounded-lg max-w-[85%]"
-                                :class="{'bg-blue-600/20 text-blue-200 border border-blue-500/30': msg.role === 'user', 'bg-emerald-600/20 text-emerald-200 border border-emerald-500/30': msg.role === 'assistant'}">
-                                <span x-text="msg.text"></span>
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
+                    Alucinaciones</label>
+                <input type="text" x-model="c.blacklist" class="glass-input w-full p-2.5 rounded-lg text-sm">
+            </div>
+
+            <div class="flex items-center space-x-4 pt-2">
+                <!-- Removed Denoising Toggle (Azure Default is Always On) -->
+                <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
+                    <input type="checkbox" x-model="c.krisp"
+                        class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                    <span class="text-sm">Krisp AI</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
+                    <input type="checkbox" x-model="c.vad"
+                        class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                    <span class="text-sm">VAD</span>
+                </label>
+            </div>
+        </div>
+
+
+        <!-- TAB START: CAMPAÑAS (NUEVO) -->
+        <div x-show="activeTab === 'campaigns'" class="space-y-5 animate-fade-in-up">
+            <div class="glass-panel p-6 rounded-xl border border-blue-500/20 bg-blue-900/10">
+                <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                        </path>
+                    </svg>
+                    Gestor de Campañas (Outbound)
+                </h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Nombre
+                            de la Campaña</label>
+                        <input type="text" x-model="campaignName" placeholder="Ej: Cobranza Enero 2025"
+                            class="glass-input w-full p-3 rounded-lg text-sm text-white placeholder-slate-500">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Archivo
+                            de Contactos (CSV)</label>
+                        <div
+                            class="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer relative">
+                            <input type="file" @change="handleFileSelect($event)" accept=".csv"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <div x-show="!campaignFile">
+                                <p class="text-slate-300 font-medium">Arrastra un archivo CSV aquí</p>
+                                <p class="text-xs text-slate-500 mt-1">Columnas requeridas: phone, name</p>
+                            </div>
+                            <div x-show="campaignFile"
+                                class="text-blue-400 font-medium flex items-center justify-center">
+                                <span class="mr-2">📄</span>
+                                <span x-text="campaignFile ? campaignFile.name : ''"></span>
                             </div>
                         </div>
-                    </template>
+                    </div>
 
-                    <div x-show="transcripts.length === 0" class="text-center text-slate-600 italic py-4">
-                        Esperando audio...
+                    <div class="pt-4">
+                        <button @click="uploadCampaign()"
+                            :disabled="!campaignFile || !campaignName || isCampaignLoading"
+                            :class="{'opacity-50 cursor-not-allowed': !campaignFile || !campaignName || isCampaignLoading}"
+                            class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg font-bold text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all flex justify-center items-center">
+                            <span x-show="!isCampaignLoading">🚀 Iniciar Campaña</span>
+                            <span x-show="isCampaignLoading"
+                                class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                            <span x-show="isCampaignLoading">Procesando...</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- TAB START: AVANZADO -->
+        <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Duración
+                        Máx (seg)</label>
+                    <input type="number" x-model="c.maxDuration" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Max
+                        Retries</label>
+                    <input type="number" x-model="c.maxRetries" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                </div>
+                <!-- New Extraction Model Field -->
+                <!-- Removed Extraction Model (Unused) -->
+            </div>
+
+            <div>
+                <label
+                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                    <span>Timeout Inactividad (seg)</span>
+                    <span class="text-blue-400" x-text="c.idleTimeout"></span>
+                </label>
+                <input type="range" x-model="c.idleTimeout" min="5" max="60" step="1"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            </div>
+
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
+                    Inactividad</label>
+                <input type="text" x-model="c.idleMessage" class="glass-input w-full p-2.5 rounded-lg text-sm">
+            </div>
+
+            <div x-show="activeProfile === 'telnyx'" class="pt-4 border-t border-slate-700">
+                <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3">Telnyx Only</h4>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" x-model="c.enableRecording"
+                            class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                        <span class="text-sm">Grabar Llamada</span>
+                    </label>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">AMD Config</label>
+                        <select x-model="c.amdConfig" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                            <option value="disabled">Disabled</option>
+                            <option value="premium">Premium</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CRM INTEGRATION -->
+            <div class="pt-4 border-t border-slate-700 mt-4">
+                <h4 class="text-xs font-bold text-orange-400 uppercase mb-3 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    CRM Integration (Baserow)
+                </h4>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" x-model="c.crm_enabled"
+                            class="form-checkbox bg-slate-800 border-slate-600 text-orange-500 rounded">
+                        <span class="text-sm font-medium text-slate-300">Habilitar Integración CRM</span>
+                    </label>
+                    <div x-show="c.crm_enabled" class="space-y-3 animate-fade-in-up">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Baserow API Token</label>
+                            <input type="password" x-model="c.baserow_token"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                                placeholder="Token...">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Table ID</label>
+                            <input type="number" x-model="c.baserow_table_id"
+                                class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                                placeholder="Table ID (e.g. 4521)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- WEBHOOK INTEGRATION (Phase 9) -->
+        <div class="pt-4 border-t border-slate-700 mt-4">
+            <h4 class="text-xs font-bold text-indigo-400 uppercase mb-3 flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Webhook Integration (n8n/Make)
+            </h4>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Webhook URL (End-of-Call)</label>
+                    <input type="text" x-model="c.webhook_url"
+                        class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                        placeholder="https://webhook.site/...">
+                    <p class="text-[10px] text-slate-500 mt-1">Se enviará un reporte JSON al finalizar cada llamada.</p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Webhook Secret (Opcional)</label>
+                    <input type="password" x-model="c.webhook_secret"
+                        class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                        placeholder="Secret Key...">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TAB START: HISTORIAL -->
+    <div x-show="activeTab === 'historial'" class="space-y-4 animate-fade-in-up">
+        <!-- Filters -->
+        <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+            <button type="button" @click="activeHistoryFilter = 'all'"
+                :class="{'bg-blue-600 text-white': activeHistoryFilter === 'all', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'all'}"
+                class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
+            <button type="button" @click="activeHistoryFilter = 'browser'"
+                :class="{'bg-blue-600 text-white': activeHistoryFilter === 'browser', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'browser'}"
+                class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
+            <button type="button" @click="activeHistoryFilter = 'twilio'"
+                :class="{'bg-red-600 text-white': activeHistoryFilter === 'twilio', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'twilio'}"
+                class="px-3 py-1 rounded text-xs font-bold transition-all">Twilio</button>
+            <button type="button" @click="activeHistoryFilter = 'telnyx'"
+                :class="{'bg-emerald-600 text-white': activeHistoryFilter === 'telnyx', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'telnyx'}"
+                class="px-3 py-1 rounded text-xs font-bold transition-all">Telnyx</button>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto rounded border border-slate-700">
+            <table class="w-full text-xs text-left text-slate-400">
+                <thead class="text-xs text-slate-300 uppercase bg-slate-800">
+                    <tr>
+                        <!-- Checkbox for Bulk Actions -->
+                        <th scope="col" class="px-4 py-2 w-8">
+                            <input type="checkbox" onclick="toggleAllHistory(this)"
+                                class="rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2">
+                        </th>
+                        <th scope="col" class="px-4 py-2">Fecha</th>
+                        <th scope="col" class="px-4 py-2">Fuente</th>
+                        <th scope="col" class="px-4 py-2">Duración</th>
+                        <th scope="col" class="px-4 py-2">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body" hx-get="/api/history/rows" hx-trigger="refreshHistory from:body">
+                    {% for call in history %}
+                    <tr class="border-b border-slate-800 hover:bg-slate-800/50"
+                        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'browser' }}'">
+                        <td class="px-4 py-2">
+                            <input type="checkbox" value="{{ call.id }}"
+                                class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
+                                onchange="updateDeleteButton()">
+                        </td>
+                        <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                        <td class="px-4 py-2">
+                            {% if call.client_type == 'telnyx' %}
+                            <span
+                                class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
+                            {% elif call.client_type == 'twilio' %}
+                            <span
+                                class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
+                            {% else %}
+                            <span
+                                class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2 font-mono">
+                            {% if call.end_time %}
+                            {{ (call.end_time - call.start_time).seconds }}s
+                            {% else %}
+                            <span class="text-yellow-500 animate-pulse">En curso</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2">
+                            <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
+                                class="text-blue-400 hover:underline">Ver</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not history %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">
+                            No hay historial disponible.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bulk Actions Footer -->
+        <div class="pt-2 flex justify-between items-center">
+            <button id="btn-delete-selected" onclick="deleteSelectedCalls()" style="display: none;"
+                class="text-xs bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-800 hover:bg-red-900/50 transition-all items-center space-x-1">
+                <span>🗑️</span> Borrar Seleccionados
+            </button>
+
+            <form action="/api/history/clear?api_key={{ request.query_params.get('api_key', '') }}" method="POST"
+                onsubmit="return confirm('¿Borrar todo el historial?');">
+                <button type="submit" class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
+                    🗑️ Borrar Historial Completo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB CONEXIÓN -->
+    <div x-show="activeTab === 'conexion'">
+        <div class="space-y-6">
+            <div class="bg-slate-800 p-6 rounded-lg border border-slate-700">
+                <h3 class="text-lg font-medium text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                        </path>
+                    </svg>
+                    Conexión Telefónica
+                </h3>
+
+                <p class="text-slate-400 mb-6 font-light">
+                    Configura tu proveedor de telefonía para redirigir las llamadas a este
+                    Asistente.
+                    Copia la URL correspondiente y pégala en la configuración de Webhook.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- TWILIO CARD -->
+                    <div class="bg-slate-900 p-4 rounded border border-slate-700 relative group">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-red-400">Twilio</h4>
+                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-500">Twilio
+                                Stream</span>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-xs text-slate-500 uppercase font-bold">WebSocket
+                                URL:</label>
+                            <div class="flex mt-1">
+                                <code
+                                    class="flex-1 bg-black p-2 rounded text-sm text-green-400 overflow-x-auto whitespace-nowrap"
+                                    id="twilio-url">wss://{{ host }}/api/v1/twilio/ws</code>
+                                <button onclick="copyToClipboard('twilio-url')"
+                                    class="ml-2 bg-slate-700 hover:bg-slate-600 text-white px-3 rounded transition">
+                                    📋
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TELNYX CARD -->
+                    <div class="bg-slate-900 p-4 rounded border border-slate-700 relative group">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-emerald-400">Telnyx</h4>
+                            <span class="text-xs bg-slate-800 px-2 py-1 rounded text-slate-500">Call
+                                Control</span>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-xs text-slate-500 uppercase font-bold">Webhook
+                                URL:</label>
+                            <div class="flex mt-1">
+                                <code
+                                    class="flex-1 bg-black p-2 rounded text-sm text-green-400 overflow-x-auto whitespace-nowrap"
+                                    id="telnyx-url">https://{{ host }}/api/v1/telnyx/incoming-call</code>
+                                <button onclick="copyToClipboard('telnyx-url')"
+                                    class="ml-2 bg-slate-700 hover:bg-slate-600 text-white px-3 rounded transition">
+                                    📋
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- This ensures backend receives expected fields regardless of active tab -->
+    <div class="hidden">
+        <!-- Browser/Common -->
+        <input type="hidden" name="llm_provider" :value="configs.browser.provider">
+        <input type="hidden" name="llm_model" :value="configs.browser.model">
+        <input type="hidden" name="temperature" :value="configs.browser.temp">
+        <input type="hidden" name="max_tokens" :value="configs.browser.tokens">
+        <input type="hidden" name="system_prompt" :value="configs.browser.prompt">
+        <input type="hidden" name="first_message" :value="configs.browser.msg">
+        <input type="hidden" name="first_message_mode" :value="configs.browser.mode">
+
+        <input type="hidden" name="tts_provider" :value="configs.browser.voiceProvider">
+        <input type="hidden" name="voice_name" :value="configs.browser.voiceId">
+        <input type="hidden" name="voice_style" :value="configs.browser.voiceStyle">
+        <input type="hidden" name="voice_speed" :value="configs.browser.voiceSpeed">
+        <input type="hidden" name="voice_pitch" :value="configs.browser.voicePitch">
+        <input type="hidden" name="voice_volume" :value="configs.browser.voiceVolume">
+        <input type="hidden" name="voice_style_degree" :value="configs.browser.voiceStyleDegree">
+        <input type="hidden" name="voice_pacing_ms" :value="configs.browser.voicePacing">
+        <input type="hidden" name="background_sound" :value="configs.browser.voiceBgSound">
+        <input type="hidden" name="background_sound_url" :value="configs.browser.voiceBgUrl">
+        <input type="hidden" name="voice_language" :value="configs.browser.voiceLang">
+
+        <input type="hidden" name="stt_provider" :value="configs.browser.sttProvider">
+        <input type="hidden" name="stt_language" :value="configs.browser.sttLang">
+        <input type="hidden" name="interruption_threshold" :value="configs.browser.interruptWords">
+        <input type="hidden" name="silence_timeout_ms" :value="configs.browser.silence">
+        <input type="hidden" name="hallucination_blacklist" :value="configs.browser.blacklist">
+
+        <input type="hidden" name="enable_end_call" :value="configs.browser.enableEndCall">
+        <input type="hidden" name="enable_dial_keypad" :value="configs.browser.dialKeypad">
+        <input type="hidden" name="transfer_phone_number" :value="configs.browser.transferNum">
+
+        <input type="hidden" name="idle_timeout" :value="configs.browser.idleTimeout">
+        <input type="hidden" name="max_duration" :value="configs.browser.maxDuration">
+        <input type="hidden" name="idle_message" :value="configs.browser.idleMessage">
+        <input type="hidden" name="inactivity_max_retries" :value="configs.browser.maxRetries">
+        <input type="hidden" name="enable_denoising" :value="configs.browser.denoise">
+        <input type="hidden" name="extraction_model" :value="configs.browser.extractionModel">
+
+        <!-- Browser - Conversation Style (NEW) -->
+        <input type="hidden" name="response_length" :value="configs.browser.responseLength">
+        <input type="hidden" name="conversation_tone" :value="configs.browser.conversationTone">
+        <input type="hidden" name="conversation_formality" :value="configs.browser.conversationFormality">
+        <input type="hidden" name="conversation_pacing" :value="configs.browser.conversationPacing">
+
+        <!-- Twilio -->
+        <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
+        <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
+        <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
+        <input type="hidden" name="max_tokens_phone" :value="configs.twilio.tokens">
+        <input type="hidden" name="system_prompt_phone" :value="configs.twilio.prompt">
+        <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
+        <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
+
+        <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
+        <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
+        <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
+        <input type="hidden" name="voice_speed_phone" :value="configs.twilio.voiceSpeed">
+        <input type="hidden" name="voice_pitch_phone" :value="configs.twilio.voicePitch">
+        <input type="hidden" name="voice_volume_phone" :value="configs.twilio.voiceVolume">
+        <input type="hidden" name="voice_style_degree_phone" :value="configs.twilio.voiceStyleDegree">
+        <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
+        <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
+
+        <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
+        <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
+        <input type="hidden" name="interruption_threshold_phone" :value="configs.twilio.interruptWords">
+        <input type="hidden" name="silence_timeout_ms_phone" :value="configs.twilio.silence">
+        <input type="hidden" name="input_min_characters_phone" :value="configs.twilio.inputMin">
+        <input type="hidden" name="hallucination_blacklist_phone" :value="configs.twilio.blacklist">
+        <input type="hidden" name="enable_denoising_phone" :value="configs.twilio.denoise">
+
+        <!-- Twilio - Conversation Style (NEW) -->
+        <input type="hidden" name="response_length_phone" :value="configs.twilio.responseLength">
+        <input type="hidden" name="conversation_tone_phone" :value="configs.twilio.conversationTone">
+        <input type="hidden" name="conversation_formality_phone" :value="configs.twilio.conversationFormality">
+        <input type="hidden" name="conversation_pacing_phone" :value="configs.twilio.conversationPacing">
+
+        <!-- Telnyx -->
+        <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
+        <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
+        <input type="hidden" name="temperature_telnyx" :value="configs.telnyx.temp">
+        <input type="hidden" name="max_tokens_telnyx" :value="configs.telnyx.tokens">
+        <input type="hidden" name="system_prompt_telnyx" :value="configs.telnyx.prompt">
+        <input type="hidden" name="first_message_telnyx" :value="configs.telnyx.msg">
+        <input type="hidden" name="first_message_mode_telnyx" :value="configs.telnyx.mode">
+
+        <input type="hidden" name="tts_provider_telnyx" :value="configs.telnyx.voiceProvider">
+        <input type="hidden" name="voice_name_telnyx" :value="configs.telnyx.voiceId">
+        <input type="hidden" name="voice_style_telnyx" :value="configs.telnyx.voiceStyle">
+        <input type="hidden" name="voice_speed_telnyx" :value="configs.telnyx.voiceSpeed">
+        <input type="hidden" name="voice_pitch_telnyx" :value="configs.telnyx.voicePitch">
+        <input type="hidden" name="voice_volume_telnyx" :value="configs.telnyx.voiceVolume">
+        <input type="hidden" name="voice_style_degree_telnyx" :value="configs.telnyx.voiceStyleDegree">
+        <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
+        <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
+        <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
+
+        <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
+        <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
+        <input type="hidden" name="interruption_threshold_telnyx" :value="configs.telnyx.interruptWords">
+        <input type="hidden" name="voice_sensitivity_telnyx" :value="configs.telnyx.interruptRMS">
+        <input type="hidden" name="silence_timeout_ms_telnyx" :value="configs.telnyx.silence">
+        <input type="hidden" name="input_min_characters_telnyx" :value="configs.telnyx.inputMin">
+        <input type="hidden" name="hallucination_blacklist_telnyx" :value="configs.telnyx.blacklist">
+        <input type="hidden" name="enable_denoising_telnyx" :value="configs.telnyx.denoise">
+        <input type="hidden" name="enable_krisp_telnyx" :value="configs.telnyx.krisp">
+        <input type="hidden" name="enable_vad_telnyx" :value="configs.telnyx.vad">
+
+        <input type="hidden" name="idle_timeout_telnyx" :value="configs.telnyx.idleTimeout">
+        <input type="hidden" name="max_duration_telnyx" :value="configs.telnyx.maxDuration">
+        <input type="hidden" name="idle_message_telnyx" :value="configs.telnyx.idleMessage">
+        <input type="hidden" name="enable_recording_telnyx" :value="configs.telnyx.enableRecording">
+        <input type="hidden" name="amd_config_telnyx" :value="configs.telnyx.amdConfig">
+
+        <!-- Telnyx - Conversation Style (NEW) -->
+        <input type="hidden" name="response_length_telnyx" :value="configs.telnyx.responseLength">
+        <input type="hidden" name="conversation_tone_telnyx" :value="configs.telnyx.conversationTone">
+        <input type="hidden" name="conversation_formality_telnyx" :value="configs.telnyx.conversationFormality">
+        <input type="hidden" name="conversation_pacing_telnyx" :value="configs.telnyx.conversationPacing">
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div x-show="activeTab !== 'historial'"
+        class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
+        <button type="submit"
+            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            <span>Guardar Cambios</span>
+        </button>
+    </div>
+    </div>
+    </form>
+    </div>
+    <!-- RIGHT COLUMN: SIMULATOR (7/12) -->
+    <div class="lg:col-span-7 space-y-6">
+        <div class="sticky top-6">
+            <!-- SIMULATOR HEADER -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🧪</span>
+                    <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <!-- Animation Selector -->
+                    <select x-model="visualizerMode" @change="setVisualizer($event.target.value)"
+                        class="bg-slate-800 text-xs text-slate-400 border border-slate-700 rounded px-2 py-1 outline-none focus:border-emerald-500">
+                        <option value="wave">Onda</option>
+                        <option value="bars">Barras</option>
+                        <option value="orb">Orbe</option>
+                    </select>
+
+                    <button @click="startTest()"
+                        :class="{'bg-red-600 hover:bg-red-500 shadow-red-500/20': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20': simState !== 'connected'}"
+                        class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-all border border-white/10 flex items-center space-x-2">
+                        <span
+                            x-text="simState === 'connected' ? '⏹ Detener' : (simState === 'connecting' ? '⏳ Conectando...' : '▶ Iniciar Prueba')"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISUALIZER AREA -->
+            <div
+                class="glass-panel h-[400px] rounded-xl flex items-center justify-center mb-4 relative overflow-hidden bg-black border border-slate-800 shadow-inner">
+                <!-- Status Text Overlay -->
+                <p class="absolute font-mono text-emerald-500/50 pointer-events-none z-10 transition-opacity duration-500"
+                    :class="{'animate-pulse': simState === 'connecting', 'opacity-0': simState === 'connected'}"
+                    x-text="simState === 'connected' ? '' : (simState === 'connecting' ? 'Estableciendo Conexión...' : 'Listo para conectar...')">
+                </p>
+
+                <!-- Canvas -->
+                <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
+            </div>
+
+            <!-- TRANSCRIPT -->
+            <div class="glass-panel h-[250px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50 flex flex-col space-y-3 bg-slate-900/50"
+                id="transcript-container">
+                <div
+                    class="text-slate-500 mb-2 uppercase text-[10px] tracking-wider sticky top-0 bg-slate-900/90 pb-2 border-b border-slate-800">
+                    Transcripción en Vivo</div>
+
+                <template x-for="msg in transcripts">
+                    <div class="flex flex-col space-y-1"
+                        :class="{'items-end': msg.role === 'user', 'items-start': msg.role === 'assistant'}">
+                        <span class="text-[9px] text-slate-500" x-text="msg.role === 'user' ? 'Tú' : 'Andrea'"></span>
+                        <div class="px-3 py-2 rounded-lg max-w-[85%]"
+                            :class="{'bg-blue-600/20 text-blue-200 border border-blue-500/30': msg.role === 'user', 'bg-emerald-600/20 text-emerald-200 border border-emerald-500/30': msg.role === 'assistant'}">
+                            <span x-text="msg.text"></span>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="transcripts.length === 0" class="text-center text-slate-600 italic py-4">
+                    Esperando audio...
+                </div>
+            </div>
+        </div>
+    </div>
 
     </div>
     <!-- APP LOGIC -->
@@ -1850,7 +1986,17 @@
                         });
 
                         if (res.ok) {
+                            const data = await res.json();
                             this.showToast('Configuración Guardada', 'success');
+
+                            // Check for Parsing Warnings (Phase 8)
+                            if (data.warnings && data.warnings.length > 0) {
+                                // Show separate toast or appended msg
+                                setTimeout(() => {
+                                    this.showToast('Advertencia: ' + data.warnings.join(', '), 'error'); // Using 'error' style for visibility
+                                }, 500);
+                            }
+
                             // Update serverConfig local cache to match what we just saved
                             // To be safe, we might want to reload or update specific fields
                         } else {
@@ -1869,6 +2015,86 @@
                     div.innerText = msg;
                     document.body.appendChild(div);
                     setTimeout(() => div.remove(), 3000);
+                },
+
+                // CAMPAIGN MANAGEMENT
+                campaignName: '',
+                campaignFile: null,
+                isCampaignLoading: false,
+
+                async validateCSV(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const text = e.target.result;
+                            const firstLine = text.split('\n')[0];
+                            const headers = firstLine.split(',').map(h => h.trim().toLowerCase());
+
+                            const hasPhone = headers.includes('phone') || headers.includes('telefono') || headers.includes('tel');
+                            const hasName = headers.includes('name') || headers.includes('nombre');
+
+                            if (!hasPhone || !hasName) {
+                                reject('El CSV debe tener columnas "phone" y "name"');
+                            } else {
+                                resolve(true);
+                            }
+                        };
+                        reader.onerror = () => reject('Error al leer archivo');
+                        reader.readAsText(file);
+                    });
+                },
+
+                async handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    try {
+                        await this.validateCSV(file);
+                        this.campaignFile = file;
+                    } catch (err) {
+                        this.showToast(err, 'error');
+                        event.target.value = ''; // Reset input
+                        this.campaignFile = null;
+                    }
+                },
+
+                async uploadCampaign() {
+                    if (!this.campaignFile || !this.campaignName) {
+                        this.showToast('Faltan datos de campaña', 'error');
+                        return;
+                    }
+
+                    this.isCampaignLoading = true;
+                    const formData = new FormData();
+                    formData.append('name', this.campaignName);
+                    formData.append('file', this.campaignFile);
+
+                    // Add API Key
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const apiKey = urlParams.get('api_key');
+                    const url = apiKey ? `/api/campaigns/start?api_key=${apiKey}` : '/api/campaigns/start';
+
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok) {
+                            this.showToast(`Campaña iniciada! Leads: ${data.leads_count}`, 'success');
+                            this.campaignName = '';
+                            this.campaignFile = null;
+                        } else {
+                            this.showToast(data.detail || 'Error al iniciar campaña', 'error');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('Error de conexión', 'error');
+                    } finally {
+                        this.isCampaignLoading = false;
+                    }
                 }
             }
         }
