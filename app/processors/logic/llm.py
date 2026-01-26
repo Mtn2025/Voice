@@ -7,6 +7,7 @@ from app.core.processor import FrameProcessor, FrameDirection
 from app.core.frames import Frame, TextFrame, SystemFrame, CancelFrame
 # Import ErrorFrame if we had it, using implicit Frame for now
 from app.services.base import LLMProvider
+from app.core.prompt_builder import PromptBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -107,5 +108,4 @@ class LLMProcessor(FrameProcessor):
             # await self.push_frame(ErrorFrame(error=str(e)))
 
     def _build_system_prompt(self):
-        # reuse orchestrator logic or simplified version
-        return self.system_prompt
+        return PromptBuilder.build_system_prompt(self.config)
