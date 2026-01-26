@@ -78,6 +78,8 @@ RUN apt-get update && apt-get install -y \
     libuuid1 \
     tzdata \
     procps \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 LABEL maintainer="Martin Team <admin@voice-assistant.com>" \
