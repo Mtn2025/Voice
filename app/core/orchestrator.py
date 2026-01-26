@@ -326,7 +326,6 @@ class VoiceOrchestrator:
 
     async def _load_config(self):
          async with AsyncSessionLocal() as session:
-         async with AsyncSessionLocal() as session:
              self.config = await db_service.get_agent_config(session)
              
              # --- APPLY DYNAMIC PACING (Punto 2 Audit) ---
