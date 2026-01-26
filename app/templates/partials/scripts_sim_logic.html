@@ -12,6 +12,7 @@ animationId: null,
 transcripts: [],
 
 nextStartTime: 0,
+bgAudio: null, // Store reference explicitly
 
 async startTest() {
 if (this.simState === 'connected' || this.simState === 'connecting') {
@@ -44,6 +45,7 @@ return;
 
 this.simState = 'connecting';
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+// Fix: Use generic client type or browser specific
 const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
 
 try {
@@ -98,7 +100,6 @@ if (container) container.scrollTop = container.scrollHeight;
 }
 };
 
-// ... (rest of WS handlers) ...
 this.ws.onclose = () => { console.log("WS Closed"); this.stopTest(); };
 this.ws.onerror = (e) => { console.error("WS Error", e); this.stopTest(); };
 
@@ -157,88 +158,91 @@ for (let i = 0; i < inputData.length; i++) { let s=Math.max(-1, Math.min(1, inpu
     const bytes = new Uint8Array(pcm16.buffer);
     let binary = '';
     const len = bytes.byteLength;
+
+    // Performance Check: This loop might be slow for 4096 samples.
+    // But generally OK for browser JS.
     for (let i = 0; i < len; i++) { binary +=String.fromCharCode(bytes[i]); } const base64Audio=window.btoa(binary);
         this.ws.send(JSON.stringify({ event: 'media' , media: { payload: base64Audio, track: 'inbound' } })); }; } catch
         (e) { console.error("Mic Access Failed", e); alert("Microphone Error: " + e.message);
-                        this.stopTest();
-                    }
-                },
+            this.stopTest();
+        }
+    },
 
-                stopTest() {
-                    this.simState = 'ready';
-                    if (this.ws) {
-                        this.ws.close();
-                        this.ws = null;
-                    }
-                    if (this.audioContext) {
-                        this.audioContext.close();
-                        this.audioContext = null;
-                    }
-                    if (this.mediaStream) {
-                        this.mediaStream.getTracks().forEach(t => t.stop());
-                        this.mediaStream = null;
-                    }
-                    if (this.bgAudio) {
-                        this.bgAudio.pause();
-                        this.bgAudio = null;
-                    }
+    stopTest() {
+        this.simState = 'ready';
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
+        }
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+        if (this.mediaStream) {
+            this.mediaStream.getTracks().forEach(t => t.stop());
+            this.mediaStream = null;
+        }
+        if (this.bgAudio) {
+            this.bgAudio.pause();
+            this.bgAudio = null;
+        }
 
-                    if (this.animationId) cancelAnimationFrame(this.animationId);
+        if (this.animationId) cancelAnimationFrame(this.animationId);
 
-                    // Clear Canvas
-                    const canvas = document.getElementById('visualizer');
-                    if (canvas) {
-                        const ctx = canvas.getContext('2d');
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    }
-                },
+        // Clear Canvas
+        const canvas = document.getElementById('visualizer');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    },
 
-                playAudio(base64Data) {
-                    if (!base64Data) return;
+    playAudio(base64Data) {
+        if (!base64Data) return;
 
-                    try {
-                        const binaryString = window.atob(base64Data);
-                        const len = binaryString.length;
-                        const bytes = new Uint8Array(len);
-                        for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
+        try {
+            const binaryString = window.atob(base64Data);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
 
-                        const pcm16 = new Int16Array(bytes.buffer);
-                        const float32 = new Float32Array(pcm16.length);
+            const pcm16 = new Int16Array(bytes.buffer);
+            const float32 = new Float32Array(pcm16.length);
 
-                        for (let i = 0; i < pcm16.length; i++) {
-                            float32[i] = pcm16[i] / 32768.0;
-                        }
+            for (let i = 0; i < pcm16.length; i++) {
+                float32[i] = pcm16[i] / 32768.0;
+            }
 
-                        if (!this.audioContext) return;
+            if (!this.audioContext) return;
 
-                        const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
-                        buffer.copyToChannel(float32, 0);
+            const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
+            buffer.copyToChannel(float32, 0);
 
-                        const source = this.audioContext.createBufferSource();
-                        source.buffer = buffer;
+            const source = this.audioContext.createBufferSource();
+            source.buffer = buffer;
 
-                        // PARALLEL ROUTING: 
-                        // 1. Hear it (Source -> Speakers)
-                        source.connect(this.audioContext.destination);
+            // PARALLEL ROUTING: 
+            // 1. Hear it (Source -> Speakers)
+            source.connect(this.audioContext.destination);
 
-                        // 2. See it (Source -> Analyser)
-                        // CRITICAL: Do NOT connect analyser to destination, as Mic also feeds into it!
-                        source.connect(this.analyser);
+            // 2. See it (Source -> Analyser)
+            // CRITICAL: Do NOT connect analyser to destination, as Mic also feeds into it!
+            source.connect(this.analyser);
 
-                        const currentTime = this.audioContext.currentTime;
-                        if (!this.nextStartTime || this.nextStartTime < currentTime) {
-                            this.nextStartTime = currentTime;
-                        }
-                        source.start(this.nextStartTime);
-                        this.nextStartTime += buffer.duration;
-                    } catch (e) {
-                        console.error(" Playback Error", e); } }, bgAudio: null, // Store reference
-        playBackgroundSound(soundName) { // Stop existing if (this.bgAudio) { this.bgAudio.pause(); this.bgAudio=null; }
-        // Map name to file path (Simple mapping) // Assuming static files are at /static/sounds/ const volume=0.1; //
-        Low volume for background const path=`/static/sounds/${soundName}.wav`; console.log(`🎵 [BG-SOUND] Playing loop:
-        ${path}`); this.bgAudio=new Audio(path); this.bgAudio.loop=true; this.bgAudio.volume=volume; // Attempt to play
-        (user gesture usually required, but we are inside startTest so it might work) this.bgAudio.play().catch(e=>
-        console.warn("Background Audio Play failed (Autoplay policy?):", e));
+            const currentTime = this.audioContext.currentTime;
+            if (!this.nextStartTime || this.nextStartTime < currentTime) {
+                this.nextStartTime = currentTime;
+            }
+            source.start(this.nextStartTime);
+            this.nextStartTime += buffer.duration;
+        } catch (e) {
+            console.error(" Playback Error", e); } }, playBackgroundSound(soundName) { // Stop existing if
+        (this.bgAudio) { this.bgAudio.pause(); this.bgAudio=null; } // Map name to file path (Simple mapping) //
+        Assuming static files are at /static/sounds/ const volume=0.1; // Low volume for background const
+        path=`/static/sounds/${soundName}.wav`; console.log(`🎵 [BG-SOUND] Playing loop: ${path}`); this.bgAudio=new
+        Audio(path); this.bgAudio.loop=true; this.bgAudio.volume=volume; // Attempt to play (user gesture usually
+        required, but we are inside startTest so it might work) this.bgAudio.play().catch(e=> console.warn("Background
+        Audio Play failed (Autoplay policy?):", e));
         },
 
         drawVisualizer() {
@@ -317,14 +321,6 @@ for (let i = 0; i < inputData.length; i++) { let s=Math.max(-1, Math.min(1, inpu
             const urlParams = new URLSearchParams(window.location.search);
             const apiKey = urlParams.get('api_key');
 
-            // Construct Payload
-            // Flattens the 'c' (current profile) back into the hidden inputs structure?
-            // actually, the hidden inputs are bound to :value="configs..."
-            // We need to send the ENTIRE state (all profiles) to match the Backend Schema expecting
-            "temperature_phone", etc.
-
-            // Better approach for JSON: Send the flattened key-value pairs that the backend expects.
-            // We can construct this by reading the form data (which has the hidden inputs with correct names)
             const formData = new FormData(form);
             const payload = {};
             formData.forEach((value, key) => payload[key] = value);
@@ -347,14 +343,10 @@ for (let i = 0; i < inputData.length; i++) { let s=Math.max(-1, Math.min(1, inpu
 
             // Check for Parsing Warnings (Phase 8)
             if (data.warnings && data.warnings.length > 0) {
-            // Show separate toast or appended msg
             setTimeout(() => {
-            this.showToast('Advertencia: ' + data.warnings.join(', '), 'error'); // Using 'error' style for visibility
+            this.showToast('Advertencia: ' + data.warnings.join(', '), 'error');
             }, 500);
             }
-
-            // Update serverConfig local cache to match what we just saved
-            // To be safe, we might want to reload or update specific fields
             } else {
             this.showToast('Error al guardar', 'error');
             }
@@ -365,7 +357,6 @@ for (let i = 0; i < inputData.length; i++) { let s=Math.max(-1, Math.min(1, inpu
             },
 
             showToast(msg, type = 'info') {
-            // Simple toast implementation
             const div = document.createElement('div');
             div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg text-white text-sm z-50 ${type === 'error'
             ? 'bg-red-600' : 'bg-green-600'}`;
