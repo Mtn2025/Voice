@@ -46,7 +46,7 @@ ruff~=0.8.6
 slowapi~=0.1.9
 
 # Webhook Security - UPDATED for CVE fixes (2026-01-07 Security Audit)
-cryptography>=42.0.0,<45.0.0  # Docker-compatible (v44+ fails on ARM emulation), still CVE-free
+cryptography>=42.0.0,<47.0.0  # Docker-compatible (v44+ fails on ARM emulation), still CVE-free
 h11>=0.16.0  # Fixed CVE-2025-43859
 urllib3>=2.6.3  # Fixed CVE-2026-21441
 httpcore>=1.0.9  # Updated for h11 compatibility
