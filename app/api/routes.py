@@ -111,8 +111,11 @@ async def telnyx_call_control(request: Request, _: None = Depends(require_telnyx
             if call_control_id in active_calls:
                 active_calls[call_control_id]["state"] = "answered"
                 active_calls[call_control_id]["answered_at"] = time.time()
+                # Get client_state (Context) if available
+                client_state_str = payload.get("client_state")
+                
                 # NOW start streaming (event-driven, not hardcoded delay)
-                await start_streaming(call_control_id, request)
+                await start_streaming(call_control_id, request, client_state_str)
 
                 # Start noise suppression after call is answered (with error handling)
                 logging.warning(f"🎯 [DEBUG] About to create noise suppression task for {call_control_id}")
@@ -233,7 +236,7 @@ async def answer_call(call_control_id: str, request: Request):
         logging.error(f"❌ Answer Exception: {e}")
 
 
-async def start_streaming(call_control_id: str, request: Request):
+async def start_streaming(call_control_id: str, request: Request, client_state_inbound: str = None):
     """
     Start media streaming via Telnyx Call Control API.
     Official docs: https://developers.telnyx.com/docs/v2/call-control/streaming-audio-websockets
@@ -245,6 +248,10 @@ async def start_streaming(call_control_id: str, request: Request):
 
     encoded_id = quote(call_control_id, safe='')
     ws_url = f"{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&call_control_id={encoded_id}"
+    
+    # Forward inbound context to WebSocket
+    if client_state_inbound:
+        ws_url += f"&client_state={client_state_inbound}"
 
     headers = {
         "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
@@ -364,7 +371,7 @@ async def start_recording(call_control_id: str):
 
 
 @router.websocket("/ws/media-stream")
-async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | None = None, call_control_id: str | None = None):
+async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | None = None, call_control_id: str | None = None, client_state: str | None = None):
     """
     WebSocket endpoint for bidirectional media streaming.
     Supports both Twilio and Telnyx protocols.
@@ -379,7 +386,7 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
         logging.error(f"Manager connect failed: {e}")
         return
 
-    orchestrator = VoiceOrchestrator(websocket, client_type=client)
+    orchestrator = VoiceOrchestrator(websocket, client_type=client, initial_context=client_state)
 
     try:
         await orchestrator.start()

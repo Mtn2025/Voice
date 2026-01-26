@@ -15,10 +15,11 @@ class ContextAggregator(FrameProcessor):
     Manages Conversation History.
     Triggers LLM only when "Turn" is complete (Smart Silence).
     """
-    def __init__(self, config: Any, conversation_history: List[Dict]):
+    def __init__(self, config: Any, conversation_history: List[Dict], llm_provider: Any = None):
         super().__init__(name="ContextAggregator")
         self.config = config
         self.conversation_history = conversation_history
+        self.llm_provider = llm_provider
         
         # State
         self.interim_buffer = ""
@@ -26,7 +27,8 @@ class ContextAggregator(FrameProcessor):
         self.user_speaking = False
         
         # Turn Management
-        self.turn_timeout = 0.6 # Seconds to wait after speech stops
+        self.turn_timeout = 0.6 # Initial wait
+        self.semantic_timeout = 1.2 # Extended wait if incomplete
         self._turn_timer_task = None
         
         # Events
@@ -47,8 +49,6 @@ class ContextAggregator(FrameProcessor):
             elif isinstance(frame, TextFrame):
                 # Assume TextFrames from STT are FINAL unless marked otherwise
                 # Azure Text is usually "recognized" (final).
-                # If we had "recognizing" (interim), we would update buffer.
-                # For now, treat as additive to current turn.
                 await self._handle_text(frame.text)
                 
             else:
@@ -64,7 +64,7 @@ class ContextAggregator(FrameProcessor):
             self._turn_timer_task = None
             
         # We might want to send a CancelFrame downstream to stop the bot!
-        # This is the "Barge-in" mechanic.
+        # this is the "Barge-in" mechanic.
         await self.push_frame(CancelFrame(reason="User Barge-In"))
 
     async def _handle_stopped_speaking(self):
@@ -89,11 +89,58 @@ class ContextAggregator(FrameProcessor):
 
     async def _monitor_turn_completion(self):
         try:
+            # 1. Wait initial short timeout (e.g. 0.6s)
             await asyncio.sleep(self.turn_timeout)
-            # Timeout reached -> Turn Complete!
+            
+            # 2. Semantic Check (if enabled and provider available)
+            # Only check if text is long enough to be ambiguous
+            if self.llm_provider and len(self.current_turn_text) > 5:
+                is_complete = await self._check_semantic_completion(self.current_turn_text)
+                if not is_complete:
+                    logger.info(f"🤔 [SEMANTIC] Sentence incomplete: '{self.current_turn_text}'. Extending wait.")
+                    # Wait additional time (giving user time to think)
+                    # If they don't speak, we commit anyway.
+                    await asyncio.sleep(self.semantic_timeout - self.turn_timeout)
+            
+            # 3. Commit Turn
             await self._commit_turn()
+            
         except asyncio.CancelledError:
             pass
+        except Exception as e:
+            logger.error(f"Turn Monitor Error: {e}")
+            # Fallback commit
+            await self._commit_turn()
+
+    async def _check_semantic_completion(self, text: str) -> bool:
+        """
+        Ask LLM if the sentence is complete.
+        Returns True if complete, False if incomplete (likely to continue).
+        """
+        try:
+            system_prompt = (
+                "You are a helpful assistant serving as a semantic detector. "
+                "Analyze the user's speech transcript. "
+                "Output ONLY 'YES' if the sentence is syntactically complete and makes sense as a turn end. "
+                "Output 'NO' if it seems broken, interrupted, or trailing off (e.g. 'and then...', 'because the...'). "
+            )
+            
+            response = ""
+            # Create a localized history for this check
+            messages = [{"role": "user", "content": f"Text: \"{text}\""}]
+            
+            # Use low temperature for determinism
+            async for token in self.llm_provider.get_stream(messages, system_prompt, temperature=0.0, max_tokens=5):
+                response += token
+                
+            result = response.strip().upper()
+            logger.debug(f"🔍 [SEMANTIC] Check '{text}' -> {result}")
+            
+            return "YES" in result
+            
+        except Exception as e:
+            logger.warning(f"⚠️ Semantic check failed: {e}")
+            return True # Fail safe: assume complete
 
     async def _commit_turn(self):
         text = self.current_turn_text.strip()
@@ -108,16 +155,5 @@ class ContextAggregator(FrameProcessor):
         # 2. Reset State
         self.current_turn_text = ""
         
-        # 3. Create a Frame to trigger LLM
-        # We need a new Frame type "LLMContextFrame" or just reuse TextFrame?
-        # Actually, LLMProcessor receives TextFrames. 
-        # But if we send `TextFrame(text=full_turn)`, LLMProcessor logic (if unchanged) 
-        # will treat it as "User Input".
-        # Which is what we want.
-        
-        # However, we must ensure LLMProcessor *knows* this is a Full Turn and not a fragment.
-        # Our `LLMProcessor` currently does:
-        #   process_frame(TextFrame) -> _handle_user_text -> Generate
-        
-        # So yes, pushing the aggregated text frame triggers the LLM.
+        # 3. Trigger LLM
         await self.push_frame(TextFrame(text=text, is_final=True))

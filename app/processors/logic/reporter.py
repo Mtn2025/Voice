@@ -1,8 +1,8 @@
 import logging
 from typing import Callable, Coroutine
 
-from app.core.frames import Frame, TextFrame, FrameDirection
-from app.core.processor import FrameProcessor
+from app.core.frames import Frame, TextFrame
+from app.core.processor import FrameProcessor, FrameDirection
 
 logger = logging.getLogger(__name__)
 

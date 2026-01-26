@@ -41,9 +41,11 @@ class VoiceOrchestrator:
     3. Route Input Audio -> Pipeline.
     4. Provide 'Transport' methods for Sync/Output (send_audio_chunked).
     """
-    def __init__(self, websocket: WebSocket, client_type: str = "twilio") -> None:
+    def __init__(self, websocket: WebSocket, client_type: str = "twilio", initial_context: Optional[str] = None) -> None:
         self.websocket = websocket
         self.client_type = client_type
+        self.initial_context_token = initial_context # Base64 string from Telnyx
+        self.initial_context_data = {} # Decoded dict
         self.stream_id: Optional[str] = None
         self.call_db_id: Optional[int] = None
         self.config = None
@@ -72,6 +74,15 @@ class VoiceOrchestrator:
         self.start_time = time.time()
         self.last_interaction_time = time.time()
         self.monitor_task = None
+
+        # Decode Context if present
+        if self.initial_context_token:
+            try:
+                decoded = base64.b64decode(self.initial_context_token).decode("utf-8")
+                self.initial_context_data = json.loads(decoded)
+                logger.info(f"📋 [CTX] Injected Variables: {self.initial_context_data.keys()}")
+            except Exception as e:
+                logger.warning(f"Failed to decode context: {e}")
 
     async def monitor_idle(self) -> None:
         logging.warning("🏁 [MONITOR] Starting monitor_idle loop...")
@@ -164,7 +175,21 @@ class VoiceOrchestrator:
             # Send Initial System/Greeting Frames
             # System Prompt is handled by LLMProcessor via config, but we can update history
             if self.config.system_prompt:
-                self.conversation_history.append({"role": "system", "content": self.config.system_prompt})
+                final_prompt = self.config.system_prompt
+                # Inject Variables from Campaign Context
+                if self.initial_context_data:
+                    try:
+                        # Extract lead_data if nested (Dialer logic)
+                        # Dialer sends: {'campaign_id': '...', 'lead_data': {'name': 'Juan', ...}}
+                        ctx_vars = self.initial_context_data.get('lead_data', self.initial_context_data)
+                        final_prompt = final_prompt.format(**ctx_vars)
+                        logger.info(f"🧠 [PROMPT] Formatted with context: {ctx_vars.keys()}")
+                    except KeyError as k:
+                        logger.warning(f"⚠️ Prompt variable missing in context: {k}")
+                    except Exception as e:
+                        logger.error(f"⚠️ Prompt formatting failed: {e}")
+                
+                self.conversation_history.append({"role": "system", "content": final_prompt})
 
              # Trigger First Message?
             first_msg = getattr(self.config, 'first_message', None)
@@ -367,7 +392,7 @@ class VoiceOrchestrator:
         vad = VADProcessor(self.config)
         
         # 3. Aggregator
-        agg = ContextAggregator(self.config, self.conversation_history)
+        agg = ContextAggregator(self.config, self.conversation_history, llm_provider=self.llm_provider)
         
         # 4. LLM
         llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history)
