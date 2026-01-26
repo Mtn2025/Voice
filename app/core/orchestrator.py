@@ -26,7 +26,9 @@ from app.processors.logic.aggregator import ContextAggregator
 from app.processors.logic.llm import LLMProcessor
 from app.processors.logic.tts import TTSProcessor
 from app.processors.logic.metrics import MetricsProcessor
+from app.processors.logic.metrics import MetricsProcessor
 from app.processors.output.telnyx_sink import TelnyxSink
+from app.processors.logic.reporter import TranscriptReporter  # NEW
 
 logger = logging.getLogger(__name__)
 
@@ -252,7 +254,21 @@ class VoiceOrchestrator:
         """Routes listener for VAD stats (Legacy, but useful for metrics)."""
         # We can push this as metadata or MetricsFrame, or ignore if using Silero.
         # Let's ignore for now to keep it lightweight.
+        # Let's ignore for now to keep it lightweight.
         pass
+
+    async def _send_transcript(self, role: str, text: str):
+        """Callback for TranscriptReporter."""
+        if self.client_type == "browser":
+             try:
+                 msg = {
+                     "type": "transcript",
+                     "role": role,
+                     "text": text
+                 }
+                 await self.websocket.send_text(json.dumps(msg))
+             except Exception:
+                 pass
 
     # --- OUTPUT HANDLING (Transport) ---
 
@@ -367,7 +383,24 @@ class VoiceOrchestrator:
         # 7. Sink
         sink = TelnyxSink(self)
         
-        self.pipeline = Pipeline([stt, vad, agg, llm, tts, metrics, sink])
+        # --- 8. REPORTERS (For UI) ---
+        user_reporter = TranscriptReporter(callback=self._send_transcript, role_label="user")
+        bot_reporter = TranscriptReporter(callback=self._send_transcript, role_label="assistant")
+        
+        # PIPELINE ORDER:
+        # STT -> VAD -> UserReporter -> Aggregator -> LLM -> BotReporter -> TTS -> Metrics -> Sink
+        
+        # Wait, Aggregator might swallow TextFrame? No, Aggregator emits [TextFrame, UserStartedSpeakingFrame].
+        # If Aggregator emits TextFrame, then UserReporter should be AFTER Aggregator?
+        # Let's check Aggregator behavior (implied). Usually VAD emits AudioFrame. STT emits TextFrame.
+        # Aggregator combines partials.
+        # Actually STT emits TextFrame (Final).
+        # Let's put UserReporter AFTER Aggregator to capture "User Committed Speech".
+        # LLM consumes TextFrame. So Reporter must be BEFORE LLM for User.
+        
+        # For Bot: LLM emits TextFrame. TTS consumes TextFrame. So Reporter must be BEFORE TTS (After LLM).
+        
+        self.pipeline = Pipeline([stt, vad, user_reporter, agg, llm, bot_reporter, tts, metrics, sink])
 
     async def _audio_stream_loop(self):
         """Final Mile Transport Loop (20ms)"""
