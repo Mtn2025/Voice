@@ -19,14 +19,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Add vad_threshold columns to agent_configs."""
-    op.add_column('agent_configs', sa.Column('vad_threshold', sa.Float(), nullable=True, server_default='0.5'))
-    op.add_column('agent_configs', sa.Column('vad_threshold_phone', sa.Float(), nullable=True, server_default='0.5'))
-    op.add_column('agent_configs', sa.Column('vad_threshold_telnyx', sa.Float(), nullable=True, server_default='0.5'))
+    """Add vad_threshold columns to agent_configs safely."""
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS vad_threshold FLOAT DEFAULT 0.5")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS vad_threshold_phone FLOAT DEFAULT 0.5")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS vad_threshold_telnyx FLOAT DEFAULT 0.5")
 
 
 def downgrade() -> None:
     """Remove vad_threshold columns."""
-    op.drop_column('agent_configs', 'vad_threshold_telnyx')
-    op.drop_column('agent_configs', 'vad_threshold_phone')
-    op.drop_column('agent_configs', 'vad_threshold')
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS vad_threshold_telnyx")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS vad_threshold_phone")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS vad_threshold")

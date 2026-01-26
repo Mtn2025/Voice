@@ -19,31 +19,31 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Add missing CRM, Webhook, and Conversation Style columns."""
+    """Add missing CRM, Webhook, and Conversation Style columns safely."""
     # Conversation Style Controls
-    op.add_column('agent_configs', sa.Column('response_length', sa.String(), nullable=True, server_default='short'))
-    op.add_column('agent_configs', sa.Column('conversation_tone', sa.String(), nullable=True, server_default='warm'))
-    op.add_column('agent_configs', sa.Column('conversation_formality', sa.String(), nullable=True, server_default='semi_formal'))
-    op.add_column('agent_configs', sa.Column('conversation_pacing', sa.String(), nullable=True, server_default='moderate'))
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS response_length VARCHAR DEFAULT 'short'")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS conversation_tone VARCHAR DEFAULT 'warm'")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS conversation_formality VARCHAR DEFAULT 'semi_formal'")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS conversation_pacing VARCHAR DEFAULT 'moderate'")
 
     # CRM Integration
-    op.add_column('agent_configs', sa.Column('crm_enabled', sa.Boolean(), nullable=True, server_default='false'))
-    op.add_column('agent_configs', sa.Column('baserow_token', sa.String(), nullable=True))
-    op.add_column('agent_configs', sa.Column('baserow_table_id', sa.Integer(), nullable=True))
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS crm_enabled BOOLEAN DEFAULT false")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS baserow_token VARCHAR")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS baserow_table_id INTEGER")
 
     # Webhook Integration
-    op.add_column('agent_configs', sa.Column('webhook_url', sa.String(), nullable=True))
-    op.add_column('agent_configs', sa.Column('webhook_secret', sa.String(), nullable=True))
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS webhook_url VARCHAR")
+    op.execute("ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS webhook_secret VARCHAR")
 
 
 def downgrade() -> None:
     """Remove added columns."""
-    op.drop_column('agent_configs', 'webhook_secret')
-    op.drop_column('agent_configs', 'webhook_url')
-    op.drop_column('agent_configs', 'baserow_table_id')
-    op.drop_column('agent_configs', 'baserow_token')
-    op.drop_column('agent_configs', 'crm_enabled')
-    op.drop_column('agent_configs', 'conversation_pacing')
-    op.drop_column('agent_configs', 'conversation_formality')
-    op.drop_column('agent_configs', 'conversation_tone')
-    op.drop_column('agent_configs', 'response_length')
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS webhook_secret")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS webhook_url")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS baserow_table_id")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS baserow_token")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS crm_enabled")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS conversation_pacing")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS conversation_formality")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS conversation_tone")
+    op.execute("ALTER TABLE agent_configs DROP COLUMN IF EXISTS response_length")
