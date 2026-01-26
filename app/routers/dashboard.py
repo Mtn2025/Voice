@@ -9,12 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession  # NEW
 from pydantic import BaseModel
 from typing import Optional, Any
 
-from app.core.auth_simple import verify_api_key
+from app.core.auth_simple import verify_api_key, verify_dashboard_access
+from app.core.config import settings
 from app.core.input_sanitization import (
     register_template_filters,
 )
 from app.db.database import get_db  # NEW
 from app.services.db_service import db_service
+
+# ... (Imports remain)
+import secrets
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -27,7 +31,26 @@ limiter = Limiter(key_func=get_remote_address)
 template_filters = register_template_filters(None)
 templates.env.filters.update(template_filters)
 
-@router.get("/dashboard", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
+# --- LOGIN ROUTES ---
+@router.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    if request.session.get("authenticated"):
+        return RedirectResponse("/dashboard", status_code=302)
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@router.post("/login", response_class=HTMLResponse)
+async def login_submit(request: Request, api_key: str = Form(...)):
+    valid_key = getattr(settings, 'ADMIN_API_KEY', None)
+    
+    if valid_key and secrets.compare_digest(api_key, valid_key):
+        request.session["authenticated"] = True
+        logger.info(f"✅ User logged in via Dashboard Login from {request.client.host}")
+        return RedirectResponse("/dashboard", status_code=302)
+    
+    logger.warning(f"❌ Failed login attempt from {request.client.host}")
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Clave Incorrecta"})
+
+@router.get("/dashboard", response_class=HTMLResponse, dependencies=[Depends(verify_dashboard_access)])
 async def dashboard(
     request: Request,
     db: AsyncSession = Depends(get_db) # Injected Session
