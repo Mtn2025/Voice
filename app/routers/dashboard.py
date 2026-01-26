@@ -175,13 +175,16 @@ async def dashboard(
     # Serialize history manually as well
     history_list = [model_to_dict(call) for call in history]
 
+    import json
+    
+    # Serialize data for frontend injection
     response = templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "config": config_dict,
-        "voices": voices,
-        "voice_styles": voice_styles,
-        "languages": languages,
-        "llm_models": models,
+        "config_json": json.dumps(config_dict),
+        "voices_json": json.dumps(voices),
+        "styles_json": json.dumps(voice_styles),
+        "langs_json": json.dumps(languages),
+        "models_json": json.dumps(models),
         "history": history_list,
         "protocol": request.url.scheme,
         "host": request.url.netloc
