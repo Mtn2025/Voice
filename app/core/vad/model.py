@@ -11,6 +11,9 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Constants
+_MODEL_RESET_STATES_TIME = 5.0
+
 class SileroOnnxModel:
     """
     ONNX runtime wrapper for the Silero VAD model.
@@ -44,12 +47,8 @@ class SileroOnnxModel:
         if sr not in self.sample_rates:
             raise ValueError(f"Supported sampling rates: {self.sample_rates}")
             
-        # Check chunk duration (approx)
         if sr / np.shape(x)[1] > 31.25:
-            # This check is from original Silero repo, means chunk is < 32ms? 
-            # Actually sr/samples = Hz needed. 
-            # If sr=8000, samples=256 -> 8000/256 = 31.25 chunks/sec.
-            # If 8000/x > 31.25 implies x < 256. 
+            # Chunk too small logic from Pipecat
             raise ValueError("Input audio chunk is too short")
 
         return x, sr
@@ -61,9 +60,13 @@ class SileroOnnxModel:
         self._last_batch_size = 0
 
     def __call__(self, x, sr: int):
+        # Ensure input is float32
+        if x.dtype != np.float32:
+             x = x.astype(np.float32)
+
         x, sr = self._validate_input(x, sr)
         
-        # Silero V5 requires specific window sizes
+        # Silero V5 specific window sizes
         num_samples = 512 if sr == 16000 else 256
 
         if np.shape(x)[-1] != num_samples:
@@ -98,4 +101,4 @@ class SileroOnnxModel:
         self._last_sr = sr
         self._last_batch_size = batch_size
 
-        return out
+        return out[0][0] # Return float confidence
