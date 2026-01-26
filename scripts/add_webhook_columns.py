@@ -16,9 +16,14 @@ from sqlalchemy import text
 from app.db.database import AsyncSessionLocal
 
 async def patch():
+    # Debug: Print DB Host
+    from app.core.config import settings
+    db_url = settings.DATABASE_URL
+    safe_url = db_url.split("@")[-1] if "@" in db_url else "UNKNOWN"
+    print(f"🔌 [PATCH] Connecting to DB at {safe_url}")
+
     async with AsyncSessionLocal() as session:
         print("Patched DB: Adding Webhook columns...")
-        
         columns = [
             ("webhook_url", "VARCHAR"),
             ("webhook_secret", "VARCHAR")
@@ -29,10 +34,28 @@ async def patch():
                 await session.execute(text(f"ALTER TABLE agent_configs ADD COLUMN {col_name} {col_def}"))
                 print(f"✅ Added {col_name}")
             except Exception as e:
-                print(f"⚠️ Error adding {col_name} (likely exists): {e}")
+                if "already exists" in str(e) or "UndefinedColumn" not in str(e):
+                    print(f"⚠️ {col_name} might already exist or error: {e}")
+                else:
+                    print(f"❌ Critical Error adding {col_name}: {e}")
+                    raise e
         
         await session.commit()
-        print("✅ DB Patch Complete.")
+    
+    print("🔍 Verifying Schema...")
+    async with AsyncSessionLocal() as session:
+         try:
+             await session.execute(text("SELECT webhook_url FROM agent_configs LIMIT 1"))
+             print("✅ Verification Passed: webhook_url exists.")
+         except Exception as e:
+             print(f"❌ Verification FAILED: {e}")
+             sys.exit(1)
+
+    print("✅ DB Patch Complete.")
 
 if __name__ == "__main__":
-    asyncio.run(patch())
+    try:
+        asyncio.run(patch())
+    except Exception as e:
+        print(f"❌ Script Crashed: {e}")
+        sys.exit(1)

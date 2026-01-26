@@ -58,9 +58,9 @@ echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
 echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
 # Environment vars are injected by Coolify/Docker. Do not override locally. 
 
-python scripts/add_baserow_columns.py && echo "✅ Baserow Patch OK" || echo "❌ Baserow Patch FAILED"
-python scripts/add_webhook_columns.py && echo "✅ Webhook Patch OK" || echo "❌ Webhook Patch FAILED"
-python scripts/add_vad_columns.py && echo "✅ VAD Patch OK" || echo "❌ VAD Patch FAILED"
+python scripts/add_baserow_columns.py
+python scripts/add_webhook_columns.py
+python scripts/add_vad_columns.py
 
 # =============================================================================
 # 2.2 Verify/Download Models (Phase 1)
