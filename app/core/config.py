@@ -125,6 +125,14 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
+        # Priority: Env Var > Constructed
+        if os.getenv("DATABASE_URL"):
+            url = os.getenv("DATABASE_URL")
+            # Ensure asyncpg driver
+            if url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+asyncpg://")
+            return url
+            
         from urllib.parse import quote_plus
         return f"postgresql+asyncpg://{quote_plus(self.POSTGRES_USER)}:{quote_plus(self.POSTGRES_PASSWORD)}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
