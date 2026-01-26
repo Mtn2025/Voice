@@ -63,6 +63,12 @@ python scripts/add_webhook_columns.py
 python scripts/add_vad_columns.py
 
 # =============================================================================
+# 2.2 Compile CSS (Tailwind)
+# =============================================================================
+echo "🎨 Compiling Tailwind CSS..."
+npx tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --minify || echo "⚠️ Tailwind build failed, checking for cached CSS..."
+
+# =============================================================================
 # 2.2 Verify/Download Models (Phase 1)
 # =============================================================================
 echo "🧠 Verifying AI Models..."
