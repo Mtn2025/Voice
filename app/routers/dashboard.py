@@ -828,7 +828,7 @@ async def get_history_rows(request: Request, db: AsyncSession = Depends(get_db))
     row_template = """
     {% for call in history %}
     <tr class="border-b border-slate-800 hover:bg-slate-800/50"
-        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'simulator' }}'">
+        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'browser' }}'">
         <td class="px-4 py-2">
             <input type="checkbox" value="{{ call.id }}"
                 class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"

@@ -620,8 +620,8 @@
                             <button type="button" @click="activeHistoryFilter = 'all'"
                                 :class="{'bg-blue-600 text-white': activeHistoryFilter === 'all', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'all'}"
                                 class="px-3 py-1 rounded text-xs font-bold transition-all">Todos</button>
-                            <button type="button" @click="activeHistoryFilter = 'simulator'"
-                                :class="{'bg-blue-600 text-white': activeHistoryFilter === 'simulator', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'simulator'}"
+                            <button type="button" @click="activeHistoryFilter = 'browser'"
+                                :class="{'bg-blue-600 text-white': activeHistoryFilter === 'browser', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'browser'}"
                                 class="px-3 py-1 rounded text-xs font-bold transition-all">Simulador</button>
                             <button type="button" @click="activeHistoryFilter = 'twilio'"
                                 :class="{'bg-red-600 text-white': activeHistoryFilter === 'twilio', 'text-slate-400 hover:text-white': activeHistoryFilter !== 'twilio'}"
@@ -651,7 +651,7 @@
                                     hx-trigger="refreshHistory from:body">
                                     {% for call in history %}
                                     <tr class="border-b border-slate-800 hover:bg-slate-800/50"
-                                        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'simulator' }}'">
+                                        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'browser' }}'">
                                         <td class="px-4 py-2">
                                             <input type="checkbox" value="{{ call.id }}"
                                                 class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
