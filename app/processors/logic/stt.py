@@ -85,6 +85,23 @@ class STTProcessor(FrameProcessor):
         if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
             text = evt.text
             if text:
+                # --- AUDIT FIX: Filtering Logic ---
+                
+                # 1. Blacklist (Hallucinations)
+                blacklist_str = getattr(self.config, 'hallucination_blacklist', '') or ''
+                blacklist = [x.strip() for x in blacklist_str.split(',') if x.strip()]
+                if any(bad_phrase in text for bad_phrase in blacklist):
+                    logger.warning(f"🔇 [STT] Ignored (Blacklist): {text}")
+                    return
+
+                # 2. Min Characters (Interruption Threshold)
+                # Note: UI says 'interruptWords' but maps to 'input_min_characters' usually. 
+                # Let's use 'input_min_characters' from DB.
+                min_chars = getattr(self.config, 'input_min_characters', 2)
+                if len(text) < min_chars:
+                    logger.warning(f"🔇 [STT] Ignored (Too Short < {min_chars}): {text}")
+                    return
+
                 logger.info(f"🎤 [STT] Recognized: {text}")
                 asyncio.run_coroutine_threadsafe(
                     self.push_frame(TextFrame(text=text, is_final=True)), 
