@@ -890,8 +890,7 @@ async def delete_selected_calls(
     Delete specific calls (Bulk).
     """
     success = await db_service.delete_calls(db, payload.call_ids)
-    return {"status": "success" if success else "error"}        logger.error(f"Error fetching call details {call_id}: {e}")
-        return RedirectResponse("/dashboard?error=server_error")
+    return {"status": "success" if success else "error"}
 
 @router.get("/api/history/rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
 async def history_rows(request: Request, page: int = 1, limit: int = 20, db: AsyncSession = Depends(get_db)):
