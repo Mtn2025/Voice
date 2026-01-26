@@ -798,7 +798,99 @@ async def dashboard_call_detail(request: Request, call_id: int, db: AsyncSession
             "call": call
         })
     except Exception as e:
-        logger.error(f"Error fetching call details {call_id}: {e}")
+        logger.error(f"Error fetching call details: {e}")
+        return RedirectResponse("/dashboard?error=details_error")
+
+
+# =============================================================================
+# HISTORY API ENDPOINTS (Implementación Funcional)
+# =============================================================================
+
+@router.get("/api/history/rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
+async def get_history_rows(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    HTMX Endpoint: Returns just the <tr> rows for the history table.
+    """
+    history = await db_service.get_recent_calls(session=db, limit=20)
+    
+    # We render a partial template or use a macro. 
+    # For simplicity, we assume the dashboard.html loop logic is reusable 
+    # OR we return a fragment.
+    # Ideally, we should have 'partials/history_rows.html'.
+    # For now, we manually construct or reuse the full page? No, too heavy.
+    # Let's use a small inline template string or partial file.
+    # Given the constraint, I'll attempt to use a partial if it exists (step 1343 hinted 'partials/tab_history.html' might exist?)
+    # Wait, Step 1343 grep showed 'app/templates/partials/tab_history.html'.
+    # If that exists, we can render it? No, that's likely the full tab.
+    # We need just the rows.
+    
+    # Quick fix: Inline Jinja for rows.
+    row_template = """
+    {% for call in history %}
+    <tr class="border-b border-slate-800 hover:bg-slate-800/50"
+        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'simulator' }}'">
+        <td class="px-4 py-2">
+            <input type="checkbox" value="{{ call.id }}"
+                class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
+                onchange="updateDeleteButton()">
+        </td>
+        <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="px-4 py-2">
+            {% if call.client_type == 'telnyx' %}
+            <span class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
+            {% elif call.client_type == 'twilio' %}
+            <span class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
+            {% else %}
+            <span class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
+            {% endif %}
+        </td>
+        <td class="px-4 py-2 font-mono">
+            {% if call.end_time %}
+            {{ (call.end_time - call.start_time).seconds }}s
+            {% else %}
+            <span class="text-yellow-500 animate-pulse">En curso</span>
+            {% endif %}
+        </td>
+        <td class="px-4 py-2">
+            <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
+                class="text-blue-400 hover:underline">Ver</a>
+        </td>
+    </tr>
+    {% endfor %}
+    {% if not history %}
+    <tr>
+        <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">
+            No hay historial disponible.
+        </td>
+    </tr>
+    {% endif %}
+    """
+    from jinja2 import Template
+    t = Template(row_template)
+    content = t.render(history=history, request=request)
+    return HTMLResponse(content)
+
+@router.post("/api/history/clear", dependencies=[Depends(verify_api_key)])
+async def clear_history(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Clear entire history.
+    """
+    await db_service.clear_all_history(db)
+    return RedirectResponse("/dashboard?success=history_cleared", status_code=303)
+
+class DeleteCallsRequest(BaseModel):
+    call_ids: list[int]
+
+@router.post("/api/history/delete", dependencies=[Depends(verify_api_key)])
+async def delete_selected_calls(
+    payload: DeleteCallsRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Delete specific calls (Bulk).
+    """
+    success = await db_service.delete_calls(db, payload.call_ids)
+    return {"status": "success" if success else "error"}        logger.error(f"Error fetching call details {call_id}: {e}")
         return RedirectResponse("/dashboard?error=server_error")
 
 @router.get("/api/history/rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
