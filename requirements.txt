@@ -55,7 +55,7 @@ httpcore>=1.0.9  # Updated for h11 compatibility
 markupsafe~=2.1.5
 
 # State Management - NEW (Punto A9)
-redis[hiredis]~=5.0.1
+redis[hiredis]~=7.1.0
 
 # OpenAI (Azure) - NEW (Punto A1)
 openai>=1.0.0
