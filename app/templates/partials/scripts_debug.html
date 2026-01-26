@@ -1,0 +1,37 @@
+<!-- Debug Script to Populate Overlay -->
+<script>
+    setInterval(() => {
+        if (!window.Alpine) return;
+        // Access Alpine scope
+        const el = document.querySelector('[x-data]');
+        if (!el || !el.__x) return;
+        const scope = el.__x.$data;
+
+        if (!scope.serverConfig) return;
+
+        document.getElementById('dbg-profile').innerText = scope.activeProfile;
+
+        // Resolve what "Saved" means for current profile
+        let savedP = '', savedM = '';
+        const s = scope.serverConfig;
+        if (scope.activeProfile === 'browser') { savedP = s.llm_provider; savedM = s.llm_model; }
+        else if (scope.activeProfile === 'twilio') { savedP = s.llm_provider_phone; savedM = s.llm_model_phone; }
+        else if (scope.activeProfile === 'telnyx') { savedP = s.llm_provider_telnyx; savedM = s.llm_model_telnyx; }
+
+        document.getElementById('dbg-saved-prov').innerText = savedP;
+        document.getElementById('dbg-saved-model').innerText = savedM;
+
+        // Current state
+        const c = scope.configs[scope.activeProfile];
+        if (c) {
+            document.getElementById('dbg-curr-prov').innerText = c.provider;
+            document.getElementById('dbg-curr-model').innerText = c.model;
+
+            const match = (c.provider === savedP && c.model === savedM);
+            const span = document.getElementById('dbg-match');
+            span.innerText = match ? "OK" : "MISMATCH";
+            span.style.color = match ? "#0f0" : "#f00";
+        }
+
+    }, 1000);
+</script>

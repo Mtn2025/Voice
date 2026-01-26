@@ -1,0 +1,455 @@
+// SIMULATOR STATE
+simState: 'ready', // ready, connecting, connected
+ws: null,
+audioContext: null,
+mediaStream: null,
+processor: null,
+
+// Visualizer & Transcript State
+analyser: null,
+visualizerMode: 'wave', // wave, bars, orb
+animationId: null,
+transcripts: [],
+
+nextStartTime: 0,
+
+async startTest() {
+if (this.simState === 'connected' || this.simState === 'connecting') {
+this.stopTest();
+return;
+}
+
+this.transcripts = []; // Clear previous chat
+
+// 1. Initialize AudioContext at 16kHz (Standard Wideband)
+try {
+this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+if (this.audioContext.state === 'suspended') {
+await this.audioContext.resume();
+}
+
+// NEW: Setup Analyser
+this.analyser = this.audioContext.createAnalyser();
+this.analyser.fftSize = 2048; // Higher res for bars
+
+// Start Visualizer Loop
+this.drawVisualizer();
+
+console.log("AudioContext Initialized. SampleRate:", this.audioContext.sampleRate, "State:", this.audioContext.state);
+} catch (e) {
+console.error("Audio Context Init Failed", e);
+alert("Audio Error: " + e.message);
+return;
+}
+
+this.simState = 'connecting';
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
+
+try {
+this.ws = new WebSocket(wsUrl);
+
+this.ws.onopen = () => {
+console.log("WS Connected");
+this.simState = 'connected';
+this.initMicrophone(); // Logic split
+
+// Send Start Event - PCM 16kHz
+this.ws.send(JSON.stringify({
+event: 'start',
+start: {
+streamSid: 'browser-' + Date.now(),
+callSid: 'sim-' + Date.now(),
+media_format: { encoding: 'audio/pcm', sample_rate: 16000, channels: 1 }
+}
+}));
+};
+
+this.ws.onmessage = (event) => {
+const msg = JSON.parse(event.data);
+
+// 1. Handle Audio Media
+if (msg.event === 'media' || msg.type === 'audio') {
+const payload = msg.media ? msg.media.payload : msg.data;
+this.playAudio(payload);
+}
+
+// 2. Handle Configuration (Background Sound)
+else if (msg.type === 'config') {
+console.log("⚙️ [CONFIG] Received:", msg.config);
+if (msg.config.background_sound && msg.config.background_sound !== 'none') {
+this.playBackgroundSound(msg.config.background_sound);
+}
+}
+
+// 3. NEW: Handle Transcripts from Backend
+else if (msg.type === 'transcript') {
+console.log("📝 [TRANSCRIPT]", msg);
+this.transcripts.push({
+role: msg.role,
+text: msg.text,
+timestamp: new Date().toLocaleTimeString()
+});
+// Auto-scroll
+this.$nextTick(() => {
+const container = document.getElementById('transcript-container');
+if (container) container.scrollTop = container.scrollHeight;
+});
+}
+};
+
+// ... (rest of WS handlers) ...
+this.ws.onclose = () => { console.log("WS Closed"); this.stopTest(); };
+this.ws.onerror = (e) => { console.error("WS Error", e); this.stopTest(); };
+
+} catch (e) {
+console.error("Connection failed", e);
+this.stopTest();
+}
+},
+
+async initMicrophone() {
+try {
+// Ensure AudioContext exists (Fix for null error)
+if (!this.audioContext) {
+this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+}
+if (!this.analyser) {
+this.analyser = this.audioContext.createAnalyser();
+this.analyser.fftSize = 256;
+}
+if (this.audioContext.state === 'suspended') {
+await this.audioContext.resume();
+}
+
+const constraints = {
+audio: {
+echoCancellation: this.c.denoise,
+noiseSuppression: this.c.denoise,
+autoGainControl: true
+}
+};
+this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+
+// Connect Graph: Mic -> Analyser (Visuals) & Mic -> Processor (logic)
+source.connect(this.analyser);
+source.connect(this.processor);
+
+// Create Mute Gain to prevent feedback (Microphone -> Speakers)
+// ScriptProcessor needs downstream connection to fire 'onaudioprocess' in some browsers
+const muteGain = this.audioContext.createGain();
+muteGain.gain.value = 0;
+this.processor.connect(muteGain);
+muteGain.connect(this.audioContext.destination);
+
+this.processor.onaudioprocess = (e) => {
+if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+
+const inputData = e.inputBuffer.getChannelData(0); // Float32
+
+// Convert Float32 (-1.0 to 1.0) -> Int16 PCM
+// We need to send RAW BYTES (Int16, little-endian)
+const pcm16 = new Int16Array(inputData.length);
+for (let i = 0; i < inputData.length; i++) { let s=Math.max(-1, Math.min(1, inputData[i])); pcm16[i]=s < 0 ? s * 0x8000
+    : s * 0x7FFF; } // Convert Int16Array -> Byte String -> Base64
+    const bytes = new Uint8Array(pcm16.buffer);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) { binary +=String.fromCharCode(bytes[i]); } const base64Audio=window.btoa(binary);
+        this.ws.send(JSON.stringify({ event: 'media' , media: { payload: base64Audio, track: 'inbound' } })); }; } catch
+        (e) { console.error("Mic Access Failed", e); alert("Microphone Error: " + e.message);
+                        this.stopTest();
+                    }
+                },
+
+                stopTest() {
+                    this.simState = 'ready';
+                    if (this.ws) {
+                        this.ws.close();
+                        this.ws = null;
+                    }
+                    if (this.audioContext) {
+                        this.audioContext.close();
+                        this.audioContext = null;
+                    }
+                    if (this.mediaStream) {
+                        this.mediaStream.getTracks().forEach(t => t.stop());
+                        this.mediaStream = null;
+                    }
+                    if (this.bgAudio) {
+                        this.bgAudio.pause();
+                        this.bgAudio = null;
+                    }
+
+                    if (this.animationId) cancelAnimationFrame(this.animationId);
+
+                    // Clear Canvas
+                    const canvas = document.getElementById('visualizer');
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                },
+
+                playAudio(base64Data) {
+                    if (!base64Data) return;
+
+                    try {
+                        const binaryString = window.atob(base64Data);
+                        const len = binaryString.length;
+                        const bytes = new Uint8Array(len);
+                        for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
+
+                        const pcm16 = new Int16Array(bytes.buffer);
+                        const float32 = new Float32Array(pcm16.length);
+
+                        for (let i = 0; i < pcm16.length; i++) {
+                            float32[i] = pcm16[i] / 32768.0;
+                        }
+
+                        if (!this.audioContext) return;
+
+                        const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
+                        buffer.copyToChannel(float32, 0);
+
+                        const source = this.audioContext.createBufferSource();
+                        source.buffer = buffer;
+
+                        // PARALLEL ROUTING: 
+                        // 1. Hear it (Source -> Speakers)
+                        source.connect(this.audioContext.destination);
+
+                        // 2. See it (Source -> Analyser)
+                        // CRITICAL: Do NOT connect analyser to destination, as Mic also feeds into it!
+                        source.connect(this.analyser);
+
+                        const currentTime = this.audioContext.currentTime;
+                        if (!this.nextStartTime || this.nextStartTime < currentTime) {
+                            this.nextStartTime = currentTime;
+                        }
+                        source.start(this.nextStartTime);
+                        this.nextStartTime += buffer.duration;
+                    } catch (e) {
+                        console.error(" Playback Error", e); } }, bgAudio: null, // Store reference
+        playBackgroundSound(soundName) { // Stop existing if (this.bgAudio) { this.bgAudio.pause(); this.bgAudio=null; }
+        // Map name to file path (Simple mapping) // Assuming static files are at /static/sounds/ const volume=0.1; //
+        Low volume for background const path=`/static/sounds/${soundName}.wav`; console.log(`🎵 [BG-SOUND] Playing loop:
+        ${path}`); this.bgAudio=new Audio(path); this.bgAudio.loop=true; this.bgAudio.volume=volume; // Attempt to play
+        (user gesture usually required, but we are inside startTest so it might work) this.bgAudio.play().catch(e=>
+        console.warn("Background Audio Play failed (Autoplay policy?):", e));
+        },
+
+        drawVisualizer() {
+        const canvas = document.getElementById('visualizer');
+        if (!canvas || !this.analyser) return;
+
+        const ctx = canvas.getContext('2d');
+        // Resize handler (naive)
+        if (canvas.width !== canvas.offsetWidth) canvas.width = canvas.offsetWidth;
+        if (canvas.height !== canvas.offsetHeight) canvas.height = canvas.offsetHeight;
+
+        const bufferLength = this.analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+
+        const draw = () => {
+        this.animationId = requestAnimationFrame(draw);
+        if (!this.analyser) return;
+
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        // Mode Selection
+        if (this.visualizerMode === 'wave') {
+        this.analyser.getByteTimeDomainData(dataArray);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#34d399'; // Emerald-400
+        ctx.beginPath();
+        const sliceWidth = WIDTH * 1.0 / bufferLength;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) { const v=dataArray[i] / 128.0; const y=v * HEIGHT / 2; if (i===0)
+            ctx.moveTo(x, y); else ctx.lineTo(x, y); x +=sliceWidth; } ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke(); } else if (this.visualizerMode==='bars' ) { this.analyser.getByteFrequencyData(dataArray);
+            const barWidth=(WIDTH / bufferLength) * 2.5; let barHeight; let x=0; for (let i=0; i < bufferLength; i++) {
+            barHeight=dataArray[i] / 2; // Scale down // Gradient color const r=barHeight + 25 * (i / bufferLength);
+            const g=250 * (i / bufferLength); const b=50; ctx.fillStyle=`rgb(${r},${g},${b})`; ctx.fillRect(x, HEIGHT -
+            barHeight, barWidth, barHeight); x +=barWidth + 1; } } else if (this.visualizerMode==='orb' ) {
+            this.analyser.getByteFrequencyData(dataArray); // Average volume let sum=0; for (let i=0; i < bufferLength;
+            i++) sum +=dataArray[i]; let avg=sum / bufferLength; const centerX=WIDTH / 2; const centerY=HEIGHT / 2;
+            const radius=50 + (avg); // Pulse effect const gradient=ctx.createRadialGradient(centerX, centerY, radius *
+            0.2, centerX, centerY, radius); gradient.addColorStop(0, "rgba(52, 211, 153, 0.8)" ); // Inner Emerald
+            gradient.addColorStop(1, "rgba(5, 150, 105, 0)" ); // Outer Fade ctx.beginPath(); ctx.arc(centerX, centerY,
+            radius, 0, 2 * Math.PI); ctx.fillStyle=gradient; ctx.fill(); } }; draw(); }, async previewVoice() {
+            this.isPreviewLoading=true; try { const formData=new FormData(); formData.append('voice_name',
+            this.c.voiceId || 'es-MX-DaliaNeural' ); formData.append('voice_speed', this.c.voiceSpeed || 1.0);
+            formData.append('voice_pitch', this.c.voicePitch || 0); formData.append('voice_volume', this.c.voiceVolume
+            || 100); formData.append('voice_style', this.c.voiceStyle || '' ); formData.append('voice_style_degree',
+            this.c.voiceStyleDegree || 1.0); const urlParams=new URLSearchParams(window.location.search); const
+            apiKey=urlParams.get('api_key'); if (apiKey) formData.append('api_key', apiKey); console.log('🎤 Preview
+            request:', { voice: this.c.voiceId, speed: this.c.voiceSpeed, pitch: this.c.voicePitch, style:
+            this.c.voiceStyle }); const response=await fetch('/api/voice/preview', { method: 'POST' , body: formData });
+            if (!response.ok) { const error=await response.json(); throw new Error(error.error || 'Preview failed' ); }
+            const audioBlob=await response.blob(); const audioUrl=URL.createObjectURL(audioBlob); const audio=new
+            Audio(audioUrl); audio.onended=()=> {
+            URL.revokeObjectURL(audioUrl);
+            console.log('✅ Preview playback finished');
+            };
+
+            audio.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            alert('Error al reproducir audio');
+            };
+
+            await audio.play();
+            console.log('🔊 Playing preview...');
+            } catch (e) {
+            console.error('❌ Preview error:', e);
+            alert('Error al generar muestra: ' + e.message);
+            } finally {
+            this.isPreviewLoading = false;
+            }
+            },
+
+            async saveConfig() {
+            const form = document.getElementById('configForm');
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('api_key');
+
+            // Construct Payload
+            // Flattens the 'c' (current profile) back into the hidden inputs structure?
+            // actually, the hidden inputs are bound to :value="configs..."
+            // We need to send the ENTIRE state (all profiles) to match the Backend Schema expecting
+            "temperature_phone", etc.
+
+            // Better approach for JSON: Send the flattened key-value pairs that the backend expects.
+            // We can construct this by reading the form data (which has the hidden inputs with correct names)
+            const formData = new FormData(form);
+            const payload = {};
+            formData.forEach((value, key) => payload[key] = value);
+
+            try {
+            // CRITICAL: API Key must be in query params for FastAPI dependency
+            const url = apiKey
+            ? `/api/config/update-json?api_key=${encodeURIComponent(apiKey)}`
+            : '/api/config/update-json';
+
+            const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+            const data = await res.json();
+            this.showToast('Configuración Guardada', 'success');
+
+            // Check for Parsing Warnings (Phase 8)
+            if (data.warnings && data.warnings.length > 0) {
+            // Show separate toast or appended msg
+            setTimeout(() => {
+            this.showToast('Advertencia: ' + data.warnings.join(', '), 'error'); // Using 'error' style for visibility
+            }, 500);
+            }
+
+            // Update serverConfig local cache to match what we just saved
+            // To be safe, we might want to reload or update specific fields
+            } else {
+            this.showToast('Error al guardar', 'error');
+            }
+            } catch (e) {
+            console.error(e);
+            this.showToast('Error de conexión', 'error');
+            }
+            },
+
+            showToast(msg, type = 'info') {
+            // Simple toast implementation
+            const div = document.createElement('div');
+            div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg text-white text-sm z-50 ${type === 'error'
+            ? 'bg-red-600' : 'bg-green-600'}`;
+            div.innerText = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+            },
+
+            // CAMPAIGN MANAGEMENT
+            campaignName: '',
+            campaignFile: null,
+            isCampaignLoading: false,
+
+            async validateCSV(file) {
+            return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+            const text = e.target.result;
+            const firstLine = text.split('\n')[0];
+            const headers = firstLine.split(',').map(h => h.trim().toLowerCase());
+
+            const hasPhone = headers.includes('phone') || headers.includes('telefono') || headers.includes('tel');
+            const hasName = headers.includes('name') || headers.includes('nombre');
+
+            if (!hasPhone || !hasName) {
+            reject('El CSV debe tener columnas "phone" y "name"');
+            } else {
+            resolve(true);
+            }
+            };
+            reader.onerror = () => reject('Error al leer archivo');
+            reader.readAsText(file);
+            });
+            },
+
+            async handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+            await this.validateCSV(file);
+            this.campaignFile = file;
+            } catch (err) {
+            this.showToast(err, 'error');
+            event.target.value = ''; // Reset input
+            this.campaignFile = null;
+            }
+            },
+
+            async uploadCampaign() {
+            if (!this.campaignFile || !this.campaignName) {
+            this.showToast('Faltan datos de campaña', 'error');
+            return;
+            }
+
+            this.isCampaignLoading = true;
+            const formData = new FormData();
+            formData.append('name', this.campaignName);
+            formData.append('file', this.campaignFile);
+
+            // Add API Key
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('api_key');
+            const url = apiKey ? `/api/campaigns/start?api_key=${apiKey}` : '/api/campaigns/start';
+
+            try {
+            const res = await fetch(url, {
+            method: 'POST',
+            body: formData
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+            this.showToast(`Campaña iniciada! Leads: ${data.leads_count}`, 'success');
+            this.campaignName = '';
+            this.campaignFile = null;
+            } else {
+            this.showToast(data.detail || 'Error al iniciar campaña', 'error');
+            }
+            } catch (e) {
+            console.error(e);
+            this.showToast('Error de conexión', 'error');
+            } finally {
+            this.isCampaignLoading = false;
+            }
+            }

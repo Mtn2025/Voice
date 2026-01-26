@@ -1,94 +1,106 @@
-<div x-show="tab === 'advanced'" class="space-y-6" style="display: none;"
-    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95"
-    x-transition:enter-end="opacity-100 transform scale-100">
-
-    <!-- Header -->
-    <div class="glass-panel p-4 rounded-xl border border-white/10 relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <span class="text-6xl">⚙️</span>
+<!-- TAB START: AVANZADO -->
+<div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Duración
+                Máx (seg)</label>
+            <input type="number" x-model="c.maxDuration" class="glass-input w-full p-2.5 rounded-lg text-sm">
         </div>
-        <h3 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400 mb-1">
-            Control de Flujo Avanzado
-        </h3>
-        <p class="text-xs text-slate-400">
-            <span x-show="activeProfile === 'telnyx'">Configuración de telefonía y grabación para Telnyx.</span>
-            <span x-show="activeProfile !== 'telnyx'">Configuración de timeouts y reintentos para
-                Simulador/Twilio.</span>
-        </p>
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Max
+                Retries</label>
+            <input type="number" x-model="c.maxRetries" class="glass-input w-full p-2.5 rounded-lg text-sm">
+        </div>
     </div>
 
-    <!-- Main Settings -->
-    <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-5">
+    <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+            <span>Timeout Inactividad (seg)</span>
+            <span class="text-blue-400" x-text="c.idleTimeout"></span>
+        </label>
+        <input type="range" x-model="c.idleTimeout" min="5" max="60" step="1"
+            class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+    </div>
 
-        <!-- Timeouts Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <!-- Idle Timeout -->
-            <div class="space-y-1">
-                <div class="flex justify-between items-center">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Timeout
-                        Inactividad</label>
-                    <span class="text-purple-400 font-mono text-xs" x-text="currentIdleTimeout + ' s'"></span>
-                </div>
-                <input type="number" step="0.5" x-model="currentIdleTimeout"
-                    class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:border-purple-500 outline-none">
-                <p class="text-[10px] text-slate-500">Tiempo de silencio antes de preguntar si sigue ahí.</p>
-            </div>
+    <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje
+            Inactividad</label>
+        <input type="text" x-model="c.idleMessage" class="glass-input w-full p-2.5 rounded-lg text-sm">
+    </div>
 
-            <!-- Max Duration -->
-            <div class="space-y-1">
-                <div class="flex justify-between items-center">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Duración Máxima</label>
-                    <span class="text-purple-400 font-mono text-xs" x-text="currentMaxDuration + ' s'"></span>
-                </div>
-                <input type="number" x-model="currentMaxDuration"
-                    class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:border-purple-500 outline-none">
-                <p class="text-[10px] text-slate-500">Límite absoluto de la llamada (segundos).</p>
-            </div>
-        </div>
-
-        <!-- Messages -->
-        <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mensaje de
-                Inactividad</label>
-            <input type="text" x-model="currentIdleMessage" placeholder="¿Hola? ¿Sigue ahí?"
-                class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:border-purple-500 outline-none placeholder-slate-600 transition-all">
-        </div>
-
-        <!-- Legacy / Simulator Specific -->
-        <div x-show="activeProfile !== 'telnyx'" class="pt-4 border-t border-white/5">
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Intentos Máximos
-                    (Silencio)</label>
-                <input type="number" x-model="currentMaxRetries"
-                    class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 font-mono focus:border-purple-500 outline-none">
-                <p class="text-[10px] text-slate-500">Número de veces que preguntará antes de colgar (Simulador).</p>
-            </div>
-        </div>
-
-        <!-- Telnyx Specific Toggles -->
-        <div x-show="activeProfile === 'telnyx'"
-            class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">
-
-            <!-- Recording -->
-            <label
-                class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer hover:border-purple-500/50 transition-all">
-                <div>
-                    <span class="text-xs font-semibold text-slate-200 block">Grabar Llamada</span>
-                    <span class="text-[10px] text-slate-500">Grabación nativa Telnyx (S3)</span>
-                </div>
-                <input type="checkbox" x-model="currentEnableRecording" class="accent-purple-500 scale-110">
+    <div x-show="activeProfile === 'telnyx'" class="pt-4 border-t border-slate-700">
+        <h4 class="text-xs font-bold text-emerald-400 uppercase mb-3">Telnyx Only</h4>
+        <div class="space-y-3">
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" x-model="c.enableRecording"
+                    class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+                <span class="text-sm">Grabar Llamada</span>
             </label>
-
-            <!-- AMD Config -->
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">AMD
-                    (Contestadoras)</label>
-                <select x-model="currentAmdConfig"
-                    class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-2 py-2 text-xs text-slate-300 focus:border-purple-500 outline-none">
-                    <option value="disabled">Desactivado</option>
-                    <option value="detect">Detectar (Log)</option>
-                    <option value="detect_hangup">Colgar a Máquinas</option>
+            <div>
+                <label class="text-xs text-slate-400 block mb-1">AMD Config</label>
+                <select x-model="c.amdConfig" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                    <option value="disabled">Disabled</option>
+                    <option value="premium">Premium</option>
                 </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRM INTEGRATION -->
+    <div class="pt-4 border-t border-slate-700 mt-4">
+        <h4 class="text-xs font-bold text-orange-400 uppercase mb-3 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                </path>
+            </svg>
+            CRM Integration (Baserow)
+        </h4>
+        <div class="space-y-3">
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" x-model="configs.browser.crm_enabled"
+                    class="form-checkbox bg-slate-800 border-slate-600 text-orange-500 rounded">
+                <span class="text-sm font-medium text-slate-300">Habilitar Integración CRM</span>
+            </label>
+            <div x-show="configs.browser.crm_enabled" class="space-y-3 animate-fade-in-up">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Baserow API Token</label>
+                    <input type="password" x-model="configs.browser.baserow_token"
+                        class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                        placeholder="Token...">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Table ID</label>
+                    <input type="number" x-model="configs.browser.baserow_table_id"
+                        class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                        placeholder="Table ID (e.g. 4521)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEBHOOK INTEGRATION (Phase 9) -->
+    <div class="pt-4 border-t border-slate-700 mt-4">
+        <h4 class="text-xs font-bold text-indigo-400 uppercase mb-3 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z">
+                </path>
+            </svg>
+            Webhook Integration (n8n/Make)
+        </h4>
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs text-slate-400 block mb-1">Webhook URL (End-of-Call)</label>
+                <input type="text" x-model="configs.browser.webhook_url"
+                    class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                    placeholder="https://webhook.site/...">
+                <p class="text-[10px] text-slate-500 mt-1">Se enviará un reporte JSON al finalizar cada llamada.</p>
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 block mb-1">Webhook Secret (Opcional)</label>
+                <input type="password" x-model="configs.browser.webhook_secret"
+                    class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                    placeholder="Secret Key...">
             </div>
         </div>
     </div>

@@ -1,142 +1,106 @@
-<div x-show="tab === 'transcriber'" class="space-y-6" style="display: none;"
-    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95"
-    x-transition:enter-end="opacity-100 transform scale-100">
-
-    <!-- Header -->
-    <div class="glass-panel p-4 rounded-xl border border-white/10 relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <span class="text-6xl">📝</span>
+<!-- TAB START: TRANSCRIPTOR -->
+<div x-show="activeTab === 'transcriptor'" class="space-y-5 animate-fade-in-up">
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                STT</label>
+            <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                <template x-for="p in ['azure']">
+                    <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
+                </template>
+            </select>
         </div>
-        <h3 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-1">
-            Transcripción (STT)
-        </h3>
-        <p class="text-xs text-slate-400"
-            x-text="activeProfile === 'telnyx' ? 'Configuración avanzada para telefonía Telnyx.' : 'Configuración para Simulador y Twilio.'">
-        </p>
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
+            <select x-model="c.sttLang" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                <template x-for="l in availableLanguages">
+                    <option :value="l.id" x-text="l.name"></option>
+                </template>
+            </select>
+        </div>
     </div>
 
-    <!-- Main Configuration Area -->
-    <div class="space-y-6">
+    <div class="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">Control
+            de Interrupciones</label>
 
-        <!-- 1. Provider & Language -->
-        <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Provider -->
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Proveedor STT</label>
-                    <div class="relative">
-                        <select x-model="currentSttProvider"
-                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all appearance-none cursor-pointer hover:bg-slate-800">
-                            <option value="azure">Azure Speech</option>
-                            <option value="deepgram">Deepgram</option>
-                        </select>
-                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                            <span>☁️</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Language -->
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Idioma</label>
-                    <div class="relative">
-                        <select x-model="currentSttLang"
-                            class="w-full bg-slate-800/50 border border-slate-600 rounded-lg pl-9 pr-4 py-2.5 text-sm text-slate-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all appearance-none cursor-pointer hover:bg-slate-800">
-                            <option value="es-MX">Español (México)</option>
-                            <option value="es-ES">Español (España)</option>
-                            <option value="es-US">Español (USA)</option>
-                            <option value="en-US">Inglés (USA)</option>
-                        </select>
-                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                            <span>🌍</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm">Umbral de Palabras</span>
+                <span class="text-blue-400 font-mono" x-text="c.interruptWords"></span>
             </div>
+            <input type="range" x-model="c.interruptWords" min="0" max="10" step="1"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            <p class="text-[10px] text-slate-500 mt-1">Palabras requeridas para detener al bot.</p>
         </div>
 
-        <!-- 2. Thresholds -->
-        <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-5">
-            <h4 class="text-xs font-bold text-slate-500 uppercase border-b border-slate-700/50 pb-2">Sensibilidad</h4>
-
-            <!-- RMS (Telnyx Only) -->
-            <div class="space-y-1" x-show="activeProfile === 'telnyx'" x-transition>
-                <div class="flex justify-between items-center">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Umbral RMS</label>
-                    <span class="text-emerald-400 font-mono text-xs" x-text="currentInterruptRMS"></span>
-                </div>
-                <input type="range" min="100" max="8000" step="100" x-model="currentInterruptRMS"
-                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all">
-                <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                    <span>100 (Sensible)</span>
-                    <span>8000 (Sordo)</span>
-                </div>
+        <div x-show="activeProfile === 'telnyx'">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm">Sensibilidad (RMS)</span>
+                <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
             </div>
+            <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            <p class="text-[10px] text-slate-500 mt-1">Nivel de audio para detectar voz humana.</p>
+        </div>
+    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Interruption Words -->
-                <div class="space-y-1">
-                    <div class="flex justify-between items-center">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Palabras
-                            Interrupción</label>
-                        <span class="text-emerald-400 font-mono text-xs"
-                            x-text="currentInterruptWords + ' words'"></span>
-                    </div>
-                    <input type="range" min="0" max="10" step="1" x-model="currentInterruptWords"
-                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 transition-all">
-                </div>
+    <!-- Removed Redundant Silence Slider (Managed by Velocidad de Interacción) -->
 
-                <!-- Silence Timeout -->
-                <div class="space-y-1">
-                    <div class="flex justify-between items-center">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fin de Turno
-                            (Silencio)</label>
-                        <span class="text-blue-400 font-mono text-xs" x-text="currentSilence + ' ms'"></span>
-                    </div>
-                    <input type="range" min="500" max="5000" step="100" x-model="currentSilence"
-                        class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all">
-                </div>
+    <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
+            Alucinaciones</label>
+        <input type="text" x-model="c.blacklist" class="glass-input w-full p-2.5 rounded-lg text-sm">
+    </div>
+
+    <div class="flex items-center space-x-4 pt-2">
+        <!-- Removed Denoising Toggle (Azure Default is Always On) -->
+        <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
+            <input type="checkbox" x-model="c.krisp"
+                class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+            <span class="text-sm">Krisp AI</span>
+        </label>
+        <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
+            <input type="checkbox" x-model="c.vad"
+                class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+            <span class="text-sm">VAD</span>
+        </label>
+    </div>
+
+    <!-- Control de Interrupción y VAD (NUEVO) -->
+    <div class="space-y-4 mt-6 pt-6 border-t border-slate-700">
+        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">
+            🧠 Inteligencia de Voz (VAD)
+        </h3>
+
+        <!-- Smart Interruption Toggle -->
+        <div class="flex items-center justify-between">
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Interrupción
+                    Inteligente</label>
+                <p class="text-[10px] text-slate-500">Usa IA para evitar cortes cuando el usuario duda.</p>
             </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" :checked="c.segmentation_strategy === 'semantic'"
+                    @change="c.segmentation_strategy = $event.target.checked ? 'semantic' : 'default'">
+                <div
+                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600">
+                </div>
+            </label>
         </div>
 
-        <!-- 3. Advanced Filtering -->
-        <div class="glass-panel p-5 rounded-xl border border-white/5 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Blacklist -->
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Lista Negra
-                        (Alucinaciones)</label>
-                    <textarea x-model="currentBlacklist" rows="2"
-                        class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono focus:border-emerald-500 outline-none placeholder-slate-600"
-                        placeholder="Pero, Y..., Mm..."></textarea>
-                </div>
-                <!-- Min Chars (Telnyx) -->
-                <div x-show="activeProfile === 'telnyx'">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Min
-                        Caracteres</label>
-                    <input type="number" x-model="currentInputMin"
-                        class="w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2 text-xs text-slate-300 font-mono focus:border-emerald-500 outline-none">
-                </div>
-            </div>
-
-            <!-- Toggles -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-white/5">
-                <label
-                    class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer hover:border-blue-500/50">
-                    <span class="text-xs font-semibold text-slate-300">Software Denoise</span>
-                    <input type="checkbox" x-model="currentDenoise" class="accent-blue-500 scale-110">
-                </label>
-
-                <label x-show="activeProfile === 'telnyx'"
-                    class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-emerald-900/30 cursor-pointer hover:border-emerald-500/50">
-                    <span class="text-xs font-semibold text-emerald-300">Krisp (Nativo)</span>
-                    <input type="checkbox" x-model="currentKrisp" class="accent-emerald-500 scale-110">
-                </label>
-
-                <label x-show="activeProfile === 'telnyx'"
-                    class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-emerald-900/30 cursor-pointer hover:border-emerald-500/50">
-                    <span class="text-xs font-semibold text-emerald-300">VAD (Nativo)</span>
-                    <input type="checkbox" x-model="currentVad" class="accent-emerald-500 scale-110">
-                </label>
+        <!-- VAD Threshold Slider -->
+        <div>
+            <label
+                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                <span>Sensibilidad VAD (Silero)</span>
+                <span class="text-blue-400 font-mono" x-text="c.vad_threshold || 0.5"></span>
+            </label>
+            <input type="range" x-model.number="c.vad_threshold" min="0.1" max="0.9" step="0.05"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                <span>0.1 (Muy Sensible)</span>
+                <span>0.9 (Estricto)</span>
             </div>
         </div>
     </div>
