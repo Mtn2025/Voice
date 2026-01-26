@@ -26,13 +26,16 @@ class VADProcessor(FrameProcessor):
         
         # Configurable Parameters
         self.threshold = 0.5
-        self.silence_duration_frames = 10 # Approx 200ms-300ms depending on chunk size
-        
-        # Initialize Analyzer (Lazy load or here?)
-        # Better here to fail fast if model missing
-        # Determine Sample Rate based on client context
+        # Determine Sample Rate and Timeout based on config (Ritmo/Pacing)
         client_type = getattr(self.config, 'client_type', 'twilio')
         target_sr = 16000 if client_type == 'browser' else 8000
+        
+        # Calculate Frames for Timeout (Chunk duration is ~32ms for Silero standard chunks)
+        # 512 samples @ 16k = 32ms. 256 samples @ 8k = 32ms.
+        chunk_duration_ms = 32
+        timeout_ms = getattr(self.config, 'silence_timeout_ms', 500)
+        self.silence_duration_frames = int(timeout_ms / chunk_duration_ms)
+        if self.silence_duration_frames < 1: self.silence_duration_frames = 1
 
         try:
             self.vad_analyzer = SileroVADAnalyzer(sample_rate=target_sr)

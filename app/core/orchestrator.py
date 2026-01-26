@@ -261,9 +261,15 @@ class VoiceOrchestrator:
         Called by TelnyxSink (Pipeline Output).
         Queues audio for transmission.
         """
-        # Indicate Speaking State
-        self.is_bot_speaking = True
-        
+        # Indicate Speaking State & Apply Pacing Latency
+        if not self.is_bot_speaking:
+            self.is_bot_speaking = True
+            
+            # Apply Artificial Pacing Delay (Latency)
+            pacing_ms = getattr(self.config, 'voice_pacing_ms', 0)
+            if pacing_ms > 0:
+                await asyncio.sleep(pacing_ms / 1000.0)
+
         if self.client_type == "browser":
              # Direct Send
              b64 = base64.b64encode(audio_data).decode("utf-8")
@@ -304,7 +310,22 @@ class VoiceOrchestrator:
 
     async def _load_config(self):
          async with AsyncSessionLocal() as session:
+         async with AsyncSessionLocal() as session:
              self.config = await db_service.get_agent_config(session)
+             
+             # --- APPLY DYNAMIC PACING (Punto 2 Audit) ---
+             # Map 'conversation_pacing' enum -> Actual millisecond values
+             pacing = getattr(self.config, 'conversation_pacing', 'moderate')
+             
+             if pacing == 'fast':
+                 self.config.voice_pacing_ms = 0      # Instant response
+                 self.config.silence_timeout_ms = 400 # Quick turn-taking
+             elif pacing == 'moderate':
+                 self.config.voice_pacing_ms = 200    # Natural pause
+                 self.config.silence_timeout_ms = 800 # Standard
+             elif pacing == 'relaxed':
+                 self.config.voice_pacing_ms = 600    # Thoughtful pause
+                 self.config.silence_timeout_ms = 1500 # Patient listener
 
     def _init_providers(self):
         self.llm_provider = ServiceFactory.get_llm_provider(self.config)
