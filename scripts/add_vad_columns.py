@@ -5,10 +5,11 @@ import os
 
 # Fix path
 sys.path.append(os.getcwd())
-# Bypass Pydantic validation for script
-os.environ["POSTGRES_USER"] = "postgres_secure_user"
-if not os.environ.get("POSTGRES_SERVER"):
-    os.environ["POSTGRES_SERVER"] = "localhost"
+# Fix path
+sys.path.append(os.getcwd())
+
+# Do not override Env Vars here. 
+# Let app.core.config load them from .env or System Env (Coolify)
 
 from sqlalchemy import text
 from app.db.database import AsyncSessionLocal

@@ -55,8 +55,8 @@ alembic upgrade head || {
 # 2.1 Run Manual Patches (Fases 7, 8, 9) - TEMPORARY FIX
 # =============================================================================
 echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
-# Force connection to container DB (Environment vars are injected by Coolify)
-export POSTGRES_SERVER=${POSTGRES_SERVER:-db} 
+echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
+# Environment vars are injected by Coolify/Docker. Do not override locally. 
 
 python scripts/add_baserow_columns.py || echo "⚠️ Baserow patch skipped"
 python scripts/add_webhook_columns.py || echo "⚠️ Webhook patch skipped"
