@@ -52,6 +52,23 @@ alembic upgrade head || {
 }
 
 # =============================================================================
+# 2.1 Run Manual Patches (Fases 7, 8, 9) - TEMPORARY FIX
+# =============================================================================
+echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
+# Force connection to container DB (Environment vars are injected by Coolify)
+export POSTGRES_SERVER=${POSTGRES_SERVER:-db} 
+
+python scripts/add_baserow_columns.py || echo "⚠️ Baserow patch skipped"
+python scripts/add_webhook_columns.py || echo "⚠️ Webhook patch skipped"
+python scripts/add_vad_columns.py || echo "⚠️ VAD patch skipped"
+
+# =============================================================================
+# 2.2 Verify/Download Models (Phase 1)
+# =============================================================================
+echo "🧠 Verifying AI Models..."
+python scripts/download_model.py || echo "⚠️ Model download failed"
+
+# =============================================================================
 # 3. Start Application
 # =============================================================================
 echo "✅ Starting FastAPI application..."

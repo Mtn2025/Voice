@@ -8,7 +8,8 @@ sys.path.append(os.getcwd())
 
 # Bypass Pydantic validation for script
 os.environ["POSTGRES_USER"] = "postgres_secure_user"
-os.environ["POSTGRES_SERVER"] = "localhost" # Fix for local execution
+if not os.environ.get("POSTGRES_SERVER"):
+    os.environ["POSTGRES_SERVER"] = "localhost" # Fallback for local
 
 from sqlalchemy import text
 from app.db.database import AsyncSessionLocal
