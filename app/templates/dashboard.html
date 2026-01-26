@@ -710,49 +710,51 @@
                 </h4>
                 <div class="space-y-3">
                     <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" x-model="c.crm_enabled"
+                        <input type="checkbox" x-model="configs.browser.crm_enabled"
                             class="form-checkbox bg-slate-800 border-slate-600 text-orange-500 rounded">
                         <span class="text-sm font-medium text-slate-300">Habilitar Integración CRM</span>
                     </label>
-                    <div x-show="c.crm_enabled" class="space-y-3 animate-fade-in-up">
+                    <div x-show="configs.browser.crm_enabled" class="space-y-3 animate-fade-in-up">
                         <div>
                             <label class="text-xs text-slate-400 block mb-1">Baserow API Token</label>
-                            <input type="password" x-model="c.baserow_token"
+                            <input type="password" x-model="configs.browser.baserow_token"
                                 class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
                                 placeholder="Token...">
                         </div>
                         <div>
                             <label class="text-xs text-slate-400 block mb-1">Table ID</label>
-                            <input type="number" x-model="c.baserow_table_id"
+                            <input type="number" x-model="configs.browser.baserow_table_id"
                                 class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
                                 placeholder="Table ID (e.g. 4521)">
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- WEBHOOK INTEGRATION (Phase 9) -->
-        <div class="pt-4 border-t border-slate-700 mt-4">
-            <h4 class="text-xs font-bold text-indigo-400 uppercase mb-3 flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-                Webhook Integration (n8n/Make)
-            </h4>
-            <div class="space-y-3">
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Webhook URL (End-of-Call)</label>
-                    <input type="text" x-model="c.webhook_url"
-                        class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
-                        placeholder="https://webhook.site/...">
-                    <p class="text-[10px] text-slate-500 mt-1">Se enviará un reporte JSON al finalizar cada llamada.</p>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Webhook Secret (Opcional)</label>
-                    <input type="password" x-model="c.webhook_secret"
-                        class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
-                        placeholder="Secret Key...">
+
+            <!-- WEBHOOK INTEGRATION (Phase 9) -->
+            <div class="pt-4 border-t border-slate-700 mt-4">
+                <h4 class="text-xs font-bold text-indigo-400 uppercase mb-3 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Webhook Integration (n8n/Make)
+                </h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Webhook URL (End-of-Call)</label>
+                        <input type="text" x-model="configs.browser.webhook_url"
+                            class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                            placeholder="https://webhook.site/...">
+                        <p class="text-[10px] text-slate-500 mt-1">Se enviará un reporte JSON al finalizar cada llamada.
+                        </p>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Webhook Secret (Opcional)</label>
+                        <input type="password" x-model="configs.browser.webhook_secret"
+                            class="glass-input w-full p-2.5 rounded-lg text-sm bg-slate-900 border-slate-700 placeholder-slate-600"
+                            placeholder="Secret Key...">
+                    </div>
                 </div>
             </div>
         </div>
@@ -1045,6 +1047,13 @@
         <input type="hidden" name="conversation_tone_telnyx" :value="configs.telnyx.conversationTone">
         <input type="hidden" name="conversation_formality_telnyx" :value="configs.telnyx.conversationFormality">
         <input type="hidden" name="conversation_pacing_telnyx" :value="configs.telnyx.conversationPacing">
+
+        <!-- GLOBAL FIELDS (CRM & Webhook) -->
+        <input type="hidden" name="crm_enabled" :value="configs.browser.crm_enabled">
+        <input type="hidden" name="baserow_token" :value="configs.browser.baserow_token">
+        <input type="hidden" name="baserow_table_id" :value="configs.browser.baserow_table_id">
+        <input type="hidden" name="webhook_url" :value="configs.browser.webhook_url">
+        <input type="hidden" name="webhook_secret" :value="configs.browser.webhook_secret">
     </div>
 
     <!-- FOOTER ACTIONS -->
@@ -1295,7 +1304,14 @@
                         idleMessage: s.idle_message || '',
                         maxRetries: s.inactivity_max_retries || 3,
                         denoise: s.enable_denoising || false,
-                        extractionModel: s.extraction_model || 'llama-3.1-8b-instant'
+                        extractionModel: s.extraction_model || 'llama-3.1-8b-instant',
+
+                        // CRM & Webhook (Global but editing in browser profile for convenience)
+                        crm_enabled: s.crm_enabled || false,
+                        baserow_token: s.baserow_token || '',
+                        baserow_table_id: s.baserow_table_id || '',
+                        webhook_url: s.webhook_url || '',
+                        webhook_secret: s.webhook_secret || ''
                     };
                 },
 
@@ -1327,7 +1343,15 @@
                         silence: s.silence_timeout_ms_phone || 5000,
                         inputMin: s.input_min_characters_phone || 0,
                         blacklist: s.hallucination_blacklist_phone || '',
-                        denoise: s.enable_denoising_phone || false
+                        blacklist: s.hallucination_blacklist_phone || '',
+                        denoise: s.enable_denoising_phone || false,
+
+                        // Aliases for global fields to prevent UI errors if user switches tab
+                        crm_enabled: s.crm_enabled || false,
+                        baserow_token: s.baserow_token || '',
+                        baserow_table_id: s.baserow_table_id || '',
+                        webhook_url: s.webhook_url || '',
+                        webhook_secret: s.webhook_secret || ''
                     };
                 },
 
@@ -1369,7 +1393,15 @@
                         maxDuration: s.max_duration_telnyx || 600,
                         idleMessage: s.idle_message_telnyx || '',
                         enableRecording: s.enable_recording_telnyx || false,
-                        amdConfig: s.amd_config_telnyx || 'disabled'
+                        enableRecording: s.enable_recording_telnyx || false,
+                        amdConfig: s.amd_config_telnyx || 'disabled',
+
+                        // Aliases for global fields
+                        crm_enabled: s.crm_enabled || false,
+                        baserow_token: s.baserow_token || '',
+                        baserow_table_id: s.baserow_table_id || '',
+                        webhook_url: s.webhook_url || '',
+                        webhook_secret: s.webhook_secret || ''
                     };
                 },
 
