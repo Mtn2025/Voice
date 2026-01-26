@@ -2,7 +2,11 @@ import urllib.request
 import os
 
 url = 'https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx'
-target = 'app/assets/silero_vad.onnx'
+# Match path expected by app/processors/logic/vad.py
+target = 'app/core/vad/data/silero_vad.onnx'
+
+# Ensure directory exists
+os.makedirs(os.path.dirname(target), exist_ok=True)
 
 print(f"Downloading {url} to {target}...")
 
