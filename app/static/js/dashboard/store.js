@@ -126,6 +126,7 @@ export function dashboardStore() {
                 silence: s.silence_timeout_ms || 5000,
                 blacklist: s.hallucination_blacklist || '',
                 enableEndCall: s.enable_end_call,
+                segmentationStrategy: s.segmentation_strategy || 'default',
                 enableDialKeypad: s.enable_dial_keypad,
                 dialKeypad: s.enable_dial_keypad,
                 transferNum: s.transfer_phone_number,
