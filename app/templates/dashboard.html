@@ -129,7 +129,7 @@
                         <button @click="activeTab = tab.id" x-show="shouldShowTab(tab.label)"
                             :class="{'bg-blue-600 text-white shadow-lg shadow-blue-900/20': activeTab === tab.id, 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50': activeTab !== tab.id}"
                             class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 relative group-hover:scale-105">
-                            <svg class="w-5 h-5 pointer-events-none">
+                            <svg class="w-5 h-5 pointer-events-none" style="width: 20px; height: 20px;">
                                 <use :href="'#icon-' + tab.icon"></use>
                             </svg>
                         </button>
