@@ -170,9 +170,39 @@
             </div>
         </nav>
 
-        <!-- CONFIGURATION PANEL (Fixed Width) -->
-        <aside
-            class="w-[420px] flex-none flex flex-col bg-[#0F172A]/90 backdrop-blur-md border-r border-[#1E293B] z-20 relative transition-transform duration-300 ease-in-out">
+        <!-- CONFIGURATION PANEL (Resizable) -->
+        <aside x-data="{ 
+                sidebarWidth: localStorage.getItem('sidebarWidth') || 480,
+                resizing: false,
+                startResize(e) {
+                    this.resizing = true;
+                    document.body.style.cursor = 'col-resize';
+                    document.body.style.userSelect = 'none';
+                },
+                doResize(e) {
+                    if (!this.resizing) return;
+                    // 64px is the Nav Rail width
+                    let newWidth = e.clientX - 64; 
+                    // Constraints
+                    if (newWidth < 320) newWidth = 320;
+                    if (newWidth > 800) newWidth = 800;
+                    this.sidebarWidth = newWidth;
+                },
+                stopResize() {
+                    if (this.resizing) {
+                        this.resizing = false;
+                        localStorage.setItem('sidebarWidth', this.sidebarWidth);
+                        document.body.style.cursor = '';
+                        document.body.style.userSelect = '';
+                    }
+                }
+            }" @mousemove.window="doResize($event)" @mouseup.window="stopResize()" :style="`width: ${sidebarWidth}px`"
+            class="flex-none flex flex-col bg-[#0F172A]/90 backdrop-blur-md border-r border-[#1E293B] z-20 relative shadow-2xl shrink-0">
+
+            <!-- RESIZE HANDLE -->
+            <div class="absolute top-0 right-0 w-1.5 h-full cursor-col-resize hover:bg-blue-500/50 z-[100] transition-colors"
+                @mousedown="startResize">
+            </div>
 
             <!-- HEADER: Profile Selector -->
             <div
@@ -182,17 +212,24 @@
                 <!-- Profile Switcher Pill -->
                 <div class="flex bg-[#1E293B] rounded-lg p-1 border border-slate-700/50">
                     <template x-for="p in [
-                        {id:'browser', icon:'browser'}, 
-                        {id:'twilio', icon:'smartphone'}, 
-                        {id:'telnyx', icon:'radio'}
+                        {id:'browser', icon:'browser', label: 'Simulador Web'}, 
+                        {id:'twilio', icon:'smartphone', label: 'Telefonía Twilio'}, 
+                        {id:'telnyx', icon:'radio', label: 'Telefonía Telnyx'}
                      ]">
-                        <button @click="activeProfile = p.id"
-                            :class="{'bg-[#334155] text-white shadow-sm ring-1 ring-white/10': activeProfile === p.id, 'text-slate-400 hover:text-slate-200': activeProfile !== p.id}"
-                            class="w-8 h-8 rounded-md flex items-center justify-center transition-all relative group">
-                            <svg class="w-4 h-4" style="width: 16px; height: 16px;">
-                                <use :href="'#icon-' + p.icon"></use>
-                            </svg>
-                        </button>
+                        <div class="relative group">
+                            <button @click="activeProfile = p.id"
+                                :class="{'bg-[#334155] text-white shadow-sm ring-1 ring-white/10': activeProfile === p.id, 'text-slate-400 hover:text-slate-200': activeProfile !== p.id}"
+                                class="w-8 h-8 rounded-md flex items-center justify-center transition-all relative">
+                                <svg class="w-4 h-4" style="width: 16px; height: 16px;">
+                                    <use :href="'#icon-' + p.icon"></use>
+                                </svg>
+                            </button>
+                            <!-- Tooltip -->
+                            <div
+                                class="absolute top-full right-0 mt-2 w-max bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-700 z-50 shadow-lg font-medium">
+                                <span x-text="p.label"></span>
+                            </div>
+                        </div>
                     </template>
                 </div>
             </div>
