@@ -42,14 +42,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Note: In production, move inline scripts to separate files and use nonces
         csp_directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com",  # Allows Tailwind & Alpine
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com blob:",  # Added blob: for workers
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data:",
-            "connect-src 'self' wss: ws:",  # WebSocket connections
-            "frame-ancestors 'none'",  # Same as X-Frame-Options DENY
+            "img-src 'self' data: blob:",
+            "connect-src 'self' wss: ws: https: http:",  # Allow API connections
+            "media-src 'self' blob: https:", # For audio playback
+            "worker-src 'self' blob:", # For Audio Worklets
+            "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
+            "upgrade-insecure-requests", # Fix for HTTP/HTTPS mixed content behind proxy
         ]
         response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
