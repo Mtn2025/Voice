@@ -63,10 +63,10 @@ python scripts/add_webhook_columns.py
 python scripts/add_vad_columns.py
 
 # =============================================================================
-# 2.2 Compile CSS (Tailwind)
+# 2.2 Compile CSS (Vite + Tailwind)
 # =============================================================================
-echo "🎨 Compiling Tailwind CSS..."
-npx tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --minify || echo "⚠️ Tailwind build failed, checking for cached CSS..."
+echo "🎨 Compiling Tailwind CSS via Vite..."
+npm run build || echo "⚠️ CSS Build failed"
 
 # =============================================================================
 # 2.2 Verify/Download Models (Phase 1)
