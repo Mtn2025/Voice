@@ -7,7 +7,23 @@
     <title>Panel de Control - Asistente IA</title>
     <!-- AlpineJS removed here - loaded via main.js module -->
     <link rel="icon" href="https://fav.farm/🤖" />
-    <link href="{{ url_for('static', path='css/output.css') }}" rel="stylesheet">
+    <!-- Tailwind CSS (CDN Backup restored per user request for visual fidelity) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#151e32',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
