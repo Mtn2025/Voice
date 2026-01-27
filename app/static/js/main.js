@@ -1,9 +1,30 @@
-
 import { dashboardStore } from './dashboard/store.js';
 
-// Explicitly expose dashboardStore to global window so Alpine can find it.
-// In a pure Alpine build you might use Alpine.data(), but since Alpine is loaded via CDN,
-// window.dashboard = ... is the bridge.
-window.dashboard = dashboardStore;
+/**
+ * Registers the Alpine component safely.
+ * Handles race conditions where Alpine might load before or after this module.
+ */
+function registerDashboard() {
+    console.log("🚀 [Frontend] Registering 'dashboard' component...");
+    try {
+        Alpine.data('dashboard', dashboardStore);
+        console.log("✅ [Frontend] Dashboard Registered Successfully");
+    } catch (e) {
+        console.error("❌ [Frontend] Failed to register dashboard:", e);
+    }
+}
 
-console.log("🚀 [Frontend] Dashboard App Initialized (ES Module)");
+// Scenario 1: Alpine is already loaded and initialized (rare with modules but possible)
+if (window.Alpine) {
+    registerDashboard();
+}
+// Scenario 2: Alpine hasn't initialized yet (Standard behavior)
+else {
+    document.addEventListener('alpine:init', () => {
+        registerDashboard();
+    });
+}
+
+// Fallback: Expose to window just in case specific directives look for global scope
+// (though Alpine.data is preferred)
+window.dashboard = dashboardStore;
