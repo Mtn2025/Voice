@@ -4,8 +4,11 @@ import { dashboardStore } from './dashboard/store.js';
 console.log("🚀 [Frontend] Initializing App...");
 
 // 1. Register Data Components
-// This must happen BEFORE Alpine.start()
+import { dashboardStore } from './dashboard/store.js';
+import CustomSelect from './components/custom-select.js';
+
 Alpine.data('dashboard', dashboardStore);
+Alpine.data('customSelect', CustomSelect);
 
 // 2. Expose Alpine to window for debugging (optional)
 window.Alpine = Alpine;

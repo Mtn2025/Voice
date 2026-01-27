@@ -1,3 +1,118 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .glass-panel {
+        background-color: rgb(15 23 42 / 0.6);
+        border: 1px solid rgb(51 65 85 / 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    .glass-input {
+        background-color: rgb(2 6 23 / 0.5);
+        border: 1px solid rgb(51 65 85 / 0.5);
+        color: #e2e8f0;
+        /* slate-200 */
+        transition: all 0.2s;
+    }
+
+    .glass-input:focus {
+        outline: none;
+        background-color: rgb(2 6 23 / 0.8);
+        border-color: rgb(59 130 246 / 0.5);
+        box-shadow: 0 0 0 2px rgb(59 130 246 / 0.1);
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background-color: rgb(15 23 42 / 0.5);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #334155;
+        border-radius: 9999px;
+        transition: background-color 0.2s;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #475569;
+    }
+
+    /* Range Slider Styling */
+    input[type=range] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    input[type=range]:disabled {
+        opacity: 0.5;
+    }
+
+    /* Track */
+    input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 0.5rem;
+        background-color: #1e293b;
+        border-radius: 0.5rem;
+    }
+
+    /* Thumb */
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 1rem;
+        height: 1rem;
+        background-color: #3b82f6;
+        border-radius: 9999px;
+        margin-top: -0.25rem;
+        /* (trackHeight - thumbHeight) / 2 */
+        box-shadow: 0 10px 15px -3px rgb(59 130 246 / 0.3);
+        transition: transform 0.1s;
+        border: 2px solid #0f172a;
+    }
+
+    input[type=range]::-webkit-slider-thumb:active {
+        transform: scale(1.1);
+    }
+
+    /* Firefox styles */
+    input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 0.5rem;
+        background-color: #1e293b;
+        border-radius: 0.5rem;
+    }
+
+    input[type=range]::-moz-range-thumb {
+        width: 1rem;
+        height: 1rem;
+        background-color: #3b82f6;
+        border: none;
+        border-radius: 9999px;
+        box-shadow: 0 10px 15px -3px rgb(59 130 246 / 0.3);
+        transition: transform 0.1s;
+    }
+
+    input[type=range]::-moz-range-thumb:active {
+        transform: scale(1.1);
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
