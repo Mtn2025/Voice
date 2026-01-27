@@ -308,16 +308,8 @@
 
     </div>
 
-    {% include 'partials/scripts_helpers.html' %}
-    <script>
-        function dashboard() {
-            return {
-                {% include 'partials/scripts_core_logic.html' %},
-            {% include 'partials/scripts_sim_logic.html' %}
-        }
-        }
-    </script>
-    {% include 'partials/scripts_debug.html' %}
+    <!-- JAVASCRIPT MODULES -->
+    <script type="module" src="{{ url_for('static', path='js/main.js') }}"></script>
 </body>
 
 </html>

@@ -1,45 +1,54 @@
-
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
+from typing import List
 import csv
 import io
-import logging
+# Import dialer_service from core.dialer. 
+# Note: Ensure imports avoid circular dependencies if necessary, but this should be fine.
 from app.core.dialer import dialer_service, Campaign
+import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/start")
-async def start_campaign(name: str, file: UploadFile = File(...)):
+async def start_campaign(
+    name: str = Form(...),
+    file: UploadFile = File(...)
+):
     """
-    Upload a CSV file (headers: phone, name, ...) to start an outbound campaign.
+    Starts a new outbound calling campaign from a CSV file.
+    CSV headers must include: 'phone' and 'name'.
     """
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be CSV")
-
     try:
         content = await file.read()
-        decoded = content.decode('utf-8')
-        reader = csv.DictReader(io.StringIO(decoded))
+        text = content.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(text))
         
         leads = []
         for row in reader:
-            # Normalize keys if needed
-            if 'phone' not in row:
-                # Try to find a column looking like phone?
-                # For now strict.
-                continue
-            leads.append(row)
+            # Normalize keys to lowercase
+            normalized_row = {k.lower().strip(): v for k, v in row.items()}
             
+            # Check for phone key variations
+            phone = normalized_row.get('phone') or normalized_row.get('telefono') or normalized_row.get('tel')
+            
+            if phone:
+                # Ensure phone is saved in standard key 'phone'
+                normalized_row['phone'] = phone
+                leads.append(normalized_row)
+                
         if not leads:
-             raise HTTPException(status_code=400, detail="No valid rows found (header 'phone' required)")
-
+            raise HTTPException(status_code=400, detail="CSV must contain 'phone' column and data")
+            
         campaign = Campaign(name=name, data=leads)
-        
-        # Start in background
         await dialer_service.start_campaign(campaign)
         
-        return {"status": "started", "campaign_id": campaign.id, "leads_count": len(leads)}
-
+        return {
+            "status": "started",
+            "campaign_id": campaign.id,
+            "leads_count": len(leads)
+        }
+        
     except Exception as e:
-        logger.error(f"Campaign Upload Error: {e}")
+        logger.error(f"Error starting campaign: {e}")
         raise HTTPException(status_code=500, detail=str(e))
