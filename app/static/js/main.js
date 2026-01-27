@@ -1,30 +1,19 @@
+import Alpine from 'https://unpkg.com/alpinejs@3.13.3/dist/module.esm.js';
 import { dashboardStore } from './dashboard/store.js';
 
-/**
- * Registers the Alpine component safely.
- * Handles race conditions where Alpine might load before or after this module.
- */
-function registerDashboard() {
-    console.log("🚀 [Frontend] Registering 'dashboard' component...");
-    try {
-        Alpine.data('dashboard', dashboardStore);
-        console.log("✅ [Frontend] Dashboard Registered Successfully");
-    } catch (e) {
-        console.error("❌ [Frontend] Failed to register dashboard:", e);
-    }
-}
+console.log("🚀 [Frontend] Initializing App...");
 
-// Scenario 1: Alpine is already loaded and initialized (rare with modules but possible)
-if (window.Alpine) {
-    registerDashboard();
-}
-// Scenario 2: Alpine hasn't initialized yet (Standard behavior)
-else {
-    document.addEventListener('alpine:init', () => {
-        registerDashboard();
-    });
-}
+// 1. Register Data Components
+// This must happen BEFORE Alpine.start()
+Alpine.data('dashboard', dashboardStore);
 
-// Fallback: Expose to window just in case specific directives look for global scope
-// (though Alpine.data is preferred)
-window.dashboard = dashboardStore;
+// 2. Expose Alpine to window for debugging (optional)
+window.Alpine = Alpine;
+
+// 3. Start Alpine
+// This scans the DOM and initializes components.
+// Since we are running this inside a module, the DOM is likely ready,
+// but we check just in case.
+Alpine.start();
+
+console.log("✅ [Frontend] AlpineJS Started & Dashboard Registered");

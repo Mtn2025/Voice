@@ -42,17 +42,19 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Note: In production, move inline scripts to separate files and use nonces
         csp_directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com blob:",  # Added blob: for workers
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com blob:",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data: blob:",
-            "connect-src 'self' wss: ws: https: http:",  # Allow API connections
-            "media-src 'self' blob: https:", # For audio playback
-            "worker-src 'self' blob:", # For Audio Worklets
+            # img-src must allow blob: for some visualization libs, data: for 64bit imgs
+            "img-src 'self' data: blob: https:", 
+            # connect-src needs to allow the module import from unpkg if strict
+            "connect-src 'self' wss: ws: https: http: https://unpkg.com",
+            "media-src 'self' blob: https:",
+            "worker-src 'self' blob:",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
-            "upgrade-insecure-requests", # Fix for HTTP/HTTPS mixed content behind proxy
+            "upgrade-insecure-requests",
         ]
         response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
