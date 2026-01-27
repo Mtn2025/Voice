@@ -133,40 +133,70 @@ export const SimulatorMixin = {
 
             source.connect(this.analyser);
 
-            // Deprecated ScriptProcessor (standard Worklet replacement takes more boilerplate, sticking to this for migration parity)
-            this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-            source.connect(this.processor);
+            // ----------------------------------------------------------------
+            // AUDIO WORKLET MIGRATION (Modern Audio API)
+            // ----------------------------------------------------------------
+            try {
+                // Load the Worklet Module
+                await this.audioContext.audioWorklet.addModule('/static/js/audio-worklet-processor.js');
 
-            // Mute output to avoid feedback loop
-            const muteGain = this.audioContext.createGain();
-            muteGain.gain.value = 0;
-            this.processor.connect(muteGain);
-            muteGain.connect(this.audioContext.destination);
+                // Create the Worklet Node
+                this.processor = new AudioWorkletNode(this.audioContext, 'pcm-processor');
 
-            this.processor.onaudioprocess = (e) => {
-                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                // Handle Data from Worklet (Int16 Buffer)
+                this.processor.port.onmessage = (event) => {
+                    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-                const inputData = e.inputBuffer.getChannelData(0);
+                    const pcm16 = event.data;
 
-                // Downsample/Convert Float32 to Int16
-                const pcm16 = new Int16Array(inputData.length);
-                for (let i = 0; i < inputData.length; i++) {
-                    let s = Math.max(-1, Math.min(1, inputData[i]));
-                    pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-                }
+                    // Convert Int16Array to Base64 (Main Thread)
+                    // Note: Base64 encoding is still on main thread, but math/sampling is offloaded.
+                    const bytes = new Uint8Array(pcm16.buffer);
+                    let binary = '';
+                    const len = bytes.byteLength;
 
-                // Convert to Base64
-                // Note: Performance heavy, but functional for this scale
-                const bytes = new Uint8Array(pcm16.buffer);
-                let binary = '';
-                const len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                const base64Audio = window.btoa(binary);
+                    // Chunked String.fromCharCode to avoid stack overflow on large buffers
+                    // 4096 samples = 8192 bytes. Safe for spread or loop.
+                    for (let i = 0; i < len; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    const base64Audio = window.btoa(binary);
 
-                this.ws.send(JSON.stringify({ event: 'media', media: { payload: base64Audio, track: 'inbound' } }));
-            };
+                    this.ws.send(JSON.stringify({ event: 'media', media: { payload: base64Audio, track: 'inbound' } }));
+                };
+
+                source.connect(this.processor);
+                // Connect to destination to prevent garbage collection, but no output (Worklet doesn't output audio unless defined)
+                this.processor.connect(this.audioContext.destination);
+
+                console.log("✅ AudioWorklet 'pcm-processor' active");
+
+            } catch (workletErr) {
+                console.error("❌ AudioWorklet Failed, falling back to ScriptProcessor", workletErr);
+
+                // FALLBACK: Deprecated ScriptProcessor //
+                this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+                source.connect(this.processor);
+                const muteGain = this.audioContext.createGain();
+                muteGain.gain.value = 0;
+                this.processor.connect(muteGain);
+                muteGain.connect(this.audioContext.destination);
+
+                this.processor.onaudioprocess = (e) => {
+                    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    const pcm16 = new Int16Array(inputData.length);
+                    for (let i = 0; i < inputData.length; i++) {
+                        let s = Math.max(-1, Math.min(1, inputData[i]));
+                        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                    }
+                    // Base64 logic duplicated here for fallback
+                    const bytes = new Uint8Array(pcm16.buffer);
+                    let binary = '';
+                    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+                    this.ws.send(JSON.stringify({ event: 'media', media: { payload: window.btoa(binary), track: 'inbound' } }));
+                };
+            }
         } catch (e) {
             console.error("Mic Access Failed", e);
             alert("Microphone Error: " + e.message);

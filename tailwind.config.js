@@ -5,7 +5,17 @@ module.exports = {
         "./app/static/js/**/*.js"
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                slate: {
+                    850: '#151e2e',
+                    950: '#020617',
+                }
+            },
+            fontFamily: {
+                sans: ['Inter', 'sans-serif'],
+            },
+        },
     },
     plugins: [],
 }
