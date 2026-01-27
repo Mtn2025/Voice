@@ -79,6 +79,11 @@
             border: 2px solid #34d399;
             animation: pulse-ring 2s infinite;
         }
+
+        svg {
+            max-width: 24px;
+            max-height: 24px;
+        }
     </style>
 </head>
 
@@ -167,7 +172,7 @@
                         <button @click="activeProfile = p.id"
                             :class="{'bg-[#334155] text-white shadow-sm ring-1 ring-white/10': activeProfile === p.id, 'text-slate-400 hover:text-slate-200': activeProfile !== p.id}"
                             class="w-8 h-8 rounded-md flex items-center justify-center transition-all relative group">
-                            <svg class="w-4 h-4">
+                            <svg class="w-4 h-4" style="width: 16px; height: 16px;">
                                 <use :href="'#icon-' + p.icon"></use>
                             </svg>
                         </button>
