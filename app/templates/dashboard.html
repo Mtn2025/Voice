@@ -386,6 +386,11 @@
                         <input type="hidden" name="baserow_table_id" :value="configs.browser.baserow_table_id">
                         <input type="hidden" name="webhook_url" :value="configs.browser.webhook_url">
                         <input type="hidden" name="webhook_secret" :value="configs.browser.webhook_secret">
+
+                        <!-- Rate Limits -->
+                        <input type="hidden" name="rate_limit_global" :value="configs.browser.rateLimitGlobal">
+                        <input type="hidden" name="rate_limit_twilio" :value="configs.browser.rateLimitTwilio">
+                        <input type="hidden" name="rate_limit_telnyx" :value="configs.browser.rateLimitTelnyx">
                     </div>
 
             </div>

@@ -147,7 +147,12 @@ export function dashboardStore() {
                 baserow_token: s.baserow_token || '',
                 baserow_table_id: s.baserow_table_id || '',
                 webhook_url: s.webhook_url || '',
-                webhook_secret: s.webhook_secret || ''
+                webhook_secret: s.webhook_secret || '',
+
+                // Global Rate Limits (Advanced)
+                rateLimitGlobal: s.rate_limit_global || 200,
+                rateLimitTwilio: s.rate_limit_twilio || 30,
+                rateLimitTelnyx: s.rate_limit_telnyx || 50
             };
         },
 
