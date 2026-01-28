@@ -563,6 +563,7 @@ class VoiceOrchestrator:
                  import pathlib
                  import wave
                  import numpy as np
+                 import struct
                  
                  # Resolve Path
                  sound_path = pathlib.Path(f"app/static/sounds/{bg_sound}.wav")
@@ -573,46 +574,89 @@ class VoiceOrchestrator:
                  if sound_path.exists():
                      logging.info(f"🎵 [BG-SOUND] Loading {sound_path} for target rate {target_rate}Hz...")
                      
-                     with wave.open(str(sound_path), "rb") as wf:
-                         params = wf.getparams()
-                         raw_frames = wf.readframes(params.nframes)
-                         orig_rate = params.framerate
-                         channels = params.nchannels
-                         width = params.sampwidth # Should be 2 for 16-bit PCM
-                         
-                         if width != 2:
-                             logging.warning(f"⚠️ [BG-SOUND] Unsupported bit depth {width*8}-bit. Skipping.")
-                             return
-
-                         # Convert to NumPy
-                         data = np.frombuffer(raw_frames, dtype=np.int16)
-                         
-                         # 1. Stereo to Mono
-                         if channels == 2:
-                             data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                     data = None
+                     orig_rate = 44100 # Default fallback
+                     
+                     # Method A: Try standard wave module
+                     try:
+                         with wave.open(str(sound_path), "rb") as wf:
+                             params = wf.getparams()
+                             raw_frames = wf.readframes(params.nframes)
+                             orig_rate = params.framerate
+                             width = params.sampwidth
+                             channels = params.nchannels
                              
+                             if width == 2:
+                                 data = np.frombuffer(raw_frames, dtype=np.int16)
+                             elif width == 1:
+                                 # 8-bit output is usually uint8 0..255 or int8 -128..127? 
+                                 # Wave 8-bit is unsigned 0..255. 128 is center.
+                                 data_u8 = np.frombuffer(raw_frames, dtype=np.uint8)
+                                 data = (data_u8.astype(np.int16) - 128) * 256
+                             else:
+                                 logging.warning("Unsupported bit depth in wave module.")
+                     
+                     except wave.Error:
+                         # Method B: Manual Parse (Likely A-Law or Mu-Law)
+                         logging.info("♻️ [BG-SOUND] 'wave' failed (Format 6/7?). Attempting manual decode...")
+                         with open(sound_path, "rb") as f:
+                             raw_bytes = f.read()
+                             
+                         # Simple RIFF parse
+                         # 20-22: AudioFormat (1=PCM, 6=ALaw, 7=MuLaw)
+                         # 22-24: NumChannels
+                         # 24-28: SampleRate
+                         try:
+                             audio_fmt = struct.unpack('<H', raw_bytes[20:22])[0]
+                             channels = struct.unpack('<H', raw_bytes[22:24])[0]
+                             orig_rate = struct.unpack('<I', raw_bytes[24:28])[0]
+                             
+                             data_start = raw_bytes.find(b'data')
+                             if data_start != -1:
+                                 # size is next 4 bytes
+                                 raw_data = raw_bytes[data_start+8:]
+                                 
+                                 if audio_fmt == 6: # A-Law
+                                     lin_bytes = AudioProcessor.alaw2lin(raw_data, 2)
+                                     data = np.frombuffer(lin_bytes, dtype=np.int16)
+                                 elif audio_fmt == 7: # Mu-Law
+                                     lin_bytes = AudioProcessor.ulaw2lin(raw_data, 2)
+                                     data = np.frombuffer(lin_bytes, dtype=np.int16)
+                                 elif audio_fmt == 1: # PCM (why did wave fail?)
+                                     data = np.frombuffer(raw_data, dtype=np.int16)
+                         except Exception as e_parse:
+                             logging.error(f"❌ [BG-SOUND] Manual parse failed: {e_parse}")
+
+                     if data is not None:
+                         # 1. Stereo to Mono
+                         if channels == 2 and len(data.shape) > 1:
+                             # Reshape logic if data was loaded flat but is stereo
+                             if len(data) % 2 == 0:
+                                 data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                         elif channels == 2:
+                             # If loaded flat frombuffer
+                             try:
+                                 data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                             except:
+                                 pass
+
                          # 2. Resample if needed
                          if orig_rate != target_rate:
-                             # Linear Interpolation
                              duration = len(data) / orig_rate
                              target_len = int(duration * target_rate)
-                             
-                             # Original time points
                              x_old = np.linspace(0, duration, len(data))
-                             # New time points
                              x_new = np.linspace(0, duration, target_len)
-                             
-                             # Resample
                              data = np.interp(x_new, x_old, data).astype(np.int16)
                              logging.info(f"🎵 [BG-SOUND] Resampled {orig_rate}Hz -> {target_rate}Hz")
 
                          self.bg_loop_buffer = data.tobytes()
-
-                     logging.info(f"🎵 [BG-SOUND] Buffer Ready. Size: {len(self.bg_loop_buffer)}")
+                         logging.info(f"🎵 [BG-SOUND] Buffer Ready. Size: {len(self.bg_loop_buffer)}")
+                     else:
+                         logging.warning("⚠️ [BG-SOUND] No data decoded. Mixing disabled.")
                  else:
-                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}. Mixing disabled.")
+                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}")
              except Exception as e_bg:
-                 logging.error(f"❌ [BG-SOUND] Failed to load: {e_bg}")
+                 logging.error(f"❌ [BG-SOUND] Unhandled error: {e_bg}")
 
     def _get_next_background_chunk(self, req_len: int) -> bytes | None:
         if not self.bg_loop_buffer or len(self.bg_loop_buffer) == 0:
