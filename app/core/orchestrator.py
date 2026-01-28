@@ -178,8 +178,8 @@ class VoiceOrchestrator:
         await self._build_pipeline()
         
         # 6. Start Transport Loop
-        if self.client_type != "browser":
-             self.stream_task = asyncio.create_task(self._audio_stream_loop())
+        # ENABLED FOR BROWSER TOO (For Background Mixing and Pacing)
+        self.stream_task = asyncio.create_task(self._audio_stream_loop())
              
         # 6.1 Start Idle Monitor
         self.monitor_task = asyncio.create_task(self.monitor_idle())
@@ -354,9 +354,18 @@ class VoiceOrchestrator:
                 await asyncio.sleep(pacing_ms / 1000.0)
 
         if self.client_type == "browser":
-             # Direct Send via Transport
-             # logger.info(f"📤 [ORCHESTRATOR] Sending {len(audio_data)} bytes to Browser Transport")
-             await self.transport.send_audio(audio_data, 16000)
+             # Logic for Browser: Now using Queue to allow Mixing in _audio_stream_loop
+             # But we might want faster chunks? 160 (20ms @ 8khz) is fine.
+             # Be careful with sample rates. _audio_stream_loop assumes mixing logic.
+             # Browser needs 16000Hz output usually?
+             # _mix_audio handles it.
+             chunk_size = 320 # 20ms @ 16khz (Since browser is 16k usually?)
+             # Wait, if data comes from TTS, it's already 16k for browser (from TTSProcessor).
+             # If we slice it small, it's fine.
+             
+             for i in range(0, len(audio_data), chunk_size):
+                 chunk = audio_data[i : i + chunk_size]
+                 self.audio_queue.put_nowait(chunk)
         else:
              # Queue for Paced Streaming
              chunk_size = 160 # 20ms @ 8khz
@@ -409,6 +418,10 @@ class VoiceOrchestrator:
         if tts_proc:
             # Inject directly into TTS
             logger.info(f"🗣️ [ORCHESTRATOR] speak_direct: Injecting '{text}' into TTS...")
+            
+            # CRITICAL FIX: Manually report transcript for Greeting
+            await self._send_transcript("assistant", text)
+            
             await tts_proc.process_frame(TextFrame(text=text), direction=1)
         else:
             logger.error("❌ [ORCHESTRATOR] speak_direct: TTS Processor not found in pipeline!")
@@ -638,7 +651,8 @@ class VoiceOrchestrator:
     async def _send_actual_chunk(self, chunk: bytes):
         try:
             # Delegate wrapping to Transport Adapter
-            await self.transport.send_audio(chunk, 8000)
+            sr = 16000 if self.client_type == "browser" else 8000
+            await self.transport.send_audio(chunk, sr)
         except Exception:
             pass
 

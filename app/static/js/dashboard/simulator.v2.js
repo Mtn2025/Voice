@@ -305,10 +305,16 @@ export const SimulatorMixin = {
             source.connect(this.outputAnalyser);
             // source.connect(this.audioContext.destination); // Removed direct connect
 
-            const currentTime = this.audioContext.currentTime;
-            if (this.nextStartTime < currentTime) {
-                this.nextStartTime = currentTime;
-            }
+            // Trigger Agent Speaking State (Visualizer Blue)
+            this.isAgentSpeaking = true;
+            if (this.speakingTimer) clearTimeout(this.speakingTimer);
+            // Approx duration of this chunk? Or just a generous timeout (e.g. 200ms) to keep it alive
+            // Buffer duration is accurate.
+            const timeoutMs = (buffer.duration * 1000) + 100;
+            this.speakingTimer = setTimeout(() => {
+                this.isAgentSpeaking = false;
+            }, timeoutMs);
+
             source.start(this.nextStartTime);
             this.nextStartTime += buffer.duration;
         } catch (e) {
