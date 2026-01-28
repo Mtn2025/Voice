@@ -7,13 +7,14 @@ from app.core.frames import Frame, AudioFrame, ControlFrame
 
 logger = logging.getLogger(__name__)
 
-class TelnyxSink(FrameProcessor):
+class PipelineOutputSink(FrameProcessor):
     """
     Consumer of AudioFrames. Delegates actual sending to the Orchestrator
     to preserve background sound mixing logic.
+    Generic Sink for all transports (Simulator, Twilio, Telnyx).
     """
     def __init__(self, orchestrator: Any):
-        super().__init__(name="TelnyxSink")
+        super().__init__(name="PipelineOutputSink")
         self.orchestrator = orchestrator
         
     async def process_frame(self, frame: Frame, direction: int):

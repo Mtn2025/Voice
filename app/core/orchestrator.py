@@ -28,7 +28,7 @@ from app.processors.logic.llm import LLMProcessor
 from app.processors.logic.tts import TTSProcessor
 from app.processors.logic.metrics import MetricsProcessor
 from app.processors.logic.metrics import MetricsProcessor
-from app.processors.output.telnyx_sink import TelnyxSink
+from app.processors.output.audio_sink import PipelineOutputSink
 from app.processors.logic.reporter import TranscriptReporter  # NEW
 
 logger = logging.getLogger(__name__)
@@ -448,7 +448,7 @@ class VoiceOrchestrator:
         metrics = MetricsProcessor(self.config)
         
         # 7. Sink
-        sink = TelnyxSink(self)
+        sink = PipelineOutputSink(self)
         
         # --- 8. REPORTERS (For UI) ---
         user_reporter = TranscriptReporter(callback=self._send_transcript, role_label="user")
