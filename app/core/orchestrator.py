@@ -135,6 +135,21 @@ class VoiceOrchestrator:
            await self.speak_direct(msg)
         return False
 
+
+    async def _send_debug_event(self, event_type: str, data: dict):
+        """Helper to send debug events to frontend (Simulator 2.0)."""
+        if self.client_type == "browser":
+            try:
+                msg = {
+                    "type": "debug",
+                    "event": event_type,
+                    "data": data,
+                    "timestamp": time.time()
+                }
+                await self.websocket.send_text(json.dumps(msg))
+            except Exception:
+                pass
+
     async def start(self) -> None:
         logger.info("🚀 [ORCHESTRATOR] Starting...")
         self.loop = asyncio.get_running_loop()
@@ -186,6 +201,7 @@ class VoiceOrchestrator:
                     try:
                         # Extract lead_data if nested (Dialer logic)
                         # Dialer sends: {'campaign_id': '...', 'lead_data': {'name': 'Juan', ...}}
+                        # Dialer sends: {'campaign_id': '...', 'lead_data': {'name': 'Juan', ...}}
                         ctx_vars = self.initial_context_data.get('lead_data', self.initial_context_data)
                         final_prompt = final_prompt.format(**ctx_vars)
                         logger.info(f"🧠 [PROMPT] Formatted with context: {ctx_vars.keys()}")
@@ -215,6 +231,7 @@ class VoiceOrchestrator:
                 await self.speak_direct(first_msg)
 
         logger.info("✅ [ORCHESTRATOR] Ready.")
+
 
     async def stop(self) -> None:
         logger.info("🛑 [ORCHESTRATOR] Stopping...")
@@ -283,6 +300,8 @@ class VoiceOrchestrator:
         Pushes CancelFrame to pipeline.
         """
         logger.warning(f"⚡ [INTERRUPT] Reason: {text}")
+        await self._send_debug_event("interruption", {"reason": text})
+        
         if self.pipeline:
              await self.pipeline.queue_frame(CancelFrame(reason=text))
              
@@ -290,6 +309,13 @@ class VoiceOrchestrator:
         await self._clear_output()
 
     def update_vad_stats(self, rms: float) -> None:
+        """Routes listener for VAD stats (Legacy, but useful for metrics)."""
+        # We broadcast VAD stats for the Visualizer
+        # Note: Ideally this is async, but this hook is currently sync in routes logic.
+        # We can fire-and-forget a task if loop exists.
+        if self.client_type == "browser" and self.loop:
+             asyncio.run_coroutine_threadsafe(self._send_debug_event("vad_level", {"rms": rms}), self.loop)
+
         """Routes listener for VAD stats (Legacy, but useful for metrics)."""
         # We can push this as metadata or MetricsFrame, or ignore if using Silero.
         # Let's ignore for now to keep it lightweight.
@@ -437,6 +463,26 @@ class VoiceOrchestrator:
         # LLM consumes TextFrame. So Reporter must be BEFORE LLM for User.
         
         # For Bot: LLM emits TextFrame. TTS consumes TextFrame. So Reporter must be BEFORE TTS (After LLM).
+        
+        # Custom Wrapper to Intercept Frames for Debugging (without creating whole new Classes)
+        # We attach listeners to the processors if possible?
+        # Or we inject a "MetricsMiddleware"?
+        # For simplicity in this audit refactor, we rely on the `emit_debug` if we had modified the processors.
+        # But since we are only modding Orchestrator, we can wrap the callbacks.
+        
+        # WE ALREADY HAVE REPORTERS!
+        # user_reporter and bot_reporter.
+        # We can add a "DebugReporter" that logs Start/End times?
+        
+        # Let's augment the Reporters to send "transcription_complete" debug event.
+        
+        # For Latency, we need:
+        # 1. User Speech End (VAD) -> Transcriber End -> LLM Start -> LLM First Token -> TTS First Byte.
+        
+        # This requires hacking the Pipeline or the Processors.
+        # Since we are in Strict Audit, let's keep it clean.
+        # We will add a simple "LatencyTracker" Processor?
+        # Or just use the existing `MetricsProcessor`.
         
         self.pipeline = Pipeline([stt, vad, user_reporter, agg, llm, bot_reporter, tts, metrics, sink])
 

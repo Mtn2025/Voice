@@ -1,11 +1,14 @@
-<!-- RIGHT AREA: SIMULATOR -->
-<div class="h-full flex flex-col justify-center max-w-4xl mx-auto w-full space-y-8">
-    <div class="sticky top-6">
-        <!-- SIMULATOR HEADER -->
-        <div class="flex items-center justify-between mb-4">
+<!-- SPLIT VIEW SIMULATOR LAYOUT -->
+<div class="flex h-full w-full max-w-7xl mx-auto space-x-6 p-4">
+
+    <!-- LEFT COLUMN: VISUALIZER & TRANSCRIPT (60%) -->
+    <div class="flex-1 flex flex-col space-y-4 h-full min-w-0">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between shrink-0 h-10">
             <div class="flex items-center space-x-2">
                 <span class="text-xl">🧪</span>
-                <h2 class="text-lg font-semibold text-emerald-400">Simulador</h2>
+                <h2 class="text-lg font-semibold text-emerald-400">Simulador 2.0</h2>
             </div>
 
             <div class="flex items-center space-x-2">
@@ -26,32 +29,54 @@
             </div>
         </div>
 
-        <!-- VISUALIZER AREA -->
+        <!-- VISUALIZER (Flexible Height) -->
         <div
-            class="glass-panel h-[400px] rounded-xl flex items-center justify-center mb-4 relative overflow-hidden bg-black border border-slate-800 shadow-inner">
+            class="glass-panel flex-1 rounded-xl flex items-center justify-center relative overflow-hidden bg-black border border-slate-800 shadow-inner min-h-[300px]">
             <!-- Status Text Overlay -->
             <p class="absolute font-mono text-emerald-500/50 pointer-events-none z-10 transition-opacity duration-500"
                 :class="{'animate-pulse': simState === 'connecting', 'opacity-0': simState === 'connected'}"
                 x-text="simState === 'connected' ? '' : (simState === 'connecting' ? 'Estableciendo Conexión...' : 'Listo para conectar...')">
             </p>
 
+            <!-- Metrics Overlay (Top Left) -->
+            <div class="absolute top-4 left-4 z-20 flex flex-col space-y-1 pointer-events-none"
+                x-show="simState === 'connected'">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full"
+                        :class="vadLevel > 0.1 ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-slate-600'"></span>
+                    <span class="text-[10px] font-mono text-slate-400">MIC INPUT</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full"
+                        :class="isAgentSpeaking ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-slate-600'"></span>
+                    <span class="text-[10px] font-mono text-slate-400">AGENT TTS</span>
+                </div>
+            </div>
+
             <!-- Canvas -->
             <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
         </div>
 
-        <!-- TRANSCRIPT -->
-        <div class="glass-panel h-[250px] rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50 flex flex-col space-y-3 bg-slate-900/50"
+        <!-- TRANSCRIPT (Fixed Height) -->
+        <div class="glass-panel h-64 shrink-0 rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50 flex flex-col space-y-3 bg-slate-900/50"
             id="transcript-container">
             <div
-                class="text-slate-500 mb-2 uppercase text-[10px] tracking-wider sticky top-0 bg-slate-900/90 pb-2 border-b border-slate-800">
-                Transcripción en Vivo</div>
+                class="text-slate-500 mb-2 uppercase text-[10px] tracking-wider sticky top-0 bg-slate-900/90 pb-2 border-b border-slate-800 flex justify-between">
+                <span>Transcripción en Vivo</span>
+                <span class="text-emerald-500/50" x-text="transcripts.length + ' msgs'"></span>
+            </div>
 
             <template x-for="msg in transcripts">
                 <div class="flex flex-col space-y-1"
-                    :class="{'items-end': msg.role === 'user', 'items-start': msg.role === 'assistant'}">
-                    <span class="text-[9px] text-slate-500" x-text="msg.role === 'user' ? 'Tú' : 'Andrea'"></span>
-                    <div class="px-3 py-2 rounded-lg max-w-[85%]"
-                        :class="{'bg-blue-600/20 text-blue-200 border border-blue-500/30': msg.role === 'user', 'bg-emerald-600/20 text-emerald-200 border border-emerald-500/30': msg.role === 'assistant'}">
+                    :class="{'items-end': msg.role === 'user', 'items-start': msg.role === 'assistant', 'items-center': msg.role === 'system'}">
+                    <span class="text-[9px] text-slate-500"
+                        x-text="msg.role === 'user' ? 'Tú' : (msg.role === 'system' ? 'System' : 'Andrea')"></span>
+
+                    <div class="px-3 py-2 rounded-lg max-w-[90%]" :class="{
+                            'bg-blue-600/20 text-blue-200 border border-blue-500/30': msg.role === 'user', 
+                            'bg-emerald-600/20 text-emerald-200 border border-emerald-500/30': msg.role === 'assistant',
+                            'bg-slate-700/50 text-slate-400 border border-slate-600 italic': msg.role === 'system'
+                        }">
                         <span x-text="msg.text"></span>
                     </div>
                 </div>
@@ -62,4 +87,64 @@
             </div>
         </div>
     </div>
+
+    <!-- RIGHT COLUMN: DEBUG CONSOLE (40%) -->
+    <div class="w-[400px] flex flex-col space-y-4 h-full shrink-0">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between shrink-0 h-10">
+            <h3 class="text-sm font-semibol text-slate-400 uppercase tracking-widest">Debug Console</h3>
+            <button @click="debugLogs = []"
+                class="text-[10px] text-slate-500 hover:text-white transition-colors">CLEAR</button>
+        </div>
+
+        <!-- CONSOLE PANEL -->
+        <div
+            class="glass-panel flex-1 rounded-xl border border-slate-700/50 bg-[#0A0F1E] flex flex-col overflow-hidden font-mono text-[10px]">
+
+            <!-- Performance Metrics Row -->
+            <div class="h-12 border-b border-slate-800 flex divide-x divide-slate-800 shrink-0 bg-slate-900/50">
+                <div class="flex-1 flex flex-col items-center justify-center p-1">
+                    <span class="text-slate-500 mb-0.5">LATENCY (LLM)</span>
+                    <span class="text-emerald-400 font-bold" x-text="metrics.llm_latency || '-'">-</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center justify-center p-1">
+                    <span class="text-slate-500 mb-0.5">LATENCY (TTS)</span>
+                    <span class="text-blue-400 font-bold" x-text="metrics.tts_latency || '-'">-</span>
+                </div>
+            </div>
+
+            <!-- Log Stream -->
+            <div class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar" id="debug-container">
+                <template x-for="log in debugLogs">
+                    <div
+                        class="flex space-x-2 border-b border-white/5 pb-1 mb-1 last:border-0 hover:bg-white/5 p-1 rounded transition-colors group">
+                        <span class="text-slate-600 shrink-0 opacity-50" x-text="formatTime(log.timestamp)"></span>
+                        <div class="flex-1 w-0"> <!-- w-0 allows break-words -->
+                            <div class="flex items-center space-x-2">
+                                <span class="uppercase font-bold tracking-wider shrink-0" :class="{
+                                        'text-yellow-500': log.event === 'interruption',
+                                        'text-blue-400': log.event.includes('llm'), 
+                                        'text-purple-400': log.event.includes('tts'),
+                                        'text-slate-400': log.event === 'vad'
+                                    }" x-text="log.event"></span>
+                            </div>
+                            <!-- JSON Data (Collapsed by default?) -->
+                            <div class="text-slate-400 break-all leading-tight mt-0.5 opacity-80 group-hover:opacity-100"
+                                x-text="JSON.stringify(log.data)"></div>
+                        </div>
+                    </div>
+                </template>
+
+                <div x-show="debugLogs.length === 0"
+                    class="h-full flex flex-col items-center justify-center text-slate-700 space-y-2 opacity-50">
+                    <svg class="w-8 h-8">
+                        <use href="#icon-cpu"></use>
+                    </svg>
+                    <span>Waiting for events...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>

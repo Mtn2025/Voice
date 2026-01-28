@@ -23,7 +23,7 @@
                 <tr>
                     <!-- Checkbox for Bulk Actions -->
                     <th scope="col" class="px-4 py-2 w-8">
-                        <input type="checkbox" onclick="toggleAllHistory(this)"
+                        <input type="checkbox" @click="toggleAllHistory($el)"
                             class="rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2">
                     </th>
                     <th scope="col" class="px-4 py-2">Fecha</th>
@@ -39,7 +39,7 @@
                     <td class="px-4 py-2">
                         <input type="checkbox" value="{{ call.id }}"
                             class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
-                            onchange="updateDeleteButton()">
+                            @change="updateDeleteButton()">
                     </td>
                     <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}
                     </td>
@@ -80,11 +80,20 @@
     </div>
 
     <!-- Bulk Actions Footer -->
-    <div class="pt-2 flex justify-between items-center">
-        <button id="btn-delete-selected" onclick="deleteSelectedCalls()" style="display: none;"
-            class="text-xs bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-800 hover:bg-red-900/50 transition-all items-center space-x-1">
-            <span>🗑️</span> Borrar Seleccionados
-        </button>
+    <div class="pt-2 flex justify-between items-center bg-slate-900/30 p-2 rounded-lg border border-slate-700/50">
+        <div class="flex items-center space-x-4">
+            <!-- Delete Selected Button -->
+            <button id="btn-delete-selected" @click="deleteSelectedCalls()" style="display: none;"
+                class="text-xs bg-red-900/30 text-red-400 px-3 py-1 rounded border border-red-800 hover:bg-red-900/50 transition-all items-center space-x-1">
+                <span>🗑️</span> Borrar Seleccionados
+            </button>
+
+            <!-- PAGINATION PLACEHOLDER (Will be swapped by HTMX OOB) -->
+            <div id="history-pagination" class="text-xs text-slate-500">
+                <!-- Initial State (Before Loading) -->
+                Cargando paginación...
+            </div>
+        </div>
 
         <form action="/api/history/clear?api_key={{ request.query_params.get('api_key', '') }}" method="POST"
             onsubmit="return confirm('¿Borrar todo el historial?');">

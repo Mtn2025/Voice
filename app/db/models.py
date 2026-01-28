@@ -243,7 +243,10 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     # Telnyx Native Features
     voice_sensitivity_telnyx = Column(Integer, default=3000)  # Voice activation threshold (RMS)
     enable_krisp_telnyx = Column(Boolean, default=True)       # Krisp noise suppression (native)
+    noise_suppression_level = Column(String, default="balanced") # off, low, balanced, high
     enable_vad_telnyx = Column(Boolean, default=True)         # Voice Activity Detection (native)
+    audio_codec = Column(String, default="PCMU") # PCMU, PCMA, OPUS
+    enable_backchannel = Column(Boolean, default=False) # Active Listening (Yeah, uh-huh)
 
     # Telnyx Advanced (Flow & Features)
     idle_timeout_telnyx = Column(Float, default=20.0)         # Independent idle timeout

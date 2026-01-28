@@ -12,8 +12,20 @@ export const SimulatorMixin = {
     visualizerMode: 'wave',
     animationId: null,
     transcripts: [],
+    debugLogs: [],
+    metrics: { llm_latency: null, tts_latency: null },
+    vadLevel: 0,
+    isAgentSpeaking: false,
+
     nextStartTime: 0,
     bgAudio: null,
+
+    // Helper for formatting time in debug log
+    formatTime(ts) {
+        if (!ts) return '';
+        const date = new Date(ts * 1000);
+        return date.toLocaleTimeString('en-US', { hour12: false, fractionalSecondDigits: 3 });
+    },
 
     async startTest() {
         if (this.simState === 'connected' || this.simState === 'connecting') {
@@ -76,6 +88,21 @@ export const SimulatorMixin = {
                     } else if (msg.type === 'config') {
                         if (msg.config.background_sound && msg.config.background_sound !== 'none') {
                             this.playBackgroundSound(msg.config.background_sound);
+                        }
+                    } else if (msg.type === 'debug') {
+                        // Simulator 2.0 Debug Event
+                        this.debugLogs.unshift(msg);
+                        if (this.debugLogs.length > 50) this.debugLogs.pop(); // Keep last 50
+
+                        // Update Metrics
+                        if (msg.event === 'vad_level') {
+                            this.vadLevel = msg.data.rms;
+                        } else if (msg.event === 'llm_latency') {
+                            this.metrics.llm_latency = msg.data.duration_ms + ' ms';
+                        } else if (msg.event === 'tts_latency') {
+                            this.metrics.tts_latency = msg.data.duration_ms + ' ms';
+                        } else if (msg.event === 'speech_state') {
+                            this.isAgentSpeaking = msg.data.speaking;
                         }
                     } else if (msg.type === 'transcript') {
                         this.transcripts.push({

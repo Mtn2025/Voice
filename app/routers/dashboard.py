@@ -374,7 +374,8 @@ FIELD_ALIASES = {
     'prompt': 'system_prompt',
     'msg': 'first_message',
     'mode': 'first_message_mode',
-    'extractionModel': 'extraction_model',
+    'mode': 'first_message_mode',
+    # 'extractionModel': 'extraction_model', # DEPRECATED
     
     # TTS Configuration
     'voiceProvider': 'tts_provider',
@@ -400,6 +401,7 @@ FIELD_ALIASES = {
     'silence': 'silence_timeout_ms',
     'blacklist': 'hallucination_blacklist',
     'inputMin': 'input_min_characters',
+    'vadThreshold': 'vad_threshold', # Added alias for VAD slider
     
     # Advanced Features
     'denoise': 'enable_denoising',
@@ -414,6 +416,13 @@ FIELD_ALIASES = {
     'enableEndCall': 'enable_end_call',
     'dialKeypad': 'enable_dial_keypad',
     'transferNum': 'transfer_phone_number',
+    
+    # Quality & Latency (Advanced Refactor)
+    'noiseSuppressionLevel': 'noise_suppression_level',
+    'audioCodec': 'audio_codec',
+    'enableBackchannel': 'enable_backchannel',
+    'silenceTimeoutMs': 'silence_timeout_ms', # Mapped from slider
+    'silenceTimeoutMsPhone': 'silence_timeout_ms_phone', # Mapped from slider
 }
 
 # =============================================================================
@@ -612,10 +621,14 @@ async def update_config(
     silence_timeout_ms: str = Form(None),
     silence_timeout_ms_phone: str = Form(None), 
     segmentation_max_time: str = Form(None),
-    segmentation_strategy: str = Form(None),
+    segmentation_strategy: str = Form(None), # Restored: Smart Interruption Toggle
+    
+    # VAD Settings (Added in Transcriptor Audit)
+    vad_threshold: str = Form(None),
+
     enable_denoising: str = Form(None), 
     initial_silence_timeout_ms: str = Form(None), 
-    punctuation_boundaries: str = Form(None), 
+    # punctuation_boundaries: str = Form(None), # DEPRECATED 
 
     # 🔒 LOCKED: TRANSCRIBING & FUNCTIONS
     enable_end_call: str = Form(None),
@@ -625,7 +638,7 @@ async def update_config(
     stt_provider: str = Form(None),
     llm_provider: str = Form(None),
     tts_provider: str = Form(None),
-    extraction_model: str = Form(None),
+    # extraction_model: str = Form(None), # DEPRECATED
 
     # Browser - Conversation Style
     response_length: str = Form(None),
@@ -644,6 +657,11 @@ async def update_config(
     conversation_tone_telnyx: str = Form(None),
     conversation_formality_telnyx: str = Form(None),
     conversation_pacing_telnyx: str = Form(None),
+    
+    # Quality & Latency
+    noise_suppression_level: str = Form(None),
+    audio_codec: str = Form(None),
+    enable_backchannel: str = Form(None),
 
     db: AsyncSession = Depends(get_db)
 ):
@@ -723,6 +741,9 @@ async def update_config(
             "voice_speed_telnyx": parse_float(voice_speed_telnyx),
             "voice_sensitivity_telnyx": parse_int(voice_sensitivity_telnyx),
             "enable_krisp_telnyx": parse_bool(enable_krisp_telnyx),
+            "noise_suppression_level": noise_suppression_level,
+            "audio_codec": audio_codec,
+            "enable_backchannel": parse_bool(enable_backchannel),
             "enable_vad_telnyx": parse_bool(enable_vad_telnyx),
             
             "idle_timeout_telnyx": parse_float(idle_timeout_telnyx),
@@ -742,9 +763,10 @@ async def update_config(
             "silence_timeout_ms_phone": parse_int(silence_timeout_ms_phone),
             "segmentation_max_time": parse_int(segmentation_max_time),
             "segmentation_strategy": segmentation_strategy,
+            "vad_threshold": parse_float(vad_threshold),
             "enable_denoising": parse_bool(enable_denoising),
             "initial_silence_timeout_ms": parse_int(initial_silence_timeout_ms),
-            "punctuation_boundaries": punctuation_boundaries,
+            # "punctuation_boundaries": punctuation_boundaries, # DEPRECATED
             
             "enable_end_call": parse_bool(enable_end_call),
             "enable_dial_keypad": parse_bool(enable_dial_keypad),
@@ -753,7 +775,7 @@ async def update_config(
             "stt_provider": stt_provider,
             "llm_provider": llm_provider,
             "tts_provider": tts_provider,
-            "extraction_model": extraction_model,
+            # "extraction_model": extraction_model, # DEPRECATED
 
             # Conversation Style - Browser
             "response_length": response_length,
@@ -869,69 +891,7 @@ async def dashboard_call_detail(request: Request, call_id: int, db: AsyncSession
 # HISTORY API ENDPOINTS (Implementación Funcional)
 # =============================================================================
 
-@router.get("/api/history/rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
-async def get_history_rows(request: Request, db: AsyncSession = Depends(get_db)):
-    """
-    HTMX Endpoint: Returns just the <tr> rows for the history table.
-    """
-    history = await db_service.get_recent_calls(session=db, limit=20)
-    
-    # We render a partial template or use a macro. 
-    # For simplicity, we assume the dashboard.html loop logic is reusable 
-    # OR we return a fragment.
-    # Ideally, we should have 'partials/history_rows.html'.
-    # For now, we manually construct or reuse the full page? No, too heavy.
-    # Let's use a small inline template string or partial file.
-    # Given the constraint, I'll attempt to use a partial if it exists (step 1343 hinted 'partials/tab_history.html' might exist?)
-    # Wait, Step 1343 grep showed 'app/templates/partials/tab_history.html'.
-    # If that exists, we can render it? No, that's likely the full tab.
-    # We need just the rows.
-    
-    # Quick fix: Inline Jinja for rows.
-    row_template = """
-    {% for call in history %}
-    <tr class="border-b border-slate-800 hover:bg-slate-800/50"
-        x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'browser' }}'">
-        <td class="px-4 py-2">
-            <input type="checkbox" value="{{ call.id }}"
-                class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
-                onchange="updateDeleteButton()">
-        </td>
-        <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td class="px-4 py-2">
-            {% if call.client_type == 'telnyx' %}
-            <span class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
-            {% elif call.client_type == 'twilio' %}
-            <span class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
-            {% else %}
-            <span class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
-            {% endif %}
-        </td>
-        <td class="px-4 py-2 font-mono">
-            {% if call.end_time %}
-            {{ (call.end_time - call.start_time).seconds }}s
-            {% else %}
-            <span class="text-yellow-500 animate-pulse">En curso</span>
-            {% endif %}
-        </td>
-        <td class="px-4 py-2">
-            <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
-                class="text-blue-400 hover:underline">Ver</a>
-        </td>
-    </tr>
-    {% endfor %}
-    {% if not history %}
-    <tr>
-        <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">
-            No hay historial disponible.
-        </td>
-    </tr>
-    {% endif %}
-    """
-    from jinja2 import Template
-    t = Template(row_template)
-    content = t.render(history=history, request=request)
-    return HTMLResponse(content)
+
 
 @router.post("/api/history/clear", dependencies=[Depends(verify_api_key)])
 async def clear_history(request: Request, db: AsyncSession = Depends(get_db)):
@@ -941,19 +901,7 @@ async def clear_history(request: Request, db: AsyncSession = Depends(get_db)):
     await db_service.clear_all_history(db)
     return RedirectResponse("/dashboard?success=history_cleared", status_code=303)
 
-class DeleteCallsRequest(BaseModel):
-    call_ids: list[int]
 
-@router.post("/api/history/delete", dependencies=[Depends(verify_api_key)])
-async def delete_selected_calls(
-    payload: DeleteCallsRequest,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Delete specific calls (Bulk).
-    """
-    success = await db_service.delete_calls(db, payload.call_ids)
-    return {"status": "success" if success else "error"}
 
 @router.get("/api/history/rows", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
 async def history_rows(request: Request, page: int = 1, limit: int = 20, db: AsyncSession = Depends(get_db)):
@@ -965,24 +913,13 @@ async def history_rows(request: Request, page: int = 1, limit: int = 20, db: Asy
             total = 0
         total_pages = (total + limit - 1) // limit if limit > 0 else 1
 
-        return templates.TemplateResponse("partials/history_panel.html", {
+        return templates.TemplateResponse("partials/history_rows.html", {
             "request": request,
             "history": history,
             "page": page,
             "limit": limit,
             "total_pages": total_pages,
-            "total_items": total,
-            "models": {
-                "groq": [
-                    {"id": "llama-3.3-70b-versatile"},
-                    {"id": "llama-3.1-70b-versatile"},
-                    {"id": "llama-3.1-8b-instant"}
-                ],
-                "azure": [
-                    {"id": "gpt-4o"},
-                    {"id": "gpt-3.5-turbo"}
-                ]
-            }
+            "total_items": total
         })
     except Exception as e:
         import traceback

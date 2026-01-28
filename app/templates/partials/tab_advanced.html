@@ -1,4 +1,163 @@
-<!-- TAB START: AVANZADO -->
+<!-- TAB START: CALIDAD Y LATENCIA (Renamed from Advanced) -->
+<div x-show="activeTab === 'avanzado'" class="space-y-6 animate-fade-in-up">
+
+    <!-- HEADER -->
+    <div class="flex items-center space-x-2 mb-4">
+        <div class="p-2 bg-indigo-500/10 rounded-lg">
+            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                </path>
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-white">Calidad y Latencia</h3>
+            <p class="text-xs text-slate-400">Ajuste fino del motor de voz y tiempos de respuesta.</p>
+        </div>
+    </div>
+
+    <!-- 1. PACIENCIA DEL ASISTENTE (VAD/Silence Timeout) -->
+    <div
+        class="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50 relative overflow-hidden group hover:border-indigo-500/30 transition-all">
+        <label
+            class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-4 block flex justify-between items-center">
+            <span>🧠 Paciencia del Asistente</span>
+            <span class="text-xs bg-slate-900 text-indigo-400 px-2 py-1 rounded border border-indigo-500/20"
+                x-text="c.time_patience < 0.5 ? 'Rápido (Interuptivo)' : (c.time_patience > 1.5 ? 'Muy Paciente' : 'Balanceado')">
+            </span>
+        </label>
+
+        <!-- Slider Visual Wrapper using existing 'silence_timeout_ms_phone' or similar -->
+        <!-- Logic: We map 200ms to 3000ms. UI uses 'c.time_patience' (seconds) for UX -->
+        <div class="relative h-12 flex items-center">
+            <!-- Background Track -->
+            <div class="absolute w-full h-2 bg-slate-700 rounded-lg"></div>
+            <!-- Zones -->
+            <div class="absolute left-0 w-1/3 h-2 bg-gradient-to-r from-red-500/20 to-yellow-500/20 rounded-l-lg"></div>
+            <div class="absolute right-0 w-1/3 h-2 bg-gradient-to-l from-green-500/20 to-yellow-500/20 rounded-r-lg">
+            </div>
+
+            <input type="range" x-model="c.time_patience" min="0.2" max="3.0" step="0.1"
+                @input="c.silenceTimeoutMs = Math.round(c.time_patience * 1000); c.silenceTimeoutMsPhone = Math.round(c.time_patience * 1000)"
+                class="w-full h-2 bg-transparent appearance-none cursor-pointer relative z-10 accent-indigo-500">
+        </div>
+
+        <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+            <span>⚡ Rápido (200ms)</span>
+            <span>🐢 Paciente (3s)</span>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-2 italic">
+            Define cuánto silencio espera Andrea antes de responder. Valores bajos hacen la charla fluida pero arriesgan
+            interrupciones.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- 2. SUPRESIÓN DE RUIDO -->
+        <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3 flex items-center">
+                <svg class="w-4 h-4 mr-1 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5.5 8.683V11a3 3 0 106 0V8.683m0-4.65V3m0 18v-1.35m0-13.65C4.053 5.488 1.5 7.152 1.5 11v1m20.957-4.14C20.686 5.676 18.72 4.469 16.5 4v-.35">
+                    </path>
+                </svg>
+                Supresión de Ruido
+            </h4>
+
+            <div class="space-y-3">
+                <label class="block text-xs text-slate-500 mb-1">Nivel Krisp AI</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" @click="c.noiseSuppressionLevel = 'off'"
+                        :class="{'bg-slate-600 text-white border-slate-500': c.noiseSuppressionLevel === 'off', 'bg-slate-900 text-slate-500 border-slate-800': c.noiseSuppressionLevel !== 'off'}"
+                        class="px-2 py-2 rounded text-xs font-bold border transition-all">OFF</button>
+
+                    <button type="button" @click="c.noiseSuppressionLevel = 'balanced'"
+                        :class="{'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-900/50': c.noiseSuppressionLevel === 'balanced', 'bg-slate-900 text-slate-500 border-slate-800': c.noiseSuppressionLevel !== 'balanced'}"
+                        class="px-2 py-2 rounded text-xs font-bold border transition-all">NORMAL</button>
+
+                    <button type="button" @click="c.noiseSuppressionLevel = 'high'"
+                        :class="{'bg-indigo-600 text-white border-indigo-500': c.noiseSuppressionLevel === 'high', 'bg-slate-900 text-slate-500 border-slate-800': c.noiseSuppressionLevel !== 'high'}"
+                        class="px-2 py-2 rounded text-xs font-bold border transition-all">ALTO</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. CALIDAD DE AUDIO (CODEC) -->
+        <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+            <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3 flex items-center">
+                <svg class="w-4 h-4 mr-1 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 3-2 3-2 1.343 2 3 2zm0 0v-4.996m9 4.996c0 1.105-1.343 2-3 2s-3-.895-3-2 3-2 3-2 1.343 2 3 2zm0 0v-4.996">
+                    </path>
+                </svg>
+                Fidelidad de Audio
+            </h4>
+
+            <div class="space-y-3">
+                <label class="block text-xs text-slate-500 mb-1">Codec & Sample Rate</label>
+                <select x-model="c.audioCodec" class="glass-input w-full p-2.5 rounded-lg text-xs bg-slate-900">
+                    <option value="PCMU">G.711 PCMU (8kHz) - Estándar Telefonía</option>
+                    <option value="PCMA">G.711 PCMA (8kHz) - Europa/Latam</option>
+                    <option value="OPUS">Opus (Alta Fidelidad) - VoIP</option>
+                </select>
+                <p class="text-[10px] text-slate-500 mt-1">Usa PCMU para llamadas PSTN normales.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ESCUCHA ACTIVA (BACKCHANNELING) -->
+    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-pink-500/10 rounded-full">
+                <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z">
+                    </path>
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-white">Escucha Activa (Backchanneling)</h4>
+                <p class="text-xs text-slate-400">Permite a Andrea decir "Ajá", "Entiendo" mientras hablas.</p>
+            </div>
+        </div>
+
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" x-model="c.enableBackchannel" class="sr-only peer">
+            <div
+                class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600">
+            </div>
+        </label>
+    </div>
+
+    <!-- Legacy Controls (Moved to bottom, smaller) -->
+    <div class="pt-4 border-t border-slate-700">
+        <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-3">Límites de Seguridad (Legacy)</h4>
+        <div class="grid grid-cols-3 gap-4 opacity-75 hover:opacity-100 transition-opacity">
+            <div>
+                <label class="text-[10px] uppercase text-slate-500 block mb-1">Max Retries</label>
+                <input type="number" x-model="c.maxRetries" class="glass-input w-full p-2 text-xs rounded text-center">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase text-slate-500 block mb-1">Max Duration</label>
+                <input type="number" x-model="c.maxDuration" class="glass-input w-full p-2 text-xs rounded text-center">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase text-slate-500 block mb-1">Inactividad Msg</label>
+                <input type="text" x-model="c.idleMessage" class="glass-input w-full p-2 text-xs rounded">
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTA SOBRE INTEGRACIONES -->
+    <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded text-center">
+        <p class="text-xs text-blue-300">
+            ℹ️ <b>Nota:</b> La configuración de CRM y Webhooks se ha movido al módulo de <b>Campañas</b> para permitir
+            reportes específicos por proveedor.
+        </p>
+    </div>
+
+</div>
 <div x-show="activeTab === 'avanzado'" class="space-y-5 animate-fade-in-up">
     <div class="grid grid-cols-2 gap-4">
         <div>
