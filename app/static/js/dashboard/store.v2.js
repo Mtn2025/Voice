@@ -1,5 +1,5 @@
 import { api, csvValidator } from './api.js';
-import { SimulatorMixin } from './simulator.js';
+import { SimulatorMixin } from './simulator.v2.js';
 
 export function dashboardStore() {
     return {

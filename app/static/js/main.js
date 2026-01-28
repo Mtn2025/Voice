@@ -1,5 +1,5 @@
 import Alpine from 'https://unpkg.com/alpinejs@3.13.3/dist/module.esm.js';
-import { dashboardStore } from './dashboard/store.js';
+import { dashboardStore } from './dashboard/store.v2.js';
 
 console.log("🚀 [Frontend] Initializing App...");
 
