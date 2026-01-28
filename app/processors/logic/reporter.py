@@ -21,6 +21,7 @@ class TranscriptReporter(FrameProcessor):
             if isinstance(frame, TextFrame):
                 # We assume TextFrame contains valid speech/text
                 if frame.text:
+                    logger.info(f"📜 [REPORTER] {self.role_label.upper()}: {frame.text}")
                     await self.callback(self.role_label, frame.text)
         
         # Always push downstream
