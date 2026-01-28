@@ -340,402 +340,81 @@ class VoiceOrchestrator:
 
     async def send_audio_chunked(self, audio_data: bytes) -> None:
         """
-        Called by TelnyxSink (Pipeline Output).
-        Queues audio for transmission.
+        Splits audio into chunks to allow mixing and pacing.
         """
-        # Indicate Speaking State & Apply Pacing Latency
+        # Indicate Speaking State
         if not self.is_bot_speaking:
             self.is_bot_speaking = True
-            logger.info("🔊 [ORCHESTRATOR] Bot started speaking (Audio Flow Active)")
+            logger.info("🔊 [ORCHESTRATOR] Bot started speaking")
             
-            # Apply Artificial Pacing Delay (Latency)
+            # Initial Latency (Configurable Pacing)
             pacing_ms = getattr(self.config, 'voice_pacing_ms', 0)
             if pacing_ms > 0:
                 await asyncio.sleep(pacing_ms / 1000.0)
 
-    async def send_audio_chunked(self, audio_data: bytes):
-        """
-        Splits audio into chunks to pace streaming and support mixing.
-        """
-        self.is_bot_speaking = True
+        # Chunk Calculation
+        # Browser: 16kHz 16-bit Mono = 32000 bytes/sec. 20ms = 640 bytes.
+        # Telephony: 8kHz 8-bit A-Law = 8000 bytes/sec. 20ms = 160 bytes.
         
-        # Pacing calculation? 
-        # Actually _audio_stream_loop handles the timing.
-        # We just need to feed the queue with reasonable chunks.
+        chunk_size = 640 if self.client_type == "browser" else 160
         
-        if self.client_type == "browser":
-             # Browser: 16kHz 16-bit Mono = 32,000 bytes/sec.
-             # 320 bytes was ~10ms -> 100 chunks/sec (Too High overhead).
-             # Let's use 200ms chunks = 0.2 * 32000 = 6400 bytes.
-             chunk_size = 6400 
-             
-             for i in range(0, len(audio_data), chunk_size):
-                 chunk = audio_data[i : i + chunk_size]
-                 self.audio_queue.put_nowait(chunk)
-        else:
-             # Telephony: 8kHz 8-bit A-Law/Mu-Law = 8,000 bytes/sec.
-             # 160 bytes = 20ms. Standard packet size for RTP/SIP.
-             chunk_size = 160 
-             for i in range(0, len(audio_data), chunk_size):
-                 chunk = audio_data[i : i + chunk_size]
-                 self.audio_queue.put_nowait(chunk)
-
-    async def interrupt_speaking(self):
-        """
-        Called when user barge-in is detected.
-        Stops current audio playback and clears queues.
-        """
-        if self.is_bot_speaking:
-            logger.info("🛑 [ORCHESTRATOR] Interruption Detected! Stopping audio.")
-            self.is_bot_speaking = False
-            
-            # Clear Orchestrator Queue
-            while not self.audio_queue.empty():
-                try:
-                    self.audio_queue.get_nowait()
-                except:
-                    pass
-            
-            # TODO: We might want to cancel the TTS generation task too?
-            # For now, stopping audio output is sufficient for "Barge-in" feel.
-            # The LLM/TTS pipeline might still finish processing the old thought, 
-            # but we won't play it.
-
-    async def speak_direct(self, text: str):
-        """Helper to make the bot speak (e.g. First Message)."""
-        if not self.pipeline:
-            return
-            
-        # We want to inject this as text that bypasses STT/Aggregator and goes to TTS?
-        # OR we want to treat it as a "System Message" for history + TTS.
-        self.conversation_history.append({"role": "assistant", "content": text})
-        
-        # Inject into Pipeline?
-        # If we inject TextFrame at source, it flows STT->VAD->Agg->LLM. 
-        # LLMProcessor sees TextFrame. If it logic expects "User Input", it will generate a reply TO the greeting.
-        # We want to SKIP LLM and go to TTS.
-        
-        # HACK: We access TTS processor directly or use a specialized frame/route?
-        # Better: Queue a TextFrame but `LLMProcessor` needs to know to ignore it?
-        # Or `run_coroutine_threadsafe` directly on TTS processor?
-        # Since we have the pipeline list...
-        
-        # Let's find TTS Processor
-        tts_proc = next((p for p in self.pipeline._processors if isinstance(p, TTSProcessor)), None)
-        if tts_proc:
-            # Inject directly into TTS
-            logger.info(f"🗣️ [ORCHESTRATOR] speak_direct: Injecting '{text}' into TTS...")
-            
-            # CRITICAL FIX: Manually report transcript for Greeting
-            await self._send_transcript("assistant", text)
-            
-            await tts_proc.process_frame(TextFrame(text=text), direction=1)
-        else:
-            logger.error("❌ [ORCHESTRATOR] speak_direct: TTS Processor not found in pipeline!")
-
-    # --- INTERNAL HELPERS ---
-
-    async def _load_config(self):
-         async with AsyncSessionLocal() as session:
-             self.config = await db_service.get_agent_config(session)
-             
-             # --- APPLY DYNAMIC PACING (Punto 2 Audit) ---
-             # Map 'conversation_pacing' enum -> Actual millisecond values
-             pacing = getattr(self.config, 'conversation_pacing', 'moderate')
-             
-             if pacing == 'fast':
-                 self.config.voice_pacing_ms = 0      # Instant response
-                 self.config.silence_timeout_ms = 400 # Quick turn-taking
-             elif pacing == 'moderate':
-                 self.config.voice_pacing_ms = 200    # Natural pause
-                 self.config.silence_timeout_ms = 800 # Standard
-             elif pacing == 'relaxed':
-                 self.config.voice_pacing_ms = 600    # Thoughtful pause
-                 self.config.silence_timeout_ms = 1500 # Patient listener
-
-    def _init_providers(self):
-        self.llm_provider = ServiceFactory.get_llm_provider(self.config)
-        self.stt_provider = ServiceFactory.get_stt_provider(self.config)
-        self.tts_provider = ServiceFactory.get_tts_provider(self.config)
-
-    async def _build_pipeline(self):
-        # Inject client context into config for processors
-        if self.config:
-             # Dynamically attach client_type so processors (VAD, STT, TTS) know context
-             # Helper to bypass Pydantic frozencheck if needed, or just set attribute
-             try:
-                 setattr(self.config, 'client_type', self.client_type)
-             except Exception:
-                 pass # Fallback if immutable
-
-        # 1. STT
-        stt = STTProcessor(self.stt_provider, self.config, self.loop)
-        await stt.initialize()
-        # Wire Azure Callbacks (if needed explicitly, but STTProcessor should handle it)
-        # Note: STTProcessor takes care of writing to push_stream via process_frame
-        
-        # 2. VAD
-        vad = VADProcessor(self.config)
-        
-        # 3. Aggregator
-        agg = ContextAggregator(self.config, self.conversation_history, llm_provider=self.llm_provider)
-        
-        # 4. LLM
-        llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history, context=self.initial_context_data)
-        
-        # 5. TTS
-        tts = TTSProcessor(self.tts_provider, self.config)
-        await tts.initialize()
-        
-        # 6. Metrics
-        metrics = MetricsProcessor(self.config)
-        
-        # 7. Sink
-        sink = PipelineOutputSink(self)
-        
-        # --- 8. REPORTERS (For UI) ---
-        user_reporter = TranscriptReporter(callback=self._send_transcript, role_label="user")
-        bot_reporter = TranscriptReporter(callback=self._send_transcript, role_label="assistant")
-        
-        # PIPELINE ORDER:
-        # STT -> VAD -> UserReporter -> Aggregator -> LLM -> BotReporter -> TTS -> Metrics -> Sink
-        
-        # Wait, Aggregator might swallow TextFrame? No, Aggregator emits [TextFrame, UserStartedSpeakingFrame].
-        # If Aggregator emits TextFrame, then UserReporter should be AFTER Aggregator?
-        # Let's check Aggregator behavior (implied). Usually VAD emits AudioFrame. STT emits TextFrame.
-        # Aggregator combines partials.
-        # Actually STT emits TextFrame (Final).
-        # Let's put UserReporter AFTER Aggregator to capture "User Committed Speech".
-        # LLM consumes TextFrame. So Reporter must be BEFORE LLM for User.
-        
-        # For Bot: LLM emits TextFrame. TTS consumes TextFrame. So Reporter must be BEFORE TTS (After LLM).
-        
-        # Custom Wrapper to Intercept Frames for Debugging (without creating whole new Classes)
-        # We attach listeners to the processors if possible?
-        # Or we inject a "MetricsMiddleware"?
-        # For simplicity in this audit refactor, we rely on the `emit_debug` if we had modified the processors.
-        # But since we are only modding Orchestrator, we can wrap the callbacks.
-        
-        # WE ALREADY HAVE REPORTERS!
-        # user_reporter and bot_reporter.
-        # We can add a "DebugReporter" that logs Start/End times?
-        
-        # Let's augment the Reporters to send "transcription_complete" debug event.
-        
-        # For Latency, we need:
-        # 1. User Speech End (VAD) -> Transcriber End -> LLM Start -> LLM First Token -> TTS First Byte.
-        
-        # This requires hacking the Pipeline or the Processors.
-        # Since we are in Strict Audit, let's keep it clean.
-        # We will add a simple "LatencyTracker" Processor?
-        # Or just use the existing `MetricsProcessor`.
-        
-        self.pipeline = Pipeline([stt, vad, user_reporter, agg, llm, bot_reporter, tts, metrics, sink])
+        # Enqueue chunks
+        for i in range(0, len(audio_data), chunk_size):
+            self.audio_queue.put_nowait(audio_data[i : i + chunk_size])
 
     async def _audio_stream_loop(self):
-        """Final Mile Transport Loop (20ms)"""
+        """
+        Audio Transport Loop. 
+        - Mixes Background Audio.
+        - Sends to Transport.
+        - Handles Timing (Burst for Browser, Paced for Telephony).
+        """
         try:
              while True:
-                 # 20ms Pacing
-                 start_time = time.time()
+                 loop_start = time.time()
                  
-                 # Get TTS Output
+                 # 1. Fetch TTS Chunk
                  chunk = None
                  try:
                      chunk = self.audio_queue.get_nowait()
                  except asyncio.QueueEmpty:
                      pass
-                     
-                 # Background Noise Mixing
-                 bg_chunk = self._get_next_background_chunk(len(chunk) if chunk else 160)
                  
+                 # 2. Prepare Background Chunk (Match TTS duration or default 20ms)
+                 # If we have a TTS chunk, strict match. If idle, default frame.
+                 needed_len = len(chunk) if chunk else (640 if self.client_type == "browser" else 160)
+                 bg_chunk = self._get_next_background_chunk(needed_len)
+                 
+                 # 3. Mixing & Sending
                  if chunk or bg_chunk:
                       final_chunk = self._mix_audio(chunk, bg_chunk)
                       if final_chunk:
-                        await self._send_actual_chunk(final_chunk)
-                      
-                 # Sleep remainder
-                 elapsed = time.time() - start_time
-                 if elapsed < 0.02:
-                     await asyncio.sleep(0.02 - elapsed)
+                          # Send directly
+                          try:
+                              sr = 16000 if self.client_type == "browser" else 8000
+                              await self.transport.send_audio(final_chunk, sr)
+                          except Exception as e_send:
+                              logger.warning(f"Transport send failed: {e_send}")
+
+                 # 4. Timing / Sleep
+                 # Plan 1: Browser uses Jitter Buffer, so we can BURST Send TTS.
+                 # Only sleep if we are IDLE (generating BG noise) or Telephony (Real-time).
+                 
+                 if self.client_type == "browser" and chunk:
+                     # Burst Mode: Don't sleep, process next chunk immediately
+                     # Yield to event loop to allow other tasks (like WS input) to run
+                     await asyncio.sleep(0) 
+                 else:
+                     # Real-time Pacing (Telephony or Idle Background)
+                     elapsed = time.time() - loop_start
+                     delay = 0.02 - elapsed
+                     if delay > 0:
+                         await asyncio.sleep(delay)
                      
         except asyncio.CancelledError:
             pass
-
-    def _load_background_audio(self) -> None:
-        """Loads background audio (WAV) and resamples to match output rate."""
-        bg_sound = getattr(self.config, 'background_sound', 'none')
-        if bg_sound and bg_sound.lower() != 'none':
-             try:
-                 import pathlib
-                 import wave
-                 import numpy as np
-                 import struct
-                 
-                 # Resolve Path
-                 sound_path = pathlib.Path(f"app/static/sounds/{bg_sound}.wav")
-                 
-                 # Target Rate logic
-                 target_rate = 16000 if self.client_type == 'browser' else 8000
-
-                 if sound_path.exists():
-                     logging.info(f"🎵 [BG-SOUND] Loading {sound_path} for target rate {target_rate}Hz...")
-                     
-                     data = None
-                     orig_rate = 44100 # Default fallback
-                     
-                     # Method A: Try standard wave module
-                     try:
-                         with wave.open(str(sound_path), "rb") as wf:
-                             params = wf.getparams()
-                             raw_frames = wf.readframes(params.nframes)
-                             orig_rate = params.framerate
-                             width = params.sampwidth
-                             channels = params.nchannels
-                             
-                             if width == 2:
-                                 data = np.frombuffer(raw_frames, dtype=np.int16)
-                             elif width == 1:
-                                 # 8-bit output is usually uint8 0..255 or int8 -128..127? 
-                                 # Wave 8-bit is unsigned 0..255. 128 is center.
-                                 data_u8 = np.frombuffer(raw_frames, dtype=np.uint8)
-                                 data = (data_u8.astype(np.int16) - 128) * 256
-                             else:
-                                 logging.warning("Unsupported bit depth in wave module.")
-                     
-                     except wave.Error:
-                         # Method B: Manual Parse (Likely A-Law or Mu-Law)
-                         logging.info("♻️ [BG-SOUND] 'wave' failed (Format 6/7?). Attempting manual decode...")
-                         with open(sound_path, "rb") as f:
-                             raw_bytes = f.read()
-                             
-                         # Simple RIFF parse
-                         # 20-22: AudioFormat (1=PCM, 6=ALaw, 7=MuLaw)
-                         # 22-24: NumChannels
-                         # 24-28: SampleRate
-                         try:
-                             audio_fmt = struct.unpack('<H', raw_bytes[20:22])[0]
-                             channels = struct.unpack('<H', raw_bytes[22:24])[0]
-                             orig_rate = struct.unpack('<I', raw_bytes[24:28])[0]
-                             
-                             data_start = raw_bytes.find(b'data')
-                             if data_start != -1:
-                                 # size is next 4 bytes
-                                 raw_data = raw_bytes[data_start+8:]
-                                 
-                                 if audio_fmt == 6: # A-Law
-                                     lin_bytes = AudioProcessor.alaw2lin(raw_data, 2)
-                                     data = np.frombuffer(lin_bytes, dtype=np.int16)
-                                 elif audio_fmt == 7: # Mu-Law
-                                     lin_bytes = AudioProcessor.ulaw2lin(raw_data, 2)
-                                     data = np.frombuffer(lin_bytes, dtype=np.int16)
-                                 elif audio_fmt == 1: # PCM (why did wave fail?)
-                                     data = np.frombuffer(raw_data, dtype=np.int16)
-                         except Exception as e_parse:
-                             logging.error(f"❌ [BG-SOUND] Manual parse failed: {e_parse}")
-
-                     if data is not None:
-                         # 1. Stereo to Mono
-                         if channels == 2 and len(data.shape) > 1:
-                             # Reshape logic if data was loaded flat but is stereo
-                             if len(data) % 2 == 0:
-                                 data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
-                         elif channels == 2:
-                             # If loaded flat frombuffer
-                             try:
-                                 data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
-                             except:
-                                 pass
-
-                         # 2. Resample if needed
-                         if orig_rate != target_rate:
-                             duration = len(data) / orig_rate
-                             target_len = int(duration * target_rate)
-                             x_old = np.linspace(0, duration, len(data))
-                             x_new = np.linspace(0, duration, target_len)
-                             data = np.interp(x_new, x_old, data).astype(np.int16)
-                             logging.info(f"🎵 [BG-SOUND] Resampled {orig_rate}Hz -> {target_rate}Hz")
-
-                         self.bg_loop_buffer = data.tobytes()
-                         logging.info(f"🎵 [BG-SOUND] Buffer Ready. Size: {len(self.bg_loop_buffer)}")
-                     else:
-                         logging.warning("⚠️ [BG-SOUND] No data decoded. Mixing disabled.")
-                 else:
-                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}")
-             except Exception as e_bg:
-                 logging.error(f"❌ [BG-SOUND] Unhandled error: {e_bg}")
-
-    def _get_next_background_chunk(self, req_len: int) -> bytes | None:
-        if not self.bg_loop_buffer or len(self.bg_loop_buffer) == 0:
-            return None
-
-        bg_chunk = None
-        if self.bg_loop_index + req_len > len(self.bg_loop_buffer):
-            part1 = self.bg_loop_buffer[self.bg_loop_index:]
-            remaining = req_len - len(part1)
-            part2 = self.bg_loop_buffer[:remaining]
-            bg_chunk = part1 + part2
-            self.bg_loop_index = remaining
-        else:
-            bg_chunk = self.bg_loop_buffer[self.bg_loop_index : self.bg_loop_index + req_len]
-            self.bg_loop_index += req_len
-        return bg_chunk
-
-    def _mix_audio(self, tts_chunk: bytes | None, bg_chunk: bytes | None) -> bytes | None:
-        """Mixes TTS and Background audio chunks using AudioProcessor (NumPy)."""
-        if tts_chunk and bg_chunk:
-            try:
-                # Assuming simple A-Law mixing for now to save imports complexity inside method
-                # Better: Use AudioProcessor as imported
-                bg_lin = bg_chunk # BG is WAV/PCM (Linear)
-
-                if self.client_type == 'browser':
-                    # Browser uses Linear PCM (16-bit 16kHz usually)
-                    # No decoding needed
-                    tts_lin = tts_chunk
-                elif self.client_type == 'telnyx':
-                    tts_lin = AudioProcessor.alaw2lin(tts_chunk, 2)
-                else:
-                    tts_lin = AudioProcessor.ulaw2lin(tts_chunk, 2)
-
-                bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15)
-                mixed_lin = AudioProcessor.add(tts_lin, bg_lin_quiet, 2)
-
-                if self.client_type == 'browser':
-                    return mixed_lin
-                elif self.client_type == 'telnyx':
-                    return AudioProcessor.lin2alaw(mixed_lin, 2)
-                else:
-                    return AudioProcessor.lin2ulaw(mixed_lin, 2)
-            except Exception as e_mix:
-                logging.error(f"Mixing error: {e_mix}")
-                return tts_chunk 
-
-        elif tts_chunk:
-            return tts_chunk
-
-        elif bg_chunk:
-             try:
-                bg_lin = bg_chunk
-                bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15) 
-                
-                if self.client_type == 'browser':
-                    return bg_lin_quiet
-                elif self.client_type == 'telnyx':
-                    return AudioProcessor.lin2alaw(bg_lin_quiet, 2)
-                else:
-                    return AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
-             except Exception:
-                return None
-        return None
-            
-    async def _send_actual_chunk(self, chunk: bytes):
-        try:
-            # Delegate wrapping to Transport Adapter
-            sr = 16000 if self.client_type == "browser" else 8000
-            await self.transport.send_audio(chunk, sr)
-        except Exception:
-            pass
+        except Exception as e_loop:
+            logger.error(f"Stream Loop Crash: {e_loop}")
 
     async def _clear_output(self):
         """Clears audio queue and notifies client."""

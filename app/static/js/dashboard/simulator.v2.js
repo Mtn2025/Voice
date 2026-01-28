@@ -35,25 +35,9 @@ export const SimulatorMixin = {
 
         this.transcripts = [];
 
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            this.audioContext = new AudioContext({ sampleRate: 16000 });
-
-            if (this.audioContext.state === 'suspended') {
-                await this.audioContext.resume();
-            }
-
-            this.analyser = this.audioContext.createAnalyser();
-            this.analyser.fftSize = 2048;
-
-            this.drawVisualizer();
-
-            console.log("AudioContext Initialized");
-        } catch (e) {
-            console.error("Audio Context Init Failed", e);
-            alert("Audio Error: " + e.message);
-            return;
-        }
+        // Pre-init Audio Context user interaction check
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.audioContext = new AudioContext({ sampleRate: 16000 });
 
         this.simState = 'connecting';
 
@@ -66,7 +50,7 @@ export const SimulatorMixin = {
             this.ws.onopen = () => {
                 console.log("WS Connected");
                 this.simState = 'connected';
-                this.initMicrophone();
+                this.initMicrophone(); // Init Audio Engine
 
                 this.ws.send(JSON.stringify({
                     event: 'start',
@@ -92,17 +76,17 @@ export const SimulatorMixin = {
                     } else if (msg.type === 'debug') {
                         // Simulator 2.0 Debug Event
                         this.debugLogs.unshift(msg);
-                        if (this.debugLogs.length > 50) this.debugLogs.pop(); // Keep last 50
+                        if (this.debugLogs.length > 50) this.debugLogs.pop();
 
-                        // Update Metrics
-                        if (msg.event === 'vad_level') {
+                        // Handle Metrics & Speaking State from Server
+                        if (msg.event === 'speech_state') {
+                            this.isAgentSpeaking = msg.data.speaking;
+                        } else if (msg.event === 'vad_level') {
                             this.vadLevel = msg.data.rms;
                         } else if (msg.event === 'llm_latency') {
                             this.metrics.llm_latency = msg.data.duration_ms + ' ms';
                         } else if (msg.event === 'tts_latency') {
                             this.metrics.tts_latency = msg.data.duration_ms + ' ms';
-                        } else if (msg.event === 'speech_state') {
-                            this.isAgentSpeaking = msg.data.speaking;
                         }
                     } else if (msg.type === 'transcript') {
                         this.transcripts.push({
@@ -115,6 +99,10 @@ export const SimulatorMixin = {
                             const container = document.getElementById('transcript-container');
                             if (container) container.scrollTop = container.scrollHeight;
                         });
+                    } else if (msg.event === 'clear') {
+                        // Clear buffers command?
+                        // If we had a 'clear' message handling in Worklet, we would send it here.
+                        // For now ignores.
                     }
                 } catch (err) {
                     console.error("Error processing WS message:", err);
@@ -141,16 +129,23 @@ export const SimulatorMixin = {
                 await this.audioContext.resume();
             }
 
-            // Connect Analyser if missing
+            // Connect Analyser if missing (Input Analysis)
             if (!this.analyser) {
                 this.analyser = this.audioContext.createAnalyser();
                 this.analyser.fftSize = 256;
             }
 
+            // Output Analyser (Assistant)
+            if (!this.outputAnalyser) {
+                this.outputAnalyser = this.audioContext.createAnalyser();
+                this.outputAnalyser.fftSize = 256;
+                this.outputAnalyser.connect(this.audioContext.destination);
+            }
+
             const constraints = {
                 audio: {
-                    echoCancellation: this.c.denoise,
-                    noiseSuppression: this.c.denoise,
+                    echoCancellation: this.c && this.c.denoise,
+                    noiseSuppression: this.c && this.c.denoise,
                     autoGainControl: true
                 }
             };
@@ -158,76 +153,51 @@ export const SimulatorMixin = {
             this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
             const source = this.audioContext.createMediaStreamSource(this.mediaStream);
 
+            // Connect Mic -> Analyser (Visualizer)
             source.connect(this.analyser);
 
-            // ----------------------------------------------------------------
-            // AUDIO WORKLET MIGRATION (Modern Audio API)
-            // ----------------------------------------------------------------
+            // Load Worklet
             try {
-                // Load the Worklet Module
                 await this.audioContext.audioWorklet.addModule('/static/js/audio-worklet-processor.js');
 
-                // Create the Worklet Node
+                // Create Worklet Node
                 this.processor = new AudioWorkletNode(this.audioContext, 'pcm-processor');
 
-                // Handle Data from Worklet (Int16 Buffer)
+                // Handle Messages from Worklet (Mic Data)
                 this.processor.port.onmessage = (event) => {
                     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-                    const pcm16 = event.data;
+                    const pcm16 = event.data; // Int16Array
 
-                    // Convert Int16Array to Base64 (Main Thread)
-                    // Note: Base64 encoding is still on main thread, but math/sampling is offloaded.
+                    // Convert to Base64 (Main Thread)
                     const bytes = new Uint8Array(pcm16.buffer);
                     let binary = '';
                     const len = bytes.byteLength;
-
-                    // Chunked String.fromCharCode to avoid stack overflow on large buffers
-                    // 4096 samples = 8192 bytes. Safe for spread or loop.
-                    for (let i = 0; i < len; i++) {
-                        binary += String.fromCharCode(bytes[i]);
+                    // Chunked optimization for large strings
+                    const CHUNK_SIZE = 8192;
+                    for (let i = 0; i < len; i += CHUNK_SIZE) {
+                        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK_SIZE));
                     }
                     const base64Audio = window.btoa(binary);
 
                     this.ws.send(JSON.stringify({ event: 'media', media: { payload: base64Audio, track: 'inbound' } }));
                 };
 
+                // AUDIO GRAPH:
+                // Mic Source -> Analyser -> Worklet (Input 0)
                 source.connect(this.processor);
 
-                // CRITICAL FIX: Route through Mute Gain to prevent Echo (Direct Monitor)
-                const muteGain = this.audioContext.createGain();
-                muteGain.gain.value = 0;
-                this.processor.connect(muteGain);
-                // muteGain.connect(this.audioContext.destination); // FIX: Disconnect loopback entirely
+                // Worklet (Output 0) -> Output Analyser -> Destination
+                this.processor.connect(this.outputAnalyser);
 
-                console.log("✅ AudioWorklet 'pcm-processor' active");
+                console.log("✅ AudioWorklet 'pcm-processor' active (Ring Buffer Implemented)");
 
-            } catch (workletErr) {
-                console.error("❌ AudioWorklet Failed, falling back to ScriptProcessor", workletErr);
-
-                // FALLBACK: Deprecated ScriptProcessor //
-                this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
-                source.connect(this.processor);
-                const muteGain = this.audioContext.createGain();
-                muteGain.gain.value = 0;
-                this.processor.connect(muteGain);
-                // muteGain.connect(this.audioContext.destination); // FIX: Disconnect loopback entirely
-
-                this.processor.onaudioprocess = (e) => {
-                    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-                    const inputData = e.inputBuffer.getChannelData(0);
-                    const pcm16 = new Int16Array(inputData.length);
-                    for (let i = 0; i < inputData.length; i++) {
-                        let s = Math.max(-1, Math.min(1, inputData[i]));
-                        pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-                    }
-                    // Base64 logic duplicated here for fallback
-                    const bytes = new Uint8Array(pcm16.buffer);
-                    let binary = '';
-                    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-                    this.ws.send(JSON.stringify({ event: 'media', media: { payload: window.btoa(binary), track: 'inbound' } }));
-                };
+            } catch (err) {
+                console.error("❌ AudioWorklet Failed to Load:", err);
+                alert("Audio Worklet Error: " + err.message + ". Update your browser.");
+                this.stopTest();
             }
+
         } catch (e) {
             console.error("Mic Access Failed", e);
             alert("Microphone Error: " + e.message);
@@ -246,7 +216,7 @@ export const SimulatorMixin = {
 
         if (this.processor) {
             this.processor.disconnect();
-            this.processor.onaudioprocess = null;
+            this.processor.port.onmessage = null;
             this.processor = null;
         }
 
@@ -266,6 +236,7 @@ export const SimulatorMixin = {
         }
 
         if (this.animationId) cancelAnimationFrame(this.animationId);
+        if (this.speakingTimer) clearTimeout(this.speakingTimer);
 
         const canvas = document.getElementById('visualizer');
         if (canvas) {
@@ -275,8 +246,9 @@ export const SimulatorMixin = {
     },
 
     playAudio(base64Data) {
-        if (!base64Data || !this.audioContext) return;
+        if (!base64Data || !this.processor) return;
         try {
+            // Decode Base64 -> String -> Uint8Array -> Int16Array
             const binaryString = window.atob(base64Data);
             const len = binaryString.length;
             const bytes = new Uint8Array(len);
@@ -284,39 +256,17 @@ export const SimulatorMixin = {
                 bytes[i] = binaryString.charCodeAt(i);
             }
             const pcm16 = new Int16Array(bytes.buffer);
-            const float32 = new Float32Array(pcm16.length);
-            for (let i = 0; i < pcm16.length; i++) {
-                float32[i] = pcm16[i] / 32768.0;
-            }
-            const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
-            buffer.copyToChannel(float32, 0);
 
-            // 1. Create Output Analyser if missing
-            if (!this.outputAnalyser) {
-                this.outputAnalyser = this.audioContext.createAnalyser();
-                this.outputAnalyser.fftSize = 256;
-                this.outputAnalyser.connect(this.audioContext.destination);
-            }
+            // Feed to Worklet (Ring Buffer)
+            this.processor.port.postMessage(pcm16);
 
-            const source = this.audioContext.createBufferSource();
-            source.buffer = buffer;
-
-            // 2. Connect Source -> Analyser -> Destination (Implicit via Analyser connection)
-            source.connect(this.outputAnalyser);
-            // source.connect(this.audioContext.destination); // Removed direct connect
-
-            // Trigger Agent Speaking State (Visualizer Blue)
+            // Visualizer State (Optimistic)
             this.isAgentSpeaking = true;
             if (this.speakingTimer) clearTimeout(this.speakingTimer);
-            // Approx duration of this chunk? Or just a generous timeout (e.g. 200ms) to keep it alive
-            // Buffer duration is accurate.
-            const timeoutMs = (buffer.duration * 1000) + 100;
             this.speakingTimer = setTimeout(() => {
                 this.isAgentSpeaking = false;
-            }, timeoutMs);
+            }, 300); // Debounce duration (since we are streaming chunks)
 
-            source.start(this.nextStartTime);
-            this.nextStartTime += buffer.duration;
         } catch (e) {
             console.error("Playback Error", e);
         }
