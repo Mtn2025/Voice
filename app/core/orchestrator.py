@@ -215,21 +215,21 @@ class VoiceOrchestrator:
 
              # Trigger First Message?
             first_msg = getattr(self.config, 'first_message', None)
-            if first_msg:
+            mode = getattr(self.config, 'first_message_mode', 'speak-first')
+
+            if first_msg and mode == 'speak-first':
                 # We want the bot to speak this.
-                # We can push a TextFrame to TTS directly? 
-                # OR push to LLM with instruction?
                 # Simplest: Push to TTS queue via a "System-generated" TextFrame.
-                # But we want it in history too.
-                # Let's manually push to Pipeline Sink? No, to TTS.
-                # But we need access to processors.
                 # Cleanest: Queue a TextFrame at the *start* of the pipeline?
                 # No, standard pipeline flow is STT -> VAD -> Agg -> LLM -> TTS.
-                # If we push TextFrame at Source, it goes to STT (ignored) -> VAD (ignored) -> Agg (Logged as User?) -> LLM (Replied to?).
                 # We want to BYPASS Input and go straight to TTS output.
-                # We can inject directly into TTS processor if exposed, or usage `queue_frame` with a custom logic.
                 # Actually, simply use `speak_direct` helper which injects into TTS.
                 await self.speak_direct(first_msg)
+            elif mode == 'speak-first-dynamic':
+                 # Dynamic generation (Future Feature) - For now silent or handled by LLM?
+                 # Assuming handled by LLM on first turn if we send a "Hi" fake user message.
+                 # But per audit, we just skip fixed message.
+                 pass
 
         logger.info("✅ [ORCHESTRATOR] Ready.")
 
@@ -346,6 +346,7 @@ class VoiceOrchestrator:
         # Indicate Speaking State & Apply Pacing Latency
         if not self.is_bot_speaking:
             self.is_bot_speaking = True
+            logger.info("🔊 [ORCHESTRATOR] Bot started speaking (Audio Flow Active)")
             
             # Apply Artificial Pacing Delay (Latency)
             pacing_ms = getattr(self.config, 'voice_pacing_ms', 0)
@@ -354,6 +355,7 @@ class VoiceOrchestrator:
 
         if self.client_type == "browser":
              # Direct Send via Transport
+             # logger.info(f"📤 [ORCHESTRATOR] Sending {len(audio_data)} bytes to Browser Transport")
              await self.transport.send_audio(audio_data, 16000)
         else:
              # Queue for Paced Streaming

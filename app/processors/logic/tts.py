@@ -129,10 +129,13 @@ class TTSProcessor(FrameProcessor):
             audio_data = await self.provider.synthesize_ssml(self.synthesizer, ssml)
             
             if audio_data:
+                logger.info(f"🗣️ [TTS] Received Audio Data: {len(audio_data)} bytes")
                 chunk_size = 160
                 for i in range(0, len(audio_data), chunk_size):
                     chunk = audio_data[i : i + chunk_size]
                     await self.push_frame(AudioFrame(data=chunk, sample_rate=8000, channels=1))
+            else:
+                logger.warning("🗣️ [TTS] Audio Data is empty/None!")
                     
         except Exception as e:
             logger.error(f"TTS Error: {e}")

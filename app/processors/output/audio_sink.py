@@ -31,9 +31,10 @@ class PipelineOutputSink(FrameProcessor):
     async def _send_audio(self, frame: AudioFrame):
         # Delegate to orchestrator's buffered sender
         try:
+            # logger.info(f"🎤 [SINK] Sending Audio Chunk: {len(frame.data)} bytes") # Verbose
             await self.orchestrator.send_audio_chunked(frame.data)
         except Exception as e:
-            logger.error(f"Error in TelnyxSink delegation: {e}")
+            logger.error(f"Error in PipelineOutputSink delegation: {e}")
 
     def set_stream_id(self, stream_id: str):
         # Orchestrator handles stream ID context
