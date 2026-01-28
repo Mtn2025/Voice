@@ -385,7 +385,10 @@ class VoiceOrchestrator:
         tts_proc = next((p for p in self.pipeline._processors if isinstance(p, TTSProcessor)), None)
         if tts_proc:
             # Inject directly into TTS
+            logger.info(f"🗣️ [ORCHESTRATOR] speak_direct: Injecting '{text}' into TTS...")
             await tts_proc.process_frame(TextFrame(text=text), direction=1)
+        else:
+            logger.error("❌ [ORCHESTRATOR] speak_direct: TTS Processor not found in pipeline!")
 
     # --- INTERNAL HELPERS ---
 
