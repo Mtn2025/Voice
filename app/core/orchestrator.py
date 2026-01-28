@@ -158,11 +158,11 @@ class VoiceOrchestrator:
         # 1. Load Config
         await self._load_config()
         
-        # 2. Initialize Providers
-        self._init_providers()
-        
-        # 3. Apply Profile Overlays (Optional, kept for legacy compat)
+        # 2. Apply Profile Overlays (CRITICAL: Before Providers)
         self._apply_profile_overlay()
+        
+        # 3. Initialize Providers
+        self._init_providers()
         
         # 3.1 Load Background Audio
         self._load_background_audio()
@@ -650,11 +650,102 @@ class VoiceOrchestrator:
             return None
 
     def _apply_profile_overlay(self):
-        """Legacy helper to map telnyx/twilio specific configs."""
-        # Kept minimal or removed if config is unified. 
-        # Assuming kept for safety.
-        # Implementation omitted for brevity in this scratchpad, but should be included.
-        pass
+        """
+        Maps provider-specific config fields (Phone/Telnyx) over the base fields
+        in the in-memory config object. This ensures Processors use the correct values.
+        """
+        if not self.config:
+            return
+
+        c = self.config
+        mode = self.client_type # twilio, telnyx, browser
+
+        if mode == 'browser':
+            return # Base config is already Browser
+
+        # Mapping Strategy: Source Suffix -> Target Base
+        # We overlay values if they exist
+        
+        suffix = ""
+        if mode == 'twilio':
+            suffix = "_phone"
+        elif mode == 'telnyx':
+            suffix = "_telnyx"
+        
+        if not suffix:
+            return
+
+        logger.info(f"🎭 [CONFIG] Applying Overlay for profile: {mode} (suffix: {suffix})")
+
+        # List of fields to overlay
+        fields = [
+            # LLM
+            ('llm_provider', 'llm_provider'),
+            ('llm_model', 'llm_model'),
+            ('temperature', 'temperature'),
+            ('system_prompt', 'system_prompt'), # Special handling for None?
+            ('max_tokens', 'max_tokens'),
+            ('first_message', 'first_message'),
+            ('first_message_mode', 'first_message_mode'),
+            
+            # TTS
+            ('tts_provider', 'tts_provider'),
+            ('voice_language', 'voice_language'),
+            ('voice_name', 'voice_name'),
+            ('voice_style', 'voice_style'),
+            ('voice_speed', 'voice_speed'),
+            ('voice_pitch', 'voice_pitch'),
+            ('voice_volume', 'voice_volume'),
+            ('voice_style_degree', 'voice_style_degree'),
+            ('background_sound', 'background_sound'),
+            ('voice_pacing_ms', 'voice_pacing_ms'),
+            
+            # STT / Helpers
+            ('stt_provider', 'stt_provider'),
+            ('stt_language', 'stt_language'),
+            ('interruption_threshold', 'interruption_threshold'),
+            ('silence_timeout_ms', 'silence_timeout_ms'),
+            ('input_min_characters', 'input_min_characters'),
+            ('hallucination_blacklist', 'hallucination_blacklist'),
+            ('enable_denoising', 'enable_denoising'),
+            
+            # VAD/Flow
+            ('vad_threshold', 'vad_threshold'),
+            ('idle_timeout', 'idle_timeout'),
+            ('max_duration', 'max_duration'),
+            ('idle_message', 'idle_message'),
+            
+            # Legacy/Specific
+            ('initial_silence_timeout_ms', 'initial_silence_timeout_ms'),
+            ('voice_sensitivity', 'interruptRMS'), # Telnyx alias check?
+        ]
+        
+        for base_field, _ in fields:
+            source_field = f"{base_field}{suffix}"
+            
+            # Special case for Telnyx native fields that might map differently or strictly exist
+            # But our map above assumes simple suffixing. 
+            # Let's handle exceptions or special mappings if needed.
+            
+            if hasattr(c, source_field):
+                val = getattr(c, source_field)
+                if val is not None:
+                     # For prompts, only overwrite if not empty/null? 
+                     # DB default is often None for overlays.
+                     if "system_prompt" in base_field and not val:
+                         continue 
+                     
+                     # Overwrite base
+                     current = getattr(c, base_field, None)
+                     setattr(c, base_field, val)
+                     # logger.debug(f"   Overwriting {base_field}: {current} -> {val}")
+        
+        # Telnyx Specifics (Native)
+        if mode == 'telnyx':
+             # Handled largely by specific processors checking config.enable_krisp_telnyx
+             # But generic Processors (VAD) might look at base defaults.
+             if hasattr(c, 'voice_sensitivity_telnyx'):
+                  setattr(c, 'voice_sensitivity', getattr(c, 'voice_sensitivity_telnyx'))
 
     # --- CRM INTEGRATION (Baserow) ---
     async def _fetch_crm_context(self):
