@@ -66,37 +66,39 @@ class LLMProcessor(FrameProcessor):
         try:
             # 3. Stream Generation
             # We need to buffer text to form sentences for TTS
+            full_response_buffer = ""
             sentence_buffer = ""
             
             async for token in self.provider.get_stream(
-                messages=self.conversation_history, # Only conversation history
+                messages=self.conversation_history, # Only conversation history (User msg already added)
                 system_prompt=system_content,
                 temperature=getattr(self.config, 'temperature', 0.7)
             ):
-                # Check for control tokens
                 token_text = token
-                
-                # Check for Special Actions (Hangup, Transfer) - Logic from Orchestrator
-                # Simplified here for brevity, should port full logic
-                if "[END_CALL]" in token_text:
-                    # Emit Hangup System Frame?
-                    # await self.push_frame(EndFrame(reason="LLM Request"))
-                    continue
-                
+                full_response_buffer += token_text
                 sentence_buffer += token_text
                 
-                # Simple sentence split (Naive) - Better to use a tokenizer or the orchestrated split logic
-                if any(punct in sentence_buffer for punct in [".", "?", "!"]):
-                    # Emit TextFrame
+                # Check for Special Actions (Hangup, Transfer)
+                if "[END_CALL]" in token_text:
+                     # TODO: Emit ControlFrame(EndCall)
+                     continue
+                
+                # Robust Sentence Split (Simple Heuristic for now, but cleaner)
+                # Check for puntuation at the end of buffer (not just 'any' inside)
+                if len(sentence_buffer) > 10 and sentence_buffer.strip()[-1] in [".", "?", "!"]:
+                    # Emit TextFrame for TTS
                     await self.push_frame(TextFrame(text=sentence_buffer))
-                    # Add to history
-                    self.conversation_history.append({"role": "assistant", "content": sentence_buffer})
                     sentence_buffer = ""
             
-            # Flush remaining
-            if sentence_buffer:
+            # Flush remaining text to TTS
+            if sentence_buffer.strip():
                  await self.push_frame(TextFrame(text=sentence_buffer))
-                 self.conversation_history.append({"role": "assistant", "content": sentence_buffer})
+            
+            # CRITICAL FIX: Append COMPLETE response to history ONCE at the end.
+            # Previous code appended fragments, corrupting context for next turn.
+            if full_response_buffer.strip():
+                self.conversation_history.append({"role": "assistant", "content": full_response_buffer})
+                logger.debug(f"🤖 [LLM] Full Response added to history ({len(full_response_buffer)} chars)")
 
         except asyncio.CancelledError:
             logger.info("🛑 [LLM] Generation cancelled.")
