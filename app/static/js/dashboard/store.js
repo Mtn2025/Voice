@@ -5,6 +5,12 @@ export function dashboardStore() {
     return {
         ...SimulatorMixin, // Merge Simulator logic
 
+        // Explicitly initialize reactive state (Redundant safety for caching issues)
+        debugLogs: [],
+        metrics: { llm_latency: '-', tts_latency: '-' },
+        vadLevel: 0,
+        isAgentSpeaking: false,
+
         // ==========================================
         // CORE DASHBOARD STATE
         // ==========================================
