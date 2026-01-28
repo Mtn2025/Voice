@@ -3,7 +3,17 @@ from contextlib import asynccontextmanager
 # Punto B1: Logging Centralizado & Tracing
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Request, Response
+from fastapi.staticfiles import StaticFiles as BaseStaticFiles
+
+# Disable Cache for Static Files (Crucial for ES Module Imports)
+class StaticFiles(BaseStaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
