@@ -93,9 +93,9 @@ def configure_logging():
 
     # Set Level
     # Can be configured via env var in future
-    root_logger.setLevel(logging.INFO)
+    root_logger.setLevel(logging.DEBUG)
 
-    # Silence noisy libraries
+    # Silence noisy libraries (Keep them quiet even in Debug mode to avoid flood)
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING) # We will log requests ourselves or use generic
     logging.getLogger("httpx").setLevel(logging.WARNING)
 

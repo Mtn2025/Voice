@@ -109,6 +109,23 @@ class VADProcessor(FrameProcessor):
             # int16 -> float32 normalized
             import numpy as np
             audio_int16 = np.frombuffer(chunk_bytes, dtype=np.int16)
+            
+            # Simple Frame Energy check for Debugging (Sample every 10th frame to avoid log spam, but user asked for EVERYTHING)
+            # Actually, user is angry. Log EVERYTHING for now.
+            try:
+                # Calculate simple RMS for debug
+                import math
+                import struct
+                # Assume 16-bit PCM
+                count = len(chunk_bytes) // 2
+                shorts = struct.unpack(f"{count}h", chunk_bytes)
+                sum_sq = sum(s*s for s in shorts)
+                rms = math.sqrt(sum_sq / count)
+                if rms > 100: # Only log if there's some signal
+                     logger.debug(f"🎤 [VAD] Frame Energy RMS: {int(rms)} | Buffer: {len(self.buffer)}")
+            except:
+                pass
+
             audio_float32 = audio_int16.astype(np.float32) / 32768.0
             
             try:
