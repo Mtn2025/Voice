@@ -130,10 +130,16 @@ class TTSProcessor(FrameProcessor):
             
             if audio_data:
                 logger.info(f"🗣️ [TTS] Received Audio Data: {len(audio_data)} bytes")
-                chunk_size = 160
-                for i in range(0, len(audio_data), chunk_size):
-                    chunk = audio_data[i : i + chunk_size]
-                    await self.push_frame(AudioFrame(data=chunk, sample_rate=8000, channels=1))
+                
+                # CRITICAL: Do NOT chunk here. 
+                # 1. For Browser: We need the full blob to avoid overwhelming the JS AudioContext scheduler with 5ms clips.
+                # 2. For Telephony: The Orchestrator.send_audio_chunked method ALREADY re-chunks to 160 bytes.
+                # Sending the full blob preserves efficiency and correctness.
+                
+                # Determine metadata sample rate
+                sr = 16000 if getattr(self.config, 'client_type', 'twilio') == 'browser' else 8000
+                
+                await self.push_frame(AudioFrame(data=audio_data, sample_rate=sr, channels=1))
             else:
                 logger.warning("🗣️ [TTS] Audio Data is empty/None!")
                     
