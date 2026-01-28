@@ -61,6 +61,9 @@ class STTProcessor(FrameProcessor):
                 if self.recognizer and hasattr(self.recognizer, 'write'):
                     # push_stream.write() expects bytes
                     self.recognizer.write(frame.data)
+                
+                # CRITICAL FIX: Propagate audio to next processor (VAD)
+                await self.push_frame(frame, direction)
             else:
                 # Pass through other frames
                 await self.push_frame(frame, direction)
