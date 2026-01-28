@@ -61,6 +61,7 @@ echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
 python scripts/add_baserow_columns.py
 python scripts/add_webhook_columns.py
 python scripts/add_vad_columns.py
+python scripts/patch_threshold.py
 
 # =============================================================================
 # 2.2 Compile CSS (Vite + Tailwind)
