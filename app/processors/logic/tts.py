@@ -146,3 +146,13 @@ class TTSProcessor(FrameProcessor):
         except Exception as e:
             logger.error(f"TTS Error: {e}")
 
+    async def stop(self):
+        """Stops the TTS processor and cleans up tasks."""
+        if hasattr(self, '_worker_task') and self._worker_task:
+            self._worker_task.cancel()
+            try:
+                await self._worker_task
+            except asyncio.CancelledError:
+                pass
+            self._worker_task = None
+        await super().stop()

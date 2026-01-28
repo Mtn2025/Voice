@@ -353,22 +353,29 @@ class VoiceOrchestrator:
             if pacing_ms > 0:
                 await asyncio.sleep(pacing_ms / 1000.0)
 
+    async def send_audio_chunked(self, audio_data: bytes):
+        """
+        Splits audio into chunks to pace streaming and support mixing.
+        """
+        self.is_bot_speaking = True
+        
+        # Pacing calculation? 
+        # Actually _audio_stream_loop handles the timing.
+        # We just need to feed the queue with reasonable chunks.
+        
         if self.client_type == "browser":
-             # Logic for Browser: Now using Queue to allow Mixing in _audio_stream_loop
-             # But we might want faster chunks? 160 (20ms @ 8khz) is fine.
-             # Be careful with sample rates. _audio_stream_loop assumes mixing logic.
-             # Browser needs 16000Hz output usually?
-             # _mix_audio handles it.
-             chunk_size = 320 # 20ms @ 16khz (Since browser is 16k usually?)
-             # Wait, if data comes from TTS, it's already 16k for browser (from TTSProcessor).
-             # If we slice it small, it's fine.
+             # Browser: 16kHz 16-bit Mono = 32,000 bytes/sec.
+             # 320 bytes was ~10ms -> 100 chunks/sec (Too High overhead).
+             # Let's use 200ms chunks = 0.2 * 32000 = 6400 bytes.
+             chunk_size = 6400 
              
              for i in range(0, len(audio_data), chunk_size):
                  chunk = audio_data[i : i + chunk_size]
                  self.audio_queue.put_nowait(chunk)
         else:
-             # Queue for Paced Streaming
-             chunk_size = 160 # 20ms @ 8khz
+             # Telephony: 8kHz 8-bit A-Law/Mu-Law = 8,000 bytes/sec.
+             # 160 bytes = 20ms. Standard packet size for RTP/SIP.
+             chunk_size = 160 
              for i in range(0, len(audio_data), chunk_size):
                  chunk = audio_data[i : i + chunk_size]
                  self.audio_queue.put_nowait(chunk)
