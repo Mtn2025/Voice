@@ -432,7 +432,7 @@
     </div>
 
     <!-- JAVASCRIPT MODULES -->
-    <script type="module" src="{{ url_for('static', path='js/main.js') }}"></script>
+    <script type="module" src="{{ url_for('static', path='js/main.js') }}?v={{ range(1000, 9999) | random }}"></script>
 </body>
 
 </html>
