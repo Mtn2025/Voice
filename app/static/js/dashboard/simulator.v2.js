@@ -193,8 +193,12 @@ export const SimulatorMixin = {
                 };
 
                 source.connect(this.processor);
-                // Connect to destination to prevent garbage collection, but no output (Worklet doesn't output audio unless defined)
-                this.processor.connect(this.audioContext.destination);
+
+                // CRITICAL FIX: Route through Mute Gain to prevent Echo (Direct Monitor)
+                const muteGain = this.audioContext.createGain();
+                muteGain.gain.value = 0;
+                this.processor.connect(muteGain);
+                muteGain.connect(this.audioContext.destination);
 
                 console.log("✅ AudioWorklet 'pcm-processor' active");
 
