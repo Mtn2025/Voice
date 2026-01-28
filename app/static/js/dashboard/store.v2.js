@@ -17,6 +17,7 @@ export function dashboardStore() {
         activeTab: 'model',
         activeHistoryFilter: 'all',
         activeProfile: 'browser',
+        showDebug: false, // UI Toggle for Debug Console
         serverConfig: {},
 
         // DATA HOLDERS

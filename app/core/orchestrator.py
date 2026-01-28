@@ -416,6 +416,238 @@ class VoiceOrchestrator:
         except Exception as e_loop:
             logger.error(f"Stream Loop Crash: {e_loop}")
 
+    # --- RESTORED METHODS (Missing from previous refactor) ---
+
+    async def interrupt_speaking(self):
+        """
+        Called when user barge-in is detected.
+        Stops current audio playback and clears queues.
+        """
+        if self.is_bot_speaking:
+            logger.info("🛑 [ORCHESTRATOR] Interruption Detected! Stopping audio.")
+            self.is_bot_speaking = False
+            
+            # Clear Orchestrator Queue
+            while not self.audio_queue.empty():
+                try:
+                    self.audio_queue.get_nowait()
+                except:
+                    pass
+
+    async def speak_direct(self, text: str):
+        """Helper to make the bot speak (e.g. First Message)."""
+        if not self.pipeline:
+            return
+            
+        tts_proc = next((p for p in self.pipeline._processors if isinstance(p, TTSProcessor)), None)
+        if tts_proc:
+            # Inject directly into TTS
+            logger.info(f"🗣️ [ORCHESTRATOR] speak_direct: Injecting '{text}' into TTS...")
+            
+            # CRITICAL FIX: Manually report transcript for Greeting
+            await self._send_transcript("assistant", text)
+            
+            await tts_proc.process_frame(TextFrame(text=text), direction=1)
+        else:
+            logger.error("❌ [ORCHESTRATOR] speak_direct: TTS Processor not found in pipeline!")
+
+    async def _load_config(self):
+         async with AsyncSessionLocal() as session:
+             self.config = await db_service.get_agent_config(session)
+             
+             # --- APPLY DYNAMIC PACING ---
+             pacing = getattr(self.config, 'conversation_pacing', 'moderate')
+             
+             if pacing == 'fast':
+                 self.config.voice_pacing_ms = 0      # Instant response
+                 self.config.silence_timeout_ms = 400 # Quick turn-taking
+             elif pacing == 'moderate':
+                 self.config.voice_pacing_ms = 200    # Natural pause
+                 self.config.silence_timeout_ms = 800 # Standard
+             elif pacing == 'relaxed':
+                 self.config.voice_pacing_ms = 600    # Thoughtful pause
+                 self.config.silence_timeout_ms = 1500 # Patient listener
+
+    def _init_providers(self):
+        self.llm_provider = ServiceFactory.get_llm_provider(self.config)
+        self.stt_provider = ServiceFactory.get_stt_provider(self.config)
+        self.tts_provider = ServiceFactory.get_tts_provider(self.config)
+
+    async def _build_pipeline(self):
+        # Inject client context into config for processors
+        if self.config:
+             try:
+                 setattr(self.config, 'client_type', self.client_type)
+             except Exception:
+                 pass 
+
+        # 1. STT
+        stt = STTProcessor(self.stt_provider, self.config, self.loop)
+        await stt.initialize()
+        
+        # 2. VAD
+        vad = VADProcessor(self.config)
+        
+        # 3. Aggregator
+        agg = ContextAggregator(self.config, self.conversation_history, llm_provider=self.llm_provider)
+        
+        # 4. LLM
+        llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history, context=self.initial_context_data)
+        
+        # 5. TTS
+        tts = TTSProcessor(self.tts_provider, self.config)
+        await tts.initialize()
+        
+        # 6. Metrics
+        metrics = MetricsProcessor(self.config)
+        
+        # 7. Sink
+        sink = PipelineOutputSink(self)
+        
+        # 8. Reporters
+        user_reporter = TranscriptReporter(callback=self._send_transcript, role_label="user")
+        bot_reporter = TranscriptReporter(callback=self._send_transcript, role_label="assistant")
+        
+        self.pipeline = Pipeline([stt, vad, user_reporter, agg, llm, bot_reporter, tts, metrics, sink])
+
+    def _load_background_audio(self) -> None:
+        """Loads background audio (WAV) and resamples to match output rate."""
+        bg_sound = getattr(self.config, 'background_sound', 'none')
+        if bg_sound and bg_sound.lower() != 'none':
+             try:
+                 import pathlib
+                 import wave
+                 import numpy as np
+                 import struct
+                 
+                 sound_path = pathlib.Path(f"app/static/sounds/{bg_sound}.wav")
+                 target_rate = 16000 if self.client_type == 'browser' else 8000
+
+                 if sound_path.exists():
+                     logging.info(f"🎵 [BG-SOUND] Loading {sound_path} for target rate {target_rate}Hz...")
+                     
+                     data = None
+                     orig_rate = 44100 
+                     
+                     try:
+                         with wave.open(str(sound_path), "rb") as wf:
+                             params = wf.getparams()
+                             raw_frames = wf.readframes(params.nframes)
+                             orig_rate = params.framerate
+                             width = params.sampwidth
+                             channels = params.nchannels
+                             
+                             if width == 2:
+                                 data = np.frombuffer(raw_frames, dtype=np.int16)
+                             elif width == 1:
+                                 data_u8 = np.frombuffer(raw_frames, dtype=np.uint8)
+                                 data = (data_u8.astype(np.int16) - 128) * 256
+                     except wave.Error:
+                         logging.info("♻️ [BG-SOUND] 'wave' failed. Attempting manual decode...")
+                         with open(sound_path, "rb") as f:
+                             raw_bytes = f.read()
+                         try:
+                             audio_fmt = struct.unpack('<H', raw_bytes[20:22])[0]
+                             channels = struct.unpack('<H', raw_bytes[22:24])[0]
+                             orig_rate = struct.unpack('<I', raw_bytes[24:28])[0]
+                             data_start = raw_bytes.find(b'data')
+                             if data_start != -1:
+                                 raw_data = raw_bytes[data_start+8:]
+                                 if audio_fmt == 6: 
+                                     lin_bytes = AudioProcessor.alaw2lin(raw_data, 2)
+                                     data = np.frombuffer(lin_bytes, dtype=np.int16)
+                                 elif audio_fmt == 7: 
+                                     lin_bytes = AudioProcessor.ulaw2lin(raw_data, 2)
+                                     data = np.frombuffer(lin_bytes, dtype=np.int16)
+                                 elif audio_fmt == 1:
+                                     data = np.frombuffer(raw_data, dtype=np.int16)
+                         except Exception:
+                             pass
+
+                     if data is not None:
+                         if channels == 2 and len(data.shape) > 1:
+                             if len(data) % 2 == 0:
+                                 data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                         elif channels == 2:
+                             try:
+                                 data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                             except:
+                                 pass
+
+                         if orig_rate != target_rate:
+                             duration = len(data) / orig_rate
+                             target_len = int(duration * target_rate)
+                             x_old = np.linspace(0, duration, len(data))
+                             x_new = np.linspace(0, duration, target_len)
+                             data = np.interp(x_new, x_old, data).astype(np.int16)
+
+                         self.bg_loop_buffer = data.tobytes()
+                         logging.info(f"🎵 [BG-SOUND] Buffer Ready. Size: {len(self.bg_loop_buffer)}")
+                 else:
+                     logging.warning(f"⚠️ [BG-SOUND] File not found: {sound_path}")
+             except Exception as e_bg:
+                 logging.error(f"❌ [BG-SOUND] Unhandled error: {e_bg}")
+
+    def _get_next_background_chunk(self, req_len: int) -> bytes | None:
+        if not self.bg_loop_buffer or len(self.bg_loop_buffer) == 0:
+            return None
+
+        bg_chunk = None
+        if self.bg_loop_index + req_len > len(self.bg_loop_buffer):
+            part1 = self.bg_loop_buffer[self.bg_loop_index:]
+            remaining = req_len - len(part1)
+            part2 = self.bg_loop_buffer[:remaining]
+            bg_chunk = part1 + part2
+            self.bg_loop_index = remaining
+        else:
+            bg_chunk = self.bg_loop_buffer[self.bg_loop_index : self.bg_loop_index + req_len]
+            self.bg_loop_index += req_len
+        return bg_chunk
+
+    def _mix_audio(self, tts_chunk: bytes | None, bg_chunk: bytes | None) -> bytes | None:
+        """Mixes TTS and Background audio chunks using AudioProcessor (NumPy)."""
+        if tts_chunk and bg_chunk:
+            try:
+                bg_lin = bg_chunk 
+
+                if self.client_type == 'browser':
+                    tts_lin = tts_chunk
+                elif self.client_type == 'telnyx':
+                    tts_lin = AudioProcessor.alaw2lin(tts_chunk, 2)
+                else:
+                    tts_lin = AudioProcessor.ulaw2lin(tts_chunk, 2)
+
+                bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15)
+                mixed_lin = AudioProcessor.add(tts_lin, bg_lin_quiet, 2)
+
+                if self.client_type == 'browser':
+                    return mixed_lin
+                elif self.client_type == 'telnyx':
+                    return AudioProcessor.lin2alaw(mixed_lin, 2)
+                else:
+                    return AudioProcessor.lin2ulaw(mixed_lin, 2)
+            except Exception as e_mix:
+                logging.error(f"Mixing error: {e_mix}")
+                return tts_chunk 
+
+        elif tts_chunk:
+            return tts_chunk
+
+        elif bg_chunk:
+             try:
+                bg_lin = bg_chunk
+                bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15) 
+                
+                if self.client_type == 'browser':
+                    return bg_lin_quiet
+                elif self.client_type == 'telnyx':
+                    return AudioProcessor.lin2alaw(bg_lin_quiet, 2)
+                else:
+                    return AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
+             except Exception:
+                return None
+        return None
+
     async def _clear_output(self):
         """Clears audio queue and notifies client."""
         # 1. Empty Queue
