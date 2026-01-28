@@ -16,10 +16,11 @@ class LLMProcessor(FrameProcessor):
     Consumes TextFrames (User Transcripts), sends to LLM, produces TextFrames (Assistant Response).
     Supports cancellation via CancelFrame.
     """
-    def __init__(self, provider: LLMProvider, config: Any, conversation_history: list):
+    def __init__(self, provider: LLMProvider, config: Any, conversation_history: list, context: dict = None):
         super().__init__(name="LLMProcessor")
         self.provider = provider
         self.config = config
+        self.context = context or {} # Campaign context
         self.conversation_history = conversation_history # Shared history reference (mutable)
         self.system_prompt = getattr(config, 'system_prompt', '')
         self._current_task: Optional[asyncio.Task] = None
@@ -72,7 +73,8 @@ class LLMProcessor(FrameProcessor):
             async for token in self.provider.get_stream(
                 messages=self.conversation_history, # Only conversation history (User msg already added)
                 system_prompt=system_content,
-                temperature=getattr(self.config, 'temperature', 0.7)
+                temperature=getattr(self.config, 'temperature', 0.7),
+                max_tokens=getattr(self.config, 'max_tokens', 150) # ✅ Pass config value
             ):
                 token_text = token
                 full_response_buffer += token_text
@@ -110,4 +112,4 @@ class LLMProcessor(FrameProcessor):
             # await self.push_frame(ErrorFrame(error=str(e)))
 
     def _build_system_prompt(self):
-        return PromptBuilder.build_system_prompt(self.config)
+        return PromptBuilder.build_system_prompt(self.config, self.context)

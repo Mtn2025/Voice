@@ -8,9 +8,9 @@ class PromptBuilder:
     """
 
     @staticmethod
-    def build_system_prompt(config: Any) -> str:
+    def build_system_prompt(config: Any, context: dict = None) -> str:
         """
-        Combines base system prompt with dynamic style instructions.
+        Combines base system prompt with dynamic style instructions AND context variables.
         """
         base_prompt = getattr(config, 'system_prompt', '') or "Eres un asistente útil."
         
@@ -68,5 +68,20 @@ class PromptBuilder:
 <dynamic_style_overrides>
 {dynamic_instructions}
 </dynamic_style_overrides>
+</dynamic_style_overrides>
 """
+        # 5. Inject Context Variables (Campaign Data)
+        if context:
+            try:
+                # Format as structured block
+                context_str = "\n".join([f"- {k}: {v}" for k, v in context.items()])
+                final_prompt += f"""
+<context_data>
+{context_str}
+</context_data>
+"""
+            except Exception as e:
+                logging.warning(f"Error injecting context: {e}")
+
+        return final_prompt
         return final_prompt

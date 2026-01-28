@@ -364,6 +364,27 @@ class VoiceOrchestrator:
                  chunk = audio_data[i : i + chunk_size]
                  self.audio_queue.put_nowait(chunk)
 
+    async def interrupt_speaking(self):
+        """
+        Called when user barge-in is detected.
+        Stops current audio playback and clears queues.
+        """
+        if self.is_bot_speaking:
+            logger.info("🛑 [ORCHESTRATOR] Interruption Detected! Stopping audio.")
+            self.is_bot_speaking = False
+            
+            # Clear Orchestrator Queue
+            while not self.audio_queue.empty():
+                try:
+                    self.audio_queue.get_nowait()
+                except:
+                    pass
+            
+            # TODO: We might want to cancel the TTS generation task too?
+            # For now, stopping audio output is sufficient for "Barge-in" feel.
+            # The LLM/TTS pipeline might still finish processing the old thought, 
+            # but we won't play it.
+
     async def speak_direct(self, text: str):
         """Helper to make the bot speak (e.g. First Message)."""
         if not self.pipeline:
@@ -440,7 +461,7 @@ class VoiceOrchestrator:
         agg = ContextAggregator(self.config, self.conversation_history, llm_provider=self.llm_provider)
         
         # 4. LLM
-        llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history)
+        llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history, context=self.initial_context_data)
         
         # 5. TTS
         tts = TTSProcessor(self.tts_provider, self.config)
@@ -572,9 +593,13 @@ class VoiceOrchestrator:
             try:
                 # Assuming simple A-Law mixing for now to save imports complexity inside method
                 # Better: Use AudioProcessor as imported
-                bg_lin = AudioProcessor.alaw2lin(bg_chunk, 2)
+                bg_lin = bg_chunk # BG is WAV/PCM (Linear)
 
-                if self.client_type == 'telnyx':
+                if self.client_type == 'browser':
+                    # Browser uses Linear PCM (16-bit 16kHz usually)
+                    # No decoding needed
+                    tts_lin = tts_chunk
+                elif self.client_type == 'telnyx':
                     tts_lin = AudioProcessor.alaw2lin(tts_chunk, 2)
                 else:
                     tts_lin = AudioProcessor.ulaw2lin(tts_chunk, 2)
@@ -582,7 +607,9 @@ class VoiceOrchestrator:
                 bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15)
                 mixed_lin = AudioProcessor.add(tts_lin, bg_lin_quiet, 2)
 
-                if self.client_type == 'telnyx':
+                if self.client_type == 'browser':
+                    return mixed_lin
+                elif self.client_type == 'telnyx':
                     return AudioProcessor.lin2alaw(mixed_lin, 2)
                 else:
                     return AudioProcessor.lin2ulaw(mixed_lin, 2)
@@ -595,9 +622,15 @@ class VoiceOrchestrator:
 
         elif bg_chunk:
              try:
-                bg_lin = AudioProcessor.alaw2lin(bg_chunk, 2)
+                bg_lin = bg_chunk
                 bg_lin_quiet = AudioProcessor.mul(bg_lin, 2, 0.15) 
-                if self.client_type == 'telnyx':
+                
+                if self.client_type == 'browser':
+                    return bg_lin_quiet
+                elif self.client_type == 'telnyx':
+                    return AudioProcessor.lin2alaw(bg_lin_quiet, 2)
+                else:
+                    return AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
                     return AudioProcessor.lin2alaw(bg_lin_quiet, 2)
                 else:
                     return AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
