@@ -47,19 +47,24 @@ export const SimulatorMixin = {
         try {
             this.ws = new WebSocket(wsUrl);
 
-            this.ws.onopen = () => {
+            this.ws.onopen = async () => {
                 console.log("WS Connected");
                 this.simState = 'connected';
-                this.initMicrophone(); // Init Audio Engine
 
-                this.ws.send(JSON.stringify({
-                    event: 'start',
-                    start: {
-                        streamSid: 'browser-' + Date.now(),
-                        callSid: 'sim-' + Date.now(),
-                        media_format: { encoding: 'audio/pcm', sample_rate: 16000, channels: 1 }
-                    }
-                }));
+                // CRITICAL FIX: Await Audio Engine (Worklet) BEFORE telling backend to start.
+                // This prevents the "Greeting" from arriving before we are ready to play it.
+                await this.initMicrophone();
+
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({
+                        event: 'start',
+                        start: {
+                            streamSid: 'browser-' + Date.now(),
+                            callSid: 'sim-' + Date.now(),
+                            media_format: { encoding: 'audio/pcm', sample_rate: 16000, channels: 1 }
+                        }
+                    }));
+                }
             };
 
             this.ws.onmessage = (event) => {
