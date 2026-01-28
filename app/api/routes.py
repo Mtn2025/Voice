@@ -20,6 +20,8 @@ from app.core.orchestrator import VoiceOrchestrator
 from app.core.webhook_security import require_telnyx_signature, require_twilio_signature
 from app.db.database import AsyncSessionLocal  # NEW
 from app.services.db_service import db_service
+from app.adapters.simulator.transport import SimulatorTransport
+from app.adapters.telephony.transport import TelephonyTransport
 
 router = APIRouter()
 
@@ -386,7 +388,17 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
         logging.error(f"Manager connect failed: {e}")
         return
 
-    orchestrator = VoiceOrchestrator(websocket, client_type=client, initial_context=client_state)
+    # Select Transport Adapter
+    transport = None
+    if client == "browser":
+         transport = SimulatorTransport(websocket)
+    elif client in ["twilio", "telnyx"]:
+         transport = TelephonyTransport(websocket, protocol=client)
+    else:
+         # Fallback
+         transport = TelephonyTransport(websocket, protocol="twilio")
+
+    orchestrator = VoiceOrchestrator(transport, client_type=client, initial_context=client_state)
 
     try:
         await orchestrator.start()
@@ -429,6 +441,7 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
 
                 logging.info(f"🎙️ Stream Started: {stream_sid}")
                 orchestrator.stream_id = stream_sid
+                transport.set_stream_id(stream_sid)
 
                 # Extract media format (Telnyx provides this)
                 media_format = start_data.get('media_format', {})

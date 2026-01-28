@@ -1,0 +1,107 @@
+<!-- TAB START: TRANSCRIPTOR -->
+<div x-show="activeTab === 'transcriptor'" class="space-y-5 animate-fade-in-up">
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
+                STT</label>
+            <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                <template x-for="p in ['azure']">
+                    <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
+                </template>
+            </select>
+        </div>
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
+            <select x-model="c.sttLang" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                <template x-for="l in availableLanguages">
+                    <option :value="l.id" x-text="l.name"></option>
+                </template>
+            </select>
+        </div>
+    </div>
+
+    <div class="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">Control
+            de Interrupciones</label>
+
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm">Umbral de Palabras</span>
+                <span class="text-blue-400 font-mono" x-text="c.interruptWords"></span>
+            </div>
+            <input type="range" x-model="c.interruptWords" min="0" max="10" step="1"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            <p class="text-[10px] text-slate-500 mt-1">Palabras requeridas para detener al bot.</p>
+        </div>
+
+        <div x-show="activeProfile === 'telnyx'">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm">Sensibilidad (RMS)</span>
+                <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
+            </div>
+            <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            <p class="text-[10px] text-slate-500 mt-1">Nivel de audio para detectar voz humana.</p>
+        </div>
+    </div>
+
+    <!-- Removed Redundant Silence Slider (Managed by Velocidad de Interacción) -->
+
+    <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
+            Alucinaciones</label>
+        <input type="text" x-model="c.blacklist" class="glass-input w-full p-2.5 rounded-lg text-sm">
+    </div>
+
+    <div class="flex items-center space-x-4 pt-2">
+        <!-- Removed Denoising Toggle (Azure Default is Always On) -->
+        <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
+            <input type="checkbox" x-model="c.krisp"
+                class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+            <span class="text-sm">Krisp AI</span>
+        </label>
+        <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
+            <input type="checkbox" x-model="c.vad"
+                class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
+            <span class="text-sm">VAD</span>
+        </label>
+    </div>
+
+    <!-- Control de Interrupción y VAD (NUEVO) -->
+    <div class="space-y-4 mt-6 pt-6 border-t border-slate-700">
+        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">
+            🧠 Inteligencia de Voz (VAD)
+        </h3>
+
+        <!-- Smart Interruption Toggle -->
+        <div class="flex items-center justify-between">
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Interrupción
+                    Inteligente</label>
+                <p class="text-[10px] text-slate-500">Usa IA para evitar cortes cuando el usuario duda.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" :checked="c.segmentation_strategy === 'semantic'"
+                    @change="c.segmentation_strategy = $event.target.checked ? 'semantic' : 'default'">
+                <div
+                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600">
+                </div>
+            </label>
+        </div>
+
+        <!-- VAD Threshold Slider -->
+        <div>
+            <label
+                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                <span>Sensibilidad VAD (Silero)</span>
+                <span class="text-blue-400 font-mono" x-text="c.vad_threshold || 0.5"></span>
+            </label>
+            <input type="range" x-model.number="c.vad_threshold" min="0.1" max="0.9" step="0.05"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                <span>0.1 (Muy Sensible)</span>
+                <span>0.9 (Estricto)</span>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,203 @@
+from contextlib import asynccontextmanager
+
+# Punto B1: Logging Centralizado & Tracing
+from asgi_correlation_id import CorrelationIdMiddleware
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
+from app.api import routes
+from app.core.config import settings
+from app.core.logging_config import configure_logging
+from app.routers import dashboard, system
+
+# =============================================================================
+# RATE LIMITING - Punto A3 del Plan Consolidado
+# =============================================================================
+# SlowAPI para protección contra DoS y control de costos
+# Configuración: Por IP, almacenamiento en memoria (in-memory)
+# =============================================================================
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # =============================================================================
+    # Punto B1: Configure Structured Logging
+    # =============================================================================
+    configure_logging()
+    # =============================================================================
+
+    # Load resources
+    from app.core.secure_logging import get_secure_logger
+    logger = get_secure_logger(__name__)
+    logger.info("Starting Voice Orchestrator...")
+
+    # Configuration status (secure - no keys exposed)
+    logger.info(f"Telnyx API configured: {bool(settings.TELNYX_API_KEY)}")
+    logger.info(f"Azure Speech configured: {bool(settings.AZURE_SPEECH_KEY)}")
+    logger.info(f"Groq API configured: {bool(settings.GROQ_API_KEY)}")
+
+    # =============================================================================
+    # Punto A9: Initialize Redis for Horizontal Scaling
+    # =============================================================================
+    from app.core.http_client import http_client
+    from app.core.redis_state import redis_state
+    await redis_state.connect()
+    if redis_state.is_redis_enabled:
+        logger.info("✅ [A9] Redis state management enabled - Multi-instance ready")
+    else:
+        logger.warning("⚠️ [A9] Redis unavailable - Using in-memory fallback (single instance only)")
+
+    # Initialize HTTP Client (Punto C3)
+    await http_client.init()
+    logger.info("✅ [HTTP] Global HTTP Client Initialized")
+    # =============================================================================
+
+    # Run database migrations with Alembic
+    # Run Migrations via Subprocess (avoids asyncio loop conflict in env.py)
+    import subprocess
+    try:
+        # DB DEBUG
+        db_url_safe = settings.DATABASE_URL.split("@")[-1]  # Show only host/db part
+        logger.info(f"🔌 Connecting to Database at: ...@{db_url_safe}")
+
+        logger.info("Running database migrations...")
+        # Run alembic in a separate process to avoid "loop already running" issues
+        result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True, text=True, check=False)
+        if result.returncode == 0:
+            logger.info("Database migrations completed successfully")
+        else:
+            logger.error(f"Migration failed: {result.stderr}")
+            # Continue anyway - tables might be created by create_all below
+            pass
+    except Exception as e:
+        logger.error(f"Error running migrations: {e}")
+        # Continue anyway - tables might already exist
+
+    # Init DB Tables (create_all for safety, Alembic handles schema)
+    from app.db.database import engine
+    from app.db.models import Base
+    async with engine.begin() as conn:
+        # Create tables if they don't exist
+        await conn.run_sync(Base.metadata.create_all)
+
+    logger.info("✅ Application startup complete")
+
+    yield  # App is running
+
+    # Cleanup on shutdown
+    logger.info("Shutting down Voice Orchestrator...")
+
+    # =============================================================================
+    # Punto A9: Close Redis Connection
+    # =============================================================================
+    await redis_state.disconnect()
+    logger.info("✅ [A9] Redis disconnected")
+
+    await http_client.close()
+    logger.info("✅ [HTTP] Global HTTP Client Closed")
+    # =============================================================================
+
+    logger.info("✅ Application shutdown complete")
+
+
+app = FastAPI(
+    title="Voice Orchestrator Agent",
+    description="AI Voice Assistant with Telnyx, Azure, and Groq integration",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Punto B1: Add Request Tracing Middleware
+# Must be added before other middlewares/routers
+app.add_middleware(CorrelationIdMiddleware)
+
+# Security: Add security headers and CSRF protection (Phase 5 - M-2, M-3, L-4)
+# Note: These are added "inner" relative to SessionMiddleware
+from app.core.security_middleware import CSRFProtectionMiddleware, SecurityHeadersMiddleware
+
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFProtectionMiddleware)
+
+# Security: Session middleware for CSRF tokens (A7)
+# CRITICAL: Must be added AFTER CSRF middleware so it wraps it (Runs FIRST)
+from starlette.middleware.sessions import SessionMiddleware
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SESSION_SECRET_KEY if hasattr(settings, 'SESSION_SECRET_KEY') else settings.ADMIN_API_KEY,
+    max_age=3600,  # 1 hour
+    same_site="strict",
+    https_only=False  # Set to True in production with HTTPS
+)
+
+# Monitoring: Prometheus metrics middleware (B2)
+import time
+
+from app.core.metrics import (
+    http_request_duration_seconds,
+    http_requests_in_progress,
+    http_requests_total,
+)
+
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    """Record HTTP metrics for monitoring."""
+    method = request.method
+    path = request.url.path
+
+    # Skip metrics endpoint itself to avoid recursion
+    if path == "/metrics":
+        return await call_next(request)
+
+    # Track in-progress requests
+    http_requests_in_progress.labels(method=method, path=path).inc()
+
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+    except Exception:
+        status_code = 500
+        raise
+    finally:
+        # Record metrics
+        duration = time.time() - start_time
+        http_request_duration_seconds.labels(method=method, path=path).observe(duration)
+        http_requests_total.labels(method=method, path=path, status_code=status_code).inc()
+        http_requests_in_progress.labels(method=method, path=path).dec()
+
+    return response
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+# Rate Limiting (Punto A3)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.include_router(routes.router, prefix=settings.API_V1_STR)
+app.include_router(dashboard.router)
+app.include_router(system.router)
+
+
+from fastapi.responses import RedirectResponse
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/dashboard")
+
+@app.post("/", include_in_schema=False)
+async def root_post():
+    """
+    Handle POST requests to root (e.g., from health checks or misconfigured webhooks).
+    Returns 200 OK to prevent 405 errors flowing into logs.
+    """
+    return {"status": "ok", "message": "Voice Orchestrator Running"}
+
+

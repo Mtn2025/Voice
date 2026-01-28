@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Voice Orchestrator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center h-screen">
+    <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                Andrea Voice
+            </h1>
+            <p class="text-gray-400 mt-2">Acceso Administrativo</p>
+        </div>
+
+        <form action="/login" method="POST" class="space-y-6">
+            <div>
+                <label for="api_key" class="block text-sm font-medium text-gray-400 mb-2">Clave Maestra (API
+                    Key)</label>
+                <input type="password" name="api_key" id="api_key" required
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors placeholder-gray-600"
+                    placeholder="Ingrese su ADMIN_API_KEY">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02]">
+                Ingresar
+            </button>
+        </form>
+
+        <p class="text-xs text-center text-gray-600 mt-6">
+            Voice Orchestrator v2.0 &bull; Secure Access
+        </p>
+    </div>
+</body>
+
+</html>

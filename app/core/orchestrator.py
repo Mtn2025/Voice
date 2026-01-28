@@ -15,6 +15,7 @@ from app.core.service_factory import ServiceFactory
 from app.services.db_service import db_service
 from app.db.database import AsyncSessionLocal
 from app.core.audio_processor import AudioProcessor # For mixing/codec if needed in transport
+from app.ports.transport import AudioTransport
 
 # Pipeline
 from app.core.pipeline import Pipeline
@@ -41,8 +42,8 @@ class VoiceOrchestrator:
     3. Route Input Audio -> Pipeline.
     4. Provide 'Transport' methods for Sync/Output (send_audio_chunked).
     """
-    def __init__(self, websocket: WebSocket, client_type: str = "twilio", initial_context: Optional[str] = None) -> None:
-        self.websocket = websocket
+    def __init__(self, transport: AudioTransport, client_type: str = "twilio", initial_context: Optional[str] = None) -> None:
+        self.transport = transport
         self.client_type = client_type
         self.initial_context_token = initial_context # Base64 string from Telnyx
         self.initial_context_data = {} # Decoded dict
@@ -146,7 +147,7 @@ class VoiceOrchestrator:
                     "data": data,
                     "timestamp": time.time()
                 }
-                await self.websocket.send_text(json.dumps(msg))
+                await self.transport.send_json(msg)
             except Exception:
                 pass
 
@@ -331,7 +332,7 @@ class VoiceOrchestrator:
                      "role": role,
                      "text": text
                  }
-                 await self.websocket.send_text(json.dumps(msg))
+                 await self.transport.send_json(msg)
              except Exception:
                  pass
 
@@ -352,9 +353,8 @@ class VoiceOrchestrator:
                 await asyncio.sleep(pacing_ms / 1000.0)
 
         if self.client_type == "browser":
-             # Direct Send
-             b64 = base64.b64encode(audio_data).decode("utf-8")
-             await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
+             # Direct Send via Transport
+             await self.transport.send_audio(audio_data, 16000)
         else:
              # Queue for Paced Streaming
              chunk_size = 160 # 20ms @ 8khz
@@ -602,17 +602,8 @@ class VoiceOrchestrator:
             
     async def _send_actual_chunk(self, chunk: bytes):
         try:
-            b64 = base64.b64encode(chunk).decode("utf-8")
-            msg = {
-                "event": "media",
-                "media": {"payload": b64}
-            }
-            if self.client_type == "twilio" and self.stream_id:
-                msg["streamSid"] = self.stream_id
-            elif self.client_type == "telnyx" and self.stream_id:
-                msg["stream_id"] = self.stream_id
-                
-            await self.websocket.send_text(json.dumps(msg))
+            # Delegate wrapping to Transport Adapter
+            await self.transport.send_audio(chunk, 8000)
         except Exception:
             pass
 
@@ -630,7 +621,7 @@ class VoiceOrchestrator:
              msg = {"event": "clear"}
              if self.stream_id:
                  msg["streamSid"] = self.stream_id
-             await self.websocket.send_text(json.dumps(msg))
+             await self.transport.send_json(msg)
         except:
             pass
             
