@@ -235,6 +235,10 @@ export const SimulatorMixin = {
             this.audioContext = null;
         }
 
+        // Fix: Clear Analysers to prevent "Different AudioContext" error on restart
+        this.analyser = null;
+        this.outputAnalyser = null;
+
         if (this.animationId) cancelAnimationFrame(this.animationId);
         if (this.speakingTimer) clearTimeout(this.speakingTimer);
 
