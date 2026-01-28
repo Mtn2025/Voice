@@ -631,9 +631,6 @@ class VoiceOrchestrator:
                     return AudioProcessor.lin2alaw(bg_lin_quiet, 2)
                 else:
                     return AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
-                    return AudioProcessor.lin2alaw(bg_lin_quiet, 2)
-                else:
-                    return AudioProcessor.lin2ulaw(bg_lin_quiet, 2)
              except Exception:
                 return None
         return None
