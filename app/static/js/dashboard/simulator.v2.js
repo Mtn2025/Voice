@@ -291,9 +291,19 @@ export const SimulatorMixin = {
             const buffer = this.audioContext.createBuffer(1, float32.length, 16000);
             buffer.copyToChannel(float32, 0);
 
+            // 1. Create Output Analyser if missing
+            if (!this.outputAnalyser) {
+                this.outputAnalyser = this.audioContext.createAnalyser();
+                this.outputAnalyser.fftSize = 256;
+                this.outputAnalyser.connect(this.audioContext.destination);
+            }
+
             const source = this.audioContext.createBufferSource();
             source.buffer = buffer;
-            source.connect(this.audioContext.destination);
+
+            // 2. Connect Source -> Analyser -> Destination (Implicit via Analyser connection)
+            source.connect(this.outputAnalyser);
+            // source.connect(this.audioContext.destination); // Removed direct connect
 
             const currentTime = this.audioContext.currentTime;
             if (this.nextStartTime < currentTime) {
@@ -346,9 +356,12 @@ export const SimulatorMixin = {
             ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
             if (this.visualizerMode === 'wave') {
-                this.analyser.getByteTimeDomainData(dataArray);
+                // Select Source: Prioritize TTS if talking, else Mic
+                const activeAnalyser = (this.isAgentSpeaking && this.outputAnalyser) ? this.outputAnalyser : this.analyser;
+                if (activeAnalyser) activeAnalyser.getByteTimeDomainData(dataArray);
+
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = '#34d399';
+                ctx.strokeStyle = this.isAgentSpeaking ? '#3b82f6' : '#34d399'; // Blue for Agent, Green for User
                 ctx.beginPath();
                 const sliceWidth = WIDTH * 1.0 / bufferLength;
                 let x = 0;
@@ -362,12 +375,19 @@ export const SimulatorMixin = {
                 ctx.lineTo(WIDTH, HEIGHT / 2);
                 ctx.stroke();
             } else if (this.visualizerMode === 'bars') {
-                this.analyser.getByteFrequencyData(dataArray);
+                const activeAnalyser = (this.isAgentSpeaking && this.outputAnalyser) ? this.outputAnalyser : this.analyser;
+                if (activeAnalyser) activeAnalyser.getByteFrequencyData(dataArray);
+
+                // Change color 
+                const hue = this.isAgentSpeaking ? 210 : 150; // Blue vs Green
+
                 const barWidth = (WIDTH / bufferLength) * 2.5;
                 let barHeight;
                 let x = 0;
                 for (let i = 0; i < bufferLength; i++) {
                     barHeight = dataArray[i] / 2;
+                    ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    // ... existing loop continues
                     const r = barHeight + 25 * (i / bufferLength);
                     const g = 250 * (i / bufferLength);
                     const b = 50;
