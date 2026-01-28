@@ -556,27 +556,57 @@ class VoiceOrchestrator:
             pass
 
     def _load_background_audio(self) -> None:
-        """Loads background audio (WAV/Raw) if configured."""
+        """Loads background audio (WAV) and resamples to match output rate."""
         bg_sound = getattr(self.config, 'background_sound', 'none')
-        if bg_sound and bg_sound.lower() != 'none' and self.client_type != 'browser':
+        if bg_sound and bg_sound.lower() != 'none':
              try:
                  import pathlib
+                 import wave
+                 import numpy as np
+                 
+                 # Resolve Path
                  sound_path = pathlib.Path(f"app/static/sounds/{bg_sound}.wav")
+                 
+                 # Target Rate logic
+                 target_rate = 16000 if self.client_type == 'browser' else 8000
 
                  if sound_path.exists():
-                     logging.info(f"🎵 [BG-SOUND] Loading background audio: {sound_path}")
-                     with open(sound_path, "rb") as f:
-                         raw_bytes = f.read()
+                     logging.info(f"🎵 [BG-SOUND] Loading {sound_path} for target rate {target_rate}Hz...")
+                     
+                     with wave.open(str(sound_path), "rb") as wf:
+                         params = wf.getparams()
+                         raw_frames = wf.readframes(params.nframes)
+                         orig_rate = params.framerate
+                         channels = params.nchannels
+                         width = params.sampwidth # Should be 2 for 16-bit PCM
+                         
+                         if width != 2:
+                             logging.warning(f"⚠️ [BG-SOUND] Unsupported bit depth {width*8}-bit. Skipping.")
+                             return
 
-                     # WAV Header Parsing (Find 'data' chunk) to skip header noise
-                     data_index = raw_bytes.find(b'data')
+                         # Convert to NumPy
+                         data = np.frombuffer(raw_frames, dtype=np.int16)
+                         
+                         # 1. Stereo to Mono
+                         if channels == 2:
+                             data = data.reshape(-1, 2).mean(axis=1).astype(np.int16)
+                             
+                         # 2. Resample if needed
+                         if orig_rate != target_rate:
+                             # Linear Interpolation
+                             duration = len(data) / orig_rate
+                             target_len = int(duration * target_rate)
+                             
+                             # Original time points
+                             x_old = np.linspace(0, duration, len(data))
+                             # New time points
+                             x_new = np.linspace(0, duration, target_len)
+                             
+                             # Resample
+                             data = np.interp(x_new, x_old, data).astype(np.int16)
+                             logging.info(f"🎵 [BG-SOUND] Resampled {orig_rate}Hz -> {target_rate}Hz")
 
-                     if data_index != -1:
-                         # 'data' (4) + Size (4) = 8 bytes offset
-                         start_offset = data_index + 8
-                         self.bg_loop_buffer = raw_bytes[start_offset:]
-                     else:
-                         self.bg_loop_buffer = raw_bytes
+                         self.bg_loop_buffer = data.tobytes()
 
                      logging.info(f"🎵 [BG-SOUND] Buffer Ready. Size: {len(self.bg_loop_buffer)}")
                  else:

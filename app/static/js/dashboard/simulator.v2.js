@@ -198,7 +198,7 @@ export const SimulatorMixin = {
                 const muteGain = this.audioContext.createGain();
                 muteGain.gain.value = 0;
                 this.processor.connect(muteGain);
-                muteGain.connect(this.audioContext.destination);
+                // muteGain.connect(this.audioContext.destination); // FIX: Disconnect loopback entirely
 
                 console.log("✅ AudioWorklet 'pcm-processor' active");
 
@@ -211,7 +211,7 @@ export const SimulatorMixin = {
                 const muteGain = this.audioContext.createGain();
                 muteGain.gain.value = 0;
                 this.processor.connect(muteGain);
-                muteGain.connect(this.audioContext.destination);
+                // muteGain.connect(this.audioContext.destination); // FIX: Disconnect loopback entirely
 
                 this.processor.onaudioprocess = (e) => {
                     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
