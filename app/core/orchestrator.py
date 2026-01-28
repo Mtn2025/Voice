@@ -348,9 +348,11 @@ class VoiceOrchestrator:
             logger.info("🔊 [ORCHESTRATOR] Bot started speaking")
             
             # Initial Latency (Configurable Pacing)
-            pacing_ms = getattr(self.config, 'voice_pacing_ms', 0)
+            # Initial Latency (Configurable Pacing) - "Turn-Taking Delay"
+            pacing_ms = getattr(self.config, 'voice_pacing_ms', 500) # Default to 500ms if 0
             if pacing_ms > 0:
-                await asyncio.sleep(pacing_ms / 1000.0)
+                 logger.info(f"⏳ [ORCHESTRATOR] Pacing Delay: {pacing_ms}ms")
+                 await asyncio.sleep(pacing_ms / 1000.0)
 
         # Chunk Calculation
         # Browser: 16kHz 16-bit Mono = 32000 bytes/sec. 20ms = 640 bytes.
@@ -401,9 +403,9 @@ class VoiceOrchestrator:
                  # Only sleep if we are IDLE (generating BG noise) or Telephony (Real-time).
                  
                  if self.client_type == "browser" and chunk:
-                     # Burst Mode: Don't sleep, process next chunk immediately
-                     # Yield to event loop to allow other tasks (like WS input) to run
-                     await asyncio.sleep(0) 
+                     # Burst Mode: Process efficiently but throttle slightly to prevent Client Buffer bloat
+                     # 5ms Sleep = Max 200 chunks/sec = 4x Realtime (good balance)
+                     await asyncio.sleep(0.005) 
                  else:
                      # Real-time Pacing (Telephony or Idle Background)
                      elapsed = time.time() - loop_start

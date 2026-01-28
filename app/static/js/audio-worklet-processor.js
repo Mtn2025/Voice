@@ -3,7 +3,8 @@ class PCMProcessor extends AudioWorkletProcessor {
         super();
 
         // --- 1. Ring Buffer for Output (TTS) ---
-        this.bufferSize = 32768;
+        // Tuned to 10 seconds (16kHz) to handle "Burst Mode" from backend without wrapping.
+        this.bufferSize = 160000;
         this.outBuffer = new Float32Array(this.bufferSize);
         this.writePtr = 0;
         this.readPtr = 0;
