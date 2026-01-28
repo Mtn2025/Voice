@@ -17,8 +17,8 @@ class SimulatorTransport(AudioTransport):
         # Here we just transport.
         try:
             b64 = base64.b64encode(audio_data).decode("utf-8")
-            # import logging
-            # logging.getLogger(__name__).debug(f"📤 [TRANS] Sending Audio: {len(b64)} chars")
+            import logging
+            logging.getLogger(__name__).debug(f"📤 [TRANS] Sending Audio: {len(b64)} chars")
             await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
         except Exception as e:
             import logging
