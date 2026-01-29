@@ -30,11 +30,26 @@ class STTEvent:
 
 @dataclass
 class STTConfig:
-    """Configuración para reconocimiento STT."""
+    """Configuración para reconocimiento STT (Base + Advanced)."""
     language: str = "es-MX"
     audio_mode: str = "twilio"  # "twilio", "telnyx", "browser"
     initial_silence_ms: int = 5000
     segmentation_silence_ms: int = 1000
+    
+    # Advanced Controls (Phase III)
+    model: str = "default"
+    keywords: Optional[list] = None # [{"word": "Ubrokers", "boost": 2.0}]
+    silence_timeout: int = 500
+    utterance_end_strategy: str = "default"
+    
+    # Formatting & Filters
+    punctuation: bool = True
+    profanity_filter: bool = True
+    smart_formatting: bool = True
+    
+    # Features
+    diarization: bool = False
+    multilingual: bool = False
 
 
 class STTRecognizer(ABC):

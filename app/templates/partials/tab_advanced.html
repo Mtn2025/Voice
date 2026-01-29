@@ -131,30 +131,26 @@
     </div>
 
     <!-- Legacy Controls (Moved to bottom, smaller) -->
+    <!-- Safety Limits -->
     <div class="pt-4 border-t border-slate-700">
-        <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-3">Límites de Seguridad (Legacy)</h4>
-        <div class="grid grid-cols-3 gap-4 opacity-75 hover:opacity-100 transition-opacity">
+        <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Límites de Seguridad</h4>
+        <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="text-[10px] uppercase text-slate-500 block mb-1">Max Retries</label>
-                <input type="number" x-model="c.maxRetries" class="glass-input w-full p-2 text-xs rounded text-center">
+                <label class="text-xs uppercase text-slate-500 block mb-1">Duración Máx (Seg)</label>
+                <input type="number" x-model="c.maxDuration" class="glass-input w-full p-2.5 rounded text-sm">
             </div>
             <div>
-                <label class="text-[10px] uppercase text-slate-500 block mb-1">Max Duration</label>
-                <input type="number" x-model="c.maxDuration" class="glass-input w-full p-2 text-xs rounded text-center">
+                <label class="text-xs uppercase text-slate-500 block mb-1">Max Retries</label>
+                <input type="number" x-model="c.maxRetries" class="glass-input w-full p-2.5 rounded text-sm">
             </div>
-            <div>
-                <label class="text-[10px] uppercase text-slate-500 block mb-1">Inactividad Msg</label>
-                <input type="text" x-model="c.idleMessage" class="glass-input w-full p-2 text-xs rounded">
+            <div class="col-span-2">
+                <label class="text-xs uppercase text-slate-500 block mb-1">Mensaje Inactividad</label>
+                <input type="text" x-model="c.idleMessage" class="glass-input w-full p-2.5 rounded text-sm"
+                    placeholder="¿Hola? ¿Sigues ahí?">
             </div>
         </div>
     </div>
 
-    <!-- NOTA SOBRE INTEGRACIONES -->
-    <div class="p-3 bg-blue-900/20 border border-blue-500/30 rounded text-center">
-        <p class="text-xs text-blue-300">
-            ℹ️ <b>Nota:</b> La configuración de CRM y Webhooks se ha movido al módulo de <b>Campañas</b> para permitir
-            reportes específicos por proveedor.
-        </p>
-    </div>
+
 
 </div>

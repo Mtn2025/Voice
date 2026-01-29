@@ -79,6 +79,8 @@ class ToolRequest:
     trace_id: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
     timeout_seconds: float = 10.0  # Default 10s timeout
+    context: Dict[str, Any] = field(default_factory=dict)  # Phase VI: Dynamic Config (URL, Secret)
+    context: Dict[str, Any] = field(default_factory=dict)  # Phase VI: Dynamic Config (URL, Secret)
 
 
 @dataclass

@@ -33,8 +33,12 @@ class TTSRequest:
     language: str = "es-MX"
     
     # ✅ Generic parameters (work with all providers)
+    pitch: int = 0      # ✅ Added to match Processor usage
     speed: float = 1.0  # 0.5-2.0 (50% to 200%)
     volume: float = 100.0  # 0-100 (percentage)
+    format: str = "pcm_16000" # ✅ Added format
+    style: str = None   # ✅ Added style
+    backpressure_detected: bool = False # ✅ Added backpressure_detected
     
     # ✅ Provider-specific options (extensible dict)
     provider_options: dict = None  # Azure: {'pitch_hz': 50, 'style': 'cheerful', 'styledegree': 1.5}
@@ -51,21 +55,7 @@ class TTSRequest:
         if self.metadata is None:
             self.metadata = {}
     
-    # ✅ BACKWARDS COMPATIBLE: Accessor for legacy code
-    @property
-    def backpressure_detected(self) -> bool:
-        """Check if backpressure is detected (from metadata)."""
-        return self.metadata.get('backpressure_detected', False)
-    
-    @property
-    def pitch(self) -> float:
-        """Get pitch from provider_options (Azure-specific, backwards compatible)."""
-        return self.provider_options.get('pitch_hz', 0.0)
-    
-    @property
-    def style(self) -> Optional[str]:
-        """Get style from provider_options (Azure-specific, backwards compatible)."""
-        return self.provider_options.get('style')
+
 
 
 class TTSPort(ABC):

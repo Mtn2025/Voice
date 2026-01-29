@@ -1,0 +1,179 @@
+<!-- TAB ANÁLISIS (PHASE VII: POST-CALL DATA) -->
+<div x-show="activeTab === 'analysis'" class="space-y-6 animate-fade-in-up">
+
+    <!-- HEADER -->
+    <div class="flex items-center space-x-2 mb-4">
+        <div class="p-2 bg-purple-500/10 rounded-lg">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-white">Análisis & Datos</h3>
+            <p class="text-xs text-slate-400">Post-Call Processing, Extraction & Webhooks.</p>
+        </div>
+    </div>
+
+    <!-- PESTAÑAS INTERNAS -->
+    <div x-data="{ analysisTab: 'prompt' }" class="bg-slate-900/50 border border-white/5 rounded-xl p-1">
+        <div class="flex space-x-1 mb-4 p-1 bg-black/20 rounded-lg">
+            <button @click="analysisTab = 'prompt'"
+                :class="{'bg-slate-700 text-white shadow': analysisTab === 'prompt', 'text-slate-500 hover:text-slate-300': analysisTab !== 'prompt'}"
+                class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all">
+                📝 Prompts & Rubric
+            </button>
+            <button @click="analysisTab = 'data'"
+                :class="{'bg-slate-700 text-white shadow': analysisTab === 'data', 'text-slate-500 hover:text-slate-300': analysisTab !== 'data'}"
+                class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all">
+                💾 Extraction Data
+            </button>
+            <button @click="analysisTab = 'webhook'"
+                :class="{'bg-slate-700 text-white shadow': analysisTab === 'webhook', 'text-slate-500 hover:text-slate-300': analysisTab !== 'webhook'}"
+                class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all">
+                📡 Webhooks
+            </button>
+        </div>
+
+        <!-- 1. PROMPTS & RUBRIC -->
+        <div x-show="analysisTab === 'prompt'" class="space-y-4 px-3 pb-3">
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                <div class="flex justify-between items-center mb-2">
+                    <h5 class="text-xs font-bold text-slate-300">Analysis Prompt</h5>
+                    <span class="text-[10px] text-slate-500">Instrucciones para resumir la llamada</span>
+                </div>
+                <textarea x-model="c.analysisPrompt"
+                    class="w-full h-24 bg-black/30 border border-white/10 rounded p-2 text-xs font-sans text-slate-300 focus:outline-none resize-none"
+                    placeholder="Resume la llamada en 3 puntos clave. Identifica si el cliente está interesado..."></textarea>
+            </div>
+
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                <div class="flex justify-between items-center mb-2">
+                    <h5 class="text-xs font-bold text-slate-300">Success Criteria (Rubric)</h5>
+                    <span class="text-[10px] text-slate-500">Criterios para marcar Éxito/Fracaso</span>
+                </div>
+                <textarea x-model="c.successRubric"
+                    class="w-full h-20 bg-black/30 border border-white/10 rounded p-2 text-xs font-sans text-slate-300 focus:outline-none resize-none"
+                    placeholder="- Cliente aceptó agendar cita.
+- Cliente solicitó información adicional."></textarea>
+            </div>
+
+            <!-- Toggles -->
+            <div class="flex gap-4">
+                <div
+                    class="flex-1 bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold text-slate-300 block">Sentiment Score</span>
+                        <span class="text-[10px] text-slate-500">Calcular sentimiento (-1 a 1)</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.sentimentAnalysis" class="sr-only peer">
+                        <div
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500">
+                        </div>
+                    </label>
+                </div>
+                <div
+                    class="flex-1 bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold text-slate-300 block">Cost Tracking</span>
+                        <span class="text-[10px] text-slate-500">Estimar costo de la sesión</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.costTrackingEnabled" class="sr-only peer">
+                        <div
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500">
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. DATA EXTRACTION -->
+        <div x-show="analysisTab === 'data'" class="px-3 pb-3">
+            <div class="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
+                <div class="bg-slate-800 px-3 py-2 flex justify-between items-center border-b border-slate-700">
+                    <span class="text-xs font-mono text-amber-400">extraction_schema.json</span>
+                    <button class="text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-white transition">
+                        Prettify
+                    </button>
+                </div>
+                <div class="bg-purple-900/20 p-2 border-b border-purple-900/30">
+                    <p class="text-[10px] text-purple-200/70">
+                        ⚠ Define el JSON Schema de los datos que deseas extraer de la conversación.
+                    </p>
+                </div>
+                <textarea x-model="c.extractionSchema"
+                    class="w-full h-64 bg-[#0B1121] text-xs font-mono text-slate-300 p-4 focus:outline-none resize-none"
+                    placeholder='{
+  "customer_intent": "string",
+  "appointment_date": "date",
+  "interested_products": ["string"]
+}'></textarea>
+            </div>
+
+            <div class="mt-4 bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                <div>
+                    <span class="text-xs font-bold text-slate-300 block">PII Redaction</span>
+                    <span class="text-[10px] text-slate-500">Sanitizar datos sensibles antes de guardar/enviar.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" x-model="c.piiRedactionEnabled" class="sr-only peer">
+                    <div
+                        class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500">
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- 3. WEBHOOKS -->
+        <div x-show="analysisTab === 'webhook'" class="space-y-4 px-3 pb-3">
+            <div class="glass-panel p-5 rounded-xl border border-white/5 relative">
+                <h4 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    End-of-Call Webhook
+                </h4>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Webhook URL</label>
+                        <input type="text" x-model="c.webhookUrl" placeholder="https://api.crm.com/calls/end"
+                            class="glass-input w-full p-2.5 text-xs font-mono rounded-lg border-l-4 border-l-green-500">
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Webhook Secret
+                            (HMAC)</label>
+                        <input type="password" x-model="c.webhookSecret" placeholder="secret_key_..."
+                            class="glass-input w-full p-2.5 text-xs font-mono rounded-lg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-xl border border-white/5 relative opacity-70">
+                <h4 class="text-sm font-bold text-slate-400 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Streaming Logs Webhook (Debug)
+                </h4>
+                <div>
+                    <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Log URL</label>
+                    <input type="text" x-model="c.logWebhookUrl" placeholder="https://logs.monitor.com/ingest"
+                        class="glass-input w-full p-2.5 text-xs font-mono rounded-lg">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Data Retention (Days)</label>
+                <input type="number" x-model="c.retentionDays"
+                    class="glass-input w-full p-2 text-xs font-mono rounded-lg text-center" placeholder="30">
+            </div>
+        </div>
+    </div>
+</div>

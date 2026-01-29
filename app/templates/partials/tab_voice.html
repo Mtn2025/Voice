@@ -215,4 +215,143 @@
         </div>
     </div>
 
+    <!-- ELEVENLABS ADVANCED (CONDITIONAL) -->
+    <div x-show="c.voiceProvider === 'elevenlabs'"
+        class="space-y-4 mt-6 pt-6 border-t border-slate-700 animate-fade-in">
+        <h3 class="text-sm font-bold text-green-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            🧪 ElevenLabs Avanzado
+        </h3>
+
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Stability -->
+            <div>
+                <label
+                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                    <span>Estabilidad</span>
+                    <span class="text-green-400" x-text="c.voiceStability"></span>
+                </label>
+                <input type="range" x-model.number="c.voiceStability" min="0.0" max="1.0" step="0.05"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-green-500">
+                <p class="text-[10px] text-slate-500 mt-1">Más bajo = Más emotivo/varía.</p>
+            </div>
+
+            <!-- Similarity -->
+            <div>
+                <label
+                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                    <span>Claridad / Similitud</span>
+                    <span class="text-green-400" x-text="c.voiceSimilarityBoost"></span>
+                </label>
+                <input type="range" x-model.number="c.voiceSimilarityBoost" min="0.0" max="1.0" step="0.05"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-green-500">
+                <p class="text-[10px] text-slate-500 mt-1">Más alto = Más fiel a la voz original.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Style Exaggeration -->
+            <div>
+                <label
+                    class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                    <span>Exageración Estilo</span>
+                    <span class="text-green-400" x-text="c.voiceStyleExaggeration"></span>
+                </label>
+                <input type="range" x-model.number="c.voiceStyleExaggeration" min="0.0" max="1.0" step="0.05"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-green-500">
+            </div>
+
+            <!-- Booleans -->
+            <div class="space-y-2">
+                <label class="flex items-center space-x-2 cursor-pointer group">
+                    <input type="checkbox" x-model="c.voiceSpeakerBoost"
+                        class="form-checkbox bg-slate-700 border-slate-600 rounded text-green-500 focus:ring-offset-0 focus:ring-0">
+                    <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Boost Speaker (Mejor
+                        Calidad)</span>
+                </label>
+
+                <label class="flex items-center space-x-2 cursor-pointer group">
+                    <input type="checkbox" x-model="c.voiceMultilingual"
+                        class="form-checkbox bg-slate-700 border-slate-600 rounded text-green-500 focus:ring-offset-0 focus:ring-0">
+                    <span class="text-xs text-slate-300 group-hover:text-white transition-colors">Modo Multilingüe
+                        (v2)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUMANIZATION SETTINGS -->
+    <!-- HUMANIZATION SETTINGS (OCULTO EN SIMULADOR) -->
+    <div class="space-y-4 mt-6 pt-6 border-t border-slate-700">
+        <h3 class="text-sm font-bold text-pink-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            🗣️ Humanización
+        </h3>
+
+        <div class="grid grid-cols-2 gap-4">
+            <label
+                class="flex items-center space-x-3 cursor-pointer p-3 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-pink-500/50 transition-colors">
+                <input type="checkbox" x-model="c.voiceFillerInjection"
+                    class="form-checkbox h-4 w-4 bg-slate-700 border-slate-600 rounded text-pink-500 focus:ring-offset-0 focus:ring-0">
+                <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-slate-200">Inyección de "Muletillas"</span>
+                    <span class="text-[10px] text-slate-400">Agrega "eh...", "hmm..." natural</span>
+                </div>
+            </label>
+
+            <label
+                class="flex items-center space-x-3 cursor-pointer p-3 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-pink-500/50 transition-colors">
+                <input type="checkbox" x-model="c.voiceBackchanneling"
+                    class="form-checkbox h-4 w-4 bg-slate-700 border-slate-600 rounded text-pink-500 focus:ring-offset-0 focus:ring-0">
+                <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-slate-200">Escucha Activa</span>
+                    <span class="text-[10px] text-slate-400">Dice "ajá", "sí" mientras escuchas</span>
+                </div>
+            </label>
+        </div>
+
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Normalización de
+                Texto</label>
+            <select x-model="c.textNormalizationRule" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                <option value="auto">🤖 Automático (Default)</option>
+                <option value="verbal">🗣️ Verbalizado ("123" -> "ciento veintitrés")</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- TECHNICAL SETTINGS (OCULTO EN SIMULADOR) -->
+    <div x-data="{ showTech: false }" class="space-y-4 mt-6 pt-6 border-t border-slate-700">
+        <button type="button" @click="showTech = !showTech"
+            class="flex items-center justify-between w-full text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-white transition-colors">
+            <span>⚙️ Ajustes Técnicos</span>
+            <svg class="w-4 h-4 transform transition-transform" :class="showTech ? 'rotate-180' : ''">
+                <use href="#icon-chevron-down"></use>
+            </svg>
+        </button>
+
+        <div x-show="showTech" x-collapse class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Latencia /
+                    Calidad</label>
+                <select x-model.number="c.ttsLatencyOptimization" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                    <option value="0">⭐ Calidad Máxima (Default)</option>
+                    <option value="1">🚀 Latencia Baja (Normal)</option>
+                    <option value="2">⚡ Latencia Ultra Baja</option>
+                    <option value="3">🔥 Modo Turbo (Menor Calidad)</option>
+                </select>
+                <p class="text-[10px] text-slate-500 mt-1">Afecta calidad de audio vs velocidad de respuesta.</p>
+            </div>
+
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Formato de
+                    Salida</label>
+                <select x-model="c.ttsOutputFormat" class="glass-input w-full p-2.5 rounded-lg text-sm">
+                    <option value="pcm_16000">PCM 16kHz (WAV)</option>
+                    <option value="pcm_8000">PCM 8kHz (Teléfono)</option>
+                    <option value="mp3_44100_128">MP3 44.1kHz 128kbps</option>
+                    <option value="ulaw_8000">Mu-Law 8kHz (Telephony)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
 </div>

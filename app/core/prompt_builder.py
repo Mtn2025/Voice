@@ -98,7 +98,7 @@ class PromptBuilder:
                     for key, value in dynamic_vars.items():
                         placeholder = f"{{{key}}}"
                         final_prompt = final_prompt.replace(placeholder, str(value))
-                        logger.debug(f"🔧 [DYNAMIC VAR] Replaced '{placeholder}' with '{value}'")
+                        logging.debug(f"🔧 [DYNAMIC VAR] Replaced '{placeholder}' with '{value}'")
                 except Exception as e:
                     logging.warning(f"Error injecting dynamic variables: {e}")
 

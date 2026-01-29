@@ -6,7 +6,9 @@ and configuration-based provider selection.
 """
 from dependency_injector import containers, providers as di_providers
 from app.providers.azure import AzureProvider
-from app.providers.groq import GroqProvider
+from app.providers.azure import AzureProvider
+# from app.providers.groq import GroqProvider # Legacy
+from app.adapters.outbound.llm.groq_llm_adapter import GroqLLMAdapter # Hexagonal Adapter
 from app.providers.azure_openai import AzureOpenAIProvider
 
 
@@ -18,7 +20,7 @@ class ServiceContainer(containers.DeclarativeContainer):
     
     # ========== Providers (Singletons for efficiency) ==========
     azure_provider = di_providers.Singleton(AzureProvider)
-    groq_provider = di_providers.Singleton(GroqProvider)
+    groq_provider = di_providers.Singleton(GroqLLMAdapter) # Updated to Adapter
     azure_openai_provider = di_providers.Singleton(AzureOpenAIProvider)
     
     # ========== Cache Service ==========

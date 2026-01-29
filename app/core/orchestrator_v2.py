@@ -551,7 +551,7 @@ class VoiceOrchestratorV2:
                 pass
         
         # 1. STT Processor (uses STTPort)
-        stt = STTProcessor(self.stt, self.config, self.loop)
+        stt = STTProcessor(self.stt, self.config, self.loop, control_channel=self.control_channel) # ✅ Injected Out-of-Band Channel
         await stt.initialize()
         
         # 2. VAD Processor + ✅ P2: Inject DetectTurnEndUseCase (domain ownership)
@@ -560,7 +560,8 @@ class VoiceOrchestratorV2:
             config=self.config,
             detect_turn_end=DetectTurnEndUseCase(
                 silence_threshold_ms=getattr(self.config, 'silence_timeout_ms', 500)
-            )
+            ),
+            control_channel=self.control_channel # ✅ Injected Out-of-Band Channel
         )
         
         # 3. Context Aggregator

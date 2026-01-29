@@ -78,6 +78,21 @@ class AgentConfig(Base):
     interruption_threshold_phone = Column(Integer, default=2) # Noise Tolerance (Phone) - Lower default for sharper interruptions
     tts_provider = Column(String, default="azure")
 
+    # STT Advanced (Controls 32-40)
+    stt_model = Column(String, default="nova-2") # 32. Model
+    stt_keywords = Column(JSON, nullable=True) # 33. Keywords
+    stt_silence_timeout = Column(Integer, default=500) # 34. Endpointing
+    stt_utterance_end_strategy = Column(String, default="default") # 35. Utterance End
+
+    # STT Formatting & Filters
+    stt_punctuation = Column(Boolean, default=True) # 36. Punctuation
+    stt_profanity_filter = Column(Boolean, default=True) # 37. Profanity
+    stt_smart_formatting = Column(Boolean, default=True) # 38. Smart Formatting
+
+    # STT Advanced Features
+    stt_diarization = Column(Boolean, default=False) # 39. Diarization
+    stt_multilingual = Column(Boolean, default=False) # 40. Multi-Language
+
     # Parameters
     system_prompt = Column(Text, default="""<identity>
 Eres Andrea, consultora senior de Ubrokers. Tu objetivo es agendar una llamada de 15 min con dueños de empresas para explicar beneficios fiscales 2026.
@@ -111,6 +126,23 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_volume = Column(Integer, default=100)  # Volume 0-100
     voice_style_degree = Column(Float, default=1.0)  # Style intensity 0.5-2.0
     
+    # NEW: ElevenLabs Specifics (Conditional)
+    voice_stability = Column(Float, default=0.5)
+    voice_similarity_boost = Column(Float, default=0.75)
+    voice_style_exaggeration = Column(Float, default=0.0)
+    voice_speaker_boost = Column(Boolean, default=True)
+    voice_multilingual = Column(Boolean, default=True)
+    
+    # NEW: Technical Settings
+    tts_latency_optimization = Column(Integer, default=0) # 0-4
+    tts_output_format = Column(String, default="pcm_16000")
+    
+    # NEW: Humanization
+    voice_filler_injection = Column(Boolean, default=False)
+    voice_backchanneling = Column(Boolean, default=False)
+    text_normalization_rule = Column(String, default="auto")
+    pronunciation_dictionary = Column(JSON, nullable=True)
+
     temperature = Column(Float, default=0.7)
     
     # NEW: Advanced LLM Controls (Browser Profile)
@@ -152,6 +184,20 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     # Cloned configs for independent tuning
     stt_provider_phone = Column(String, default="azure")
     stt_language_phone = Column(String, default="es-MX")
+    
+    # STT Advanced Phone (Controls 32-40 Override)
+    stt_model_phone = Column(String, default="nova-2")
+    stt_keywords_phone = Column(JSON, nullable=True)
+    stt_silence_timeout_phone = Column(Integer, default=500)
+    stt_utterance_end_strategy_phone = Column(String, default="default")
+    
+    stt_punctuation_phone = Column(Boolean, default=True)
+    stt_profanity_filter_phone = Column(Boolean, default=True)
+    stt_smart_formatting_phone = Column(Boolean, default=True)
+    
+    stt_diarization_phone = Column(Boolean, default=False)
+    stt_multilingual_phone = Column(Boolean, default=False)
+
     llm_provider_phone = Column(String, default="groq")
     llm_model_phone = Column(String, default="llama-3.3-70b-versatile")
     system_prompt_phone = Column(Text, default=None) # If None, fallback to system_prompt
@@ -166,6 +212,23 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_volume_phone = Column(Integer, default=100)
     voice_style_degree_phone = Column(Float, default=1.0)
     
+    # NEW: ElevenLabs Specifics (Phone)
+    voice_stability_phone = Column(Float, default=0.5)
+    voice_similarity_boost_phone = Column(Float, default=0.75)
+    voice_style_exaggeration_phone = Column(Float, default=0.0)
+    voice_speaker_boost_phone = Column(Boolean, default=True)
+    voice_multilingual_phone = Column(Boolean, default=True)
+    
+    # NEW: Technical Settings (Phone)
+    tts_latency_optimization_phone = Column(Integer, default=0)
+    tts_output_format_phone = Column(String, default="pcm_8000") # Phone default
+    
+    # NEW: Humanization (Phone)
+    voice_filler_injection_phone = Column(Boolean, default=False)
+    voice_backchanneling_phone = Column(Boolean, default=False)
+    text_normalization_rule_phone = Column(String, default="auto")
+    pronunciation_dictionary_phone = Column(JSON, nullable=True)
+
     temperature_phone = Column(Float, default=0.7)
     
     # NEW: Advanced LLM Controls (Twilio Profile)
@@ -226,6 +289,20 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     # Cloned configs for independent tuning
     stt_provider_telnyx = Column(String, default="azure")
     stt_language_telnyx = Column(String, default="es-MX")
+    
+    # STT Advanced Telnyx (Controls 32-40 Override)
+    stt_model_telnyx = Column(String, default="nova-2")
+    stt_keywords_telnyx = Column(JSON, nullable=True)
+    stt_silence_timeout_telnyx = Column(Integer, default=500)
+    stt_utterance_end_strategy_telnyx = Column(String, default="default")
+    
+    stt_punctuation_telnyx = Column(Boolean, default=True)
+    stt_profanity_filter_telnyx = Column(Boolean, default=True)
+    stt_smart_formatting_telnyx = Column(Boolean, default=True)
+    
+    stt_diarization_telnyx = Column(Boolean, default=False)
+    stt_multilingual_telnyx = Column(Boolean, default=False)
+    
     llm_provider_telnyx = Column(String, default="groq")
     llm_model_telnyx = Column(String, default="llama-3.3-70b-versatile")
     system_prompt_telnyx = Column(Text, default=None)
@@ -240,6 +317,23 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_volume_telnyx = Column(Integer, default=100)
     voice_style_degree_telnyx = Column(Float, default=1.0)
     
+    # NEW: ElevenLabs Specifics (Telnyx)
+    voice_stability_telnyx = Column(Float, default=0.5)
+    voice_similarity_boost_telnyx = Column(Float, default=0.75)
+    voice_style_exaggeration_telnyx = Column(Float, default=0.0)
+    voice_speaker_boost_telnyx = Column(Boolean, default=True)
+    voice_multilingual_telnyx = Column(Boolean, default=True)
+    
+    # NEW: Technical Settings (Telnyx)
+    tts_latency_optimization_telnyx = Column(Integer, default=0)
+    tts_output_format_telnyx = Column(String, default="pcm_8000") # Phone default
+    
+    # NEW: Humanization (Telnyx)
+    voice_filler_injection_telnyx = Column(Boolean, default=False)
+    voice_backchanneling_telnyx = Column(Boolean, default=False)
+    text_normalization_rule_telnyx = Column(String, default="auto")
+    pronunciation_dictionary_telnyx = Column(JSON, nullable=True)
+
     temperature_telnyx = Column(Float, default=0.7)
     
     # NEW: Advanced LLM Controls (Telnyx Profile)
@@ -303,10 +397,173 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     is_active = Column(Boolean, default=True)
 
     # =============================================================================
+    # PHASE IV: FLOW & ORCHESTRATION (The "Magic" of Real-time)
+    # =============================================================================
+    
+    # --- 1. BARGE-IN & INTERRUPTIONS (41-43) ---
+    # Base
+    barge_in_enabled = Column(Boolean, default=True) # 42
+    interruption_sensitivity = Column(Float, default=0.5) # 41 (0.0=Hard to Interrupt, 1.0=Easy)
+    interruption_phrases = Column(JSON, nullable=True) # 43 (Phrases that FORCE interruption)
+    # Phone
+    barge_in_enabled_phone = Column(Boolean, default=True)
+    interruption_sensitivity_phone = Column(Float, default=0.8) # Phone usually needs higher sensitivity
+    interruption_phrases_phone = Column(JSON, nullable=True)
+    # Telnyx
+    barge_in_enabled_telnyx = Column(Boolean, default=True)
+    interruption_sensitivity_telnyx = Column(Float, default=0.8)
+    interruption_phrases_telnyx = Column(JSON, nullable=True)
+
+    # --- 2. VOICEMAIL & MACHINE (46-48) ---
+    # Base
+    voicemail_detection_enabled = Column(Boolean, default=False) # 46
+    voicemail_message = Column(Text, default="Hola, llamaba de Ubrokers. Le enviaré un WhatsApp.") # 47
+    machine_detection_sensitivity = Column(Float, default=0.7) # 48
+    # Phone
+    voicemail_detection_enabled_phone = Column(Boolean, default=True)
+    voicemail_message_phone = Column(Text, default="Hola, llamaba de Ubrokers. Le enviaré un WhatsApp.")
+    machine_detection_sensitivity_phone = Column(Float, default=0.7)
+    # Telnyx
+    voicemail_detection_enabled_telnyx = Column(Boolean, default=True)
+    voicemail_message_telnyx = Column(Text, default="Hola, llamaba de Ubrokers. Le enviaré un WhatsApp.")
+    machine_detection_sensitivity_telnyx = Column(Float, default=0.7)
+
+    # --- 3. PACING & NATURALNESS (50-52) ---
+    # Base
+    response_delay_seconds = Column(Float, default=0.5) # 50 (Artificial Delay)
+    wait_for_greeting = Column(Boolean, default=True) # 51
+    hyphenation_enabled = Column(Boolean, default=False) # 52
+    end_call_phrases = Column(JSON, nullable=True) # 49 (Phrases to trigger hangup)
+    # Phone
+    response_delay_seconds_phone = Column(Float, default=0.8)
+    wait_for_greeting_phone = Column(Boolean, default=True)
+    hyphenation_enabled_phone = Column(Boolean, default=False)
+    end_call_phrases_phone = Column(JSON, nullable=True)
+    # Telnyx
+    response_delay_seconds_telnyx = Column(Float, default=0.8)
+    wait_for_greeting_telnyx = Column(Boolean, default=True)
+    hyphenation_enabled_telnyx = Column(Boolean, default=False)
+    end_call_phrases_telnyx = Column(JSON, nullable=True)
+
+    # =============================================================================
+    # PHASE V: TELEPHONY TOOLS (Hardware & Compliance)
+    # =============================================================================
+    
+    # --- 1. CREDENTIALS (BYOC - 53) ---
+    # Phone (Twilio)
+    twilio_account_sid = Column(String, nullable=True)
+    twilio_auth_token = Column(String, nullable=True)
+    twilio_from_number = Column(String, nullable=True) # 54 (Caller ID Phone)
+    # Telnyx
+    telnyx_api_key = Column(String, nullable=True)
+    telnyx_api_user = Column(String, nullable=True)
+    telnyx_connection_id = Column(String, nullable=True) # SIP ID
+    
+    # --- 2. INFRASTRUCTURE & SIP (54-57, 64) ---
+    # Phone
+    caller_id_phone = Column(String, nullable=True) # 54 Override
+    sip_trunk_uri_phone = Column(String, nullable=True) # 55
+    sip_auth_user_phone = Column(String, nullable=True) # 56
+    sip_auth_pass_phone = Column(String, nullable=True)
+    fallback_number_phone = Column(String, nullable=True) # 57
+    geo_region_phone = Column(String, default="us-east-1") # 64
+    # Telnyx
+    caller_id_telnyx = Column(String, nullable=True)
+    sip_trunk_uri_telnyx = Column(String, nullable=True)
+    sip_auth_user_telnyx = Column(String, nullable=True)
+    sip_auth_pass_telnyx = Column(String, nullable=True)
+    fallback_number_telnyx = Column(String, nullable=True)
+    geo_region_telnyx = Column(String, default="us-central")
+
+    # --- 3. RECORDING & COMPLIANCE (58-59, 65) ---
+    # Phone
+    recording_enabled_phone = Column(Boolean, default=False) # 58
+    recording_channels_phone = Column(String, default="mono") # 59 (mono/dual)
+    hipaa_enabled_phone = Column(Boolean, default=False) # 65
+    # Telnyx
+    # recording_enabled_telnyx ALREADY EXISTS (line 376 - alias if needed)
+    # reusing enable_recording_telnyx
+    recording_channels_telnyx = Column(String, default="dual") 
+    hipaa_enabled_telnyx = Column(Boolean, default=False)
+
+    # --- 4. CALL FEATURES (60-63) ---
+    # Phone
+    transfer_type_phone = Column(String, default="cold") # 60/61 (cold/warm)
+    dtmf_generation_enabled_phone = Column(Boolean, default=False) # 62
+    dtmf_listening_enabled_phone = Column(Boolean, default=False) # 63
+    # Telnyx
+    transfer_type_telnyx = Column(String, default="cold")
+    dtmf_generation_enabled_telnyx = Column(Boolean, default=False)
+    dtmf_listening_enabled_telnyx = Column(Boolean, default=False)
+
+    # --- 3. PACING & NATURALNESS (50-52) ---
+    # Base
+    response_delay_seconds = Column(Float, default=0.5) # 50 (Artificial Delay)
+    wait_for_greeting = Column(Boolean, default=True) # 51
+    hyphenation_enabled = Column(Boolean, default=False) # 52
+    end_call_phrases = Column(JSON, nullable=True) # 49 (Phrases to trigger hangup)
+    # Phone
+    response_delay_seconds_phone = Column(Float, default=0.8)
+    wait_for_greeting_phone = Column(Boolean, default=True)
+    hyphenation_enabled_phone = Column(Boolean, default=False)
+    end_call_phrases_phone = Column(JSON, nullable=True)
+    # Telnyx
+    response_delay_seconds_telnyx = Column(Float, default=0.8)
+    wait_for_greeting_telnyx = Column(Boolean, default=True)
+    hyphenation_enabled_telnyx = Column(Boolean, default=False)
+    end_call_phrases_telnyx = Column(JSON, nullable=True)
+
+    # =============================================================================
+    # PHASE VI: FUNCTION CALLING (Tools & Actions)
+    # =============================================================================
+    
+    # --- 1. SERVER CONFIG (66-67, 70-71) ---
+    # Base (Browser)
+    tool_server_url = Column(String, nullable=True) # 66 (n8n Webhook)
+    tool_server_secret = Column(String, nullable=True) # 67 (Auth Header)
+    tool_timeout_ms = Column(Integer, default=5000) # 70
+    tool_error_msg = Column(Text, default="Lo siento, hubo un error técnico.") # 71
+    # Phone
+    tool_server_url_phone = Column(String, nullable=True)
+    tool_server_secret_phone = Column(String, nullable=True)
+    tool_timeout_ms_phone = Column(Integer, default=5000)
+    tool_error_msg_phone = Column(Text, default="Lo siento, hubo un error técnico.")
+    # Telnyx
+    tool_server_url_telnyx = Column(String, nullable=True)
+    tool_server_secret_telnyx = Column(String, nullable=True)
+    tool_timeout_ms_telnyx = Column(Integer, default=5000)
+    tool_error_msg_telnyx = Column(Text, default="Lo siento, hubo un error técnico.")
+
+    # --- 2. TOOL DEFINITIONS (68-69, 72) ---
+    # Base
+    tools_schema = Column(JSON, nullable=True) # 68 (Array of OpenAI Tools)
+    async_tools = Column(Boolean, default=False) # 69 (Fire & Forget logic)
+    client_tools_enabled = Column(Boolean, default=False) # 72 (Browser JS)
+    # Phone
+    tools_schema_phone = Column(JSON, nullable=True)
+    async_tools_phone = Column(Boolean, default=False)
+    # Telnyx
+    tools_schema_telnyx = Column(JSON, nullable=True)
+    async_tools_telnyx = Column(Boolean, default=False)
+
+    # --- 3. SECURITY (73-75) ---
+    # Base
+    redact_params = Column(JSON, nullable=True) # 73 (List of keys to mask in logs)
+    state_injection_enabled = Column(Boolean, default=False) # 74
+    transfer_whitelist = Column(JSON, nullable=True) # 75 (List of allowed numbers)
+    # Phone
+    redact_params_phone = Column(JSON, nullable=True)
+    state_injection_enabled_phone = Column(Boolean, default=False)
+    transfer_whitelist_phone = Column(JSON, nullable=True)
+    # Telnyx
+    redact_params_telnyx = Column(JSON, nullable=True)
+    state_injection_enabled_telnyx = Column(Boolean, default=False)
+    transfer_whitelist_telnyx = Column(JSON, nullable=True)
+
+    # =============================================================================
     # RATE LIMITING & PROVIDER LIMITS - Punto A3 Extensión (Configuración Dinámica)
     # =============================================================================
     # Rate Limiting por Endpoint (requests/minuto)
-    # Estos valores permiten control dinámico sin editar código
     rate_limit_global = Column(Integer, nullable=True, default=200)
     rate_limit_twilio = Column(Integer, nullable=True, default=30)
     rate_limit_telnyx = Column(Integer, nullable=True, default=50)
@@ -317,3 +574,78 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     limit_azure_requests_per_min = Column(Integer, nullable=True, default=100)
     limit_twilio_calls_per_hour = Column(Integer, nullable=True, default=100)
     limit_telnyx_calls_per_hour = Column(Integer, nullable=True, default=100)
+    
+    # =============================================================================
+    # PHASE VII: ANALYSIS & DATA (Post-Call)
+    # =============================================================================
+
+    # --- 1. ANALYSIS & EXTRACTION (76-78) ---
+    # Base
+    analysis_prompt = Column(Text, nullable=True) # 76 (Instruction for summary)
+    success_rubric = Column(Text, nullable=True) # 77 (Criteria for success)
+    extraction_schema = Column(JSON, nullable=True) # 78 (JSON Schema for critical data)
+    # Phone
+    analysis_prompt_phone = Column(Text, nullable=True)
+    success_rubric_phone = Column(Text, nullable=True)
+    extraction_schema_phone = Column(JSON, nullable=True)
+    # Telnyx
+    analysis_prompt_telnyx = Column(Text, nullable=True)
+    success_rubric_telnyx = Column(Text, nullable=True)
+    extraction_schema_telnyx = Column(JSON, nullable=True)
+
+    # --- 2. METRICS & FORMAT (79-81) ---
+    # Base
+    sentiment_analysis = Column(Boolean, default=False) # 79
+    transcript_format = Column(String, default="text") # 80 (text, json, srt)
+    cost_tracking_enabled = Column(Boolean, default=True) # 81
+    # Phone
+    sentiment_analysis_phone = Column(Boolean, default=False)
+    transcript_format_phone = Column(String, default="text")
+    cost_tracking_enabled_phone = Column(Boolean, default=True)
+    # Telnyx
+    sentiment_analysis_telnyx = Column(Boolean, default=False)
+    transcript_format_telnyx = Column(String, default="text")
+    cost_tracking_enabled_telnyx = Column(Boolean, default=True)
+
+    # --- 3. OUTPUT & COMPLIANCE (82-85) ---
+    # Base
+    # webhook_url ALREADY EXISTS (line ~390) - Using it as "Webhook: End" (82)
+    log_webhook_url = Column(String, nullable=True) # 83 (Streaming Logs)
+    pii_redaction_enabled = Column(Boolean, default=False) # 84
+    retention_days = Column(Integer, default=30) # 85
+    # Phone
+    webhook_url_phone = Column(String, nullable=True) # 82 specific
+    webhook_secret_phone = Column(String, nullable=True)
+    log_webhook_url_phone = Column(String, nullable=True)
+    pii_redaction_enabled_phone = Column(Boolean, default=False)
+    retention_days_phone = Column(Integer, default=30)
+    # Telnyx
+    webhook_url_telnyx = Column(String, nullable=True) # 82 specific
+    webhook_secret_telnyx = Column(String, nullable=True)
+    log_webhook_url_telnyx = Column(String, nullable=True)
+    pii_redaction_enabled_telnyx = Column(Boolean, default=False)
+    retention_days_telnyx = Column(Integer, default=30)
+
+    # =============================================================================
+    # PHASE VIII: SYSTEM & DEVOPS (Safe Controls)
+    # =============================================================================
+    
+    # --- 1. GOVERNANCE & LIMITS (90-91, 98) ---
+    concurrency_limit = Column(Integer, default=10) # 90
+    spend_limit_daily = Column(Float, default=50.0) # 91 (USD)
+    environment = Column(String, default="development") # 98 (dev/prod/staging)
+    
+    # --- 2. SECURITY & IDENTITY (89, 92-94, 100) ---
+    custom_headers = Column(JSON, nullable=True) # 89 (Safe custom headers for webhooks)
+    sub_account_id = Column(String, nullable=True) # 92 (Logical separation)
+    # 93 API Keys handled via Auth table, config just needs logic flag? 
+    # For now, simplistic string or JSON list of allowed keys for this agent
+    allowed_api_keys = Column(JSON, nullable=True) # 93
+    audit_log_enabled = Column(Boolean, default=True) # 94
+    privacy_mode = Column(Boolean, default=False) # 100 (Do not train / Strict logs)
+    
+    # Phone/Telnyx Overrides for Privacy/Env
+    environment_phone = Column(String, nullable=True)
+    privacy_mode_phone = Column(Boolean, default=False)
+    environment_telnyx = Column(String, nullable=True)
+    privacy_mode_telnyx = Column(Boolean, default=False)

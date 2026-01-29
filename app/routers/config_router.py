@@ -23,6 +23,109 @@ from app.utils.config_utils import update_profile_config
 
 logger = logging.getLogger(__name__)
 
+# =============================================================================
+# FIELD MAPPING (Frontend -> Backend)
+# =============================================================================
+FIELD_ALIASES = {
+    # LLM Configuration
+    'provider': 'llm_provider',
+    'model': 'llm_model',
+    'temp': 'temperature',
+    'tokens': 'max_tokens',
+    'prompt': 'system_prompt',
+    'msg': 'first_message',
+    'mode': 'first_message_mode',
+    
+    # TTS Configuration
+    'voiceProvider': 'tts_provider',
+    'voiceId': 'voice_name',
+    'voiceStyle': 'voice_style',
+    'voiceSpeed': 'voice_speed',
+    'voicePacing': 'voice_pacing_ms',
+    'voiceBgSound': 'background_sound',
+    'voiceBgUrl': 'background_sound_url',
+    'voiceLang': 'voice_language',
+    
+    # Conversation Style
+    'responseLength': 'response_length',
+    'conversationTone': 'conversation_tone',
+    'conversationFormality': 'conversation_formality',
+    'conversationPacing': 'conversation_pacing',
+    
+    # STT Configuration
+    'sttProvider': 'stt_provider',
+    'sttLang': 'stt_language',
+    'interruptWords': 'interruption_threshold',
+    'interruptRMS': 'voice_sensitivity',
+    'silence': 'silence_timeout_ms',
+    'blacklist': 'hallucination_blacklist',
+    'inputMin': 'input_min_characters',
+    'vadThreshold': 'vad_threshold',
+    
+    # Advanced Features
+    'denoise': 'enable_denoising',
+    'krisp': 'enable_krisp_telnyx',
+    'vad': 'enable_vad_telnyx',
+    'maxDuration': 'max_duration',
+    'maxRetries': 'inactivity_max_retries',
+    'idleTimeout': 'idle_timeout',
+    'idleMessage': 'idle_message',
+    'enableRecording': 'enable_recording_telnyx',
+    'amdConfig': 'amd_config_telnyx',
+    'enableEndCall': 'enable_end_call',
+    'dialKeypad': 'enable_dial_keypad',
+    'transferNum': 'transfer_phone_number',
+    
+    # Quality & Latency
+    'noiseSuppressionLevel': 'noise_suppression_level',
+    'audioCodec': 'audio_codec',
+    'enableBackchannel': 'enable_backchannel',
+    'silenceTimeoutMs': 'silence_timeout_ms',
+    'silenceTimeoutMsPhone': 'silence_timeout_ms_phone',
+    
+    # New Advanced LLM Controls
+    'contextWindow': 'context_window',
+    'frequencyPenalty': 'frequency_penalty',
+    'presencePenalty': 'presence_penalty',
+    'toolChoice': 'tool_choice',
+    'dynamicVarsEnabled': 'dynamic_vars_enabled',
+    'dynamicVars': 'dynamic_vars',
+
+    # Connectivity (Credentials & SIP)
+    'twilioAccountSid': 'twilio_account_sid',
+    'twilioAuthToken': 'twilio_auth_token',
+    'twilioFromNumber': 'twilio_from_number',
+    'telnyxApiKey': 'telnyx_api_key',
+    'telnyxConnectionId': 'telnyx_connection_id',
+    'callerIdTelnyx': 'caller_id_telnyx',
+    
+    # SIP Trunking
+    'sipTrunkUriPhone': 'sip_trunk_uri_phone',
+    'sipAuthUserPhone': 'sip_auth_user_phone',
+    'sipAuthPassPhone': 'sip_auth_pass_phone',
+    'fallbackNumberPhone': 'fallback_number_phone',
+    'geoRegionPhone': 'geo_region_phone',
+    
+    'sipTrunkUriTelnyx': 'sip_trunk_uri_telnyx',
+    'sipAuthUserTelnyx': 'sip_auth_user_telnyx',
+    'sipAuthPassTelnyx': 'sip_auth_pass_telnyx',
+    'fallbackNumberTelnyx': 'fallback_number_telnyx',
+    'geoRegionTelnyx': 'geo_region_telnyx',
+    
+    # Features & Compliance
+    'recordingChannelsPhone': 'recording_channels_phone',
+    'recordingChannelsTelnyx': 'recording_channels_telnyx',
+    'hipaaEnabledPhone': 'hipaa_enabled_phone',
+    'hipaaEnabledTelnyx': 'hipaa_enabled_telnyx',
+    'dtmfListeningEnabledPhone': 'dtmf_listening_enabled_phone',
+    
+    # System & Governance
+    'concurrencyLimit': 'concurrency_limit',
+    'spendLimitDaily': 'spend_limit_daily',
+    'environment': 'environment',
+    'privacyMode': 'privacy_mode',
+    'auditLogEnabled': 'audit_log_enabled',
+
 router = APIRouter(
     prefix="/api/config",
     tags=["configuration"],
@@ -182,4 +285,69 @@ async def patch_config(request: Request, db: AsyncSession = Depends(get_db)):
     
     except Exception as e:
         logger.error(f"❌ Config patch failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/update-json")
+async def update_config_json(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    AJAX/JSON config update endpoint with field normalization.
+    Maps UI camelCase to DB snake_case.
+    Fixed via Migration from legacy config.py
+    """
+    try:
+        data = await request.json()
+        logger.info(f"🔄 [CONFIG-JSON] Received update payload: {len(data)} keys")
+        
+        current_config = await db_service.get_agent_config(db)
+        updated_count = 0
+        normalized_count = 0
+        
+        for key, value in data.items():
+            # Skip metadata
+            if key in ["id", "name", "created_at", "api_key"]:
+                continue
+            
+            # Normalize field names
+            normalized_key = FIELD_ALIASES.get(key, key)
+            if normalized_key != key:
+                normalized_count += 1
+                # logger.debug(f"🔀 [NORMALIZE] {key} → {normalized_key}")
+            
+            # Check if key exists in model
+            if hasattr(current_config, normalized_key):
+                # Type conversion
+                if value == "":
+                    value = None
+                elif isinstance(value, str):
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    elif value.replace('.', '', 1).replace('-', '', 1).isdigit():
+                        if '.' in value:
+                            value = float(value)
+                        else:
+                            value = int(value)
+                
+                setattr(current_config, normalized_key, value)
+                updated_count += 1
+            else:
+                pass # logger.warning(f"⚠️ [CONFIG-JSON] Ignored unknown key: {key}")
+
+        await db.commit()
+        await db.refresh(current_config)
+        logger.info(f"✅ [CONFIG-JSON] Updated {updated_count} fields ({normalized_count} normalized).")
+        
+        return {
+            "status": "success",
+            "updated": updated_count,
+            "normalized": normalized_count
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ [CONFIG-JSON] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

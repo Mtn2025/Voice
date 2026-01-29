@@ -1,0 +1,98 @@
+<!-- TAB SISTEMA (PHASE VIII: SAFE OPS) -->
+<div x-show="activeTab === 'system'" class="space-y-6 animate-fade-in-up">
+    
+    <!-- HEADER -->
+    <div class="flex items-center space-x-2 mb-4">
+        <div class="p-2 bg-slate-500/10 rounded-lg">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-white">Sistema & Gobierno</h3>
+            <p class="text-xs text-slate-400">infraestructura segura (Safe Mode).</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- 1. GOVERNANCE & LIMITS -->
+        <div class="glass-panel p-5 rounded-xl border border-white/5 relative">
+             <h4 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> 
+                Límites de Seguridad (Safety)
+            </h4>
+            
+            <div class="space-y-4">
+                <div>
+                     <div class="flex justify-between items-center mb-1">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold">Concurrency Limit</label>
+                        <span class="text-xs text-red-300 font-mono" x-text="c.concurrencyLimit + ' calls'"></span>
+                     </div>
+                     <input type="range" x-model="c.concurrencyLimit" min="1" max="100" step="1" class="w-full accent-red-500 bg-slate-800 h-2 rounded-lg appearance-none cursor-pointer">
+                     <p class="text-[10px] text-slate-500 mt-1">Máximo de llamadas simultáneas activas.</p>
+                </div>
+
+                <div>
+                     <div class="flex justify-between items-center mb-1">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold">Daily Spend Limit ($)</label>
+                        <span class="text-xs text-green-300 font-mono" x-text="'$' + c.spendLimitDaily"></span>
+                     </div>
+                     <input type="number" x-model="c.spendLimitDaily" class="glass-input w-full p-2 text-xs font-mono rounded-lg text-center" placeholder="50.00">
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ENVIRONMENT & PRIVACY -->
+        <div class="glass-panel p-5 rounded-xl border border-white/5 relative">
+             <h4 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> 
+                Entorno & Privacidad
+            </h4>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Environment Tag</label>
+                    <select x-model="c.environment" class="glass-input w-full p-2 text-xs bg-slate-900 rounded-lg text-slate-400">
+                        <option value="development">Development (Sandbox)</option>
+                        <option value="staging">Staging (Pre-Prod)</option>
+                        <option value="production">Production (Live)</option>
+                    </select>
+                </div>
+
+                <div class="bg-indigo-900/10 p-3 rounded-lg border border-indigo-500/20 flex justify-between items-center">
+                    <div>
+                         <span class="text-xs font-bold text-indigo-300 block">Privacy Mode</span>
+                         <span class="text-[10px] text-indigo-400/60">No usar data para entrenamiento.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.privacyMode" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                    </label>
+                </div>
+                
+                 <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex justify-between items-center">
+                    <div>
+                         <span class="text-xs font-bold text-slate-300 block">Audit Logs</span>
+                         <span class="text-[10px] text-slate-500">Registrar cambios de configuración.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.auditLogEnabled" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-500"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- HEALTH STATUS (Read Only) -->
+    <div class="p-3 bg-green-900/10 rounded-lg border border-green-500/20 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-xs font-bold text-green-400">System Healthy</span>
+        </div>
+        <span class="text-[10px] font-mono text-green-600/70">/health -> 200 OK</span>
+    </div>
+</div>

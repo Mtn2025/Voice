@@ -52,7 +52,7 @@ class TTSProcessor(FrameProcessor):
                 # Actually, standard asyncio tasks don't guarantee completion order.
                 # A safer bet for TSS is to use an internal Queue and a consumer loop.
                 
-                await self._queue_text(frame.text)
+                await self._queue_text(frame.text, frame.trace_id)
                 
             elif isinstance(frame, CancelFrame):
                 logger.info("🛑 [TTS] Received CancelFrame. clearing queue.")
@@ -65,19 +65,43 @@ class TTSProcessor(FrameProcessor):
 
     # --- Internal Queue Management ---
     
-    async def _queue_text(self, text: str):
+    async def _queue_text(self, text: str, trace_id: str):
         # We need to initialize the worker if not running
         if not hasattr(self, '_tts_queue'):
             self._tts_queue = asyncio.Queue()
             self._worker_task = asyncio.create_task(self._worker())
             
-        await self._tts_queue.put(text)
+        await self._tts_queue.put((text, trace_id))
 
     async def _worker(self):
         while True:
             try:
-                text = await self._tts_queue.get()
-                await self._synthesize(text)
+                text, trace_id = await self._tts_queue.get()
+                
+                # --- PHASE IV: RESPONSE PACING ---
+                # Resolve config dynamically
+                client_type = getattr(self.config, 'client_type', 'twilio')
+                suffix = "_phone" if client_type == "twilio" else ("_telnyx" if client_type == "telnyx" else "")
+                
+                # Control 50: Response Delay
+                delay = getattr(self.config, f"response_delay_seconds{suffix}", None)
+                if delay is None:
+                    delay = getattr(self.config, "response_delay_seconds", 0.0) # Base default
+                else: 
+                     # Fallback if overridden but None? No, getattr returns None if missing.
+                     pass
+                
+                # Legacy fallback
+                if delay == 0.0 or delay is None:
+                     delay_ms = getattr(self.config, f"voice_pacing_ms{suffix}", getattr(self.config, "voice_pacing_ms", 0))
+                     delay = delay_ms / 1000.0
+
+                if delay > 0:
+                    logger.debug(f"⏳ [TTS] Pacing: Waiting {delay}s before synthesis...")
+                    await asyncio.sleep(delay)
+                # ---------------------------------
+
+                await self._synthesize(text, trace_id)
                 self._tts_queue.task_done()
             except asyncio.CancelledError:
                 break
@@ -100,11 +124,11 @@ class TTSProcessor(FrameProcessor):
             self._worker_task.cancel()
             self._worker_task = asyncio.create_task(self._worker())
 
-    async def _synthesize(self, text: str):
+    async def _synthesize(self, text: str, trace_id: str):
         if not text:
             return
 
-        logger.info(f"🗣️ [TTS] Synthesizing: {text}")
+        logger.info(f"🗣️ [TTS] trace={trace_id} Synthesizing: {text}")
         
         try:
             # ✅ P1: Detect backpressure (queue depth)
@@ -128,7 +152,8 @@ class TTSProcessor(FrameProcessor):
                 pitch=getattr(self.config, 'voice_pitch', 0.0),
                 volume=getattr(self.config, 'voice_volume', 100.0),
                 style=getattr(self.config, 'voice_style', None),
-                backpressure_detected=backpressure_detected  # ✅ P1: Signal to adapter
+                backpressure_detected=backpressure_detected,  # ✅ P1: Signal to adapter
+                metadata={"trace_id": trace_id}  # ✅ Module 3: Trace propagation
             )
             
             # ✅ P1: Call TTSPort (hexagonal)

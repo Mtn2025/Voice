@@ -17,20 +17,23 @@ class TelephonyTransport(AudioTransport):
     def set_stream_id(self, stream_id: str) -> None:
         self.stream_id = stream_id
 
-    async def send_audio(self, audio_data: bytes, sample_rate: int = 8000) -> None:
-        try:
-            b64 = base64.b64encode(audio_data).decode("utf-8")
-            msg = {
-                "event": "media",
-                "media": {"payload": b64}
-            }
-            
             # Protocol Specific Handling
-            if self.protocol == "twilio" and self.stream_id:
-                msg["streamSid"] = self.stream_id
-            elif self.protocol == "telnyx" and self.stream_id:
-                 msg["stream_id"] = self.stream_id
-                 
+            if self.protocol == "twilio":
+                msg = {
+                    "event": "media",
+                    "streamSid": self.stream_id,
+                    "media": {"payload": b64}
+                }
+            elif self.protocol == "telnyx":
+                 msg = {
+                    "event": "media",
+                    "stream_id": self.stream_id,
+                    "media": {
+                        "payload": b64,
+                        "track": "inbound_track"  # Send audio TO Telnyx (so user hears it)
+                    }
+                }
+            
             await self.websocket.send_text(json.dumps(msg))
         except Exception:
             pass

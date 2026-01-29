@@ -142,10 +142,12 @@
                     {id:'model', icon:'cpu', label:'Modelo'}, 
                     {id:'voz', icon:'mic', label:'Voz'}, 
                     {id:'transcriptor', icon:'ear', label:'Oído'}, 
+                    {id:'tools', icon:'briefcase', label:'Herramientas'},
                     {id:'campaigns', icon:'megaphone', label:'Campañas'}, 
-                    {id:'avanzado', icon:'settings', label:'Sistema'}, 
-                    {id:'historial', icon:'history', label:'Historial'},
-                    {id:'conexion', icon:'zap', label:'Conexión'}
+                    {id:'connectivity', icon:'zap', label:'Conectividad'},
+                    {id:'system', icon:'shield', label:'Sistema'},
+                    {id:'avanzado', icon:'settings', label:'Avanzado'}, 
+                    {id:'historial', icon:'history', label:'Historial'}
                 ]">
                     <div class="group relative flex items-center justify-center">
                         <button @click="activeTab = tab.id" x-show="shouldShowTab(tab.label)"
@@ -254,6 +256,10 @@
                         {% include 'partials/tab_model.html' %}
                         {% include 'partials/tab_voice.html' %}
                         {% include 'partials/tab_transcriber.html' %}
+                        {% include 'partials/tab_flow.html' %}
+                        {% include 'partials/tab_tools.html' %}
+                        {% include 'partials/tab_analysis.html' %}
+                        {% include 'partials/tab_system.html' %}
                         {% include 'partials/tab_campaigns.html' %}
                         {% include 'partials/tab_advanced.html' %}
                         {% include 'partials/tab_history.html' %}
@@ -320,6 +326,23 @@
                         <input type="hidden" name="first_message_phone" :value="configs.twilio.msg">
                         <input type="hidden" name="first_message_mode_phone" :value="configs.twilio.mode">
 
+                        <!-- NEW: TTS Controls (Browser) -->
+                        <input type="hidden" name="voice_stability" :value="configs.browser.voiceStability">
+                        <input type="hidden" name="voice_similarity_boost"
+                            :value="configs.browser.voiceSimilarityBoost">
+                        <input type="hidden" name="voice_style_exaggeration"
+                            :value="configs.browser.voiceStyleExaggeration">
+                        <input type="hidden" name="voice_speaker_boost" :value="configs.browser.voiceSpeakerBoost">
+                        <input type="hidden" name="voice_multilingual" :value="configs.browser.voiceMultilingual">
+                        <input type="hidden" name="tts_latency_optimization"
+                            :value="configs.browser.ttsLatencyOptimization">
+                        <input type="hidden" name="tts_output_format" :value="configs.browser.ttsOutputFormat">
+                        <input type="hidden" name="voice_filler_injection"
+                            :value="configs.browser.voiceFillerInjection">
+                        <input type="hidden" name="voice_backchanneling" :value="configs.browser.voiceBackchanneling">
+                        <input type="hidden" name="text_normalization_rule"
+                            :value="configs.browser.textNormalizationRule">
+
                         <input type="hidden" name="tts_provider_phone" :value="configs.twilio.voiceProvider">
                         <input type="hidden" name="voice_name_phone" :value="configs.twilio.voiceId">
                         <input type="hidden" name="voice_style_phone" :value="configs.twilio.voiceStyle">
@@ -329,6 +352,24 @@
                         <input type="hidden" name="voice_style_degree_phone" :value="configs.twilio.voiceStyleDegree">
                         <input type="hidden" name="voice_pacing_ms_phone" :value="configs.twilio.voicePacing">
                         <input type="hidden" name="background_sound_phone" :value="configs.twilio.voiceBgSound">
+
+                        <!-- NEW: TTS Controls (Twilio) -->
+                        <input type="hidden" name="voice_stability_phone" :value="configs.twilio.voiceStability">
+                        <input type="hidden" name="voice_similarity_boost_phone"
+                            :value="configs.twilio.voiceSimilarityBoost">
+                        <input type="hidden" name="voice_style_exaggeration_phone"
+                            :value="configs.twilio.voiceStyleExaggeration">
+                        <input type="hidden" name="voice_speaker_boost_phone" :value="configs.twilio.voiceSpeakerBoost">
+                        <input type="hidden" name="voice_multilingual_phone" :value="configs.twilio.voiceMultilingual">
+                        <input type="hidden" name="tts_latency_optimization_phone"
+                            :value="configs.twilio.ttsLatencyOptimization">
+                        <input type="hidden" name="tts_output_format_phone" :value="configs.twilio.ttsOutputFormat">
+                        <input type="hidden" name="voice_filler_injection_phone"
+                            :value="configs.twilio.voiceFillerInjection">
+                        <input type="hidden" name="voice_backchanneling_phone"
+                            :value="configs.twilio.voiceBackchanneling">
+                        <input type="hidden" name="text_normalization_rule_phone"
+                            :value="configs.twilio.textNormalizationRule">
 
                         <input type="hidden" name="stt_provider_phone" :value="configs.twilio.sttProvider">
                         <input type="hidden" name="stt_language_phone" :value="configs.twilio.sttLang">
@@ -372,6 +413,25 @@
                         <input type="hidden" name="voice_pacing_ms_telnyx" :value="configs.telnyx.voicePacing">
                         <input type="hidden" name="background_sound_telnyx" :value="configs.telnyx.voiceBgSound">
                         <input type="hidden" name="background_sound_url_telnyx" :value="configs.telnyx.voiceBgUrl">
+
+                        <!-- NEW: TTS Controls (Telnyx) -->
+                        <input type="hidden" name="voice_stability_telnyx" :value="configs.telnyx.voiceStability">
+                        <input type="hidden" name="voice_similarity_boost_telnyx"
+                            :value="configs.telnyx.voiceSimilarityBoost">
+                        <input type="hidden" name="voice_style_exaggeration_telnyx"
+                            :value="configs.telnyx.voiceStyleExaggeration">
+                        <input type="hidden" name="voice_speaker_boost_telnyx"
+                            :value="configs.telnyx.voiceSpeakerBoost">
+                        <input type="hidden" name="voice_multilingual_telnyx" :value="configs.telnyx.voiceMultilingual">
+                        <input type="hidden" name="tts_latency_optimization_telnyx"
+                            :value="configs.telnyx.ttsLatencyOptimization">
+                        <input type="hidden" name="tts_output_format_telnyx" :value="configs.telnyx.ttsOutputFormat">
+                        <input type="hidden" name="voice_filler_injection_telnyx"
+                            :value="configs.telnyx.voiceFillerInjection">
+                        <input type="hidden" name="voice_backchanneling_telnyx"
+                            :value="configs.telnyx.voiceBackchanneling">
+                        <input type="hidden" name="text_normalization_rule_telnyx"
+                            :value="configs.telnyx.textNormalizationRule">
 
                         <input type="hidden" name="stt_provider_telnyx" :value="configs.telnyx.sttProvider">
                         <input type="hidden" name="stt_language_telnyx" :value="configs.telnyx.sttLang">
@@ -417,6 +477,42 @@
                         <input type="hidden" name="rate_limit_global" :value="configs.browser.rateLimitGlobal">
                         <input type="hidden" name="rate_limit_twilio" :value="configs.browser.rateLimitTwilio">
                         <input type="hidden" name="rate_limit_telnyx" :value="configs.browser.rateLimitTelnyx">
+
+                        <!-- NEW: Connectivity & System Inputs (Wired for 100% Connectivity) -->
+                        <input type="hidden" name="twilioAccountSid" :value="configs.browser.twilioAccountSid">
+                        <input type="hidden" name="twilioAuthToken" :value="configs.browser.twilioAuthToken">
+                        <input type="hidden" name="twilioFromNumber" :value="configs.browser.twilioFromNumber">
+
+                        <input type="hidden" name="telnyxApiKey" :value="configs.browser.telnyxApiKey">
+                        <input type="hidden" name="telnyxConnectionId" :value="configs.browser.telnyxConnectionId">
+                        <input type="hidden" name="callerIdTelnyx" :value="configs.browser.callerIdTelnyx">
+
+                        <input type="hidden" name="sipTrunkUriPhone" :value="configs.browser.sipTrunkUriPhone">
+                        <input type="hidden" name="sipAuthUserPhone" :value="configs.browser.sipAuthUserPhone">
+                        <input type="hidden" name="sipAuthPassPhone" :value="configs.browser.sipAuthPassPhone">
+                        <input type="hidden" name="fallbackNumberPhone" :value="configs.browser.fallbackNumberPhone">
+                        <input type="hidden" name="geoRegionPhone" :value="configs.browser.geoRegionPhone">
+
+                        <input type="hidden" name="sipTrunkUriTelnyx" :value="configs.browser.sipTrunkUriTelnyx">
+                        <input type="hidden" name="sipAuthUserTelnyx" :value="configs.browser.sipAuthUserTelnyx">
+                        <input type="hidden" name="sipAuthPassTelnyx" :value="configs.browser.sipAuthPassTelnyx">
+                        <input type="hidden" name="fallbackNumberTelnyx" :value="configs.browser.fallbackNumberTelnyx">
+                        <input type="hidden" name="geoRegionTelnyx" :value="configs.browser.geoRegionTelnyx">
+
+                        <input type="hidden" name="recordingChannelsPhone"
+                            :value="configs.browser.recordingChannelsPhone">
+                        <input type="hidden" name="recordingChannelsTelnyx"
+                            :value="configs.browser.recordingChannelsTelnyx">
+                        <input type="hidden" name="hipaaEnabledPhone" :value="configs.browser.hipaaEnabledPhone">
+                        <input type="hidden" name="hipaaEnabledTelnyx" :value="configs.browser.hipaaEnabledTelnyx">
+                        <input type="hidden" name="dtmfListeningEnabledPhone"
+                            :value="configs.browser.dtmfListeningEnabledPhone">
+
+                        <input type="hidden" name="concurrencyLimit" :value="configs.browser.concurrencyLimit">
+                        <input type="hidden" name="spendLimitDaily" :value="configs.browser.spendLimitDaily">
+                        <input type="hidden" name="environment" :value="configs.browser.environment">
+                        <input type="hidden" name="privacyMode" :value="configs.browser.privacyMode">
+                        <input type="hidden" name="auditLogEnabled" :value="configs.browser.auditLogEnabled">
                     </div>
 
             </div>

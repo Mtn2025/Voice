@@ -194,8 +194,16 @@ async def answer_call(call_control_id: str, request: Request):
     except Exception as e:
         logging.warning(f"Failed to check recording config: {e}")
 
+    api_key = settings.TELNYX_API_KEY
+    try:
+        if getattr(config, 'telnyx_api_key', None):
+            api_key = config.telnyx_api_key
+            logging.info("🔑 Using Telnyx API Key from Dashboard Config")
+    except Exception:
+        pass
+
     headers = {
-        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
@@ -257,8 +265,25 @@ async def start_streaming(call_control_id: str, request: Request, client_state_i
     if client_state_inbound:
         ws_url += f"&client_state={client_state_inbound}"
 
+    api_key = settings.TELNYX_API_KEY
+    # Attempt to load config for API Key if possible (requires DB session, but this is a helper)
+    # Ideally should pass key in, but for now we follow pattern.
+    # Note: start_streaming is often called without session. Should we pass it?
+    # It takes request. We can get session or pass explicit key.
+    # For now, fallback to env if db lookup hard (but we want consistency).
+    
+    # Check if context inject has it? No.
+    # Let's try to get it if reasonable.
+    try:
+        async with AsyncSessionLocal() as session:
+            config = await db_service.get_agent_config(session)
+            if getattr(config, 'telnyx_api_key', None):
+                api_key = config.telnyx_api_key
+    except Exception:
+        pass
+
     headers = {
-        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
@@ -308,8 +333,21 @@ async def start_noise_suppression(call_control_id: str):
     Enable Telnyx native noise suppression (Krisp) on a call.
     Official docs: https://developers.telnyx.com/docs/api/v2/call-control/Noise-Suppression
     """
+    api_key = settings.TELNYX_API_KEY
+    enable_suppression = True
+    
+    # Load suppression config & API Key from DB
+    try:
+        async with AsyncSessionLocal() as session:
+            config = await db_service.get_agent_config(session)
+            enable_suppression = getattr(config, 'enable_krisp_telnyx', True)
+            if getattr(config, 'telnyx_api_key', None):
+                api_key = config.telnyx_api_key
+    except Exception as e:
+        logging.warning(f"Could not load noise suppression config: {e}")
+
     headers = {
-        "Authorization": f"Bearer {settings.TELNYX_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
@@ -414,7 +452,11 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
         client_type=client,
         initial_context=client_state,
         tools=ports.tools  # ✅ Module 7: Tool Calling
-    )    
+    )
+    
+    # ✅ REGISTER FOR API ACCESS
+    manager.register_orchestrator(client_id, orchestrator)
+    
     try:
         await orchestrator.start()
     except Exception as e:
@@ -527,7 +569,6 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
         await orchestrator.stop()
 
         # Save call to DB
-        if orchestrator.call_db_id:
             try:
                 async with AsyncSessionLocal() as session:
                     await db_service.end_call(session, orchestrator.call_db_id)
@@ -536,3 +577,97 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
 
         with contextlib.suppress(RuntimeError):
             await websocket.close()
+
+
+@router.post("/calls/{call_id}/context")
+async def update_call_context(call_id: str, payload: dict):
+    """
+    Dynamic State Injection (Port 4).
+    Allows external systems (n8n, CRM) to inject variables into the
+    running LLM context mid-call.
+    
+    Payload: {"customer_verified": true, "name": "Juan"}
+    """
+    # 1. Find the active orchestrator for this call_id
+    target_orchestrator = manager.get_orchestrator(call_id)
+    
+    if not target_orchestrator:
+        return Response(
+            content=json.dumps({"status": "error", "message": "Call not found or not active"}),
+            status_code=404,
+            media_type="application/json"
+        )
+        
+    # 2. Inject Context
+    try:
+        success = await target_orchestrator.update_context(payload)
+        if success:
+             return {"status": "success", "message": "Context updated"}
+        else:
+             return Response(
+                content=json.dumps({"status": "error", "message": "Orchestrator pipeline not ready"}),
+                status_code=503,
+                media_type="application/json"
+            )
+
+@router.post("/calls/test-outbound")
+@limiter.limit("5/minute")
+async def test_outbound_call(request: Request, _: None = Depends(verify_api_key)):
+    """
+    Initiate a test outbound call via Telnyx.
+    Uses credentials from AgentConfig.
+    """
+    try:
+        body = await request.json()
+        target_number = body.get("to")
+        
+        if not target_number:
+            raise HTTPException(status_code=400, detail="Missing 'to' phone number")
+
+        # 1. Load Config
+        async with AsyncSessionLocal() as session:
+            config = await db_service.get_agent_config(session)
+            
+            api_key = getattr(config, 'telnyx_api_key', None) or settings.TELNYX_API_KEY
+            source_number = getattr(config, 'caller_id_telnyx', None) or getattr(config, 'telnyx_from_number', None)
+            connection_id = getattr(config, 'telnyx_connection_id', None)
+
+        if not api_key:
+             raise HTTPException(status_code=400, detail="Missing Telnyx API Key in Settings")
+        if not source_number:
+             raise HTTPException(status_code=400, detail="Missing Caller ID (From Number) in Settings")
+        if not connection_id:
+             raise HTTPException(status_code=400, detail="Missing Telnyx Connection ID in Settings")
+
+        # 2. Call Telnyx API
+        url = "https://api.telnyx.com/v2/calls"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "to": target_number,
+            "from": source_number,
+            "connection_id": connection_id,
+            # "webhook_url": Should already be configured in Telnyx Portal, 
+            # or we can override if needed: f"https://{request.headers.get('host')}/api/v1/telnyx/call-control"
+        }
+        
+        logging.info(f"🚀 Initiating Outbound Call to {target_number} via Telnyx")
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, json=payload)
+            
+        if response.status_code == 201 or response.status_code == 200:
+            data = response.json()
+            call_id = data.get("data", {}).get("call_control_id")
+            return {"status": "success", "message": "Call Initiated", "call_id": call_id}
+        else:
+            error_msg = response.text
+            logging.error(f"❌ Telnyx Outbound Failed: {error_msg}")
+            raise HTTPException(status_code=response.status_code, detail=f"Telnyx Error: {error_msg}")
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logging.error(f"❌ Outbound Call Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

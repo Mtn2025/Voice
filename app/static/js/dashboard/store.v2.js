@@ -135,6 +135,18 @@ export function dashboardStore() {
                 voiceBgSound: s.background_sound || 'none',
                 voiceBgUrl: s.background_sound_url || '',
 
+                // NEW: TTS Controls (Browser)
+                voiceStability: s.voice_stability || 0.5,
+                voiceSimilarityBoost: s.voice_similarity_boost || 0.75,
+                voiceStyleExaggeration: s.voice_style_exaggeration || 0.0,
+                voiceSpeakerBoost: s.voice_speaker_boost !== undefined ? s.voice_speaker_boost : true,
+                voiceMultilingual: s.voice_multilingual !== undefined ? s.voice_multilingual : true,
+                ttsLatencyOptimization: s.tts_latency_optimization || 0,
+                ttsOutputFormat: s.tts_output_format || 'pcm_16000',
+                voiceFillerInjection: s.voice_filler_injection || false,
+                voiceBackchanneling: s.voice_backchanneling || false,
+                textNormalizationRule: s.text_normalization_rule || 'auto',
+
                 sttProvider: s.stt_provider || 'azure',
                 sttLang: s.stt_language || 'es-MX',
                 interruptWords: s.interruption_threshold || 0,
@@ -161,365 +173,421 @@ export function dashboardStore() {
                 // Global Rate Limits (Advanced)
                 rateLimitGlobal: s.rate_limit_global || 200,
                 rateLimitTwilio: s.rate_limit_twilio || 30,
-                rateLimitTelnyx: s.rate_limit_telnyx || 50
-            };
-        },
+                rateLimitTelnyx: s.rate_limit_telnyx || 50,
 
-        initTwilioConfig() {
-            const s = this.serverConfig;
-            this.configs.twilio = {
-                provider: s.llm_provider_phone || s.llm_provider || 'groq',
-                model: s.llm_model_phone || s.llm_model || '',
-                temp: s.temperature_phone || s.temperature || 0.7,
-                tokens: s.max_tokens_phone || s.max_tokens || 250,
-                msg: s.first_message_phone || s.first_message || '',
-                mode: s.first_message_mode_phone || s.first_message_mode || 'speak-first',
-                prompt: s.system_prompt_phone || '',
+                // CONNECTIVITY (Twilio)
+                twilioAccountSid: s.twilio_account_sid || '',
+                twilioAuthToken: s.twilio_auth_token || '',
+                twilioFromNumber: s.twilio_from_number || '',
 
-                responseLength: s.response_length_phone || 'short',
-                conversationTone: s.conversation_tone_phone || 'warm',
-                conversationFormality: s.conversation_formality_phone || 'semi_formal',
-                conversationPacing: s.conversation_pacing_phone || 'moderate',
+                // CONNECTIVITY (Telnyx)
+                telnyxApiKey: s.telnyx_api_key || '',
+                telnyxConnectionId: s.telnyx_connection_id || '',
+                callerIdTelnyx: s.caller_id_telnyx || '',
 
-                // NEW: Advanced LLM Controls (Phone)
-                contextWindow: s.context_window_phone || 10,
-                frequencyPenalty: s.frequency_penalty_phone || 0.0,
-                presencePenalty: s.presence_penalty_phone || 0.0,
-                toolChoice: s.tool_choice_phone || 'auto',
-                dynamicVarsEnabled: s.dynamic_vars_enabled_phone || false,
-                dynamicVars: s.dynamic_vars_phone ? JSON.stringify(s.dynamic_vars_phone) : '',
+                // SIP (Phone)
+                sipTrunkUriPhone: s.sip_trunk_uri_phone || '',
+                sipAuthUserPhone: s.sip_auth_user_phone || '',
+                sipAuthPassPhone: s.sip_auth_pass_phone || '',
+                fallbackNumberPhone: s.fallback_number_phone || '',
+                geoRegionPhone: s.geo_region_phone || 'us-east-1',
 
-                voiceProvider: s.tts_provider_phone || s.tts_provider || 'azure',
-                voiceLang: s.voice_language_phone || 'es-MX',
-                voiceId: s.voice_name_phone || '',
-                voiceStyle: s.voice_style_phone || '',
-                voiceSpeed: s.voice_speed_phone || 1.0,
-                voicePitch: s.voice_pitch_phone || 0,
-                voiceVolume: s.voice_volume_phone || 100,
-                voiceStyleDegree: s.voice_style_degree_phone || 1.0,
-                voicePacing: s.voice_pacing_ms_phone || 0,
-                voiceBgSound: s.background_sound_phone || 'none',
+                // SIP (Telnyx)
+                sipTrunkUriTelnyx: s.sip_trunk_uri_telnyx || '',
+                sipAuthUserTelnyx: s.sip_auth_user_telnyx || '',
+                sipAuthPassTelnyx: s.sip_auth_pass_telnyx || '',
+                fallbackNumberTelnyx: s.fallback_number_telnyx || '',
+                geoRegionTelnyx: s.geo_region_telnyx || 'us-central',
 
-                sttProvider: s.stt_provider_phone || 'azure',
-                sttLang: s.stt_language_phone || 'es-MX',
-                interruptWords: s.interruption_threshold_phone || 0,
-                silence: s.silence_timeout_ms_phone || 5000,
-                inputMin: s.input_min_characters_phone || 0,
-                blacklist: s.hallucination_blacklist_phone || '',
-                denoise: s.enable_denoising_phone || false,
+                // Features
+                recordingChannelsPhone: s.recording_channels_phone || 'mono',
+                recordingChannelsTelnyx: s.recording_channels_telnyx || 'dual',
+                hipaaEnabledPhone: s.hipaa_enabled_phone || false,
+                hipaaEnabledTelnyx: s.hipaa_enabled_telnyx || false,
+                dtmfListeningEnabledPhone: s.dtmf_listening_enabled_phone || false,
 
-                crm_enabled: s.crm_enabled || false,
-                baserow_token: s.baserow_token || '',
-                baserow_table_id: s.baserow_table_id || '',
-                webhook_url: s.webhook_url || '',
-                webhook_secret: s.webhook_secret || ''
-            };
-        },
+                // SYSTEM
+                concurrencyLimit: s.concurrency_limit || 10,
+                spendLimitDaily: s.spend_limit_daily || 50.0,
+                environment: s.environment || 'development',
+                privacyMode: s.privacy_mode || false,
+                auditLogEnabled: s.audit_log_enabled || true
+            },
 
-        initTelnyxConfig() {
-            const s = this.serverConfig;
-            this.configs.telnyx = {
-                provider: s.llm_provider_telnyx || s.llm_provider || 'groq',
-                model: s.llm_model_telnyx || s.llm_model || '',
-                temp: s.temperature_telnyx || s.temperature || 0.7,
-                tokens: s.max_tokens_telnyx || s.max_tokens || 250,
-                msg: s.first_message_telnyx || s.first_message || '',
-                mode: s.first_message_mode_telnyx || s.first_message_mode || 'speak-first',
-                prompt: s.system_prompt_telnyx || '',
+                initTwilioConfig() {
+                const s = this.serverConfig;
+                this.configs.twilio = {
+                    provider: s.llm_provider_phone || s.llm_provider || 'groq',
+                    model: s.llm_model_phone || s.llm_model || '',
+                    temp: s.temperature_phone || s.temperature || 0.7,
+                    tokens: s.max_tokens_phone || s.max_tokens || 250,
+                    msg: s.first_message_phone || s.first_message || '',
+                    mode: s.first_message_mode_phone || s.first_message_mode || 'speak-first',
+                    prompt: s.system_prompt_phone || '',
 
-                responseLength: s.response_length_telnyx || 'short',
-                conversationTone: s.conversation_tone_telnyx || 'warm',
-                conversationFormality: s.conversation_formality_telnyx || 'semi_formal',
-                conversationPacing: s.conversation_pacing_telnyx || 'moderate',
+                    responseLength: s.response_length_phone || 'short',
+                    conversationTone: s.conversation_tone_phone || 'warm',
+                    conversationFormality: s.conversation_formality_phone || 'semi_formal',
+                    conversationPacing: s.conversation_pacing_phone || 'moderate',
 
-                // NEW: Advanced LLM Controls (Telnyx)
-                contextWindow: s.context_window_telnyx || 10,
-                frequencyPenalty: s.frequency_penalty_telnyx || 0.0,
-                presencePenalty: s.presence_penalty_telnyx || 0.0,
-                toolChoice: s.tool_choice_telnyx || 'auto',
-                dynamicVarsEnabled: s.dynamic_vars_enabled_telnyx || false,
-                dynamicVars: s.dynamic_vars_telnyx ? JSON.stringify(s.dynamic_vars_telnyx) : '',
+                    // NEW: Advanced LLM Controls (Phone)
+                    contextWindow: s.context_window_phone || 10,
+                    frequencyPenalty: s.frequency_penalty_phone || 0.0,
+                    presencePenalty: s.presence_penalty_phone || 0.0,
+                    toolChoice: s.tool_choice_phone || 'auto',
+                    dynamicVarsEnabled: s.dynamic_vars_enabled_phone || false,
+                    dynamicVars: s.dynamic_vars_phone ? JSON.stringify(s.dynamic_vars_phone) : '',
 
-                voiceProvider: s.tts_provider_telnyx || s.tts_provider || 'azure',
-                voiceLang: s.voice_language_telnyx || 'es-MX',
-                voiceId: s.voice_name_telnyx || '',
-                voiceStyle: s.voice_style_telnyx || '',
-                voiceSpeed: s.voice_speed_telnyx || 1.0,
-                voicePitch: s.voice_pitch_telnyx || 0,
-                voiceVolume: s.voice_volume_telnyx || 100,
-                voiceStyleDegree: s.voice_style_degree_telnyx || 1.0,
-                voicePacing: s.voice_pacing_ms_telnyx || 0,
-                voiceBgSound: s.background_sound_telnyx || 'none',
-                voiceBgUrl: s.background_sound_url_telnyx || '',
+                    voiceProvider: s.tts_provider_phone || s.tts_provider || 'azure',
+                    voiceLang: s.voice_language_phone || 'es-MX',
+                    voiceId: s.voice_name_phone || '',
+                    voiceStyle: s.voice_style_phone || '',
+                    voiceSpeed: s.voice_speed_phone || 1.0,
+                    voicePitch: s.voice_pitch_phone || 0,
+                    voiceVolume: s.voice_volume_phone || 100,
+                    voiceStyleDegree: s.voice_style_degree_phone || 1.0,
+                    voicePacing: s.voice_pacing_ms_phone || 0,
+                    voiceBgSound: s.background_sound_phone || 'none',
 
-                sttProvider: s.stt_provider_telnyx || 'azure',
-                sttLang: s.stt_language_telnyx || 'es-MX',
-                interruptWords: s.interruption_threshold_telnyx || 0,
-                interruptRMS: s.voice_sensitivity_telnyx || 0,
-                silence: s.silence_timeout_ms_telnyx || 5000,
-                inputMin: s.input_min_characters_telnyx || 0,
-                blacklist: s.hallucination_blacklist_telnyx || '',
-                denoise: s.enable_denoising_telnyx || false,
-                krisp: s.enable_krisp_telnyx || false,
-                vad: s.enable_vad_telnyx || false,
-                vad_threshold: s.vad_threshold_telnyx || 0.5,
-                idleTimeout: s.idle_timeout_telnyx || 20,
-                maxDuration: s.max_duration_telnyx || 600,
-                idleMessage: s.idle_message_telnyx || '',
-                enableRecording: s.enable_recording_telnyx || false,
-                amdConfig: s.amd_config_telnyx || 'disabled',
+                    // NEW: TTS Controls (Twilio)
+                    voiceStability: s.voice_stability_phone || 0.5,
+                    voiceSimilarityBoost: s.voice_similarity_boost_phone || 0.75,
+                    voiceStyleExaggeration: s.voice_style_exaggeration_phone || 0.0,
+                    voiceSpeakerBoost: s.voice_speaker_boost_phone !== undefined ? s.voice_speaker_boost_phone : true,
+                    voiceMultilingual: s.voice_multilingual_phone !== undefined ? s.voice_multilingual_phone : true,
+                    ttsLatencyOptimization: s.tts_latency_optimization_phone || 0,
+                    ttsOutputFormat: s.tts_output_format_phone || 'pcm_8000',
+                    voiceFillerInjection: s.voice_filler_injection_phone || false,
+                    voiceBackchanneling: s.voice_backchanneling_phone || false,
+                    textNormalizationRule: s.text_normalization_rule_phone || 'auto',
 
-                crm_enabled: s.crm_enabled || false,
-                baserow_token: s.baserow_token || '',
-                baserow_table_id: s.baserow_table_id || '',
-                webhook_url: s.webhook_url || '',
-                webhook_secret: s.webhook_secret || ''
-            };
-        },
+                    sttProvider: s.stt_provider_phone || 'azure',
+                    sttLang: s.stt_language_phone || 'es-MX',
+                    interruptWords: s.interruption_threshold_phone || 0,
+                    silence: s.silence_timeout_ms_phone || 5000,
+                    inputMin: s.input_min_characters_phone || 0,
+                    blacklist: s.hallucination_blacklist_phone || '',
+                    denoise: s.enable_denoising_phone || false,
 
-        ensureModelExists(provider, modelId) {
-            if (!provider || !modelId) return;
-            const p = provider.trim().toLowerCase();
-            const m = modelId.trim();
-            if (!this.models[p]) this.models[p] = [];
-            const exists = this.models[p].find(x => x.id === m);
-            if (!exists) {
-                this.models[p].unshift({ id: m, name: m + ' (Saved)' });
-            }
-        },
+                    crm_enabled: s.crm_enabled || false,
+                    baserow_token: s.baserow_token || '',
+                    baserow_table_id: s.baserow_table_id || '',
+                    webhook_url: s.webhook_url || '',
+                    webhook_secret: s.webhook_secret || ''
+                };
+            },
 
-        sanitizeAllProfiles() {
-            const s = this.serverConfig || {};
-            this.ensureModelExists(s.llm_provider, s.llm_model);
-            this.ensureModelExists(s.llm_provider_phone, s.llm_model_phone);
-            this.ensureModelExists(s.llm_provider_telnyx, s.llm_model_telnyx);
-        },
+            initTelnyxConfig() {
+                const s = this.serverConfig;
+                this.configs.telnyx = {
+                    provider: s.llm_provider_telnyx || s.llm_provider || 'groq',
+                    model: s.llm_model_telnyx || s.llm_model || '',
+                    temp: s.temperature_telnyx || s.temperature || 0.7,
+                    tokens: s.max_tokens_telnyx || s.max_tokens || 250,
+                    msg: s.first_message_telnyx || s.first_message || '',
+                    mode: s.first_message_mode_telnyx || s.first_message_mode || 'speak-first',
+                    prompt: s.system_prompt_telnyx || '',
 
-        refreshUI() {
-            this.sanitizeAllProfiles();
-            this.updateModelList();
-            this.updateVoiceLists();
-        },
+                    responseLength: s.response_length_telnyx || 'short',
+                    conversationTone: s.conversation_tone_telnyx || 'warm',
+                    conversationFormality: s.conversation_formality_telnyx || 'semi_formal',
+                    conversationPacing: s.conversation_pacing_telnyx || 'moderate',
 
-        updateModelList() {
-            const currentProvider = (this.c.provider || 'groq').trim().toLowerCase();
-            this.availableModels = this.models[currentProvider] || [];
+                    // NEW: Advanced LLM Controls (Telnyx)
+                    contextWindow: s.context_window_telnyx || 10,
+                    frequencyPenalty: s.frequency_penalty_telnyx || 0.0,
+                    presencePenalty: s.presence_penalty_telnyx || 0.0,
+                    toolChoice: s.tool_choice_telnyx || 'auto',
+                    dynamicVarsEnabled: s.dynamic_vars_enabled_telnyx || false,
+                    dynamicVars: s.dynamic_vars_telnyx ? JSON.stringify(s.dynamic_vars_telnyx) : '',
 
-            const s = this.serverConfig || {};
-            let savedModel = '';
-            if (this.activeProfile === 'browser') savedModel = s.llm_model;
-            else if (this.activeProfile === 'twilio') savedModel = s.llm_model_phone;
-            else if (this.activeProfile === 'telnyx') savedModel = s.llm_model_telnyx;
+                    voiceProvider: s.tts_provider_telnyx || s.tts_provider || 'azure',
+                    voiceLang: s.voice_language_telnyx || 'es-MX',
+                    voiceId: s.voice_name_telnyx || '',
+                    voiceStyle: s.voice_style_telnyx || '',
+                    voiceSpeed: s.voice_speed_telnyx || 1.0,
+                    voicePitch: s.voice_pitch_telnyx || 0,
+                    voiceVolume: s.voice_volume_telnyx || 100,
+                    voiceStyleDegree: s.voice_style_degree_telnyx || 1.0,
+                    voicePacing: s.voice_pacing_ms_telnyx || 0,
+                    voiceBgSound: s.background_sound_telnyx || 'none',
+                    voiceBgUrl: s.background_sound_url_telnyx || '',
 
-            this.$nextTick(() => {
-                const currentModelValid = this.availableModels.find(m => m.id === this.c.model);
-                if (savedModel && this.availableModels.find(m => m.id === savedModel)) {
-                    this.c.model = '';
-                    this.$nextTick(() => { this.c.model = savedModel; });
-                } else if (!currentModelValid && this.availableModels.length > 0) {
-                    this.c.model = this.availableModels[0].id;
+                    // NEW: TTS Controls (Telnyx)
+                    voiceStability: s.voice_stability_telnyx || 0.5,
+                    voiceSimilarityBoost: s.voice_similarity_boost_telnyx || 0.75,
+                    voiceStyleExaggeration: s.voice_style_exaggeration_telnyx || 0.0,
+                    voiceSpeakerBoost: s.voice_speaker_boost_telnyx !== undefined ? s.voice_speaker_boost_telnyx : true,
+                    voiceMultilingual: s.voice_multilingual_telnyx !== undefined ? s.voice_multilingual_telnyx : true,
+                    ttsLatencyOptimization: s.tts_latency_optimization_telnyx || 0,
+                    ttsOutputFormat: s.tts_output_format_telnyx || 'pcm_8000',
+                    voiceFillerInjection: s.voice_filler_injection_telnyx || false,
+                    voiceBackchanneling: s.voice_backchanneling_telnyx || false,
+                    textNormalizationRule: s.text_normalization_rule_telnyx || 'auto',
+
+                    sttProvider: s.stt_provider_telnyx || 'azure',
+                    sttLang: s.stt_language_telnyx || 'es-MX',
+                    interruptWords: s.interruption_threshold_telnyx || 0,
+                    interruptRMS: s.voice_sensitivity_telnyx || 0,
+                    silence: s.silence_timeout_ms_telnyx || 5000,
+                    inputMin: s.input_min_characters_telnyx || 0,
+                    blacklist: s.hallucination_blacklist_telnyx || '',
+                    denoise: s.enable_denoising_telnyx || false,
+                    krisp: s.enable_krisp_telnyx || false,
+                    vad: s.enable_vad_telnyx || false,
+                    vad_threshold: s.vad_threshold_telnyx || 0.5,
+                    idleTimeout: s.idle_timeout_telnyx || 20,
+                    maxDuration: s.max_duration_telnyx || 600,
+                    idleMessage: s.idle_message_telnyx || '',
+                    enableRecording: s.enable_recording_telnyx || false,
+                    amdConfig: s.amd_config_telnyx || 'disabled',
+
+                    crm_enabled: s.crm_enabled || false,
+                    baserow_token: s.baserow_token || '',
+                    baserow_table_id: s.baserow_table_id || '',
+                    webhook_url: s.webhook_url || '',
+                    webhook_secret: s.webhook_secret || ''
+                };
+            },
+
+            ensureModelExists(provider, modelId) {
+                if (!provider || !modelId) return;
+                const p = provider.trim().toLowerCase();
+                const m = modelId.trim();
+                if (!this.models[p]) this.models[p] = [];
+                const exists = this.models[p].find(x => x.id === m);
+                if (!exists) {
+                    this.models[p].unshift({ id: m, name: m + ' (Saved)' });
                 }
-            });
-        },
+            },
 
-        updateVoiceLists() {
-            let prov = (this.c.voiceProvider || 'azure').trim().toLowerCase();
-            this.availableLanguages = this.languages[prov] || [];
-            if (!this.availableLanguages.find(l => l.id === this.c.voiceLang)) {
-                this.c.voiceLang = this.availableLanguages[0]?.id || '';
-            }
-            let allVoices = (this.voices[prov] || {})[this.c.voiceLang] || [];
-            let gendersSet = new Set(allVoices.map(v => v.gender));
-            this.availableGenders = Array.from(gendersSet).map(g => ({
-                id: g,
-                name: g === 'female' ? 'Femenino' : (g === 'male' ? 'Masculino' : 'Neutral')
-            }));
-            if (!gendersSet.has(this.currentGender) && this.availableGenders.length > 0) {
-                this.currentGender = this.availableGenders[0].id;
-            }
-            let tmpVoices = allVoices.filter(v => v.gender === this.currentGender);
+            sanitizeAllProfiles() {
+                const s = this.serverConfig || {};
+                this.ensureModelExists(s.llm_provider, s.llm_model);
+                this.ensureModelExists(s.llm_provider_phone, s.llm_model_phone);
+                this.ensureModelExists(s.llm_provider_telnyx, s.llm_model_telnyx);
+            },
 
-            // Restore saved voice
-            const s = this.serverConfig || {};
-            let savedVoiceId = '';
-            if (this.activeProfile === 'browser') savedVoiceId = s.voice_name;
-            else if (this.activeProfile === 'twilio') savedVoiceId = s.voice_name_phone;
-            else if (this.activeProfile === 'telnyx') savedVoiceId = s.voice_name_telnyx;
+            refreshUI() {
+                this.sanitizeAllProfiles();
+                this.updateModelList();
+                this.updateVoiceLists();
+            },
 
-            this.availableVoices = tmpVoices;
+            updateModelList() {
+                const currentProvider = (this.c.provider || 'groq').trim().toLowerCase();
+                this.availableModels = this.models[currentProvider] || [];
 
-            this.$nextTick(() => {
-                const voiceExists = savedVoiceId && this.availableVoices.find(v => v.id === savedVoiceId);
-                if (voiceExists) {
-                    this.c.voiceId = '';
-                    this.$nextTick(() => { this.c.voiceId = savedVoiceId; });
-                } else if (this.availableVoices.length > 0) {
-                    const currentValid = this.availableVoices.find(v => v.id === this.c.voiceId);
-                    if (!currentValid) this.c.voiceId = this.availableVoices[0].id;
+                const s = this.serverConfig || {};
+                let savedModel = '';
+                if (this.activeProfile === 'browser') savedModel = s.llm_model;
+                else if (this.activeProfile === 'twilio') savedModel = s.llm_model_phone;
+                else if (this.activeProfile === 'telnyx') savedModel = s.llm_model_telnyx;
+
+                this.$nextTick(() => {
+                    const currentModelValid = this.availableModels.find(m => m.id === this.c.model);
+                    if (savedModel && this.availableModels.find(m => m.id === savedModel)) {
+                        this.c.model = '';
+                        this.$nextTick(() => { this.c.model = savedModel; });
+                    } else if (!currentModelValid && this.availableModels.length > 0) {
+                        this.c.model = this.availableModels[0].id;
+                    }
+                });
+            },
+
+            updateVoiceLists() {
+                let prov = (this.c.voiceProvider || 'azure').trim().toLowerCase();
+                this.availableLanguages = this.languages[prov] || [];
+                if (!this.availableLanguages.find(l => l.id === this.c.voiceLang)) {
+                    this.c.voiceLang = this.availableLanguages[0]?.id || '';
                 }
-            });
-            this.updateStyleList();
-        },
+                let allVoices = (this.voices[prov] || {})[this.c.voiceLang] || [];
+                let gendersSet = new Set(allVoices.map(v => v.gender));
+                this.availableGenders = Array.from(gendersSet).map(g => ({
+                    id: g,
+                    name: g === 'female' ? 'Femenino' : (g === 'male' ? 'Masculino' : 'Neutral')
+                }));
+                if (!gendersSet.has(this.currentGender) && this.availableGenders.length > 0) {
+                    this.currentGender = this.availableGenders[0].id;
+                }
+                let tmpVoices = allVoices.filter(v => v.gender === this.currentGender);
 
-        updateStyleList() {
-            let vid = this.c.voiceId;
-            let rawStyles = this.styles[vid] || this.styles['default'] || [];
-            this.availableStyles = rawStyles.map(s => {
-                if (typeof s === 'string') return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
-                return s;
-            });
-            if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
-                this.c.voiceStyle = '';
-            }
-        },
+                // Restore saved voice
+                const s = this.serverConfig || {};
+                let savedVoiceId = '';
+                if (this.activeProfile === 'browser') savedVoiceId = s.voice_name;
+                else if (this.activeProfile === 'twilio') savedVoiceId = s.voice_name_phone;
+                else if (this.activeProfile === 'telnyx') savedVoiceId = s.voice_name_telnyx;
 
-        setGender(g) {
-            this.currentGender = g;
-            this.updateVoiceLists();
-        },
+                this.availableVoices = tmpVoices;
 
-        shouldShowTab(t) {
-            if (t === 'Conexión' && this.activeProfile === 'browser') return false;
-            return true;
-        },
+                this.$nextTick(() => {
+                    const voiceExists = savedVoiceId && this.availableVoices.find(v => v.id === savedVoiceId);
+                    if (voiceExists) {
+                        this.c.voiceId = '';
+                        this.$nextTick(() => { this.c.voiceId = savedVoiceId; });
+                    } else if (this.availableVoices.length > 0) {
+                        const currentValid = this.availableVoices.find(v => v.id === this.c.voiceId);
+                        if (!currentValid) this.c.voiceId = this.availableVoices[0].id;
+                    }
+                });
+                this.updateStyleList();
+            },
+
+            updateStyleList() {
+                let vid = this.c.voiceId;
+                let rawStyles = this.styles[vid] || this.styles['default'] || [];
+                this.availableStyles = rawStyles.map(s => {
+                    if (typeof s === 'string') return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
+                    return s;
+                });
+                if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
+                    this.c.voiceStyle = '';
+                }
+            },
+
+            setGender(g) {
+                this.currentGender = g;
+                this.updateVoiceLists();
+            },
+
+            shouldShowTab(t) {
+                if (t === 'Conexión' && this.activeProfile === 'browser') return false;
+                return true;
+            },
 
         // --- ACTIONS ---
         async saveConfig() {
-            // Flatten config back to simple key-value for server
-            const urlParams = new URLSearchParams(window.location.search);
-            const apiKey = urlParams.get('api_key');
+                const urlParams = new URLSearchParams(window.location.search);
+                const apiKey = urlParams.get('api_key');
+                const profile = this.activeProfile || 'browser';
 
-            // Create a temporary form to leverage browser's native matching with hidden inputs,
-            // OR reuse the manual payload construction.
-            // Since we bound all inputs in the HTML to Alpine mode, we can construct the payload from `configs`.
-            // HOWEVER, the `dashboard.html` relies on hidden inputs with names.
-            // We should use `new FormData(document.getElementById('configForm'))` to get everything.
+                // DATA SOURCE: Trust the Alpine Store state, NOT the DOM inputs.
+                // This ensures we save exactly what is in memory for this profile.
+                const payload = this.configs[profile];
 
-            const form = document.getElementById('configForm');
-            const formData = new FormData(form);
-            const payload = {};
-            formData.forEach((value, key) => payload[key] = value);
+                try {
+                    // Use new Profile-Aware Endpoint
+                    const data = await api.updateProfile(profile, payload, apiKey);
 
-            try {
-                const data = await api.saveConfig(payload, apiKey);
-                this.showToast('Configuración Guardada', 'success');
-                if (data.warnings && data.warnings.length > 0) {
-                    setTimeout(() => this.showToast('Advertencia: ' + data.warnings.join(', '), 'error'), 500);
+                    this.showToast(`Configuración Guardada (${profile.toUpperCase()})`, 'success');
+                    if (data.warnings && data.warnings.length > 0) {
+                        setTimeout(() => this.showToast('Advertencia: ' + data.warnings.join(', '), 'error'), 500);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    this.showToast('Error al guardar: ' + e.message, 'error');
                 }
-            } catch (e) {
-                console.error(e);
-                this.showToast('Error al guardar', 'error');
-            }
-        },
+            },
 
         async previewVoice() {
-            this.isPreviewLoading = true;
-            try {
-                const params = {
-                    voice_name: this.c.voiceId || 'es-MX-DaliaNeural',
-                    voice_speed: this.c.voiceSpeed || 1.0,
-                    voice_pitch: this.c.voicePitch || 0,
-                    voice_volume: this.c.voiceVolume || 100,
-                    voice_style: this.c.voiceStyle || '',
-                    voice_style_degree: this.c.voiceStyleDegree || 1.0
-                };
-                const urlParams = new URLSearchParams(window.location.search);
-                const blob = await api.previewVoice(params, urlParams.get('api_key'));
-                const audioUrl = URL.createObjectURL(blob);
-                const audio = new Audio(audioUrl);
-                audio.onended = () => {
-                    URL.revokeObjectURL(audioUrl);
-                    console.log('Preview playback finished');
-                };
-                audio.onerror = () => {
-                    alert('Error al reproducir audio');
-                };
-                await audio.play();
-            } catch (e) {
-                console.error(e);
-                alert('Error al generar muestra: ' + e.message);
-            } finally {
-                this.isPreviewLoading = false;
-            }
-        },
+                this.isPreviewLoading = true;
+                try {
+                    const params = {
+                        voice_name: this.c.voiceId || 'es-MX-DaliaNeural',
+                        voice_speed: this.c.voiceSpeed || 1.0,
+                        voice_pitch: this.c.voicePitch || 0,
+                        voice_volume: this.c.voiceVolume || 100,
+                        voice_style: this.c.voiceStyle || '',
+                        voice_style_degree: this.c.voiceStyleDegree || 1.0
+                    };
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const blob = await api.previewVoice(params, urlParams.get('api_key'));
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audio = new Audio(audioUrl);
+                    audio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        console.log('Preview playback finished');
+                    };
+                    audio.onerror = () => {
+                        alert('Error al reproducir audio');
+                    };
+                    await audio.play();
+                } catch (e) {
+                    console.error(e);
+                    alert('Error al generar muestra: ' + e.message);
+                } finally {
+                    this.isPreviewLoading = false;
+                }
+            },
 
         async handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            try {
-                await csvValidator.validate(file);
-                this.campaignFile = file;
-            } catch (err) {
-                this.showToast(err, 'error');
-                event.target.value = '';
-                this.campaignFile = null;
-            }
-        },
+                const file = event.target.files[0];
+                if (!file) return;
+                try {
+                    await csvValidator.validate(file);
+                    this.campaignFile = file;
+                } catch (err) {
+                    this.showToast(err, 'error');
+                    event.target.value = '';
+                    this.campaignFile = null;
+                }
+            },
 
         async uploadCampaign() {
-            if (!this.campaignFile || !this.campaignName) {
-                this.showToast('Faltan datos de campaña', 'error');
-                return;
-            }
-            this.isCampaignLoading = true;
-            const urlParams = new URLSearchParams(window.location.search);
-            try {
-                const data = await api.uploadCampaign(this.campaignName, this.campaignFile, urlParams.get('api_key'));
-                this.showToast(`Campaña iniciada! Leads: ${data.leads_count}`, 'success');
-                this.campaignName = '';
-                this.campaignFile = null;
-                // Reset input?
-            } catch (e) {
-                this.showToast(e.message, 'error');
-            } finally {
-                this.isCampaignLoading = false;
-            }
-        },
+                if (!this.campaignFile || !this.campaignName) {
+                    this.showToast('Faltan datos de campaña', 'error');
+                    return;
+                }
+                this.isCampaignLoading = true;
+                const urlParams = new URLSearchParams(window.location.search);
+                try {
+                    const data = await api.uploadCampaign(this.campaignName, this.campaignFile, urlParams.get('api_key'));
+                    this.showToast(`Campaña iniciada! Leads: ${data.leads_count}`, 'success');
+                    this.campaignName = '';
+                    this.campaignFile = null;
+                    // Reset input?
+                } catch (e) {
+                    this.showToast(e.message, 'error');
+                } finally {
+                    this.isCampaignLoading = false;
+                }
+            },
 
         // Helper Logic from scripts_helpers.html
         async deleteSelectedCalls() {
-            if (!confirm('¿Borrar llamadas seleccionadas?')) return;
+                if (!confirm('¿Borrar llamadas seleccionadas?')) return;
 
-            const checkedBoxes = document.querySelectorAll('.history-checkbox:checked');
-            const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-            const urlParams = new URLSearchParams(window.location.search);
+                const checkedBoxes = document.querySelectorAll('.history-checkbox:checked');
+                const ids = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+                const urlParams = new URLSearchParams(window.location.search);
 
-            try {
-                await api.deleteSelectedCalls(ids, urlParams.get('api_key'));
-                if (window.htmx) {
-                    htmx.trigger('#history-body', 'refreshHistory');
-                } else {
-                    window.location.reload();
+                try {
+                    await api.deleteSelectedCalls(ids, urlParams.get('api_key'));
+                    if (window.htmx) {
+                        htmx.trigger('#history-body', 'refreshHistory');
+                    } else {
+                        window.location.reload();
+                    }
+                    // DOM Reset
+                    const mainToggle = document.querySelector('thead input[type="checkbox"]');
+                    if (mainToggle) mainToggle.checked = false;
+                    this.updateDeleteButton();
+                } catch (e) {
+                    alert('Error al borrar');
                 }
-                // DOM Reset
-                const mainToggle = document.querySelector('thead input[type="checkbox"]');
-                if (mainToggle) mainToggle.checked = false;
-                this.updateDeleteButton();
-            } catch (e) {
-                alert('Error al borrar');
-            }
-        },
+            },
 
-        updateDeleteButton() {
-            // This relies on DOM inspection outside typical Alpine data flow
-            const checked = document.querySelectorAll('.history-checkbox:checked').length;
-            const btn = document.getElementById('btn-delete-selected');
-            if (btn) {
-                if (checked > 0) {
-                    btn.style.display = 'inline-flex';
-                    btn.innerHTML = `<span>🗑️</span> Borrar (${checked})`;
-                } else {
-                    btn.style.display = 'none';
+            updateDeleteButton() {
+                // This relies on DOM inspection outside typical Alpine data flow
+                const checked = document.querySelectorAll('.history-checkbox:checked').length;
+                const btn = document.getElementById('btn-delete-selected');
+                if (btn) {
+                    if (checked > 0) {
+                        btn.style.display = 'inline-flex';
+                        btn.innerHTML = `<span>🗑️</span> Borrar (${checked})`;
+                    } else {
+                        btn.style.display = 'none';
+                    }
                 }
-            }
-        },
+            },
 
-        showToast(msg, type = 'info') {
-            const div = document.createElement('div');
-            div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg text-white text-sm z-50 ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
-            div.innerText = msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
-        }
-    };
-}
+            showToast(msg, type = 'info') {
+                const div = document.createElement('div');
+                div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg text-white text-sm z-50 ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+                div.innerText = msg;
+                document.body.appendChild(div);
+                setTimeout(() => div.remove(), 3000);
+            }
+        };
+    }

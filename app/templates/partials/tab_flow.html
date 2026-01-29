@@ -1,0 +1,181 @@
+<!-- TAB START: FLUJO & ORQUESTACIÓN -->
+<div x-show="activeTab === 'flow'" class="space-y-6 animate-fade-in-up">
+
+    <!-- 1. Interrupciones (Barge-in) -->
+    <div class="glass-panel p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg class="w-24 h-24 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                </path>
+            </svg>
+        </div>
+
+        <div class="flex justify-between items-center mb-6 relative z-10">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    Interrupciones (Barge-in)
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">Controla cuándo y cómo el usuario puede interrumpir al bot.</p>
+            </div>
+            <!-- Master Switch -->
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" x-model="c.bargeInEnabled" class="sr-only peer">
+                <div
+                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500">
+                </div>
+            </label>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            <!-- Sensitivity Slider -->
+            <div>
+                <div class="flex justify-between mb-2">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sensibilidad</label>
+                    <span class="text-xs font-mono text-rose-400"
+                        x-text="c.interruptionSensitivity + ' (' + (c.interruptionSensitivity > 0.8 ? 'Alta' : 'Baja') + ')'"></span>
+                </div>
+                <input type="range" min="0" max="1" step="0.1" x-model="c.interruptionSensitivity"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                    <span>Difícil</span>
+                    <span>Fácil</span>
+                </div>
+            </div>
+
+            <!-- Interruption Phrases -->
+            <div>
+                <div class="flex justify-between mb-2">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frases de Ruptura
+                        (Force Stop)</label>
+                    <span class="text-[10px] text-slate-500">JSON Array</span>
+                </div>
+                <input type="text" x-model="c.interruptionPhrases"
+                    class="glass-input w-full p-2.5 rounded-lg text-sm font-mono"
+                    placeholder='["para", "espera", "escúchame"]'>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Buzón de Voz (Voicemail) -->
+    <div class="glass-panel p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg class="w-24 h-24 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                </path>
+            </svg>
+        </div>
+
+        <div class="flex justify-between items-center mb-6 relative z-10">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    Detección de Buzón (AMD)
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">Detectar contestadoras automáticas y dejar mensaje.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" x-model="c.voicemailDetectionEnabled" class="sr-only peer">
+                <div
+                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500">
+                </div>
+            </label>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 relative z-10">
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Mensaje para
+                    Buzón</label>
+                <textarea x-model="c.voicemailMessage" rows="2" class="glass-input w-full p-3 rounded-lg text-sm"
+                    placeholder="Hola, llamaba de Ubrokers..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Sensibilidad
+                        AMD</label>
+                    <input type="number" step="0.1" min="0" max="1" x-model="c.machineDetectionSensitivity"
+                        class="glass-input w-full p-2.5 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label
+                        class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Acción</label>
+                    <select class="glass-input w-full p-2.5 rounded-lg text-sm opacity-50 cursor-not-allowed" disabled>
+                        <option>Dejar Mensaje y Colgar</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Ritmo y Naturalidad (Pacing) -->
+    <div class="glass-panel p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg class="w-24 h-24 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+
+        <div class="flex justify-between items-center mb-6 relative z-10">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Ritmo y Naturalidad
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">Ajuste fino de tiempos y respuesta humana.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            <!-- Response Delay -->
+            <div>
+                <div class="flex justify-between mb-2">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Latencia
+                        Artificial</label>
+                    <span class="text-xs font-mono text-emerald-400" x-text="c.responseDelaySeconds + 's'"></span>
+                </div>
+                <input type="range" min="0" max="3" step="0.1" x-model="c.responseDelaySeconds"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                <p class="text-[10px] text-slate-500 mt-2">Simula tiempo de "pensamiento" antes de responder.</p>
+            </div>
+
+            <!-- Toggles -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-300">Esperar Saludo ("Hola")</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.waitForGreeting" class="sr-only peer">
+                        <div
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-300">Hyphenation (Fluidez)</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.hyphenationEnabled" class="sr-only peer">
+                        <div
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- End Call Phrases -->
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex justify-between mb-2">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Frases de Despedida
+                        (Auto-Hangup)</label>
+                    <span class="text-[10px] text-slate-500">JSON Array</span>
+                </div>
+                <input type="text" x-model="c.endCallPhrases"
+                    class="glass-input w-full p-2.5 rounded-lg text-sm font-mono"
+                    placeholder='["gracias", "adiós", "hasta luego"]'>
+            </div>
+        </div>
+    </div>
+</div>

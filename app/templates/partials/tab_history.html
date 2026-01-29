@@ -1,5 +1,19 @@
 <!-- TAB START: HISTORIAL -->
 <div x-show="activeTab === 'historial'" class="space-y-4 animate-fade-in-up">
+    <!-- HEADER -->
+    <div class="flex items-center space-x-2 mb-4">
+        <div class="p-2 bg-slate-500/10 rounded-lg">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-white">Historial</h3>
+            <p class="text-xs text-slate-400">Registro detallado de llamadas y sesiones.</p>
+        </div>
+    </div>
+
     <!-- Filters -->
     <div class="flex space-x-2 bg-slate-900/50 rounded-lg p-1 border border-slate-700">
         <button type="button" @click="activeHistoryFilter = 'all'"

@@ -19,6 +19,26 @@ export const api = {
         return await res.json();
     },
 
+    async updateProfile(profile, configData, apiKey) {
+        // Safe profile names: browser, twilio, telnyx, core
+        const p = profile.toLowerCase();
+        const url = apiKey
+            ? `/api/config/${p}?api_key=${encodeURIComponent(apiKey)}`
+            : `/api/config/${p}`;
+
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(configData)
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Error updating profile');
+        }
+        return await res.json();
+    },
+
     async uploadCampaign(name, file, apiKey) {
         const formData = new FormData();
         formData.append('name', name);

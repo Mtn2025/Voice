@@ -44,9 +44,39 @@ class ConfigDTO:
     enable_backchannel: bool = False
     max_duration: int = 300
     
-    # Provider-specific overlays
-    silence_timeout_ms_phone: Optional[int] = None
-    silence_timeout_ms_telnyx: Optional[int] = None
+    # --- PHASE V: TELEPHONY ---
+    twilio_account_sid: Optional[str] = None
+    telnyx_api_key: Optional[str] = None
+    caller_id_phone: Optional[str] = None
+    sip_trunk_uri: Optional[str] = None
+    sip_auth_user: Optional[str] = None
+    recording_enabled: bool = False
+    recording_channels: str = "mono"
+    
+    # --- PHASE VI: FUNCTION CALLING ---
+    tool_server_url: Optional[str] = None
+    tool_server_secret: Optional[str] = None
+    tools_schema: Optional[Any] = None
+    async_tools: bool = False
+    tool_timeout_ms: int = 5000
+    
+    # --- PHASE VII: ANALYSIS ---
+    analysis_prompt: Optional[str] = None
+    success_rubric: Optional[str] = None
+    extraction_schema: Optional[Any] = None
+    sentiment_analysis: bool = False
+    webhook_url: Optional[str] = None
+    log_webhook_url: Optional[str] = None
+    
+    # --- PHASE VIII: SYSTEM (Safe) ---
+    concurrency_limit: int = 10
+    spend_limit_daily: float = 50.0
+    environment: str = "dev"
+    privacy_mode: bool = False
+    
+    # Provider-specific overlays (Generic Map for Extensibility)
+    extra_settings_phone: Optional[Any] = None
+    extra_settings_telnyx: Optional[Any] = None
 
 
 class ConfigRepositoryPort(ABC):

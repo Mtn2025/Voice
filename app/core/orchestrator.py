@@ -6,7 +6,7 @@ import logging
 import time
 import uuid
 import contextlib
-from typing import Optional
+from typing import Optional, Any
 
 from fastapi import WebSocket
 
@@ -27,9 +27,38 @@ from app.processors.logic.aggregator import ContextAggregator
 from app.processors.logic.llm import LLMProcessor
 from app.processors.logic.tts import TTSProcessor
 from app.processors.logic.metrics import MetricsProcessor
-from app.processors.logic.metrics import MetricsProcessor
 from app.processors.output.audio_sink import PipelineOutputSink
-from app.processors.logic.reporter import TranscriptReporter  # NEW
+from app.processors.logic.reporter import TranscriptReporter
+from app.processors.logic.humanizer import HumanizerProcessor
+
+class VoiceOrchestrator:
+    # ... (rest of class) ...
+
+    async def _build_pipeline(self):
+        # ... (previous code) ...
+
+        # 4. LLM
+        llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history, context=self.initial_context_data)
+        
+        # 4.5 Humanizer (NEW)
+        humanizer = HumanizerProcessor(self.config)
+        
+        # 5. TTS
+        tts = TTSProcessor(self.tts_provider, self.config)
+        await tts.initialize()
+        
+        # 6. Metrics
+        metrics = MetricsProcessor(self.config)
+        
+        # 7. Sink
+        sink = PipelineOutputSink(self)
+        
+        # 8. Reporters
+        user_reporter = TranscriptReporter(callback=self._send_transcript, role_label="user")
+        bot_reporter = TranscriptReporter(callback=self._send_transcript, role_label="assistant")
+        
+        # Pipeline Order: STT -> VAD -> UserReporter -> Agg -> LLM -> Humanizer -> BotReporter -> TTS -> Metrics -> Sink
+        self.pipeline = Pipeline([stt, vad, user_reporter, agg, llm, humanizer, bot_reporter, tts, metrics, sink])
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +85,7 @@ class VoiceOrchestrator:
         from app.core.managers import AudioManager, CRMManager
         
         self.audio_manager = AudioManager(transport, client_type)
+        self.audio_queue = self.audio_manager.audio_queue # ✅ Alias for compatibility
         self.crm_manager: Optional[CRMManager] = None  # Initialized after config load
         
         # Pipeline
@@ -72,7 +102,9 @@ class VoiceOrchestrator:
         # State
         self.start_time = time.time()
         self.last_interaction_time = time.time()
+        self.last_interaction_time = time.time()
         self.monitor_task = None
+        self.stream_task = None # Fixed: Initialize to None
 
         # Decode Context if present
         if self.initial_context_token:
@@ -149,6 +181,21 @@ class VoiceOrchestrator:
             except Exception:
                 pass
 
+    def _get_conf(self, base_name: str, default: Any = None) -> Any:
+        """Helper to get config with profile fallback (Phase IV)."""
+        suffix = ""
+        if self.client_type == "twilio":
+            suffix = "_phone"
+        elif self.client_type == "telnyx":
+            suffix = "_telnyx"
+        
+        # 1. Try suffixed version
+        val = getattr(self.config, f"{base_name}{suffix}", None)
+        if val is not None:
+             return val
+        # 2. Fallback to base
+        return getattr(self.config, base_name, default)
+
     async def start(self) -> None:
         logger.info("🚀 [ORCHESTRATOR] Starting...")
         self.loop = asyncio.get_running_loop()
@@ -156,6 +203,9 @@ class VoiceOrchestrator:
         # STEP 1: Load Configuration
         try:
             await self._load_config()
+            
+            # Initialize Providers (STT, LLM, TTS)
+            self._init_providers()
             
             # Initialize CRM Manager after config is loaded
             from app.core.managers import CRMManager
@@ -201,12 +251,33 @@ class VoiceOrchestrator:
             await self.stop()
             return
         
-        # STEP 5: Initial Greeting (If Configured)
-        greeting_enabled = getattr(self.config, 'greeting_enabled', False)
-        greeting_text = getattr(self.config, 'greeting_text', '')
-        if greeting_enabled and greeting_text:
-            logger.info("👋 [ORCHESTRATOR] Sending Greeting")
-            await self.pipeline.push_frame(TextFrame(text=greeting_text))
+        # STEP 5: Initial Greeting (Phase IV Logic)
+        # Control 51: Wait For Greeting
+        wait_for_greeting = self._get_conf('wait_for_greeting', False)
+        
+        # Legacy fallback compatibility
+        first_message_mode = self._get_conf('first_message_mode', 'speak-first')
+        if first_message_mode == 'wait-for-user':
+             wait_for_greeting = True
+             
+        if not wait_for_greeting:
+            greeting_text = self._get_conf('first_message', '')
+            # Also check legacy greeting_text
+            if not greeting_text:
+                 greeting_text = getattr(self.config, 'greeting_text', '')
+
+            if greeting_text:
+                logger.info(f"👋 [ORCHESTRATOR] Sending Greeting: {greeting_text}")
+                await self.pipeline.push_frame(TextFrame(text=greeting_text))
+            else:
+                 logger.info("👋 [ORCHESTRATOR] No greeting text configured, waiting for user.")
+        else:
+             logger.info("👂 [ORCHESTRATOR] 'Wait for Greeting' enabled. Waiting for user input.")
+             
+        # Control 46: Voicemail Detection Trigger
+        if self._get_conf('voicemail_detection_enabled', False):
+             logger.info("📠 [ORCHESTRATOR] Voicemail Detection ENABLED (AMD)")
+             # In a real scenario, this would enable AMD on the stream or checking initial events
         
         # STEP 6: Start Idle Monitor
         self.monitor_task = asyncio.create_task(self.monitor_idle())
@@ -325,7 +396,6 @@ class VoiceOrchestrator:
         """
         # Indicate Speaking State
         if not self.is_bot_speaking:
-            self.is_bot_speaking = True
             logger.info("🔊 [ORCHESTRATOR] Bot started speaking")
             
             # Initial Latency (Configurable Pacing)
@@ -408,7 +478,10 @@ class VoiceOrchestrator:
         """
         if self.is_bot_speaking:
             logger.info("🛑 [ORCHESTRATOR] Interruption Detected! Stopping audio.")
-            self.is_bot_speaking = False
+            # self.is_bot_speaking = False # Check: is_bot_speaking is a property now!
+            # We can't set it. We must stop Audio Manager.
+            if self.audio_manager:
+                self.audio_manager.stop_audio()
             
             # Clear Orchestrator Queue
             while not self.audio_queue.empty():
@@ -416,6 +489,14 @@ class VoiceOrchestrator:
                     self.audio_queue.get_nowait()
                 except:
                     pass
+
+    @property
+    def is_bot_speaking(self):
+        """Check if bot is currently speaking (TTS or Audio Playback)."""
+        # Fallback: Check if audio queue has items
+        if hasattr(self, 'audio_manager') and self.audio_manager:
+             return not self.audio_manager.audio_queue.empty()
+        return False
 
     async def speak_direct(self, text: str):
         """Helper to make the bot speak (e.g. First Message)."""
@@ -435,21 +516,53 @@ class VoiceOrchestrator:
             logger.error("❌ [ORCHESTRATOR] speak_direct: TTS Processor not found in pipeline!")
 
     async def _load_config(self):
-         async with AsyncSessionLocal() as session:
-             self.config = await db_service.get_agent_config(session)
-             
-             # --- APPLY DYNAMIC PACING ---
-             pacing = getattr(self.config, 'conversation_pacing', 'moderate')
-             
-             if pacing == 'fast':
-                 self.config.voice_pacing_ms = 0      # Instant response
-                 self.config.silence_timeout_ms = 400 # Quick turn-taking
-             elif pacing == 'moderate':
-                 self.config.voice_pacing_ms = 200    # Natural pause
-                 self.config.silence_timeout_ms = 800 # Standard
-             elif pacing == 'relaxed':
-                 self.config.voice_pacing_ms = 600    # Thoughtful pause
-                 self.config.silence_timeout_ms = 1500 # Patient listener
+        async with AsyncSessionLocal() as session:
+            self.config = await db_service.get_agent_config(session)
+            
+            # --- APPLY DYNAMIC PACING ---
+            pacing = getattr(self.config, 'conversation_pacing', 'moderate')
+            
+            if pacing == 'fast':
+                self.config.voice_pacing_ms = 0      # Instant response
+                self.config.silence_timeout_ms = 400 # Quick turn-taking
+            elif pacing == 'moderate':
+                self.config.voice_pacing_ms = 200    # Natural pause
+                self.config.silence_timeout_ms = 800 # Standard
+            elif pacing == 'relaxed':
+                self.config.voice_pacing_ms = 600    # Thoughtful pause
+                self.config.silence_timeout_ms = 1500 # Patient listener
+
+            # --- APPLY PROFILE OVERLAY (Browser / Twilio / Telnyx) ---
+            self._apply_config_overlay()
+            
+    def _apply_config_overlay(self):
+        """Map profile-specific fields (e.g. _phone) to main config fields based on client_type."""
+        if not self.config:
+            return
+
+        suffix = ""
+        if self.client_type == "twilio":
+            suffix = "_phone"
+        elif self.client_type == "telnyx":
+            suffix = "_telnyx"
+            
+        if suffix:
+            logger.info(f"🎨 [CONFIG] Applying overlay for {self.client_type} (suffix={suffix})")
+            fields = [
+                "llm_provider", "llm_model", "system_prompt", "context_window",
+                "tts_provider", "voice_name", "voice_id", "voice_speed", "voice_pitch", 
+                "voice_volume", "voice_style", "voice_stability", "voice_similarity_boost",
+                "voice_filler_injection", "voice_backchanneling"
+            ]
+            
+            for field in fields:
+                specific_field = f"{field}{suffix}"
+                specific_value = getattr(self.config, specific_field, None)
+                if specific_value is not None and specific_value != "":
+                    # Debug log to catch the 0.9 mystery
+                    if field == 'voice_speed':
+                         logger.info(f"   -> Override {field} = {specific_value} (from {specific_field})")
+                    setattr(self.config, field, specific_value)
 
     def _init_providers(self):
         self.llm_provider = ServiceFactory.get_llm_provider(self.config)
@@ -475,11 +588,18 @@ class VoiceOrchestrator:
         agg = ContextAggregator(self.config, self.conversation_history, llm_provider=self.llm_provider)
         
         # 4. LLM
-        llm = LLMProcessor(self.llm_provider, self.config, self.conversation_history, context=self.initial_context_data)
+        # ✅ Module 10: Inject HoldAudioPlayer for Wait Music during tool calls
+        llm = LLMProcessor(
+            self.llm_provider, 
+            self.config, 
+            self.conversation_history, 
+            context=self.initial_context_data,
+            hold_audio_player=self.audio_manager.hold_player
+        )
         
         # 5. TTS
         tts = TTSProcessor(self.tts_provider, self.config)
-        await tts.initialize()
+        # await tts.initialize()
         
         # 6. Metrics
         metrics = MetricsProcessor(self.config)
@@ -739,6 +859,35 @@ class VoiceOrchestrator:
             # Legacy/Specific
             ('initial_silence_timeout_ms', 'initial_silence_timeout_ms'),
             ('voice_sensitivity', 'interruptRMS'), # Telnyx alias check?
+            
+            # Phase VI: Function Calling (Tools)
+            ('tool_server_url', 'tool_server_url'),
+            ('tool_server_secret', 'tool_server_secret'),
+            ('tool_timeout_ms', 'tool_timeout_ms'),
+            ('tool_error_msg', 'tool_error_msg'),
+            ('tools_schema', 'tools_schema'),
+            ('async_tools', 'async_tools'),
+            ('redact_params', 'redact_params'),
+            ('state_injection_enabled', 'state_injection_enabled'),
+            ('transfer_whitelist', 'transfer_whitelist'),
+            
+            # Phase VII: Analysis & Data (Post-Call)
+            ('analysis_prompt', 'analysis_prompt'),
+            ('success_rubric', 'success_rubric'),
+            ('extraction_schema', 'extraction_schema'),
+            ('sentiment_analysis', 'sentiment_analysis'),
+            ('transcript_format', 'transcript_format'),
+            ('cost_tracking_enabled', 'cost_tracking_enabled'),
+            ('webhook_url', 'webhook_url'), # Critical for separation
+            ('webhook_secret', 'webhook_secret'),
+            ('log_webhook_url', 'log_webhook_url'),
+            ('pii_redaction_enabled', 'pii_redaction_enabled'),
+            ('retention_days', 'retention_days'),
+            
+            # Phase VIII: System (Safe)
+            ('environment', 'environment'),
+            ('privacy_mode', 'privacy_mode'),
+            # Limits are usually global, but privacy/env can be profiled
         ]
         
         for base_field, _ in fields:

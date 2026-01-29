@@ -99,12 +99,19 @@ class LLMProcessor(FrameProcessor):
         # Apply Context Window Logic
         context_window = getattr(self.config, 'context_window', 10)
         
+        # DEBUG: Trace Context Logic
+        logger.info(f"🐛 [LLM Debug] Context Window: {context_window} (Type: {type(context_window)}) | History Size: {len(self.conversation_history)}")
+
         # Slice history if window is set (and valid positive integer)
         if isinstance(context_window, int) and context_window > 0:
             history_slice = self.conversation_history[-context_window:]
-            logger.debug(f"[LLM] Context window applied: {len(history_slice)}/{len(self.conversation_history)} messages")
+            logger.info(f"🐛 [LLM Debug] Context window applied: {len(history_slice)}/{len(self.conversation_history)} messages")
         else:
             history_slice = self.conversation_history
+        
+        # DEBUG: Trace Prompt
+        generated_prompt = self._build_system_prompt()
+        logger.info(f"🐛 [LLM Debug] System Prompt: {generated_prompt[:100]}...")
 
         # Build messages for LLM
         messages = [LLMMessage(role=msg["role"], content=msg["content"]) 
@@ -132,8 +139,11 @@ class LLMProcessor(FrameProcessor):
             temperature=getattr(self.config, 'temperature', 0.7),
             max_tokens=getattr(self.config, 'max_tokens', 600),
             system_prompt=self._build_system_prompt(),
-            tools=tools,  # ✅ Module 9: Function calling
-            metadata={"trace_id": self.trace_id}  # ✅ Module 3
+            tools=tools,
+            metadata={"trace_id": self.trace_id},
+            # ✅ Module 9: Advanced Params
+            frequency_penalty=getattr(self.config, 'frequency_penalty', 0.0),
+            presence_penalty=getattr(self.config, 'presence_penalty', 0.0)
         )
         
         # Stream generation
@@ -188,12 +198,12 @@ class LLMProcessor(FrameProcessor):
                 # Sentence split heuristic
                 if len(sentence_buffer) > 10 and sentence_buffer.strip()[-1] in [".", "?", "!"]:
                     # Emit TextFrame for TTS
-                    await self.push_frame(TextFrame(text=sentence_buffer))
+                    await self.push_frame(TextFrame(text=sentence_buffer, trace_id=self.trace_id))
                     sentence_buffer = ""
         
         # Flush remaining text to TTS
         if sentence_buffer.strip():
-            await self.push_frame(TextFrame(text=sentence_buffer))
+            await self.push_frame(TextFrame(text=sentence_buffer, trace_id=self.trace_id))
         
         # Append complete response to history
         if full_response_buffer.strip():
@@ -218,6 +228,7 @@ class LLMProcessor(FrameProcessor):
         Returns:
             ToolResponse
         """
+        """Execute tool via use case (with dynamic config)."""
         if not self.execute_tool:
             logger.error(f"[LLM] trace={self.trace_id} No ExecuteToolUseCase configured")
             from app.domain.models.tool_models import ToolResponse
@@ -227,11 +238,21 @@ class LLMProcessor(FrameProcessor):
                 success=False,
                 error_message="Tool execution not configured"
             )
+            
+        # Phase VI: Dynamic Tool Configuration
+        tool_url = getattr(self.config, 'tool_server_url', None)
+        tool_secret = getattr(self.config, 'tool_server_secret', None)
+        tool_timeout = getattr(self.config, 'tool_timeout_ms', 5000) / 1000.0
         
         tool_request = ToolRequest(
             tool_name=function_call.name,
             arguments=function_call.arguments,
-            trace_id=self.trace_id
+            trace_id=self.trace_id,
+            timeout_seconds=tool_timeout,
+            context={
+                "server_url": tool_url,
+                "server_secret": tool_secret
+            }
         )
         
         logger.info(

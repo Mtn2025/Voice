@@ -49,60 +49,67 @@ class CampaignDialer:
 
     async def _worker_loop(self):
         logger.info("📞 Dialer Worker Started")
+        
+        from app.db.database import AsyncSessionLocal
+        from app.services.db_service import db_service
+        
         while self._running:
             try:
-                # Rate Limiting: Dynamic based on Config
-                # Default 2s if no config found (Conservative)
+                # 1. Fetch Config (Dynamic Pacing & Credentials)
+                config_overrides = {}
                 pacing = 2.0
-                try:
-                    # TODO: Fetch config cleanly. For now, assuming standard rate.
-                    # Ideally: config = await db_service.get_config()
-                    # pacing = 60.0 / getattr(config, 'rate_limit_telnyx', 30)
-                    pass
-                except:
-                    pass
                 
+                try:
+                    async with AsyncSessionLocal() as session:
+                        conf = await db_service.get_agent_config(session)
+                        if conf:
+                            # Pacing Calculation
+                            rate_limit = getattr(conf, 'rate_limit_telnyx', 30) or 30
+                            pacing = 60.0 / float(rate_limit)
+                            
+                            # Credentials for Dialing
+                            config_overrides = {
+                                "api_key": getattr(conf, 'telnyx_api_key', None),
+                                "from_number": getattr(conf, 'caller_id_telnyx', None) or getattr(conf, 'telnyx_from_number', None),
+                                "connection_id": getattr(conf, 'telnyx_connection_id', None)
+                            }
+                except Exception as e:
+                    logger.warning(f"Dialer access Config DB failed: {e}")
+
+                # 2. Process Queue
                 campaign_id, lead = await self._queue.get()
                 
                 phone = lead.get('phone')
                 if phone:
-                    await self._dial_lead(campaign_id, lead)
+                    await self._dial_lead(campaign_id, lead, config_overrides)
                 
                 self._queue.task_done()
                 
-                # Fetch fresh config for pacing each loop? Expensive.
-                # Better: Use a property or global setting.
-                from app.core.config import settings
-                # If we had it in settings, we would use it.
-                # For now, let's look at models.py: rate_limit_telnyx (default 50)
-                # 60 / 50 = 1.2 seconds.
-                # Let's use a safe default but allow override if we can access DB.
-                
-                await asyncio.sleep(pacing) # Pacing
+                # Dynamic Pacing Wait
+                await asyncio.sleep(pacing)
                 
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Dialer Error: {e}")
+                await asyncio.sleep(1.0) # Prevent tight loop on error
 
-    async def _dial_lead(self, campaign_id: str, lead: Dict):
+    async def _dial_lead(self, campaign_id: str, lead: Dict, config: Dict):
         """
-        Initiates the outbound call via Telnyx API.
-        Passes campaign context in client_state.
+        Initiates the outbound call via Telnyx API using provided config.
         """
         from app.services.telephony import telnyx_client
         
         phone = lead.get('phone')
         if not phone: return
 
-        # Construct Context for the Agent
-        # This data will reappear in the Webhook when user answers
+        # Construct Context
         context = {
             "campaign_id": campaign_id,
-            "lead_data": lead # Full dict: name, debt, etc.
+            "lead_data": lead
         }
         
         logger.info(f"☎️ Dialing {phone} for Campaign {campaign_id}")
-        await telnyx_client.dial(phone, context)
+        await telnyx_client.dial(phone, context, config)
 
 dialer_service = CampaignDialer()

@@ -18,9 +18,10 @@ class VADProcessor(FrameProcessor):
     
     ✅ P2: Uses DetectTurnEndUseCase for timer decision (domain ownership)
     """
-    def __init__(self, config: Any, detect_turn_end=None):
+    def __init__(self, config: Any, detect_turn_end=None, control_channel=None):
         super().__init__(name="VADProcessor")
         self.config = config
+        self.control_channel = control_channel # ✅ Module 13: Out-of-Band Signaling
         
         # VAD State
         self.vad_model = None
@@ -46,26 +47,50 @@ class VADProcessor(FrameProcessor):
         self.threshold_return = 0.35 # Hysteresis
         self.min_speech_frames = 3   # Avoid blips (<100ms)
         
-        # Determine Sample Rate and Timeout based on config (Ritmo/Pacing)
+        # Determine Client Type & Config Suffix
         client_type = getattr(self.config, 'client_type', 'twilio')
+        self.suffix = ""
+        if client_type == "twilio":
+            self.suffix = "_phone"
+        elif client_type == "telnyx":
+            self.suffix = "_telnyx"
+            
+        def get_conf(base_name, default=None):
+            """Helper to get config with profile fallback."""
+            val = getattr(self.config, f"{base_name}{self.suffix}", None)
+            if val is not None:
+                return val
+            return getattr(self.config, base_name, default)
+
+        # Barge-in Control (Phase IV)
+        self.barge_in_enabled = get_conf('barge_in_enabled', True)
+        logger.info(f"🛡️ [VAD] Barge-in: {'ENABLED' if self.barge_in_enabled else 'DISABLED'}")
+
+        # Determine Sample Rate and Timeout based on config (Ritmo/Pacing)
         self.target_sr = 16000 if client_type == 'browser' else 8000
         
         # Determine VAD Threshold
-        # Default 0.5 if not found
-        if client_type == 'browser':
-            self.threshold_start = getattr(self.config, 'vad_threshold', 0.5)
-        elif client_type == 'telnyx':
-            self.threshold_start = getattr(self.config, 'vad_threshold_telnyx', 0.5)
-        else:
-            self.threshold_start = getattr(self.config, 'vad_threshold_phone', 0.5)
+        self.threshold_start = get_conf('interruption_sensitivity', 0.5) # Normalized control 41
+        # Fallback to legacy if 0.5 (default)
+        if self.threshold_start == 0.5:
+             # Try legacy keys
+             if client_type == 'browser':
+                 self.threshold_start = getattr(self.config, 'vad_threshold', 0.5)
+             elif client_type == 'telnyx':
+                 self.threshold_start = getattr(self.config, 'vad_threshold_telnyx', 0.5)
+             else:
+                 self.threshold_start = getattr(self.config, 'vad_threshold_phone', 0.5)
             
         logger.info(f"🎤 [VAD] Init | Client: {client_type} | SR: {self.target_sr} | Threshold: {self.threshold_start}")
         
         # Calculate Frames for Timeout (Chunk duration is ~32ms for Silero standard chunks)
         # 512 samples @ 16k = 32ms. 256 samples @ 8k = 32ms.
         chunk_duration_ms = 32
+        chunk_duration_ms = 32
+        chunk_duration_ms = 32
         self.chunk_duration_ms = chunk_duration_ms  # ✅ P2: Store for ms conversion
-        timeout_ms = getattr(self.config, 'silence_timeout_ms', 500)
+        val = getattr(self.config, 'silence_timeout_ms', 500)
+        timeout_ms = val if val is not None else 500
         self.silence_duration_frames = int(timeout_ms / chunk_duration_ms)
         if self.silence_duration_frames < 1: self.silence_duration_frames = 1
         
@@ -186,6 +211,11 @@ class VADProcessor(FrameProcessor):
                             self.speaking = True
                             logger.info(f"🗣️ [VAD] User START speaking (Conf: {confidence:.2f})")
                             await self.push_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+                            
+                            # ✅ Module 13: Barge-In (Out-of-Band Control Signal)
+                            if self.control_channel:
+                                logger.info(f"⚡ [VAD] Sending OUT-OF-BAND Interrupt Signal (Immediate)")
+                                await self.control_channel.send_interrupt(text="VAD Immediate")
                     
                     # Voice still active after detection started
                     elif self._voice_detected_at:
@@ -194,11 +224,16 @@ class VADProcessor(FrameProcessor):
                             # ✅ Voice sustained > confirmation window - CONFIRMED
                             if not self.speaking:
                                 self.speaking = True
-                                logger.info(
                                     f"✅ [VAD] User START speaking CONFIRMED "
                                     f"(sustained {elapsed:.0f}ms, Conf: {confidence:.2f})"
                                 )
                                 await self.push_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+                                
+                                # ✅ Module 13: Barge-In (Out-of-Band Control Signal)
+                                if self.control_channel:
+                                    logger.info(f"⚡ [VAD] Sending OUT-OF-BAND Interrupt Signal")
+                                    await self.control_channel.send_interrupt(text="VAD Detected")
+                                    
                                 self._voice_detected_at = None
                                 if self._confirmation_task:
                                     self._confirmation_task.cancel()

@@ -24,31 +24,43 @@ class TelnyxClient:
             "Content-Type": "application/json"
         }
 
-    async def dial(self, to_number: str, context_data: Dict):
+    async def dial(self, to_number: str, context_data: Dict, config: Dict = None):
         """
         Initiates an outbound call.
-        'context_data' is encoded into 'client_state' string (base64) so we can retrieve it 
-        in the webhook when the user answers.
+        'context_data' is encoded into 'client_state' string (base64).
+        'config': Optional dictionary with keys: api_key, from_number, connection_id
         """
         import base64
+        
+        # Resolve Credentials (Priority: Config arg > Env Var)
+        config = config or {}
+        api_key = config.get("api_key") or TELNYX_API_KEY
+        from_number = config.get("from_number") or TELNYX_FROM_NUMBER
+        connection_id = config.get("connection_id") or os.getenv("TELNYX_CONNECTION_ID")
+
+        if not api_key or not from_number or not connection_id:
+            logger.error("❌ Telnyx Config Missing (API Key, From Number or Connection ID)")
+            return None
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
         
         # Serialize context
         json_str = json.dumps(context_data)
         client_state_b64 = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
         
         payload = {
-            "connection_id": os.getenv("TELNYX_CONNECTION_ID"), # Required for Call Control
+            "connection_id": connection_id,
             "to": to_number,
-            "from": TELNYX_FROM_NUMBER,
-            "client_state": client_state_b64, 
-            # When answered, where to send the webhook?
-            # Standard Telnyx App sends webhooks to the configured URL in Portal.
-            # But we can override or standard behavior applies.
+            "from": from_number,
+            "client_state": client_state_b64
         }
         
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.post(f"{self.base_url}/calls", headers=self.headers, json=payload) as resp:
+                async with session.post(f"{self.base_url}/calls", headers=headers, json=payload) as resp:
                     if resp.status == 200 or resp.status == 201:
                         data = await resp.json()
                         call_id = data['data']['call_control_id']

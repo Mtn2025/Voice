@@ -1,15 +1,29 @@
 <!-- TAB START: TRANSCRIPTOR -->
 <div x-show="activeTab === 'transcriptor'" class="space-y-5 animate-fade-in-up">
+    <!-- 1. Provider & Model -->
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Proveedor
                 STT</label>
             <select x-model="c.sttProvider" class="glass-input w-full p-2.5 rounded-lg text-sm">
-                <template x-for="p in ['azure']">
+                <template x-for="p in ['azure', 'deepgram', 'groq']">
                     <option :value="p" x-text="p.charAt(0).toUpperCase() + p.slice(1)"></option>
                 </template>
             </select>
         </div>
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Modelo</label>
+            <select x-model="c.sttModel" class="glass-input w-full p-2.5 rounded-lg text-sm" x-show="false">
+                <!-- Configurable per provider via JS ideally, simplified here -->
+                <option value="nova-2">Nova-2 (Fastest)</option>
+                <option value="enhanced">Enhanced (Azure)</option>
+                <option value="whisper-large">Whisper Large</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 2. Language & Keywords -->
+    <div class="grid grid-cols-1 gap-4">
         <div>
             <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Idioma</label>
             <select x-model="c.sttLang" class="glass-input w-full p-2.5 rounded-lg text-sm">
@@ -18,90 +32,133 @@
                 </template>
             </select>
         </div>
+
+        <!-- Keywords Boosting -->
+        <div>
+            <div class="flex justify-between mb-2">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Keywords
+                    Boosting</label>
+                <span class="text-[10px] text-slate-500">CSV: "Marca, 2.0", "Producto, 1.5"</span>
+            </div>
+            <textarea x-model="c.sttKeywords" rows="2" class="glass-input w-full p-2.5 rounded-lg text-sm font-mono"
+                placeholder='[{"word": "Ubrokers", "boost": 2.0}]'></textarea>
+        </div>
     </div>
 
+    <!-- 3. Control de Interrupciones (VAD & Endpointing) -->
     <div class="p-4 rounded-lg border border-slate-700 bg-slate-800/50">
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 block">Control
             de Interrupciones</label>
 
+        <!-- RESTORED: Umbral de Palabras (Interruption Threshold) -->
         <div class="mb-4">
             <div class="flex justify-between mb-1">
                 <span class="text-sm">Umbral de Palabras</span>
-                <span class="text-blue-400 font-mono" x-text="c.interruptWords"></span>
+                <span class="text-blue-400 font-mono" x-text="c.interruption_threshold"></span>
             </div>
-            <input type="range" x-model="c.interruptWords" min="0" max="10" step="1"
+            <input type="range" x-model="c.interruption_threshold" min="0" max="10" step="1"
                 class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
             <p class="text-[10px] text-slate-500 mt-1">Palabras requeridas para detener al bot.</p>
         </div>
 
-        <div x-show="activeProfile === 'telnyx'">
+        <!-- RESTORED: Blacklist Alucinaciones -->
+        <div class="mb-4">
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
+                Alucinaciones</label>
+            <textarea x-model="c.hallucination_blacklist" rows="1" placeholder="Pero.,,Y...,Mm.,Oye.,Ah."
+                class="glass-input w-full p-2.5 rounded-lg text-sm text-slate-300 placeholder-slate-600"></textarea>
+        </div>
+
+        <!-- Endpointing / Silence Timeout -->
+        <div class="mb-4 pt-4 border-t border-slate-700/50">
             <div class="flex justify-between mb-1">
-                <span class="text-sm">Sensibilidad (RMS)</span>
-                <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
+                <span class="text-sm">Endpointing (Silencio Final)</span>
+                <span class="text-blue-400 font-mono"><span x-text="c.sttSilenceTimeout"></span> ms</span>
             </div>
-            <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
-                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-            <p class="text-[10px] text-slate-500 mt-1">Nivel de audio para detectar voz humana.</p>
+            <input type="range" x-model="c.sttSilenceTimeout" min="200" max="2000" step="100"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
         </div>
-    </div>
 
-    <!-- Removed Redundant Silence Slider (Managed by Velocidad de Interacción) -->
-
-    <div>
-        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Blacklist
-            Alucinaciones</label>
-        <input type="text" x-model="c.blacklist" class="glass-input w-full p-2.5 rounded-lg text-sm">
-    </div>
-
-    <div class="flex items-center space-x-4 pt-2">
-        <!-- Removed Denoising Toggle (Azure Default is Always On) -->
-        <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
-            <input type="checkbox" x-model="c.krisp"
-                class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
-            <span class="text-sm">Krisp AI</span>
-        </label>
-        <label class="flex items-center space-x-2 cursor-pointer" x-show="activeProfile === 'telnyx'">
-            <input type="checkbox" x-model="c.vad"
-                class="form-checkbox bg-slate-800 border-slate-600 text-emerald-500 rounded">
-            <span class="text-sm">VAD</span>
-        </label>
-    </div>
-
-    <!-- Control de Interrupción y VAD (NUEVO) -->
-    <div class="space-y-4 mt-6 pt-6 border-t border-slate-700">
-        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">
-            🧠 Inteligencia de Voz (VAD)
-        </h3>
-
-        <!-- Smart Interruption Toggle -->
-        <div class="flex items-center justify-between">
-            <div>
-                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Interrupción
-                    Inteligente</label>
-                <p class="text-[10px] text-slate-500">Usa IA para evitar cortes cuando el usuario duda.</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" :checked="c.segmentation_strategy === 'semantic'"
-                    @change="c.segmentation_strategy = $event.target.checked ? 'semantic' : 'default'">
-                <div
-                    class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600">
+        <!-- VAD Section (Restructured per Screenshot) -->
+        <div class="mb-4 pt-4 border-t border-slate-700/50">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <span class="text-sm font-bold text-emerald-400 block">Interrupción Inteligente</span>
+                    <span class="text-[10px] text-slate-500">Usa IA para evitar cortes cuando el usuario duda.</span>
                 </div>
-            </label>
-        </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" :checked="c.sttUtteranceEnd === 'semantic'"
+                        @change="c.sttUtteranceEnd = $event.target.checked ? 'semantic' : 'default'"
+                        class="sr-only peer">
+                    <div
+                        class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
+                    </div>
+                </label>
+            </div>
 
-        <!-- VAD Threshold Slider -->
-        <div>
-            <label
-                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
-                <span>Sensibilidad VAD (Silero)</span>
+            <div class="flex justify-between mb-1">
+                <span class="text-sm">Sensibilidad VAD (Silero)</span>
                 <span class="text-blue-400 font-mono" x-text="c.vad_threshold || 0.5"></span>
-            </label>
+            </div>
             <input type="range" x-model.number="c.vad_threshold" min="0.1" max="0.9" step="0.05"
                 class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
             <div class="flex justify-between text-[10px] text-slate-500 mt-1">
                 <span>0.1 (Muy Sensible)</span>
                 <span>0.9 (Estricto)</span>
             </div>
+        </div>
+
+        <div x-show="activeProfile === 'telnyx'">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm">Sensibilidad Telnyx (RMS)</span>
+                <span class="text-blue-400 font-mono" x-text="c.interruptRMS"></span>
+            </div>
+            <input type="range" x-model="c.interruptRMS" min="0" max="10000" step="100"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+        </div>
+    </div>
+
+    <!-- 4. Advanced Formatting & Intelligence -->
+    <div class="space-y-4 pt-4 border-t border-slate-700">
+        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">
+            🧠 Inteligencia de Transcripción
+        </h3>
+
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Punctuation -->
+            <label class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-white/5">
+                <span class="text-sm">Puntuación Auto</span>
+                <input type="checkbox" x-model="c.sttPunctuation"
+                    class="form-checkbox text-emerald-500 rounded bg-slate-700 border-none">
+            </label>
+
+            <!-- Smart Formatting -->
+            <label class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-white/5">
+                <span class="text-sm">Smart Formatting</span>
+                <input type="checkbox" x-model="c.sttSmartFormatting"
+                    class="form-checkbox text-emerald-500 rounded bg-slate-700 border-none">
+            </label>
+
+            <!-- Profanity Filter -->
+            <label class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-white/5">
+                <span class="text-sm">Filtro Groserías</span>
+                <input type="checkbox" x-model="c.sttProfanityFilter"
+                    class="form-checkbox text-emerald-500 rounded bg-slate-700 border-none">
+            </label>
+
+            <!-- Diarization -->
+            <label class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-white/5">
+                <span class="text-sm">Diarización (A/B)</span>
+                <input type="checkbox" x-model="c.sttDiarization"
+                    class="form-checkbox text-emerald-500 rounded bg-slate-700 border-none">
+            </label>
+
+            <!-- Multilingual -->
+            <label class="flex items-center justify-between cursor-pointer p-2 rounded hover:bg-white/5">
+                <span class="text-sm">Multi-Lenguaje</span>
+                <input type="checkbox" x-model="c.sttMultilingual"
+                    class="form-checkbox text-emerald-500 rounded bg-slate-700 border-none">
+            </label>
         </div>
     </div>
 </div>
