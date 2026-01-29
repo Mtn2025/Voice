@@ -1,0 +1,93 @@
+<!-- SPLIT VIEW SIMULATOR LAYOUT -->
+<div class="flex h-full w-full max-w-5xl mx-auto p-4">
+
+    <!-- MAIN COLUMN: VISUALIZER & TRANSCRIPT (FULL WIDTH) -->
+    <div class="w-full flex flex-col space-y-4 h-full min-w-0">
+
+        <!-- HEADER -->
+        <div class="flex items-center justify-between shrink-0 h-10">
+            <div class="flex items-center space-x-2">
+                <span class="text-xl">🧪</span>
+                <h2 class="text-lg font-semibold text-emerald-400">Simulador 2.0</h2>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <!-- Animation Selector -->
+                <select x-model="visualizerMode" @change="setVisualizer($event.target.value)"
+                    class="bg-slate-800 text-xs text-slate-400 border border-slate-700 rounded px-2 py-1 outline-none focus:border-emerald-500">
+                    <option value="wave">Onda</option>
+                    <option value="bars">Barras</option>
+                    <option value="orb">Orbe</option>
+                </select>
+
+                <button @click="startTest()"
+                    :class="{'bg-red-600 hover:bg-red-500 shadow-red-500/20': simState === 'connected', 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20': simState !== 'connected'}"
+                    class="text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-all border border-white/10 flex items-center space-x-2">
+                    <span
+                        x-text="simState === 'connected' ? '⏹ Detener' : (simState === 'connecting' ? '⏳ Conectando...' : '▶ Iniciar Prueba')"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VISUALIZER (Flexible Height) -->
+        <div
+            class="glass-panel flex-1 rounded-xl flex items-center justify-center relative overflow-hidden bg-black border border-slate-800 shadow-inner min-h-[300px]">
+            <!-- Status Text Overlay -->
+            <p class="absolute font-mono text-emerald-500/50 pointer-events-none z-10 transition-opacity duration-500"
+                :class="{'animate-pulse': simState === 'connecting', 'opacity-0': simState === 'connected'}"
+                x-text="simState === 'connected' ? '' : (simState === 'connecting' ? 'Estableciendo Conexión...' : 'Listo para conectar...')">
+            </p>
+
+            <!-- Metrics Overlay (Top Left) -->
+            <div class="absolute top-4 left-4 z-20 flex flex-col space-y-1 pointer-events-none"
+                x-show="simState === 'connected'">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full"
+                        :class="vadLevel > 0.1 ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-slate-600'"></span>
+                    <span class="text-[10px] font-mono text-slate-400">MIC INPUT</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full"
+                        :class="isAgentSpeaking ? 'bg-blue-500 shadow-[0_0_10px_#3b82f6]' : 'bg-slate-600'"></span>
+                    <span class="text-[10px] font-mono text-slate-400">AGENT TTS</span>
+                </div>
+            </div>
+
+            <!-- Canvas -->
+            <canvas id="visualizer" class="w-full h-full absolute inset-0"></canvas>
+        </div>
+
+        <!-- TRANSCRIPT (Fixed Height) -->
+        <div class="glass-panel h-64 shrink-0 rounded-xl p-4 overflow-y-auto font-mono text-xs border border-slate-700/50 flex flex-col space-y-3 bg-slate-900/50"
+            id="transcript-container">
+            <div
+                class="text-slate-500 mb-2 uppercase text-[10px] tracking-wider sticky top-0 bg-slate-900/90 pb-2 border-b border-slate-800 flex justify-between">
+                <span>Transcripción en Vivo</span>
+                <span class="text-emerald-500/50" x-text="transcripts.length + ' msgs'"></span>
+            </div>
+
+            <template x-for="msg in transcripts">
+                <div class="flex flex-col space-y-1"
+                    :class="{'items-end': msg.role === 'user', 'items-start': msg.role === 'assistant', 'items-center': msg.role === 'system'}">
+                    <span class="text-[9px] text-slate-500"
+                        x-text="msg.role === 'user' ? 'Tú' : (msg.role === 'system' ? 'System' : 'Andrea')"></span>
+
+                    <div class="px-3 py-2 rounded-lg max-w-[90%]" :class="{
+                            'bg-blue-600/20 text-blue-200 border border-blue-500/30': msg.role === 'user', 
+                            'bg-emerald-600/20 text-emerald-200 border border-emerald-500/30': msg.role === 'assistant',
+                            'bg-slate-700/50 text-slate-400 border border-slate-600 italic': msg.role === 'system'
+                        }">
+                        <span x-text="msg.text"></span>
+                    </div>
+                </div>
+            </template>
+
+            <div x-show="transcripts.length === 0" class="text-center text-slate-600 italic py-4">
+                Esperando audio...
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</div>

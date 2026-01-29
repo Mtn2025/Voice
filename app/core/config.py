@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     AZURE_SPEECH_REGION: str = ""  # Hacer opcional para testing
     GROQ_API_KEY: str = ""  # Hacer opcional para testing
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    
+    # ✅ Provider Selection (ENV-based, Coolify-compatible)
+    DEFAULT_STT_PROVIDER: str = "azure"  # azure, google
+    DEFAULT_LLM_PROVIDER: str = "groq"   # groq, openai, gemini
+    DEFAULT_TTS_PROVIDER: str = "azure"  # azure, google
+    
+    # ✅ Module 8: VAD Confirmation Window (Gap #12)
+    # Prevents false positive interruptions (noise, coughs)
+    VAD_CONFIRMATION_WINDOW_MS: int = 200  # Wait 200ms before confirming voice
+    VAD_ENABLE_CONFIRMATION: bool = True   # Enable/disable confirmation logic
 
     # Azure OpenAI
     AZURE_OPENAI_API_KEY: str = ""
@@ -96,6 +106,28 @@ class Settings(BaseSettings):
 
         return v
 
+    @field_validator('AZURE_SPEECH_KEY', 'GROQ_API_KEY')
+    @classmethod
+    def validate_ai_service_keys(cls, v: str, info) -> str:
+        """
+        ✅ Fail-Fast Validation: Warn if AI service keys missing.
+        
+        Does NOT crash (production-safe), but logs warnings for ops team.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        field_name = info.field_name
+        
+        if not v or v.strip() == "":
+            logger.warning(
+                f"⚠️ [Config] {field_name} is not set. "
+                f"Service may fail at runtime. "
+                f"Set in environment variables (.env or Coolify)."
+            )
+        
+        return v
+    
     @field_validator('ADMIN_API_KEY')
     @classmethod
     def validate_security_keys(cls, v: str) -> str:

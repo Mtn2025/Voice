@@ -190,9 +190,21 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# API Routes & Dashboard
+# LEGACY: from app.api import routes  # Original orchestrator
+from app.api import routes_v2 as routes  # ✅ V2: Hexagonal Architecture with DI
+from app.routers import dashboard, system
+
+# Sprint 4: Modular routers
+from app.routers import config_router, history_router
+
 app.include_router(routes.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router)
 app.include_router(system.router)
+
+# Sprint 4: Modular routers
+app.include_router(config_router.router)
+app.include_router(history_router.router)
 
 
 from fastapi.responses import RedirectResponse

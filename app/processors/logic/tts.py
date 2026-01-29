@@ -4,30 +4,28 @@ from typing import Any, Optional
 
 from app.core.processor import FrameProcessor, FrameDirection
 from app.core.frames import Frame, TextFrame, AudioFrame, CancelFrame
-from app.services.base import TTSProvider
+from app.domain.ports import TTSPort, TTSRequest  # ✅ P1: Hexagonal (NO legacy TTSProvider)
 from app.utils.ssml_builder import build_azure_ssml
 
 logger = logging.getLogger(__name__)
 
 class TTSProcessor(FrameProcessor):
     """
-    Consumes TextFrames, calls TTS Provider, produces AudioFrames.
+    Consumes TextFrames, calls TTS Port (Hexagonal), produces AudioFrames.
     Supports cancellation via CancelFrame.
+    
+    ✅ P1: Backpressure detection - monitors queue size and signals adapters
     """
-    def __init__(self, provider: TTSProvider, config: Any):
+    def __init__(self, tts_port: TTSPort, config: Any):
         super().__init__(name="TTSProcessor")
-        self.provider = provider
+        self.tts_port = tts_port  # ✅ P1: TTSPort (hexagonal)
         self.config = config
-        self.synthesizer = None # Initialize using provider if needed
         self._current_task: Optional[asyncio.Task] = None
-
-    async def initialize(self):
-         # Call provider specific init
-         if self.provider:
-             self.synthesizer = self.provider.create_synthesizer(
-                 voice_name=getattr(self.config, 'voice_name', 'en-US-JennyNeural'),
-                 audio_mode=getattr(self.config, 'client_type', 'twilio')
-             )
+        
+        # ✅ P1: Backpressure threshold (queue depth)
+        self.backpressure_threshold = getattr(config, 'tts_backpressure_threshold', 3)
+    
+    # NO initialize needed - TTSPort is ready to use
 
     async def process_frame(self, frame: Frame, direction: int):
         if direction == FrameDirection.DOWNSTREAM:
@@ -109,32 +107,37 @@ class TTSProcessor(FrameProcessor):
         logger.info(f"🗣️ [TTS] Synthesizing: {text}")
         
         try:
-            # Build SSML
-            ssml = build_azure_ssml(
-                voice_name=getattr(self.config, 'voice_name', 'en-US-JennyNeural'),
+            # ✅ P1: Detect backpressure (queue depth)
+            backpressure_detected = False
+            if hasattr(self, '_tts_queue'):
+                queue_depth = self._tts_queue.qsize()
+                backpressure_detected = queue_depth >= self.backpressure_threshold
+                
+                if backpressure_detected:
+                    logger.warning(
+                        f"⚠️ [TTS] Backpressure detected: queue_depth={queue_depth} "
+                        f">= threshold={self.backpressure_threshold}"
+                    )
+            
+            # ✅ P1: Create TTSRequest with backpressure flag
+            request = TTSRequest(
                 text=text,
-                rate=getattr(self.config, 'voice_speed', 1.0),
-                pitch=getattr(self.config, 'voice_pitch', 0),
-                volume=getattr(self.config, 'voice_volume', 100),
+                voice_id=getattr(self.config, 'voice_name', 'en-US-JennyNeural'),
+                language=getattr(self.config, 'language', 'es-MX'),
+                speed=getattr(self.config, 'voice_speed', 1.0),
+                pitch=getattr(self.config, 'voice_pitch', 0.0),
+                volume=getattr(self.config, 'voice_volume', 100.0),
                 style=getattr(self.config, 'voice_style', None),
-                style_degree=getattr(self.config, 'voice_style_degree', 1.0)
+                backpressure_detected=backpressure_detected  # ✅ P1: Signal to adapter
             )
-
-            if not self.synthesizer:
-                await self.initialize() # Lazy Init
-                if not self.synthesizer:
-                     logger.warning("TTS Synthesizer failed to init.")
-                     return
-
-            audio_data = await self.provider.synthesize_ssml(self.synthesizer, ssml)
+            
+            # ✅ P1: Call TTSPort (hexagonal)
+            audio_data = b""
+            async for audio_chunk in self.tts_port.synthesize_stream(request):
+                audio_data += audio_chunk
             
             if audio_data:
                 logger.info(f"🗣️ [TTS] Received Audio Data: {len(audio_data)} bytes")
-                
-                # CRITICAL: Do NOT chunk here. 
-                # 1. For Browser: We need the full blob to avoid overwhelming the JS AudioContext scheduler with 5ms clips.
-                # 2. For Telephony: The Orchestrator.send_audio_chunked method ALREADY re-chunks to 160 bytes.
-                # Sending the full blob preserves efficiency and correctness.
                 
                 # Determine metadata sample rate
                 sr = 16000 if getattr(self.config, 'client_type', 'twilio') == 'browser' else 8000

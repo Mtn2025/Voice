@@ -52,12 +52,11 @@ class VoiceOrchestrator:
         self.config = None
         self.conversation_history = []
         
-        # Audio Transport State
-        self.audio_queue = asyncio.Queue()
-        self.stream_task = None
-        self.bg_loop_buffer = None
-        self.bg_loop_index = 0
-        self.audio_encoding = 'PCMU' # Default
+        # Initialize Managers (NEW - Clean Architecture)
+        from app.core.managers import AudioManager, CRMManager
+        
+        self.audio_manager = AudioManager(transport, client_type)
+        self.crm_manager: Optional[CRMManager] = None  # Initialized after config load
         
         # Pipeline
         self.pipeline: Optional[Pipeline] = None
@@ -71,7 +70,6 @@ class VoiceOrchestrator:
         self.loop = None
         
         # State
-        self.is_bot_speaking = False
         self.start_time = time.time()
         self.last_interaction_time = time.time()
         self.monitor_task = None
@@ -155,83 +153,66 @@ class VoiceOrchestrator:
         logger.info("🚀 [ORCHESTRATOR] Starting...")
         self.loop = asyncio.get_running_loop()
         
-        # 1. Load Config
-        await self._load_config()
+        # STEP 1: Load Configuration
+        try:
+            await self._load_config()
+            
+            # Initialize CRM Manager after config is loaded
+            from app.core.managers import CRMManager
+            self.crm_manager = CRMManager(self.config, self.initial_context_data)
+            
+        except Exception as e:
+            logger.error(f"❌ [ORCHESTRATOR] Config Load Failed: {e}")
+            await self.stop()
+            return
         
-        # 2. Apply Profile Overlays (CRITICAL: Before Providers)
-        self._apply_profile_overlay()
-        
-        # 3. Initialize Providers
-        self._init_providers()
-        
-        # 3.1 Load Background Audio
-        self._load_background_audio()
-        
-        # 4. Initialize DB Call Record
-        if self.stream_id:
+        # STEP 1.5: Fetch CRM Context (Using CRMManager)
+        if self.crm_manager:
             try:
-                self.call_db_id = await db_service.create_call(self.stream_id)
+                phone = self.initial_context_data.get('from') or self.initial_context_data.get('From')
+                await self.crm_manager.fetch_context(phone)
+                logger.info("✅ [ORCHESTRATOR] CRM context fetched via CRMManager")
             except Exception as e:
-                logger.error(f"Failed to create DB call record: {e}")
-
-        # 5. Build Pipeline
-        await self._build_pipeline()
+                logger.warning(f"⚠️ [ORCHESTRATOR] CRM Fetch Failed (Non-Blocking): {e}")
         
-        # 6. Start Transport Loop
-        # ENABLED FOR BROWSER TOO (For Background Mixing and Pacing)
-        self.stream_task = asyncio.create_task(self._audio_stream_loop())
-             
-        # 6.1 Start Idle Monitor
-        self.monitor_task = asyncio.create_task(self.monitor_idle())
-             
-        # 7. Start Pipeline
-        if self.pipeline:
+        # STEP 2: Build Pipeline
+        try:
+            await self._build_pipeline()
+        except Exception as e:
+            logger.error(f"❌ [ORCHESTRATOR] Pipeline Build Failed: {e}")
+            await self.stop()
+            return
+        
+        # STEP 3: Start Pipeline
+        try:
             await self.pipeline.start()
-            
-            # Send Initial System/Greeting Frames
-            # System Prompt is handled by LLMProcessor via config, but we can update history
-            
-            # --- CRM FETCH ---
-            await self._fetch_crm_context()
-            # -----------------
+            logger.info("✅ [ORCHESTRATOR] Pipeline Started")
+        except Exception as e:
+            logger.error(f"❌ [ORCHESTRATOR] Pipeline Start Failed: {e}")
+            await self.stop()
+            return
+        
+        # STEP 4: Start Audio Stream (Using AudioManager)
+        try:
+            await self.audio_manager.start()
+            logger.info("✅ [ORCHESTRATOR] AudioManager started")
+        except Exception as e:
+            logger.error(f"❌ [ORCHESTRATOR] Audio Manager Start Failed: {e}")
+            await self.stop()
+            return
+        
+        # STEP 5: Initial Greeting (If Configured)
+        greeting_enabled = getattr(self.config, 'greeting_enabled', False)
+        greeting_text = getattr(self.config, 'greeting_text', '')
+        if greeting_enabled and greeting_text:
+            logger.info("👋 [ORCHESTRATOR] Sending Greeting")
+            await self.pipeline.push_frame(TextFrame(text=greeting_text))
+        
+        # STEP 6: Start Idle Monitor
+        self.monitor_task = asyncio.create_task(self.monitor_idle())
+        
+        logger.info("🚀 [ORCHESTRATOR] All Subsystems Running")
 
-            if self.config.system_prompt:
-                final_prompt = self.config.system_prompt
-                # Inject Variables from Campaign Context
-                if self.initial_context_data:
-                    try:
-                        # Extract lead_data if nested (Dialer logic)
-                        # Dialer sends: {'campaign_id': '...', 'lead_data': {'name': 'Juan', ...}}
-                        # Dialer sends: {'campaign_id': '...', 'lead_data': {'name': 'Juan', ...}}
-                        ctx_vars = self.initial_context_data.get('lead_data', self.initial_context_data)
-                        final_prompt = final_prompt.format(**ctx_vars)
-                        logger.info(f"🧠 [PROMPT] Formatted with context: {ctx_vars.keys()}")
-                    except KeyError as k:
-                        logger.warning(f"⚠️ Prompt variable missing in context: {k}")
-                    except Exception as e:
-                        logger.error(f"⚠️ Prompt formatting failed: {e}")
-                
-                self.conversation_history.append({"role": "system", "content": final_prompt})
-
-             # Trigger First Message?
-            first_msg = getattr(self.config, 'first_message', None)
-            mode = getattr(self.config, 'first_message_mode', 'speak-first')
-
-            if first_msg and mode == 'speak-first':
-                # We want the bot to speak this.
-                # Simplest: Push to TTS queue via a "System-generated" TextFrame.
-                # Cleanest: Queue a TextFrame at the *start* of the pipeline?
-                # No, standard pipeline flow is STT -> VAD -> Agg -> LLM -> TTS.
-                # We want to BYPASS Input and go straight to TTS output.
-                # Actually, simply use `speak_direct` helper which injects into TTS.
-                await self.speak_direct(first_msg)
-            elif mode == 'speak-first-dynamic':
-                 # Dynamic generation (Future Feature) - For now silent or handled by LLM?
-                 # Assuming handled by LLM on first turn if we send a "Hi" fake user message.
-                 # But per audit, we just skip fixed message.
-                 pass
-
-        logger.info("✅ [ORCHESTRATOR] Ready.")
 
 
     async def stop(self) -> None:

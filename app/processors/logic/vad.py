@@ -1,5 +1,7 @@
 import logging
 import os
+import time
+import asyncio
 from typing import Any
 
 from app.core.processor import FrameProcessor, FrameDirection
@@ -13,8 +15,10 @@ class VADProcessor(FrameProcessor):
     """
     Analyzes AudioFrames using Silero VAD (ONNX) to detect Voice Activity.
     Emits UserStartedSpeakingFrame / UserStoppedSpeakingFrame based on 'Smart Turn' logic.
+    
+    ✅ P2: Uses DetectTurnEndUseCase for timer decision (domain ownership)
     """
-    def __init__(self, config: Any):
+    def __init__(self, config: Any, detect_turn_end=None):
         super().__init__(name="VADProcessor")
         self.config = config
         
@@ -24,6 +28,18 @@ class VADProcessor(FrameProcessor):
         self.speaking = False
         self.silence_frames = 0
         self.speech_frames = 0
+        
+        # ✅ Module 8: Confirmation Window (Gap #12 - False Positive Prevention)
+        self._voice_detected_at: float | None = None
+        self._confirmation_task: asyncio.Task | None = None
+        self._confirmation_cancelled = False
+        
+        # ✅ P2: DetectTurnEndUseCase (domain ownership of timer logic)
+        from app.domain.use_cases import DetectTurnEndUseCase
+        self.detect_turn_end = detect_turn_end or DetectTurnEndUseCase(
+            silence_threshold_ms=getattr(config, 'silence_timeout_ms', 500)
+        )
+        logger.info(f"🎯 [VAD] Using DetectTurnEndUseCase (threshold: {self.detect_turn_end.silence_threshold_ms}ms)")
         
         # Smart Turn Parameters
         self.threshold_start = 0.5
@@ -48,9 +64,19 @@ class VADProcessor(FrameProcessor):
         # Calculate Frames for Timeout (Chunk duration is ~32ms for Silero standard chunks)
         # 512 samples @ 16k = 32ms. 256 samples @ 8k = 32ms.
         chunk_duration_ms = 32
+        self.chunk_duration_ms = chunk_duration_ms  # ✅ P2: Store for ms conversion
         timeout_ms = getattr(self.config, 'silence_timeout_ms', 500)
         self.silence_duration_frames = int(timeout_ms / chunk_duration_ms)
         if self.silence_duration_frames < 1: self.silence_duration_frames = 1
+        
+        # ✅ Confirmation window (configurable via Settings)
+        self.confirmation_window_ms = getattr(self.config, 'vad_confirmation_window_ms', 200)
+        self.confirmation_enabled = getattr(self.config, 'vad_enable_confirmation', True)
+        
+        logger.info(
+            f"🎬 [VAD] Confirmation Window: {'ENABLED' if self.confirmation_enabled else 'DISABLED'} "
+            f"({self.confirmation_window_ms}ms)"
+        )
 
         try:
             # Locate Model File
@@ -139,19 +165,95 @@ class VADProcessor(FrameProcessor):
                 self.silence_frames = 0
                 self.speech_frames += 1
                 
-                # Only trigger start if sustained speech (blip avoidance)
+                # ✅ Module 8: Confirmation Window Logic
                 if not self.speaking and self.speech_frames >= self.min_speech_frames:
-                    self.speaking = True
-                    logger.info(f"🗣️ [VAD] User START speaking (Conf: {confidence:.2f})")
-                    await self.push_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+                    if not self._voice_detected_at:
+                        # First sustained detection - start confirmation timer
+                        self._voice_detected_at = time.time()
+                        self._confirmation_cancelled = False
+                        
+                        if self.confirmation_enabled and self.confirmation_window_ms > 0:
+                            # Wait confirmation_window_ms before confirming
+                            logger.debug(
+                                f"🔍 [VAD] Voice detected - starting {self.confirmation_window_ms}ms "
+                                f"confirmation window (Conf: {confidence:.2f})"
+                            )
+                            self._confirmation_task = asyncio.create_task(
+                                self._confirm_voice_detection()
+                            )
+                        else:
+                            # Confirmation disabled - immediate emission (⚠️ legacy behavior)
+                            self.speaking = True
+                            logger.info(f"🗣️ [VAD] User START speaking (Conf: {confidence:.2f})")
+                            await self.push_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+                    
+                    # Voice still active after detection started
+                    elif self._voice_detected_at:
+                        elapsed = (time.time() - self._voice_detected_at) * 1000
+                        if elapsed >= self.confirmation_window_ms:
+                            # ✅ Voice sustained > confirmation window - CONFIRMED
+                            if not self.speaking:
+                                self.speaking = True
+                                logger.info(
+                                    f"✅ [VAD] User START speaking CONFIRMED "
+                                    f"(sustained {elapsed:.0f}ms, Conf: {confidence:.2f})"
+                                )
+                                await self.push_frame(UserStartedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+                                self._voice_detected_at = None
+                                if self._confirmation_task:
+                                    self._confirmation_task.cancel()
+                                    self._confirmation_task = None
             
             elif confidence < self.threshold_return:
                 # Only count silence if confidence drops below return threshold (Hysteresis)
                 self.speech_frames = 0 # Reset speech counter
+                
+                # ✅ Module 8: Cancel confirmation if voice stops before window expires
+                if self._voice_detected_at and not self.speaking:
+                    elapsed = (time.time() - self._voice_detected_at) * 1000
+                    if elapsed < self.confirmation_window_ms:
+                        # ❌ FALSE POSITIVE - Voice stopped before confirmation window
+                        logger.warning(
+                            f"❌ [VAD] False positive IGNORED - voice lasted only {elapsed:.0f}ms "
+                            f"(< {self.confirmation_window_ms}ms threshold)"
+                        )
+                        self._voice_detected_at = None
+                        self._confirmation_cancelled = True
+                        if self._confirmation_task:
+                            self._confirmation_task.cancel()
+                            self._confirmation_task = None
+                
                 if self.speaking:
                     self.silence_frames += 1
-                    if self.silence_frames > self.silence_duration_frames:
+                    
+                    # ✅ P2: Delegate timer decision to domain use case
+                    silence_ms = self.silence_frames * self.chunk_duration_ms
+                    if self.detect_turn_end.should_end_turn(silence_ms):
                         self.speaking = False
-                        logger.info(f"🤫 [VAD] User STOP speaking (Silence)")
+                        logger.info(f"🤫 [VAD] User STOP speaking (Silence: {silence_ms}ms)")
                         await self.push_frame(UserStoppedSpeakingFrame(), FrameDirection.DOWNSTREAM)
+    
+    async def _confirm_voice_detection(self):
+        """
+        Confirmation task - waits {confirmation_window_ms} before confirming voice.
+        
+        If voice stops before window expires, task is cancelled (❌ false positive).
+        If voice sustained, UserStartedSpeakingFrame is emitted (✅ confirmed).
+        """
+        try:
+            await asyncio.sleep(self.confirmation_window_ms / 1000.0)
+            
+            # After confirmation window, check if still detecting voice
+            if self._voice_detected_at and not self._confirmation_cancelled:
+                elapsed = (time.time() - self._voice_detected_at) * 1000
+                logger.info(
+                    f"✅ [VAD] Voice CONFIRMED after {elapsed:.0f}ms - "
+                    f"emitting UserStartedSpeakingFrame"
+                )
+                # Note: actual emission happens in main process_frame loop
+                # This task just logs confirmation
+        
+        except asyncio.CancelledError:
+            # Task cancelled - means voice stopped before window expired
+            logger.debug("[VAD] Confirmation task cancelled (expected for false positives)")
 

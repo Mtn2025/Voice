@@ -83,6 +83,11 @@ asgi-correlation-id~=4.3.1
 # Additional for SQLite testing (optional, not for production)
 aiosqlite~=0.22.1
 
+# Hexagonal Architecture - NEW (2026-01-28)
+dependency-injector~=4.42.0  # DI Container for ports & adapters
+attrs~=24.2.0  # Immutable value objects for domain layer
+
+
 # UPDATE HISTORY:
 # 2026-01-07: Relaxed versions to ~= (Compatible Release)
 # 2026-01-06: Major dependency update - all packages updated to latest versions

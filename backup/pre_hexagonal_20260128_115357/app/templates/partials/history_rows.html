@@ -1,0 +1,70 @@
+{% for call in history %}
+<tr class="border-b border-slate-800 hover:bg-slate-800/50"
+    x-show="activeHistoryFilter === 'all' || activeHistoryFilter === '{{ call.client_type or 'browser' }}'">
+    <td class="px-4 py-2">
+        <input type="checkbox" value="{{ call.id }}"
+            class="history-checkbox rounded bg-slate-700 border-slate-600 text-blue-600 focus:ring-blue-600 ring-offset-slate-800 focus:ring-2"
+            @change="updateDeleteButton()">
+    </td>
+    <td class="px-4 py-2 font-mono">{{ call.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+    <td class="px-4 py-2">
+        {% if call.client_type == 'telnyx' %}
+        <span class="px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400 border border-emerald-700/50">Telnyx</span>
+        {% elif call.client_type == 'twilio' %}
+        <span class="px-2 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-700/50">Twilio</span>
+        {% else %}
+        <span class="px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-700/50">Simulador</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2 font-mono">
+        {% if call.end_time %}
+        {{ (call.end_time - call.start_time).seconds }}s
+        {% else %}
+        <span class="text-yellow-500 animate-pulse">En curso</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-2">
+        <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
+            class="text-blue-400 hover:underline">Ver</a>
+    </td>
+</tr>
+{% endfor %}
+
+{% if not history %}
+<tr>
+    <td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">
+        No hay historial disponible.
+    </td>
+</tr>
+{% endif %}
+
+<!-- PAGINATION CONTROLS (Updated via HTMX OOB) -->
+<div id="history-pagination" hx-swap-oob="true" class="flex justify-between items-center text-xs text-slate-400">
+    <div>
+        Mostrando {{ history|length }} de {{ total_items }} registros
+    </div>
+    <div class="flex space-x-2">
+        <button {% if page> 1 %}
+            hx-get="/api/history/rows?page={{ page - 1 }}&limit={{ limit }}&api_key={{
+            request.query_params.get('api_key', '') }}"
+            hx-target="#history-body"
+            class="px-2 py-1 bg-slate-800 rounded hover:bg-slate-700 text-slate-300 transition-colors"
+            {% else %}
+            disabled class="px-2 py-1 bg-slate-900 rounded text-slate-600 cursor-not-allowed"
+            {% endif %}>
+            &larr; Anterior
+        </button>
+
+        <span class="px-2 py-1 bg-slate-900 rounded">
+            Pág {{ page }} de {{ total_pages }}
+        </span>
+
+        <button {% if page < total_pages %}
+            hx-get="/api/history/rows?page={{ page + 1 }}&limit={{ limit }}&api_key={{ request.query_params.get('api_key', '') }}"
+            hx-target="#history-body"
+            class="px-2 py-1 bg-slate-800 rounded hover:bg-slate-700 text-slate-300 transition-colors" {% else %}
+            disabled class="px-2 py-1 bg-slate-900 rounded text-slate-600 cursor-not-allowed" {% endif %}>
+            Siguiente &rarr;
+        </button>
+    </div>
+</div>
