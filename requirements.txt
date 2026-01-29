@@ -86,6 +86,7 @@ aiosqlite~=0.22.1
 # Hexagonal Architecture - NEW (2026-01-28)
 dependency-injector~=4.42.0  # DI Container for ports & adapters
 attrs~=24.2.0  # Immutable value objects for domain layer
+circuitbreaker>=2.0.0  # Pattern for resilience in Adapters
 
 
 # UPDATE HISTORY:
