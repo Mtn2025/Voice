@@ -224,6 +224,7 @@ class VADProcessor(FrameProcessor):
                             # ✅ Voice sustained > confirmation window - CONFIRMED
                             if not self.speaking:
                                 self.speaking = True
+                                logger.info(
                                     f"✅ [VAD] User START speaking CONFIRMED "
                                     f"(sustained {elapsed:.0f}ms, Conf: {confidence:.2f})"
                                 )
