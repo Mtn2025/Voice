@@ -569,11 +569,11 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
         await orchestrator.stop()
 
         # Save call to DB
-            try:
-                async with AsyncSessionLocal() as session:
-                    await db_service.end_call(session, orchestrator.call_db_id)
-            except Exception as e:
-                logging.error(f"Failed to end call in DB: {e}")
+        try:
+            async with AsyncSessionLocal() as session:
+                await db_service.end_call(session, orchestrator.call_db_id)
+        except Exception as e:
+            logging.error(f"Failed to end call in DB: {e}")
 
         with contextlib.suppress(RuntimeError):
             await websocket.close()
