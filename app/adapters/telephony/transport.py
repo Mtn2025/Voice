@@ -17,6 +17,12 @@ class TelephonyTransport(AudioTransport):
     def set_stream_id(self, stream_id: str) -> None:
         self.stream_id = stream_id
 
+    async def send_audio(self, chunk: bytes) -> None:
+        if not self.stream_id: return
+        
+        try:
+            b64 = base64.b64encode(chunk).decode('utf-8')
+            
             # Protocol Specific Handling
             if self.protocol == "twilio":
                 msg = {
