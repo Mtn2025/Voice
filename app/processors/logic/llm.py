@@ -96,9 +96,19 @@ class LLMProcessor(FrameProcessor):
         Args:
             tool_result_message: Optional tool result message for function calling continuation
         """
+        # Apply Context Window Logic
+        context_window = getattr(self.config, 'context_window', 10)
+        
+        # Slice history if window is set (and valid positive integer)
+        if isinstance(context_window, int) and context_window > 0:
+            history_slice = self.conversation_history[-context_window:]
+            logger.debug(f"[LLM] Context window applied: {len(history_slice)}/{len(self.conversation_history)} messages")
+        else:
+            history_slice = self.conversation_history
+
         # Build messages for LLM
         messages = [LLMMessage(role=msg["role"], content=msg["content"]) 
-                    for msg in self.conversation_history]
+                    for msg in history_slice]
         
         # Add tool result if provided (function calling continuation)
         if tool_result_message:

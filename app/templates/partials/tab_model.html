@@ -198,6 +198,110 @@
     <!-- Separador visual -->
     <div class="border-t border-slate-700/50 my-6"></div>
 
+    <!-- SECCIÓN 3: Controles Avanzados LLM (NUEVOS) -->
+    <div class="space-y-4">
+        <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">
+            🧠 Controles Avanzados de Inteligencia
+        </h3>
+
+        <!-- Context Window -->
+        <div>
+            <label
+                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                <span>Ventana de Contexto</span>
+                <span class="text-blue-400" x-text="c.contextWindow"></span>
+            </label>
+            <input type="number" x-model="c.contextWindow" min="1" max="50"
+                class="glass-input w-full p-2.5 rounded-lg text-sm">
+            <p class="text-[10px] text-slate-500 mt-1">
+                Cuántos mensajes previos recordará el asistente (1-50). Mayor número = mejor memoria pero más tokens.
+            </p>
+        </div>
+
+        <!-- Frequency Penalty -->
+        <div>
+            <label
+                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                <span>Penalización por Frecuencia</span>
+                <span class="text-blue-400" x-text="c.frequencyPenalty"></span>
+            </label>
+            <input type="range" x-model="c.frequencyPenalty" min="0" max="2" step="0.1"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+            <p class="text-[10px] text-slate-500 mt-1">
+                Evita repetir las mismas palabras. 0 = sin penalización, 2 = máxima penalización.
+            </p>
+        </div>
+
+        <!-- Presence Penalty -->
+        <div>
+            <label
+                class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
+                <span>Penalización por Presencia</span>
+                <span class="text-blue-400" x-text="c.presencePenalty"></span>
+            </label>
+            <input type="range" x-model="c.presencePenalty" min="0" max="2" step="0.1"
+                class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+            <p class="text-[10px] text-slate-500 mt-1">
+                Fomenta introducir nuevos temas. 0 = sin penalización, 2 = máxima diversidad.
+            </p>
+        </div>
+
+        <!-- Tool Choice Strategy -->
+        <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">
+                Estrategia de Herramientas (Function Calling)
+            </label>
+            <div x-data="customSelect({
+                value: c.toolChoice,
+                options: [
+                    {value:'auto', label:'Automático (decide el modelo)'},
+                    {value:'required', label:'Obligatorio (siempre usar)'},
+                    {value:'none', label:'Desactivado (nunca usar)'}
+                ]
+            })" x-modelable="value" x-model="c.toolChoice" class="relative z-[25]">
+                <button type="button" @click="toggle()" @click.away="clickOutside()"
+                    class="glass-input w-full p-2.5 rounded-lg text-sm flex justify-between items-center hover:bg-slate-800 transition-colors">
+                    <span x-text="selectedLabel" class="truncate"></span>
+                    <svg class="w-4 h-4 text-slate-500">
+                        <use href="#icon-chevron-down"></use>
+                    </svg>
+                </button>
+                <div x-show="open" x-transition.opacity
+                    class="absolute top-full left-0 w-full mt-1 bg-[#1E293B] border border-slate-700 rounded-lg shadow-xl overflow-hidden z-[60]">
+                    <template x-for="opt in options">
+                        <button type="button" @click="select(opt.value)"
+                            class="w-full text-left px-3 py-2 text-sm hover:bg-slate-700/50 text-slate-200">
+                            <span x-text="opt.label"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">
+                Controla cuándo el asistente puede usar herramientas (transferir llamada, tomar cita, etc).
+            </p>
+        </div>
+
+        <!-- Dynamic Variables -->
+        <div>
+            <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                <input type="checkbox" x-model="c.dynamicVarsEnabled"
+                    class="w-4 h-4 rounded bg-slate-700 border-slate-600 text-blue-600">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Variables Dinámicas
+                </span>
+            </label>
+            <textarea x-show="c.dynamicVarsEnabled" x-model="c.dynamicVars" rows="3"
+                class="glass-input w-full p-3 rounded-lg text-sm font-mono leading-relaxed"
+                placeholder='{"nombre": "Juan Pérez", "empresa": "Acme Corp", "producto": "Plan Premium"}'></textarea>
+            <p class="text-[10px] text-slate-500 mt-1">
+                Inyecta variables personalizadas en el prompt. Usa formato JSON. Ejemplo: {nombre}, {empresa}.
+            </p>
+        </div>
+    </div>
+
+    <!-- Separador visual -->
+    <div class="border-t border-slate-700/50 my-6"></div>
+
     <div>
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block flex justify-between">
             <span>Creatividad</span>

@@ -154,6 +154,12 @@ class ContextAggregator(FrameProcessor):
         # 1. Update History
         self.conversation_history.append({"role": "user", "content": text})
         
+        # 1.1 Apply Context Window limit (NEW)
+        context_window = getattr(self.config, 'context_window', 10)
+        if len(self.conversation_history) > context_window:
+            self.conversation_history = self.conversation_history[-context_window:]
+            logger.debug(f"🧠 [CONTEXT] Truncated history to last {context_window} messages")
+        
         # 2. Reset State
         self.current_turn_text = ""
         

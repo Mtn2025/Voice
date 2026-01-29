@@ -115,6 +115,14 @@ export function dashboardStore() {
                 conversationFormality: s.conversation_formality || 'semi_formal',
                 conversationPacing: s.conversation_pacing || 'moderate',
 
+                // NEW: Advanced LLM Controls
+                contextWindow: s.context_window || 10,
+                frequencyPenalty: s.frequency_penalty || 0.0,
+                presencePenalty: s.presence_penalty || 0.0,
+                toolChoice: s.tool_choice || 'auto',
+                dynamicVarsEnabled: s.dynamic_vars_enabled || false,
+                dynamicVars: s.dynamic_vars ? JSON.stringify(s.dynamic_vars) : '',
+
                 voiceProvider: s.tts_provider || 'azure',
                 voiceLang: s.voice_language || 'es-MX',
                 voiceId: s.voice_name || '',
@@ -173,6 +181,14 @@ export function dashboardStore() {
                 conversationFormality: s.conversation_formality_phone || 'semi_formal',
                 conversationPacing: s.conversation_pacing_phone || 'moderate',
 
+                // NEW: Advanced LLM Controls (Phone)
+                contextWindow: s.context_window_phone || 10,
+                frequencyPenalty: s.frequency_penalty_phone || 0.0,
+                presencePenalty: s.presence_penalty_phone || 0.0,
+                toolChoice: s.tool_choice_phone || 'auto',
+                dynamicVarsEnabled: s.dynamic_vars_enabled_phone || false,
+                dynamicVars: s.dynamic_vars_phone ? JSON.stringify(s.dynamic_vars_phone) : '',
+
                 voiceProvider: s.tts_provider_phone || s.tts_provider || 'azure',
                 voiceLang: s.voice_language_phone || 'es-MX',
                 voiceId: s.voice_name_phone || '',
@@ -215,6 +231,14 @@ export function dashboardStore() {
                 conversationTone: s.conversation_tone_telnyx || 'warm',
                 conversationFormality: s.conversation_formality_telnyx || 'semi_formal',
                 conversationPacing: s.conversation_pacing_telnyx || 'moderate',
+
+                // NEW: Advanced LLM Controls (Telnyx)
+                contextWindow: s.context_window_telnyx || 10,
+                frequencyPenalty: s.frequency_penalty_telnyx || 0.0,
+                presencePenalty: s.presence_penalty_telnyx || 0.0,
+                toolChoice: s.tool_choice_telnyx || 'auto',
+                dynamicVarsEnabled: s.dynamic_vars_enabled_telnyx || false,
+                dynamicVars: s.dynamic_vars_telnyx ? JSON.stringify(s.dynamic_vars_telnyx) : '',
 
                 voiceProvider: s.tts_provider_telnyx || s.tts_provider || 'azure',
                 voiceLang: s.voice_language_telnyx || 'es-MX',

@@ -28,6 +28,10 @@ class LLMRequest:
     tools: Optional[list] = None  # ✅ Module 9: Tool definitions for function calling
     metadata: dict = None  # ✅ trace_id, etc.
     
+    # NEW: Advanced LLM Controls
+    frequency_penalty: Optional[float] = 0.0  # Penalize repeated words (0.0-2.0)
+    presence_penalty: Optional[float] = 0.0   # Encourage new topics (0.0-2.0)
+    
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}

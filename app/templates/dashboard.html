@@ -304,6 +304,14 @@
                             :value="configs.browser.conversationFormality">
                         <input type="hidden" name="conversation_pacing" :value="configs.browser.conversationPacing">
 
+                        <!-- NEW: Advanced LLM Controls (Browser) -->
+                        <input type="hidden" name="context_window" :value="configs.browser.contextWindow">
+                        <input type="hidden" name="frequency_penalty" :value="configs.browser.frequencyPenalty">
+                        <input type="hidden" name="presence_penalty" :value="configs.browser.presencePenalty">
+                        <input type="hidden" name="tool_choice" :value="configs.browser.toolChoice">
+                        <input type="hidden" name="dynamic_vars_enabled" :value="configs.browser.dynamicVarsEnabled">
+                        <input type="hidden" name="dynamic_vars" :value="configs.browser.dynamicVars">
+
                         <input type="hidden" name="llm_provider_phone" :value="configs.twilio.provider">
                         <input type="hidden" name="llm_model_phone" :value="configs.twilio.model">
                         <input type="hidden" name="temperature_phone" :value="configs.twilio.temp">
@@ -336,6 +344,15 @@
                             :value="configs.twilio.conversationFormality">
                         <input type="hidden" name="conversation_pacing_phone"
                             :value="configs.twilio.conversationPacing">
+
+                        <!-- NEW: Advanced LLM Controls (Twilio) -->
+                        <input type="hidden" name="context_window_phone" :value="configs.twilio.contextWindow">
+                        <input type="hidden" name="frequency_penalty_phone" :value="configs.twilio.frequencyPenalty">
+                        <input type="hidden" name="presence_penalty_phone" :value="configs.twilio.presencePenalty">
+                        <input type="hidden" name="tool_choice_phone" :value="configs.twilio.toolChoice">
+                        <input type="hidden" name="dynamic_vars_enabled_phone"
+                            :value="configs.twilio.dynamicVarsEnabled">
+                        <input type="hidden" name="dynamic_vars_phone" :value="configs.twilio.dynamicVars">
 
                         <input type="hidden" name="llm_provider_telnyx" :value="configs.telnyx.provider">
                         <input type="hidden" name="llm_model_telnyx" :value="configs.telnyx.model">
@@ -380,6 +397,15 @@
                             :value="configs.telnyx.conversationFormality">
                         <input type="hidden" name="conversation_pacing_telnyx"
                             :value="configs.telnyx.conversationPacing">
+
+                        <!-- NEW: Advanced LLM Controls (Telnyx) -->
+                        <input type="hidden" name="context_window_telnyx" :value="configs.telnyx.contextWindow">
+                        <input type="hidden" name="frequency_penalty_telnyx" :value="configs.telnyx.frequencyPenalty">
+                        <input type="hidden" name="presence_penalty_telnyx" :value="configs.telnyx.presencePenalty">
+                        <input type="hidden" name="tool_choice_telnyx" :value="configs.telnyx.toolChoice">
+                        <input type="hidden" name="dynamic_vars_enabled_telnyx"
+                            :value="configs.telnyx.dynamicVarsEnabled">
+                        <input type="hidden" name="dynamic_vars_telnyx" :value="configs.telnyx.dynamicVars">
 
                         <input type="hidden" name="crm_enabled" :value="configs.browser.crm_enabled">
                         <input type="hidden" name="baserow_token" :value="configs.browser.baserow_token">

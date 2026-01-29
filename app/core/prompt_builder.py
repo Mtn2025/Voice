@@ -83,5 +83,24 @@ class PromptBuilder:
             except Exception as e:
                 logging.warning(f"Error injecting context: {e}")
 
+        # 6. Inject Dynamic Variables (NEW)
+        # Allows {nombre}, {empresa} style placeholders in system_prompt
+        if hasattr(config, 'dynamic_vars_enabled') and config.dynamic_vars_enabled:
+            dynamic_vars = getattr(config, 'dynamic_vars', None)
+            if dynamic_vars:
+                try:
+                    # Parse JSON if it's a string
+                    if isinstance(dynamic_vars, str):
+                        import json
+                        dynamic_vars = json.loads(dynamic_vars)
+                    
+                    # Replace {key} with value in final_prompt
+                    for key, value in dynamic_vars.items():
+                        placeholder = f"{{{key}}}"
+                        final_prompt = final_prompt.replace(placeholder, str(value))
+                        logger.debug(f"🔧 [DYNAMIC VAR] Replaced '{placeholder}' with '{value}'")
+                except Exception as e:
+                    logging.warning(f"Error injecting dynamic variables: {e}")
+
         return final_prompt
         return final_prompt

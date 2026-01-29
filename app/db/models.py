@@ -112,6 +112,15 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_style_degree = Column(Float, default=1.0)  # Style intensity 0.5-2.0
     
     temperature = Column(Float, default=0.7)
+    
+    # NEW: Advanced LLM Controls (Browser Profile)
+    context_window = Column(Integer, default=10)  # Number of previous messages to remember
+    frequency_penalty = Column(Float, default=0.0)  # Penalize repeated words (0.0-2.0)
+    presence_penalty = Column(Float, default=0.0)   # Encourage new topics (0.0-2.0)
+    tool_choice = Column(String, default="auto")    # auto, required, none
+    dynamic_vars_enabled = Column(Boolean, default=False)  # Enable {variable} injection
+    dynamic_vars = Column(JSON, nullable=True)      # {"nombre": "Juan", "empresa": "Acme"}
+    
     background_sound = Column(String, default="none") # none, office, cafe, call_center
 
     # Flow Control
@@ -158,6 +167,15 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_style_degree_phone = Column(Float, default=1.0)
     
     temperature_phone = Column(Float, default=0.7)
+    
+    # NEW: Advanced LLM Controls (Twilio Profile)
+    context_window_phone = Column(Integer, default=10)
+    frequency_penalty_phone = Column(Float, default=0.0)
+    presence_penalty_phone = Column(Float, default=0.0)
+    tool_choice_phone = Column(String, default="auto")
+    dynamic_vars_enabled_phone = Column(Boolean, default=False)
+    dynamic_vars_phone = Column(JSON, nullable=True)
+    
     background_sound_phone = Column(String, default="none")  # FIX: Added missing field
 
     first_message_phone = Column(String, default="Hola, soy Andrea de Ubrokers. ¿Me escucha bien?")
@@ -223,6 +241,15 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_style_degree_telnyx = Column(Float, default=1.0)
     
     temperature_telnyx = Column(Float, default=0.7)
+    
+    # NEW: Advanced LLM Controls (Telnyx Profile)
+    context_window_telnyx = Column(Integer, default=10)
+    frequency_penalty_telnyx = Column(Float, default=0.0)
+    presence_penalty_telnyx = Column(Float, default=0.0)
+    tool_choice_telnyx = Column(String, default="auto")
+    dynamic_vars_enabled_telnyx = Column(Boolean, default=False)
+    dynamic_vars_telnyx = Column(JSON, nullable=True)
+    
     background_sound_telnyx = Column(String, default="none")  # FIX: Added missing field
     background_sound_url_telnyx = Column(String, nullable=True)  # FIX: Added missing field
 

@@ -104,6 +104,12 @@ class GroqLLMAdapter(LLMPort):
                 "stream": True
             }
             
+            # NEW: Add penalties if provided (avoid repetition/encourage diversity)
+            if hasattr(request, 'frequency_penalty') and request.frequency_penalty is not None:
+                api_params["frequency_penalty"] = request.frequency_penalty
+            if hasattr(request, 'presence_penalty') and request.presence_penalty is not None:
+                api_params["presence_penalty"] = request.presence_penalty
+            
             # ✅ Module 9: Add tools if provided (function calling)
             if request.tools:
                 api_params["tools"] = request.tools
