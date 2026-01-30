@@ -35,10 +35,9 @@ export const SimulatorMixin = {
 
         this.transcripts = [];
 
-        // Pre-init Audio Context user interaction check
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.audioContext = new AudioContext({ sampleRate: 16000 });
+        this.transcripts = [];
 
+        // Note: AudioContext init moved to initMicrophone() for robustness w/ user gesture policies
         this.simState = 'connecting';
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -157,15 +156,31 @@ export const SimulatorMixin = {
 
             this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
 
+            // FIX: Check if stopped during await
+            if (this.simState !== 'connecting' && this.simState !== 'connected') {
+                console.warn("Simulator stopped during mic init. Aborting.");
+                return;
+            }
+
             // 4. Create Source (Check context again to be safe)
-            if (!this.audioContext) throw new Error("AudioContext lost during initialization");
+            if (!this.audioContext) {
+                console.warn("AudioContext gone after GUM. User likely stopped test.");
+                return;
+            }
 
             const source = this.audioContext.createMediaStreamSource(this.mediaStream);
             source.connect(this.analyser);
 
             // Load Worklet
             try {
-                await this.audioContext.audioWorklet.addModule('/static/js/audio-worklet-processor.js');
+                // Check if worklet already added to avoid error? 
+                // AudioWorklet.addModule doesn't throw if added twice context-wise usually, but let's be safe.
+                try {
+                    await this.audioContext.audioWorklet.addModule('/static/js/audio-worklet-processor.js');
+                } catch (e) {
+                    // Ignore if already added or handle specific
+                    console.log("Worklet addModule info:", e);
+                }
 
                 // Create Worklet Node
                 this.processor = new AudioWorkletNode(this.audioContext, 'pcm-processor');
@@ -207,7 +222,10 @@ export const SimulatorMixin = {
 
         } catch (e) {
             console.error("Mic Access Failed", e);
-            alert("Microphone Error: " + e.message);
+            // Don't alert if it's just an abort
+            if (e.name !== 'AbortError') {
+                alert("Microphone Error: " + e.message);
+            }
             this.stopTest();
         }
     },
