@@ -3,7 +3,7 @@ import collapse from 'https://unpkg.com/@alpinejs/collapse@3.13.3/dist/module.es
 
 Alpine.plugin(collapse);
 
-import { dashboardStore } from './dashboard/store.v2.js';
+import { dashboardStore } from './dashboard/store.v2.js?v=ui_fix_1';
 
 console.log("🚀 [Frontend] Initializing App...");
 
