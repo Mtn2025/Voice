@@ -125,6 +125,7 @@ FIELD_ALIASES = {
     'environment': 'environment',
     'privacyMode': 'privacy_mode',
     'auditLogEnabled': 'audit_log_enabled',
+}
 
 router = APIRouter(
     prefix="/api/config",
