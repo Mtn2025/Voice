@@ -125,28 +125,28 @@ export const SimulatorMixin = {
 
     async initMicrophone() {
         try {
-            // Re-check context
+            // 1. Ensure AudioContext exists and is running
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!this.audioContext) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
                 this.audioContext = new AudioContext({ sampleRate: 16000 });
             }
+
             if (this.audioContext.state === 'suspended') {
                 await this.audioContext.resume();
             }
 
-            // Connect Analyser if missing (Input Analysis)
+            // 2. Setup Analysers
             if (!this.analyser) {
                 this.analyser = this.audioContext.createAnalyser();
                 this.analyser.fftSize = 256;
             }
-
-            // Output Analyser (Assistant)
             if (!this.outputAnalyser) {
                 this.outputAnalyser = this.audioContext.createAnalyser();
                 this.outputAnalyser.fftSize = 256;
                 this.outputAnalyser.connect(this.audioContext.destination);
             }
 
+            // 3. Get Media Stream
             const constraints = {
                 audio: {
                     echoCancellation: this.c && this.c.denoise,
@@ -156,9 +156,11 @@ export const SimulatorMixin = {
             };
 
             this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-            const source = this.audioContext.createMediaStreamSource(this.mediaStream);
 
-            // Connect Mic -> Analyser (Visualizer)
+            // 4. Create Source (Check context again to be safe)
+            if (!this.audioContext) throw new Error("AudioContext lost during initialization");
+
+            const source = this.audioContext.createMediaStreamSource(this.mediaStream);
             source.connect(this.analyser);
 
             // Load Worklet

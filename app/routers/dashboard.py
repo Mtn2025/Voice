@@ -221,148 +221,11 @@ from app.schemas.config_schemas import (
 )
 
 
-@router.patch("/api/config/browser", dependencies=[Depends(verify_api_key)])
-@limiter.limit("20/minute")
-async def update_browser_config(
-    request: Request,
-    config: BrowserConfigUpdate,
-    db: AsyncSession = Depends(get_db)
-) -> dict:
-    """
-    Update Browser/Simulator profile configuration.
-    Refactored in B3 to use centralized config_utils.
-    """
-    try:
-        from app.core.config_utils import update_env_file
-
-        update_data = config.dict(exclude_unset=True)
-        await db_service.update_agent_config(db, **update_data)
-
-        # Persist to .env
-        updates = {}
-        for key, value in update_data.items():
-            updates[key.upper()] = value
-
-        update_env_file(updates)
-
-        return {
-            "status": "success",
-            "profile": "browser",
-            "updated_fields": list(update_data.keys()),
-            "count": len(update_data)
-        }
-
-    except Exception as e:
-        logger.error(f"Error updating Browser config: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@router.patch("/api/config/twilio", dependencies=[Depends(verify_api_key)])
-@limiter.limit("20/minute")
-async def update_twilio_config(
-    request: Request,
-    config: TwilioConfigUpdate,
-    db: AsyncSession = Depends(get_db)
-) -> dict:
-    """
-    Update Twilio/Phone profile configuration.
-    Refactored in B3 to use centralized config_utils.
-    """
-    try:
-        from app.core.config_utils import update_env_file
-
-        update_data = config.dict(exclude_unset=True)
-        await db_service.update_agent_config(db, **update_data)
-
-        # Persist to .env
-        updates = {}
-        for key, value in update_data.items():
-            updates[key.upper()] = value
-
-        update_env_file(updates)
-
-        return {
-            "status": "success",
-            "profile": "twilio",
-            "updated_fields": list(update_data.keys()),
-            "count": len(update_data)
-        }
-
-    except Exception as e:
-        logger.error(f"Error updating Twilio config: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@router.patch("/api/config/telnyx", dependencies=[Depends(verify_api_key)])
-@limiter.limit("20/minute")
-async def update_telnyx_config(
-    request: Request,
-    config: TelnyxConfigUpdate,
-    db: AsyncSession = Depends(get_db)
-) -> dict:
-    """
-    Update Telnyx profile configuration.
-    Refactored in B3 to use centralized config_utils.
-    """
-    try:
-        from app.core.config_utils import update_env_file
-
-        update_data = config.dict(exclude_unset=True)
-        await db_service.update_agent_config(db, **update_data)
-
-        # Persist to .env
-        updates = {}
-        for key, value in update_data.items():
-            updates[key.upper()] = value
-
-        update_env_file(updates)
-
-        return {
-            "status": "success",
-            "profile": "telnyx",
-            "updated_fields": list(update_data.keys()),
-            "count": len(update_data)
-        }
-
-    except Exception as e:
-        logging.error(f"Error updating Telnyx config: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@router.patch("/api/config/core", dependencies=[Depends(verify_api_key)])
-@limiter.limit("20/minute")
-async def update_core_config(
-    request: Request,
-    config: CoreConfigUpdate,
-    db: AsyncSession = Depends(get_db)
-) -> dict:
-    """
-    Update Core/Global configuration.
-    Refactored in B3 to use centralized config_utils.
-    """
-    try:
-        from app.core.config_utils import update_env_file
-
-        update_data = config.dict(exclude_unset=True)
-        await db_service.update_agent_config(db, **update_data)
-
-        # Persist to .env
-        updates = {}
-        for key, value in update_data.items():
-            updates[key.upper()] = value
-
-        update_env_file(updates)
-
-        return {
-            "status": "success",
-            "profile": "core",
-            "updated_fields": list(update_data.keys()),
-            "count": len(update_data)
-        }
-
-    except Exception as e:
-        logging.error(f"Error updating Core config: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+# =============================================================================
+# LEGACY CONFIG ENDPOINTS REMOVED
+# These were duplicates of app/routers/config_router.py and caused conflicts.
+# The new router handles /api/config/... cleanly without .env persistence.
+# =============================================================================
 
 # =============================================================================
 # DEPRECATED: Monolithic Endpoint (Punto A8)
@@ -542,59 +405,10 @@ def validate_prompt_variables(prompt: str) -> list[str]:
 
 
 
-@router.post("/api/config/patch", dependencies=[Depends(verify_api_key)])
-async def patch_config(request: Request, db: AsyncSession = Depends(get_db)):
-    """
-    Accepts JSON payload to update specific config fields.
-    Example: {"input_min_characters": 30}
-    """
-    try:
-        data = await request.json()
-
-        # Type Conversion Helper
-        # Ensure we cast known int/float fields to avoid DB errors (AsyncPG is strict)
-        int_fields = [
-            "input_min_characters", "max_tokens", "silence_timeout_ms",
-            "initial_silence_timeout_ms", "segmentation_max_time",
-            "interruption_threshold", "interruption_threshold_phone",
-            "silence_timeout_ms_phone", "max_duration",
-            "max_tokens_telnyx", "initial_silence_timeout_ms_telnyx", "input_min_characters_telnyx",
-            "voice_pacing_ms_telnyx", "silence_timeout_ms_telnyx", "interruption_threshold_telnyx",
-            "inactivity_max_retries"
-        ]
-        float_fields = [
-            "temperature", "voice_speed", "voice_speed_phone", "idle_timeout",
-            "temperature_telnyx", "voice_speed_telnyx"
-        ]
-        bool_fields = [
-             "enable_denoising", "enable_end_call", "enable_dial_keypad",
-             "enable_denoising_telnyx"
-        ]
-
-        cleaned_data = {}
-        for k, v in data.items():
-            if v is None:
-                cleaned_data[k] = None
-                continue
-
-            if k in int_fields:
-                cleaned_data[k] = int(v)
-            elif k in float_fields:
-                cleaned_data[k] = float(v)
-            elif k in bool_fields:
-                # Handle JS booleans or strings "true"/"false"
-                if isinstance(v, bool):
-                    cleaned_data[k] = v
-                else:
-                    cleaned_data[k] = str(v).lower() == 'true'
-            else:
-                cleaned_data[k] = v
-
-        await db_service.update_agent_config(db, **cleaned_data)
-        return {"status": "success", "updated": cleaned_data}
-    except Exception as e:
-        logging.error(f"Config Patch Failed: {e}")
-        return {"status": "error", "message": str(e)}
+# =============================================================================
+# DUPLICATE PATCH ENDPOINT REMOVED
+# Use app/routers/config_router.py
+# =============================================================================
 
 @router.get("/dashboard/call/{call_id}", response_class=HTMLResponse, dependencies=[Depends(verify_api_key)])
 async def dashboard_call_detail(request: Request, call_id: int, db: AsyncSession = Depends(get_db)):
