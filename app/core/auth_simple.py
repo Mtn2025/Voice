@@ -13,22 +13,18 @@ logger = logging.getLogger(__name__)
 
 
 def verify_api_key(
+    request: Request,
     x_api_key: str | None = Header(None, alias="X-API-Key"),
     api_key_query: str | None = Query(None, alias="api_key")
 ) -> bool:
     """
     Verifica API Key del header X-API-Key o Query param 'api_key'.
-
-    Args:
-        x_api_key: API Key del header HTTP
-        api_key_query: API Key del query param (para acceso navegador)
-
-    Returns:
-        True si es válida
-
-    Raises:
-        HTTPException: 401 si falta o es inválida
+    TAMBIÉN acepta autenticación por Sesión (Cookie) si existe.
     """
+    # 0. Check Session (Cookie) for Dashboard Users
+    if request.session.get("authenticated") is True:
+        return True
+
     # Priorizar Header, luego Query
     api_key_to_check = x_api_key or api_key_query
 
@@ -61,7 +57,7 @@ def verify_api_key(
             headers={"WWW-Authenticate": "ApiKey"}
         )
 
-    logger.info("API Key validated successfully")
+    logger.debug("API Key validated successfully")
     return True
 
 
