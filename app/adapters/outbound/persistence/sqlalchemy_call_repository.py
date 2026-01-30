@@ -10,7 +10,7 @@ from datetime import datetime
 
 from app.domain.ports.call_repository_port import CallRepositoryPort, CallRecord
 from app.services.db_service import db_service
-from app.db.models import CallHistory
+from app.db.models import Call
 
 
 logger = logging.getLogger(__name__)
