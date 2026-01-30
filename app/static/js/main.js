@@ -1,4 +1,8 @@
 import Alpine from 'https://unpkg.com/alpinejs@3.13.3/dist/module.esm.js';
+import collapse from 'https://unpkg.com/@alpinejs/collapse@3.13.3/dist/module.esm.js';
+
+Alpine.plugin(collapse);
+
 import { dashboardStore } from './dashboard/store.v2.js';
 
 console.log("🚀 [Frontend] Initializing App...");
