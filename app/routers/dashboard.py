@@ -170,7 +170,7 @@ async def dashboard(
     # Styles - Try cache
     voice_styles = await cache.get("voice_styles")
     if not voice_styles:
-        voice_styles = azure_provider.get_voice_styles()
+        voice_styles = tts_provider.get_voice_styles()
         await cache.set("voice_styles", voice_styles, ttl=86400)
 
 
