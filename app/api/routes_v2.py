@@ -609,6 +609,12 @@ async def update_call_context(call_id: str, payload: dict):
                 status_code=503,
                 media_type="application/json"
             )
+    except Exception as e:
+        return Response(
+            content=json.dumps({"status": "error", "message": str(e)}),
+            status_code=500,
+            media_type="application/json"
+        )
 
 @router.post("/calls/test-outbound")
 @limiter.limit("5/minute")
