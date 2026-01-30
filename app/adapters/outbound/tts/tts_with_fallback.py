@@ -9,7 +9,7 @@ import logging
 from typing import AsyncIterator, Optional
 
 from app.domain.ports import TTSPort, TTSRequest
-from app.domain.exceptions.tts_exceptions import TTSException
+from app.domain.ports import TTSException
 
 logger = logging.getLogger(__name__)
 
