@@ -146,6 +146,7 @@ class VoiceOrchestratorV2:
         self.start_time = time.time()
         self.last_interaction_time = time.time()
         self.monitor_task: Optional[asyncio.Task] = None
+        self.active: bool = False  # ✅ Lifecycle State
         
         # Decode initial context if present
         if self.initial_context_token:
@@ -163,6 +164,7 @@ class VoiceOrchestratorV2:
     async def start(self) -> None:
         """Start all subsystems: Config -> CRM -> Pipeline -> Audio -> Monitor."""
         logger.info("🚀 [V2] Starting VoiceOrchestrator V2...")
+        self.active = True  # ✅ Set active flag
         self.loop = asyncio.get_running_loop()
         
         # STEP 1: Load Configuration
