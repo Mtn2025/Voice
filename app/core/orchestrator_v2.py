@@ -587,7 +587,7 @@ class VoiceOrchestratorV2:
             conversation_history=self.conversation_history,
             context=context_data,
             execute_tool_use_case=self.execute_tool_use_case,  # ✅ Module 9: Tool calling
-            trace_id=self.current_trace_id,  # ✅ Module 3: Distributed tracing
+            trace_id=self.stream_id,  # ✅ Module 3: Distributed tracing
             hold_audio_player=hold_audio_player  # ✅ Module 10: Hold audio during tool execution
         )
         
