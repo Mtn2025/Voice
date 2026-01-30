@@ -31,9 +31,8 @@ class CacheService:
         """Lazy initialization of Redis connection."""
         if not self._initialized:
             try:
-                self.redis = Redis(
-                    host=getattr(settings, 'REDIS_HOST', 'localhost'),
-                    port=getattr(settings, 'REDIS_PORT', 6379),
+                self.redis = Redis.from_url(
+                    settings.REDIS_URL,
                     decode_responses=True,
                     socket_connect_timeout=2,
                     socket_timeout=2
@@ -41,7 +40,7 @@ class CacheService:
                 # Test connection
                 await self.redis.ping()
                 self._initialized = True
-                logger.info(f"✅ Redis connected: {settings.REDIS_HOST}:{settings.REDIS_PORT}")
+                logger.info(f"✅ Redis connected: {settings.REDIS_URL}")
             except Exception as e:
                 logger.warning(f"⚠️ Redis unavailable, caching disabled: {e}")
                 self.redis = None
