@@ -269,12 +269,15 @@
                 </div>
 
                 <!-- COMPLIANCE & TRANSFER -->
+                <!-- COMPLIANCE & TRANSFER -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Compliance -->
                     <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                        <h5 class="text-xs font-bold text-slate-300 mb-3">Compliance</h5>
+                        <h5 class="text-xs font-bold text-slate-300 mb-3">Compliance & Security</h5>
+
+                        <!-- Twilio HIPAA -->
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs text-slate-400">HIPAA Compliance</span>
+                            <span class="text-xs text-slate-400">HIPAA (Twilio)</span>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" x-model="c.hipaaEnabledPhone" class="sr-only peer">
                                 <div
@@ -282,25 +285,58 @@
                                 </div>
                             </label>
                         </div>
-                        <p class="text-[10px] text-slate-500">Enforce encrypted storage & transport.</p>
+
+                        <!-- Telnyx HIPAA -->
+                        <div class="flex justify-between items-center mb-2 pt-2 border-t border-white/5">
+                            <span class="text-xs text-slate-400">HIPAA (Telnyx)</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" x-model="c.hipaaEnabledTelnyx" class="sr-only peer">
+                                <div
+                                    class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
+                                </div>
+                            </label>
+                        </div>
+
+                        <p class="text-[10px] text-slate-500 mt-2">Enforce encrypted storage & transport.</p>
                     </div>
 
-                    <!-- Transfer / DTMF -->
+                    <!-- Transfer / DTMF / AMD -->
                     <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                        <h5 class="text-xs font-bold text-slate-300 mb-3">Transferencias & DTMF</h5>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-xs text-slate-400">Warm Transfer</span>
-                                <input type="checkbox" class="accent-indigo-500" disabled checked>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-xs text-slate-400">DTMF Listening</span>
+                        <h5 class="text-xs font-bold text-slate-300 mb-3">Advanced Features</h5>
+
+                        <div class="space-y-3">
+                            <!-- Twilio DTMF -->
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-400">DTMF Listening (Twilio)</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" x-model="c.dtmfListeningEnabledPhone" class="sr-only peer">
                                     <div
                                         class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3">
                                     </div>
                                 </label>
+                            </div>
+
+                            <!-- Telnyx DTMF -->
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-400">DTMF Listening (Telnyx)</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" x-model="c.dtmfListeningEnabledTelnyx" class="sr-only peer">
+                                    <div
+                                        class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Telnyx AMD -->
+                            <div class="pt-2 border-t border-white/5">
+                                <span class="text-xs text-slate-400 block mb-1">Telnyx Answer Machine (AMD)</span>
+                                <select x-model="c.amdConfig"
+                                    class="bg-black/30 border border-white/10 rounded w-full p-1 text-[10px] text-slate-300">
+                                    <option value="disabled">Disabled</option>
+                                    <option value="detect">Detect Only</option>
+                                    <option value="detect_hangup">Detect & Hangup</option>
+                                    <option value="detect_message_end">Detect Message End</option>
+                                </select>
                             </div>
                         </div>
                     </div>
