@@ -33,10 +33,10 @@ REASONING_MODELS = [
 
 
 class GroqProvider(AbstractLLM):
-    def __init__(self):
-        self.api_key = settings.GROQ_API_KEY
+    def __init__(self, api_key: str = None, model: str = None):
+        self.api_key = api_key or settings.GROQ_API_KEY
         self.client = AsyncGroq(api_key=self.api_key)
-        self.default_model = "llama-3.3-70b-versatile"
+        self.default_model = model or settings.GROQ_MODEL
 
     async def get_available_models(self):
         try:

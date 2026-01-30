@@ -140,3 +140,20 @@ class TTSWithFallback(TTSPort):
     def failure_count(self) -> int:
         """Get current failure count."""
         return self._primary_failures
+
+    async def close(self):
+        """Close both primary and fallback providers."""
+        await self.primary.close()
+        await self.fallback.close()
+
+    def get_voice_styles(self, voice_id: str) -> list[str]:
+        """Get voice styles from primary provider."""
+        return self.primary.get_voice_styles(voice_id)
+
+    async def synthesize_ssml(self, ssml: str) -> bytes:
+        """Synthesize SSML with fallback strategy."""
+        try:
+            return await self.primary.synthesize_ssml(ssml)
+        except Exception as e:
+            logger.warning(f"[TTSFallback] SSML Primary failed: {e}. Trying fallback.")
+            return await self.fallback.synthesize_ssml(ssml)

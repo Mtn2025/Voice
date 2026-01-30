@@ -67,10 +67,10 @@ class AzureRecognizerWrapper:
 
 
 class AzureProvider(STTProvider, TTSProvider):
-    def __init__(self):
+    def __init__(self, api_key: str = None, region: str = None):
         self.speech_config = speechsdk.SpeechConfig(
-            subscription=settings.AZURE_SPEECH_KEY,
-            region=settings.AZURE_SPEECH_REGION
+            subscription=api_key or settings.AZURE_SPEECH_KEY,
+            region=region or settings.AZURE_SPEECH_REGION
         )
         # Executor for non-blocking operations involving heavy SDK calls
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
