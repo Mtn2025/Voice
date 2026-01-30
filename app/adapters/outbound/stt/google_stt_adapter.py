@@ -1,47 +1,60 @@
 """
-Google Cloud STT Adapter - Fallback option for Azure STT (Module 12).
+Google Cloud STT Adapter - Fallback option for Azure STT.
 
 Stub implementation for fallback resilience testing.
 """
 import logging
-from typing import AsyncIterator
+from typing import Callable, Optional, Any
 
-from app.domain.ports import STTPort, STTRequest, STTResponse
-from app.domain.exceptions.stt_exceptions import STTException
+from app.domain.ports import STTPort, STTConfig, STTRecognizer, STTEvent, STTResultReason
+from app.domain.ports.stt_port import STTException
 
 logger = logging.getLogger(__name__)
 
 
+class MockSTTRecognizer(STTRecognizer):
+    """Recognizer MOCK para pruebas de fallback."""
+    
+    def __init__(self, config: STTConfig):
+        self.config = config
+        self.callback = None
+        
+    def subscribe(self, callback: Callable[[STTEvent], None]):
+        self.callback = callback
+        
+    async def start_continuous_recognition(self):
+        logger.info("[GoogleSTT Mock] Started continuous recognition")
+        
+    async def stop_continuous_recognition(self):
+        logger.info("[GoogleSTT Mock] Stopped continuous recognition")
+        
+    def write(self, audio_data: bytes):
+        # Mock behavior: randomly recognize something or silence
+        # In a real mock, we might analyze bytes or just log
+        pass
+
+
 class GoogleSTTAdapter(STTPort):
     """
-    Google Cloud STT adapter (fallback for Azure).
-    
-    NOTE: STUB implementation (mock mode).
-    Returns mock transcriptions for fallback testing.
+    Google Cloud STT adapter (fallback implementation).
+    Implements STTPort.
     """
     
     def __init__(self, credentials_path: str = None):
         self.credentials_path = credentials_path
-        self._mock_mode = True
-        
-        if self._mock_mode:
-            logger.warning("[GoogleSTT] Running in MOCK mode - returning mock transcriptions")
-    
-    async def transcribe(self, request: STTRequest) -> AsyncIterator[STTResponse]:
-        """Mock transcription."""
-        if self._mock_mode:
-            logger.info("[GoogleSTT] MOCK transcription (fallback mode)")
-            
-            # Yield mock partial transcription
-            yield STTResponse(
-                text="[Google STT Mock]",
-                is_final=False,
-                confidence=0.85
-            )
-            
-            # Yield final transcription
-            yield STTResponse(
-                text="[Google STT Fallback] Mock transcription",
-                is_final=True,
-                confidence=0.90
-            )
+        logger.warning("[GoogleSTT] Initialized in MOCK mode (Stub)")
+
+    def create_recognizer(
+        self,
+        config: STTConfig,
+        on_interruption_callback: Optional[Callable] = None,
+        event_loop: Optional[Any] = None
+    ) -> STTRecognizer:
+        return MockSTTRecognizer(config)
+
+    async def transcribe_audio(self, audio_bytes: bytes, language: str = "es") -> str:
+        """Mock batch transcription."""
+        return "[GoogleSTT Fallback] Mock Transcription"
+
+    async def close(self):
+        pass
