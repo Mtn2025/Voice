@@ -50,21 +50,18 @@
                     <span class="w-2 h-2 rounded-full bg-red-500"></span> Twilio (Phone)
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Account SID</label>
-                        <input type="text" x-model="c.twilioAccountSid" placeholder="AC..."
-                            class="glass-input w-full p-2 text-xs font-mono">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Auth Token</label>
-                        <input type="password" x-model="c.twilioAuthToken" placeholder="••••••••"
-                            class="glass-input w-full p-2 text-xs font-mono">
+                    <div class="md:col-span-2">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Credentials</label>
+                        <div class="flex items-center gap-2 px-3 py-2 bg-slate-900/50 rounded border border-white/5">
+                            <span class="text-xs text-red-400 font-mono">🔒 Credentials configured via Environment</span>
+                            <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">From Number (Caller
-                            ID)</label>
-                        <input type="text" x-model="c.twilioFromNumber" placeholder="+1234567890"
-                            class="glass-input w-full p-2 text-xs font-mono">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">From Number (Caller ID)</label>
+                        <input type="text" x-model="c.twilioFromNumber" placeholder="+1234567890" class="glass-input w-full p-2 text-xs font-mono">
                     </div>
                 </div>
             </div>
