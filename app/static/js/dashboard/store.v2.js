@@ -459,6 +459,7 @@ export function dashboardStore() {
 
         // --- ACTIONS ---
         async saveConfig() {
+            console.log("💾 Attempting to save config...");
             const urlParams = new URLSearchParams(window.location.search);
             const apiKey = urlParams.get('api_key');
             const profile = this.activeProfile || 'browser';
@@ -470,6 +471,7 @@ export function dashboardStore() {
             try {
                 // Use new Profile-Aware Endpoint
                 const data = await api.updateProfile(profile, payload, apiKey);
+                console.log("✅ Save success:", data);
 
                 this.showToast(`Configuración Guardada (${profile.toUpperCase()})`, 'success');
                 if (data.warnings && data.warnings.length > 0) {
@@ -584,11 +586,29 @@ export function dashboardStore() {
         },
 
         showToast(msg, type = 'info') {
+            console.log(`🔔 Toast [${type}]: ${msg}`);
             const div = document.createElement('div');
-            div.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg text-white text-sm z-50 ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+            // Force styles for maximum visibility
+            div.style.position = 'fixed';
+            div.style.top = '20px';
+            div.style.right = '20px';
+            div.style.zIndex = '9999';
+            div.style.padding = '12px 24px';
+            div.style.borderRadius = '8px';
+            div.style.color = 'white';
+            div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            div.style.backgroundColor = type === 'error' ? '#dc2626' : '#16a34a'; // Red-600 / Green-600
+            div.style.fontSize = '14px';
+            div.style.fontWeight = '500';
+            div.style.transition = 'opacity 0.3s ease-out';
+
             div.innerText = msg;
             document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
+
+            setTimeout(() => {
+                div.style.opacity = '0';
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
         }
     };
 }
