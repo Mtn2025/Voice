@@ -20,6 +20,7 @@ from app.core.config import settings
 from app.core.orchestrator_v2 import VoiceOrchestratorV2
 from app.core.voice_ports import get_voice_ports
 from app.core.webhook_security import require_telnyx_signature, require_twilio_signature
+from app.core.auth_simple import verify_api_key
 from app.db.database import AsyncSessionLocal  # NEW
 from app.services.db_service import db_service
 from app.adapters.simulator.transport import SimulatorTransport
