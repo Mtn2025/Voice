@@ -16,13 +16,14 @@ class BrowserConfigUpdate(BaseModel):
     All fields are optional (partial update with PATCH).
     """
     # LLM Configuration
-    # Aliases match store.v2.js (Frontend)
     system_prompt: str | None = Field(None, max_length=10000, alias="prompt")
     temperature: float | None = Field(None, ge=0.0, le=2.0, alias="temp")
     llm_model: str | None = Field(None, max_length=100, alias="model")
-    llm_provider: str | None = Field(None, max_length=50, alias="provider") # Add provider if missing in schema
+    llm_provider: str | None = Field(None, max_length=50, alias="provider")
+    max_tokens: int | None = Field(None, ge=1, le=4096, alias="tokens") # Added missing field
 
     # Voice Configuration
+    tts_provider: str | None = Field(None, max_length=50, alias="voiceProvider") # Added missing
     voice_name: str | None = Field(None, max_length=100, alias="voiceId")
     voice_style: str | None = Field(None, max_length=50, alias="voiceStyle")
     voice_speed: float | None = Field(None, ge=0.5, le=2.0, alias="voiceSpeed")
@@ -31,6 +32,18 @@ class BrowserConfigUpdate(BaseModel):
     voice_volume: int | None = Field(None, alias="voiceVolume")
     voice_style_degree: float | None = Field(None, alias="voiceStyleDegree")
     voice_language: str | None = Field(None, alias="voiceLang")
+
+    # NEW: Advanced TTS (Browser)
+    voice_stability: float | None = Field(None, alias="voiceStability")
+    voice_similarity_boost: float | None = Field(None, alias="voiceSimilarityBoost")
+    voice_style_exaggeration: float | None = Field(None, alias="voiceStyleExaggeration")
+    voice_speaker_boost: bool | None = Field(None, alias="voiceSpeakerBoost")
+    voice_multilingual: bool | None = Field(None, alias="voiceMultilingual")
+    tts_latency_optimization: int | None = Field(None, alias="ttsLatencyOptimization")
+    tts_output_format: str | None = Field(None, alias="ttsOutputFormat")
+    voice_filler_injection: bool | None = Field(None, alias="voiceFillerInjection")
+    voice_backchanneling: bool | None = Field(None, alias="voiceBackchanneling")
+    text_normalization_rule: str | None = Field(None, alias="textNormalizationRule")
 
     # STT Configuration
     stt_language: str | None = Field(None, max_length=10, alias="sttLang")
@@ -44,6 +57,7 @@ class BrowserConfigUpdate(BaseModel):
     inactivity_max_retries: int | None = Field(None, ge=1, le=10, alias="maxRetries")
     max_duration: int | None = Field(None, ge=60, le=3600, alias="maxDuration")
     interruption_threshold: int | None = Field(None, ge=0, le=20, alias="interruptWords")
+    silence_timeout_ms: int | None = Field(None, alias="silence") # Added missing field
 
     # Messages
     first_message: str | None = Field(None, max_length=500, alias="msg")
@@ -64,7 +78,7 @@ class BrowserConfigUpdate(BaseModel):
     presence_penalty: float | None = Field(None, alias="presencePenalty")
     tool_choice: str | None = Field(None, alias="toolChoice")
     dynamic_vars_enabled: bool | None = Field(None, alias="dynamicVarsEnabled")
-    dynamic_vars: str | None = Field(None, alias="dynamicVars") # JSON string from FE
+    dynamic_vars: str | None = Field(None, alias="dynamicVars")
 
     # Features
     enable_denoising: bool | None = Field(None, alias="denoise")
@@ -87,6 +101,7 @@ class TwilioConfigUpdate(BaseModel):
     max_tokens_phone: int | None = Field(None, ge=1, le=4096, alias="tokens")
 
     # Voice Configuration
+    tts_provider_phone: str | None = Field(None, max_length=50, alias="voiceProvider") # Added missing
     voice_name_phone: str | None = Field(None, max_length=100, alias="voiceId")
     voice_style_phone: str | None = Field(None, max_length=50, alias="voiceStyle")
     voice_speed_phone: float | None = Field(None, ge=0.5, le=2.0, alias="voiceSpeed")
@@ -94,7 +109,20 @@ class TwilioConfigUpdate(BaseModel):
     voice_language_phone: str | None = Field(None, alias="voiceLang")
     voice_pitch_phone: int | None = Field(None, alias="voicePitch")
     voice_volume_phone: int | None = Field(None, alias="voiceVolume")
+    voice_style_degree_phone: float | None = Field(None, alias="voiceStyleDegree") # Added missing
     background_sound_phone: str | None = Field(None, alias="voiceBgSound")
+
+    # NEW: Advanced TTS (Phone)
+    voice_stability_phone: float | None = Field(None, alias="voiceStability")
+    voice_similarity_boost_phone: float | None = Field(None, alias="voiceSimilarityBoost")
+    voice_style_exaggeration_phone: float | None = Field(None, alias="voiceStyleExaggeration")
+    voice_speaker_boost_phone: bool | None = Field(None, alias="voiceSpeakerBoost")
+    voice_multilingual_phone: bool | None = Field(None, alias="voiceMultilingual")
+    tts_latency_optimization_phone: int | None = Field(None, alias="ttsLatencyOptimization")
+    tts_output_format_phone: str | None = Field(None, alias="ttsOutputFormat")
+    voice_filler_injection_phone: bool | None = Field(None, alias="voiceFillerInjection")
+    voice_backchanneling_phone: bool | None = Field(None, alias="voiceBackchanneling")
+    text_normalization_rule_phone: str | None = Field(None, alias="textNormalizationRule")
 
     # STT Configuration
     stt_provider_phone: str | None = Field(None, max_length=50, alias="sttProvider")
@@ -123,6 +151,14 @@ class TwilioConfigUpdate(BaseModel):
     conversation_tone_phone: str | None = Field(None, alias="conversationTone")
     conversation_formality_phone: str | None = Field(None, alias="conversationFormality")
     conversation_pacing_phone: str | None = Field(None, alias="conversationPacing")
+    
+    # NEW: Advanced LLM Controls (Phone)
+    context_window_phone: int | None = Field(None, alias="contextWindow")
+    frequency_penalty_phone: float | None = Field(None, alias="frequencyPenalty")
+    presence_penalty_phone: float | None = Field(None, alias="presencePenalty")
+    tool_choice_phone: str | None = Field(None, alias="toolChoice")
+    dynamic_vars_enabled_phone: bool | None = Field(None, alias="dynamicVarsEnabled")
+    dynamic_vars_phone: str | None = Field(None, alias="dynamicVars") # JSON string from FE
 
     model_config = {"extra": "ignore", "populate_by_name": True}
 
@@ -139,6 +175,7 @@ class TelnyxConfigUpdate(BaseModel):
     max_tokens_telnyx: int | None = Field(None, ge=1, le=4096, alias="tokens")
 
     # Voice Configuration
+    tts_provider_telnyx: str | None = Field(None, max_length=50, alias="voiceProvider") # Added missing
     voice_name_telnyx: str | None = Field(None, max_length=100, alias="voiceId")
     voice_style_telnyx: str | None = Field(None, max_length=50, alias="voiceStyle")
     voice_speed_telnyx: float | None = Field(None, ge=0.5, le=2.0, alias="voiceSpeed")
@@ -146,7 +183,21 @@ class TelnyxConfigUpdate(BaseModel):
     voice_language_telnyx: str | None = Field(None, alias="voiceLang")
     voice_pitch_telnyx: int | None = Field(None, alias="voicePitch")
     voice_volume_telnyx: int | None = Field(None, alias="voiceVolume")
+    voice_style_degree_telnyx: float | None = Field(None, alias="voiceStyleDegree") # Added missing
     background_sound_telnyx: str | None = Field(None, alias="voiceBgSound")
+    background_sound_url_telnyx: str | None = Field(None, alias="voiceBgUrl") # Added missing
+
+    # NEW: Advanced TTS (Telnyx)
+    voice_stability_telnyx: float | None = Field(None, alias="voiceStability")
+    voice_similarity_boost_telnyx: float | None = Field(None, alias="voiceSimilarityBoost")
+    voice_style_exaggeration_telnyx: float | None = Field(None, alias="voiceStyleExaggeration")
+    voice_speaker_boost_telnyx: bool | None = Field(None, alias="voiceSpeakerBoost")
+    voice_multilingual_telnyx: bool | None = Field(None, alias="voiceMultilingual")
+    tts_latency_optimization_telnyx: int | None = Field(None, alias="ttsLatencyOptimization")
+    tts_output_format_telnyx: str | None = Field(None, alias="ttsOutputFormat")
+    voice_filler_injection_telnyx: bool | None = Field(None, alias="voiceFillerInjection")
+    voice_backchanneling_telnyx: bool | None = Field(None, alias="voiceBackchanneling")
+    text_normalization_rule_telnyx: str | None = Field(None, alias="textNormalizationRule")
 
     # STT Configuration
     stt_provider_telnyx: str | None = Field(None, max_length=50, alias="sttProvider")
@@ -170,6 +221,20 @@ class TelnyxConfigUpdate(BaseModel):
     # Behavior
     idle_timeout_telnyx: float | None = Field(None, ge=5.0, le=120.0, alias="idleTimeout")
     max_duration_telnyx: int | None = Field(None, ge=60, le=3600, alias="maxDuration")
+    
+    # NEW: Advanced LLM Controls (Telnyx)
+    context_window_telnyx: int | None = Field(None, alias="contextWindow")
+    frequency_penalty_telnyx: float | None = Field(None, alias="frequencyPenalty")
+    presence_penalty_telnyx: float | None = Field(None, alias="presencePenalty")
+    tool_choice_telnyx: str | None = Field(None, alias="toolChoice")
+    dynamic_vars_enabled_telnyx: bool | None = Field(None, alias="dynamicVarsEnabled")
+    dynamic_vars_telnyx: str | None = Field(None, alias="dynamicVars") # JSON string from FE
+    
+    # NEW: Conversation Style (Telnyx)
+    response_length_telnyx: str | None = Field(None, alias="responseLength")
+    conversation_tone_telnyx: str | None = Field(None, alias="conversationTone")
+    conversation_formality_telnyx: str | None = Field(None, alias="conversationFormality")
+    conversation_pacing_telnyx: str | None = Field(None, alias="conversationPacing")
 
     # Recording & AMD
     enable_recording_telnyx: bool | None = Field(None, alias="enableRecording")
@@ -188,13 +253,10 @@ class TelnyxConfigUpdate(BaseModel):
 class CoreConfigUpdate(BaseModel):
     """
     Core/Global configuration.
-
-    Provider selection and extraction model.
     """
     stt_provider: str | None = Field(None, max_length=50, alias="sttProvider")
     llm_provider: str | None = Field(None, max_length=50, alias="llmProvider")
-    tts_provider: str | None = Field(None, max_length=50, alias="voiceProvider") # Note: store.v2.js uses generic keys, but Core overrides?
-    # Actually core profile is rarely used directly separate from browser.
+    tts_provider: str | None = Field(None, max_length=50, alias="voiceProvider")
     extraction_model: str | None = Field(None, max_length=100, alias="extractionModel")
 
     model_config = {"extra": "ignore", "populate_by_name": True}
