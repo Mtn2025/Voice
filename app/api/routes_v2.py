@@ -517,12 +517,9 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
                 if client == "telnyx" and (encoding != "PCMA" or sample_rate != 8000):
                     logging.warning(f"⚠️ Unexpected Telnyx format: {encoding} @ {sample_rate}Hz")
 
-                # Create call DB record
+                # Orchestrator handles DB creation now
                 if orchestrator.call_db_id is None:
-                    # Determine client type
-                    source = client # 'telnyx', 'twilio', or 'browser'
-                    async with AsyncSessionLocal() as session:
-                        orchestrator.call_db_id = await db_service.create_call(session, orchestrator.stream_id, client_type=source)
+                     logging.warning("⚠️ [Routes] Call DB ID is None after start (should be set by Orchestrator)")
 
             elif msg["event"] == "media":
                 payload = msg["media"]["payload"]
@@ -568,13 +565,6 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
     finally:
         manager.disconnect(client_id, websocket)
         await orchestrator.stop()
-
-        # Save call to DB
-        try:
-            async with AsyncSessionLocal() as session:
-                await db_service.end_call(session, orchestrator.call_db_id)
-        except Exception as e:
-            logging.error(f"Failed to end call in DB: {e}")
 
         with contextlib.suppress(RuntimeError):
             await websocket.close()
