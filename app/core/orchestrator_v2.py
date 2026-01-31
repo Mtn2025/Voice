@@ -187,6 +187,21 @@ class VoiceOrchestratorV2:
                 logger.info("✅ [V2] CRM context fetched")
         except Exception as e:
             logger.warning(f"⚠️ [V2] CRM initialization failed (non-blocking): {e}")
+
+        # STEP 2.5: Create Call Record (Centralized Lifecycle)
+        try:
+            if not self.call_db_id:
+                # Use injected repository to create call
+                # Assuming call_repo.create_call returns the ID directly
+                self.call_db_id = await self.call_repo.create_call(
+                    stream_id=self.stream_id,
+                    client_type=self.client_type
+                )
+                logger.info(f"✅ [V2] Call record created via repository: {self.call_db_id}")
+        except Exception as e:
+            logger.error(f"❌ [V2] Call Record Creation Failed: {e}")
+            # We continue even if DB fails, but log error
+
         
         # STEP 3: Build Pipeline
         try:
