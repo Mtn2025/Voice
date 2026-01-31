@@ -38,21 +38,25 @@ class SQLAlchemyCallRepository(CallRepositoryPort):
         """Create new call record in database."""
         try:
             async with self.session_factory() as session:
-                call_record = await db_service.create_call(
+                call_id = await db_service.create_call(
                     session=session,
                     session_id=stream_id,
                     client_type=client_type
                 )
+                
+                if not call_id:
+                    raise ValueError("Failed to create call in DB")
 
                 # Translate ORM model to domain CallRecord
+                # Since db_service returns ID only, we construct the domain object with the ID we have
                 return CallRecord(
-                    id=call_record.id,
-                    stream_id=call_record.stream_id,
-                    client_type=call_record.client_type,
-                    started_at=call_record.started_at,
-                    ended_at=call_record.ended_at,
-                    duration_seconds=call_record.duration_seconds,
-                    status=call_record.status or "active"
+                    id=call_id,
+                    stream_id=stream_id,  # Use the original stream_id (which is session_id in DB)
+                    client_type=client_type,
+                    started_at=None, # Not returned by DB service create simple call
+                    ended_at=None,
+                    duration_seconds=None,
+                    status="active"
                 )
 
         except Exception as e:
