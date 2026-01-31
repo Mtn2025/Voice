@@ -170,11 +170,12 @@ class VoiceOrchestratorV2:
         # STEP 3: Create Call Record
         try:
             if not self.call_db_id:
-                self.call_db_id = await self.call_repo.create_call(
+                call_record = await self.call_repo.create_call(
                     stream_id=self.stream_id,
                     client_type=self.client_type,
                     metadata=self.initial_context_data
                 )
+                self.call_db_id = call_record.id
                 logger.info(f"✅ Call record created via repository: {self.call_db_id}")
         except Exception as e:
             logger.error(f"❌ Call Record Creation Failed: {e}")
@@ -335,7 +336,12 @@ class VoiceOrchestratorV2:
             # Push to pipeline
             sample_rate = 16000 if self.client_type == "browser" else 8000
             await self.pipeline.queue_frame(
-                AudioFrame(data=audio_bytes, sample_rate=sample_rate, channels=1)
+                AudioFrame(
+                    data=audio_bytes, 
+                    sample_rate=sample_rate, 
+                    channels=1,
+                    metadata={'source': 'user_input'}
+                )
             )
 
             # Update last interaction time

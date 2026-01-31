@@ -22,6 +22,10 @@ class PipelineOutputSink(FrameProcessor):
     async def process_frame(self, frame: Frame, direction: int):
         if direction == FrameDirection.DOWNSTREAM:
             if isinstance(frame, AudioFrame):
+                # Anti-Echo: Do not play back user input
+                if frame.metadata.get('source') == 'user_input':
+                    return
+
                 # Queue audio for background sending (Non-blocking)
                 await self._queue.put(frame)
 
