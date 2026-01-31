@@ -10,7 +10,6 @@ from app.domain.ports.provider_config import (
     LLMProviderConfig,
     TTSProviderConfig
 )
-from app.domain.ports import STTPort, LLMPort, TTSPort
 
 
 class TestProviderRegistry:

@@ -1,5 +1,6 @@
-import urllib.request
 import os
+import sys
+import urllib.request
 
 url = 'https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx'
 # Match path expected by app/processors/logic/vad.py
@@ -22,4 +23,4 @@ try:
     print("✅ Download complete.")
 except Exception as e:
     print(f"❌ Download failed: {e}")
-    exit(1)
+    sys.exit(1)

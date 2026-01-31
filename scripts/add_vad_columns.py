@@ -1,18 +1,20 @@
 
 import asyncio
-import sys
 import os
+import sys
 
 # Fix path
 sys.path.append(os.getcwd())
 # Fix path
 sys.path.append(os.getcwd())
 
-# Do not override Env Vars here. 
+# Do not override Env Vars here.
 # Let app.core.config load them from .env or System Env (Coolify)
 
 from sqlalchemy import text
+
 from app.db.database import AsyncSessionLocal
+
 
 async def patch():
     # Debug: Print DB Host (Masking password)
@@ -28,21 +30,21 @@ async def patch():
             ("vad_threshold_phone", "FLOAT DEFAULT 0.5"),
             ("vad_threshold_telnyx", "FLOAT DEFAULT 0.5")
         ]
-        
+
         for col_name, col_def in columns:
             try:
                 await session.execute(text(f"ALTER TABLE agent_configs ADD COLUMN {col_name} {col_def}"))
                 print(f"✅ Added {col_name}")
             except Exception as e:
                 # If column exists, it's fine. But we should differentiate.
-                if "already exists" in str(e) or "UndefinedColumn" not in str(e): 
+                if "already exists" in str(e) or "UndefinedColumn" not in str(e):
                      print(f"⚠️ {col_name} might already exist or error: {e}")
                 else:
                     print(f"❌ Critical Error adding {col_name}: {e}")
                     raise e
-        
+
         await session.commit()
-    
+
     # Final Verification
     print("🔍 Verifying Schema...")
     async with AsyncSessionLocal() as session:
@@ -53,7 +55,7 @@ async def patch():
          except Exception as e:
              print(f"❌ Verification FAILED: {e}")
              sys.exit(1)
-             
+
     print("✅ DB Patch Complete.")
 
 if __name__ == "__main__":

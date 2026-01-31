@@ -24,13 +24,12 @@ async def health_check(db: AsyncSession = Depends(get_db)):
 
     # 1. Check Database (Required)
     try:
-        # Simple query to verify connection
         await db.execute(text("SELECT 1"))
         health_status["database"] = "connected"
     except Exception as e:
         logging.error(f"Health Check DB Error: {e}")
         health_status["database"] = "disconnected"
-        health_status["status"] = "unhealthy" # DB is critical
+        health_status["status"] = "unhealthy"
 
     # 2. Check Redis (Optional/Fallback)
     try:
@@ -42,7 +41,6 @@ async def health_check(db: AsyncSession = Depends(get_db)):
                 health_status["status"] = "degraded"
         else:
              health_status["redis"] = "disabled"
-             # Redis is optional (A9), so doesn't flag unhealthy
     except Exception as e:
         logging.error(f"Health Check Redis Error: {e}")
         health_status["redis"] = "error"

@@ -116,9 +116,10 @@
                         <div>
                             <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Retry On
                                 Error</label>
-                            <select class="glass-input w-full p-2 text-xs bg-slate-900 rounded-lg text-slate-400">
-                                <option>Disabled</option>
-                                <option>1 Retry</option>
+                            <select x-model="c.toolRetryCount"
+                                class="glass-input w-full p-2 text-xs bg-slate-900 rounded-lg text-slate-400">
+                                <option value="0">Disabled</option>
+                                <option value="1">1 Retry</option>
                             </select>
                         </div>
                     </div>

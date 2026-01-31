@@ -38,7 +38,7 @@
             </div>
 
             <input type="range" x-model="c.time_patience" min="0.2" max="3.0" step="0.1"
-                @input="c.silenceTimeoutMs = Math.round(c.time_patience * 1000); c.silenceTimeoutMsPhone = Math.round(c.time_patience * 1000)"
+                @input="c.silenceTimeoutMs = Math.round(c.time_patience * 1000)"
                 class="w-full h-2 bg-transparent appearance-none cursor-pointer relative z-10 accent-indigo-500">
         </div>
 

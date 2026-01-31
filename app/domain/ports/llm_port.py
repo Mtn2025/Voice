@@ -1,12 +1,11 @@
 """
 Puerto (Interface) para proveedores de Large Language Models (LLM).
 
-Define el contrato para integración de modelos de lenguaje como
-Groq, Azure OpenAI, Anthropic, etc.
+Define el contrato para integración de modelos de lenguaje.
 """
 
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, Optional
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
 
@@ -24,14 +23,14 @@ class LLMRequest:
     model: str
     temperature: float = 0.7
     max_tokens: int = 600
-    system_prompt: Optional[str] = None
-    tools: Optional[list] = None  # ✅ Module 9: Tool definitions for function calling
-    metadata: dict = None  # ✅ trace_id, etc.
-    
-    # NEW: Advanced LLM Controls
-    frequency_penalty: Optional[float] = 0.0  # Penalize repeated words (0.0-2.0)
-    presence_penalty: Optional[float] = 0.0   # Encourage new topics (0.0-2.0)
-    
+    system_prompt: str | None = None
+    tools: list | None = None
+    metadata: dict = None
+
+    # Advanced LLM Controls
+    frequency_penalty: float | None = 0.0
+    presence_penalty: float | None = 0.0
+
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
@@ -40,78 +39,71 @@ class LLMRequest:
 class LLMPort(ABC):
     """
     Puerto para proveedores de LLM.
-    
-    Implementaciones: GroqAdapter, AzureOpenAIAdapter, AnthropicAdapter
     """
-    
+
     @abstractmethod
-    async def generate_stream(self, request: LLMRequest) -> 'AsyncIterator[LLMChunk]':
+    async def generate_stream(self, request: LLMRequest) -> 'AsyncIterator':
         """
         Genera respuesta en modo streaming.
-        
-        ✅ Module 9: Returns LLMChunk (supports text + function_call)
-        
+
         Args:
-            request: Parámetros de generación (incluye tools para function calling)
-            
+            request: Parámetros de generación
+
         Yields:
             LLMChunk con text o function_call
-            
+
         Raises:
             LLMException: Si falla la generación
         """
         pass
-    
+
     @abstractmethod
     async def get_available_models(self) -> list[str]:
         """
         Obtiene lista de modelos disponibles.
-        
+
         Returns:
             Lista de IDs de modelos
         """
         pass
-    
+
     @abstractmethod
     def is_model_safe_for_voice(self, model: str) -> bool:
         """
         Verifica si un modelo es seguro para voz.
-        
-        Modelos con razonamiento (deepseek-r1, etc.) generan tags
-        <think> que no deben verbalizarse.
-        
+
         Args:
             model: ID del modelo
-            
+
         Returns:
             True si es seguro para voz
         """
         pass
 
 
-class LLMException(Exception):
+class LLMException(Exception):  # noqa: N818 - Domain naming, consistent
     """
     Excepción base para errores de LLM.
-    
+
     Attributes:
         message: Mensaje de error humanizado
         retryable: Si el error puede resolverse reintentando
-        provider: Proveedor que generó el error ("groq", "openai", etc.)
-        original_error: Excepción original del SDK (para debugging)
+        provider: Proveedor que generó el error
+        original_error: Excepción original del SDK
     """
-    
+
     def __init__(
-        self, 
-        message: str, 
-        retryable: bool = False, 
+        self,
+        message: str,
+        retryable: bool = False,
         provider: str = "unknown",
-        original_error: Exception = None
+        original_error: Exception | None = None
     ):
         super().__init__(message)
         self.retryable = retryable
         self.provider = provider
         self.original_error = original_error
-        
+
     def __str__(self):
         retry_hint = "(retryable)" if self.retryable else "(not retryable)"
         return f"[{self.provider}] {super().__str__()} {retry_hint}"

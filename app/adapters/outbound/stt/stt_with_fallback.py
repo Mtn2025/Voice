@@ -4,9 +4,10 @@ Fallback Wrapper for STT Port - Graceful Degradation.
 Implements automatic failover for speech recognition.
 """
 import logging
-from typing import Optional, Callable, Any
-from app.domain.ports import STTPort, STTConfig, STTRecognizer, STTException
+from collections.abc import Callable
+from typing import Any
 
+from app.domain.ports import STTConfig, STTException, STTPort, STTRecognizer
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,11 @@ logger = logging.getLogger(__name__)
 class STTWithFallback(STTPort):
     """
     STT Port wrapper with graceful degradation.
-    
+
     Falls back to alternative STT provider on failures.
     """
-    
-    def __init__(self, primary: STTPort, fallback: Optional[STTPort] = None):
+
+    def __init__(self, primary: STTPort, fallback: STTPort | None = None):
         """
         Args:
             primary: Primary STT provider (e.g., Azure)
@@ -26,12 +27,12 @@ class STTWithFallback(STTPort):
         """
         self.primary = primary
         self.fallback = fallback
-    
+
     def create_recognizer(
         self,
         config: STTConfig,
-        on_interruption_callback: Optional[Callable] = None,
-        event_loop: Optional[Any] = None
+        on_interruption_callback: Callable | None = None,
+        event_loop: Any | None = None
     ) -> STTRecognizer:
         """
         Create recognizer from primary, fallback on failure.
@@ -41,30 +42,30 @@ class STTWithFallback(STTPort):
             return self.primary.create_recognizer(
                 config, on_interruption_callback, event_loop
             )
-        
+
         except STTException as e:
             if not e.retryable or not self.fallback:
                 raise
-            
+
             logger.warning(f"[STT Fallback] Primary failed: {e}. Trying fallback...")
             return self.fallback.create_recognizer(
                 config, on_interruption_callback, event_loop
             )
-    
+
     async def transcribe_audio(self, audio_bytes: bytes, language: str = "es") -> str:
         """
         Transcribe with primary, fallback on failure.
         """
         try:
             return await self.primary.transcribe_audio(audio_bytes, language)
-        
+
         except STTException as e:
             if not e.retryable or not self.fallback:
                 raise
-            
-            logger.warning(f"[STT Fallback] Primary transcription failed. Using fallback...")
+
+            logger.warning("[STT Fallback] Primary transcription failed. Using fallback...")
             return await self.fallback.transcribe_audio(audio_bytes, language)
-    
+
     async def close(self):
         """Close both providers."""
         await self.primary.close()

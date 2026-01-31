@@ -10,7 +10,8 @@ import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch
 from app.core.orchestrator_v2 import VoiceOrchestratorV2
-from app.ports.transport import AudioTransport
+from app.domain.ports.audio_transport import AudioTransport
+from app.domain.ports import STTPort, LLMPort, TTSPort, ConfigRepositoryPort, CallRepositoryPort
 
 
 @pytest.fixture
@@ -57,43 +58,52 @@ class TestFullPipelineFlow:
         4. TTS synthesizes
         5. Audio sent back via WebSocket
         """
-        # Setup
+        # Create Mock Ports
+        mock_stt = Mock(spec=STTPort)
+        mock_stt.transcribe = AsyncMock(return_value="Hello assistant")
+        
+        mock_llm = Mock(spec=LLMPort)
+        mock_llm.generate = AsyncMock(return_value="Hi! How can I help?")
+        
+        mock_tts = Mock(spec=TTSPort)
+        mock_tts.synthesize = AsyncMock(return_value=b"audio_data")
+        
+        mock_config_repo = Mock(spec=ConfigRepositoryPort)
+        mock_config_repo.get_agent_config = AsyncMock(return_value=Mock(greeting_enabled=False))
+        
+        mock_call_repo = Mock(spec=CallRepositoryPort)
+        mock_call_repo.create_call = AsyncMock(return_value=1)
+        mock_call_repo.end_call = AsyncMock()
+
+        # Setup Orchestrator via DI
         orchestrator = VoiceOrchestratorV2(
             transport=mock_transport,
-            client_type="browser"
+            stt_port=mock_stt,
+            llm_port=mock_llm,
+            tts_port=mock_tts,
+            config_repo=mock_config_repo,
+            call_repo=mock_call_repo,
+            client_type="browser",
+            initial_context="e30=" # "{}" in base64
         )
         
-        # Mock providers to avoid external API calls
-        with patch('app.core.service_factory.ServiceFactory.get_llm_provider') as mock_llm, \
-             patch('app.core.service_factory.ServiceFactory.get_stt_provider') as mock_stt, \
-             patch('app.core.service_factory.ServiceFactory.get_tts_provider') as mock_tts:
-            
-            # Configure mocks
-            mock_stt.return_value.transcribe = AsyncMock(return_value="Hello assistant")
-            mock_llm.return_value.generate = AsyncMock(return_value="Hi! How can I help?")
-            mock_tts.return_value.synthesize = AsyncMock(return_value=b"audio_data")
-            
-            # Start orchestrator
-            orchestrator.config = Mock()
-            orchestrator.config.greeting_enabled = False
-            
-            await orchestrator.start()
-            
-            # Simulate user audio input
-            import base64
-            user_audio = b"x" * 1600  # 100ms @ 16kHz
-            payload = base64.b64encode(user_audio).decode()
-            
-            await orchestrator.process_audio(payload)
-            
-            # Wait for processing
-            await asyncio.sleep(0.5)
-            
-            # Verify output was sent
-            assert mock_transport.send_audio.called
-            
-            # Cleanup
-            await orchestrator.stop()
+        await orchestrator.start()
+        
+        # Simulate user audio input
+        import base64
+        user_audio = b"x" * 1600  # 100ms @ 16kHz
+        payload = base64.b64encode(user_audio).decode()
+        
+        await orchestrator.process_audio(payload)
+        
+        # Wait for processing
+        await asyncio.sleep(0.5)
+        
+        # Verify output was sent
+        assert mock_transport.send_audio.called
+        
+        # Cleanup
+        await orchestrator.stop()
     
     @pytest.mark.asyncio
     async def test_interruption_flow(self, mock_transport):
@@ -106,16 +116,41 @@ class TestFullPipelineFlow:
         3. Audio queue cleared
         4. New response generated
         """
+        # Minimal DI setup for interruption test
+        mock_stt = Mock(spec=STTPort)
+        mock_llm = Mock(spec=LLMPort)
+        mock_tts = Mock(spec=TTSPort)
+        mock_config_repo = Mock(spec=ConfigRepositoryPort)
+        mock_config_repo.get_agent_config = AsyncMock(return_value=Mock())
+        mock_call_repo = Mock(spec=CallRepositoryPort)
+        mock_call_repo.create_call = AsyncMock(return_value=1)
+        
         orchestrator = VoiceOrchestratorV2(
             transport=mock_transport,
-            client_type="browser"
+            stt_port=mock_stt,
+            llm_port=mock_llm,
+            tts_port=mock_tts,
+            config_repo=mock_config_repo,
+            call_repo=mock_call_repo,
+            client_type="browser",
+            initial_context="e30="
         )
         
         # Start audio manager
         await orchestrator.audio_manager.start()
         
+        # Configure FSM to allow interrupt
+        orchestrator.fsm.state = "SPEAKING" # Hack just for unit expectation if FSM is strict
+        # Actually in partial E2E we might rely on real FSM. 
+        # But we need to ensure FSM allows transition. 
+        # By default start() puts it in listening. We need to simulate speaking.
+        
         # Simulate bot speaking
         orchestrator.audio_manager.is_bot_speaking = True
+        orchestrator.fsm.state = "SPEAKING" # Type: ignore (String vs Enum) - assumes Enum works with str or we need Enum
+        from app.domain.state import ConversationState
+        orchestrator.fsm.state = ConversationState.SPEAKING
+        
         await orchestrator.audio_manager.send_audio_chunked(b"x" * 320)
         
         # User interrupts
@@ -146,8 +181,7 @@ class TestConfigurationAPI:
         from app.utils.config_utils import update_profile_config
         
         # Initial config
-        config = await db_service.get_agent_config(db_session)
-        original_temp = config.temperature if config else 0.7
+        _config = await db_service.get_agent_config(db_session)
         
         # Update via utility
         updates = {"temperature": 0.9, "max_tokens": 2000}

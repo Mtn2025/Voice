@@ -5,9 +5,11 @@ import contextlib
 import json
 import logging
 import pathlib
+
 from fastapi import WebSocket
 
 from app.core.audio_processor import AudioProcessor
+
 
 class AudioStreamer:
     """
@@ -21,7 +23,7 @@ class AudioStreamer:
         self.websocket = websocket
         self.client_type = client_type
         self.stream_id = stream_id
-        
+
         # Audio State
         self.audio_queue = asyncio.Queue()
         self.bg_loop_buffer: bytes | None = None
@@ -50,7 +52,7 @@ class AudioStreamer:
 
         try:
              # Basic security check to prevent directory traversal
-             safe_name = bg_sound_name.replace("..", "").replace("/", "") 
+             safe_name = bg_sound_name.replace("..", "").replace("/", "")
              sound_path = pathlib.Path(f"app/static/sounds/{safe_name}.wav")
 
              if sound_path.exists():
@@ -86,10 +88,8 @@ class AudioStreamer:
              # Browser still uses direct send
              b64 = base64.b64encode(audio_data).decode("utf-8")
              logging.debug(f"📤 [BROWSER] Sending audio chunk: {len(audio_data)} bytes")
-             try:
+             with contextlib.suppress(Exception):
                  await self.websocket.send_text(json.dumps({"type": "audio", "data": b64}))
-             except Exception:
-                 pass
              return
 
         # For Telephony: Queue slices
@@ -164,7 +164,7 @@ class AudioStreamer:
                 # Optimized mixing: Assume uLaw/aLaw based on client type
                 # Note: This logic assumes 8kHz for telephony
                 is_alaw = (self.client_type == 'telnyx')
-                
+
                 if is_alaw:
                      bg_lin = AudioProcessor.alaw2lin(bg_chunk, 2)
                      tts_lin = AudioProcessor.alaw2lin(tts_chunk, 2)

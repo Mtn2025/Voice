@@ -53,15 +53,19 @@
                     <div class="md:col-span-2">
                         <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Credentials</label>
                         <div class="flex items-center gap-2 px-3 py-2 bg-slate-900/50 rounded border border-white/5">
-                            <span class="text-xs text-red-400 font-mono">🔒 Credentials configured via Environment</span>
+                            <span class="text-xs text-red-400 font-mono">🔒 Credentials configured via
+                                Environment</span>
                             <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">From Number (Caller ID)</label>
-                        <input type="text" x-model="c.twilioFromNumber" placeholder="+1234567890" class="glass-input w-full p-2 text-xs font-mono">
+                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">From Number (Caller
+                            ID)</label>
+                        <input type="text" x-model="c.twilioFromNumber" placeholder="+1234567890"
+                            class="glass-input w-full p-2 text-xs font-mono">
                     </div>
                 </div>
             </div>
@@ -104,21 +108,16 @@
                                 class="glass-input w-full p-2 text-xs font-mono">
                         </div>
                     </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-bold block mb-1">Caller ID
-                            (Override)</label>
-                        <input type="text" x-model="c.callerIdTelnyx" placeholder="+1..."
-                            class="glass-input w-full p-2 text-xs font-mono">
-                    </div>
+                </div>
 
-                    <!-- TEST CALL WIDGET -->
-                    <div class="md:col-span-2 mt-2 pt-2 border-t border-emerald-500/20">
-                        <label class="text-[10px] uppercase text-emerald-500 font-bold block mb-1">🚑 Test Driver (Real
-                            Call)</label>
-                        <div class="flex gap-2">
-                            <input type="text" x-data="{ target: '' }" x-model="target" placeholder="To: +1..."
-                                class="glass-input flex-1 p-2 text-xs font-mono bg-black/40">
-                            <button @click="
+                <!-- TEST CALL WIDGET -->
+                <div class="md:col-span-2 mt-2 pt-2 border-t border-emerald-500/20">
+                    <label class="text-[10px] uppercase text-emerald-500 font-bold block mb-1">🚑 Test Driver (Real
+                        Call)</label>
+                    <div class="flex gap-2">
+                        <input type="text" x-data="{ target: '' }" x-model="target" placeholder="To: +1..."
+                            class="glass-input flex-1 p-2 text-xs font-mono bg-black/40">
+                        <button @click="
                                 if(!target) return alert('Enter number');
                                 fetch('/api/v1/calls/test-outbound', {
                                     method: 'POST',
@@ -132,212 +131,212 @@
                                 })
                                 .catch(e => alert('Fail: '+e))
                             "
-                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded shadow-lg transition-all flex items-center gap-1">
-                                <span>📞</span> Call
-                            </button>
-                        </div>
+                            class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded shadow-lg transition-all flex items-center gap-1">
+                            <span>📞</span> Call
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- 2. SIP & TRUNKING -->
-            <div x-show="subTab === 'sip'" class="space-y-4 px-3 pb-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Phone SIP -->
-                    <div class="bg-slate-800/50 p-4 rounded-lg">
-                        <h5 class="text-xs font-bold text-slate-300 mb-3">Twilio SIP Trunking</h5>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-[10px] text-slate-500 block">SIP Trunk URI</label>
-                                <input type="text" x-model="c.sipTrunkUriPhone" placeholder="sip:..."
-                                    class="glass-input w-full p-2 text-xs">
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="text" x-model="c.sipAuthUserPhone" placeholder="User"
-                                    class="glass-input w-full p-2 text-xs">
-                                <input type="password" x-model="c.sipAuthPassPhone" placeholder="Pass"
-                                    class="glass-input w-full p-2 text-xs">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-slate-500 block">Geo-Region</label>
-                                <select x-model="c.geoRegionPhone" class="glass-input w-full p-2 text-xs bg-slate-900">
-                                    <option value="us-east-1">US East (N. Virginia)</option>
-                                    <option value="us-west-1">US West (Oregon)</option>
-                                    <option value="eu-west-1">Europe (Ireland)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Telnyx SIP -->
-                    <div class="bg-slate-800/50 p-4 rounded-lg">
-                        <h5 class="text-xs font-bold text-slate-300 mb-3">Telnyx SIP Trunking</h5>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="text-[10px] text-slate-500 block">SIP Trunk URI</label>
-                                <input type="text" x-model="c.sipTrunkUriTelnyx" placeholder="sip:..."
-                                    class="glass-input w-full p-2 text-xs">
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="text" x-model="c.sipAuthUserTelnyx" placeholder="User"
-                                    class="glass-input w-full p-2 text-xs">
-                                <input type="password" x-model="c.sipAuthPassTelnyx" placeholder="Pass"
-                                    class="glass-input w-full p-2 text-xs">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-slate-500 block">Geo-Region</label>
-                                <select x-model="c.geoRegionTelnyx" class="glass-input w-full p-2 text-xs bg-slate-900">
-                                    <option value="us-central">US Central (Chicago)</option>
-                                    <option value="us-east">US East (Ashburn)</option>
-                                    <option value="global">Global Anycast</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FALLBACK -->
-                <div class="bg-indigo-900/20 p-3 rounded border border-indigo-500/20">
-                    <label class="text-xs font-bold text-indigo-300 block mb-1">Fallback Number (Desvío de
-                        Emergencia)</label>
-                    <div class="flex gap-2">
-                        <input type="text" x-model="c.fallbackNumberPhone" placeholder="+1..."
-                            class="glass-input flex-1 p-2 text-xs">
-                        <span class="text-[10px] text-slate-500 self-center">Si falla el bot, desviar aquí.</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. FEATURES & COMPLIANCE -->
-            <div x-show="subTab === 'features'" class="space-y-4 px-3 pb-3">
-
-                <!-- RECORDING -->
-                <div class="glass-panel p-4 rounded-lg border border-white/5">
-                    <div class="flex justify-between items-center mb-3">
-                        <h5 class="text-sm font-bold text-white flex items-center gap-2">
-                            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
-                                </path>
-                            </svg>
-                            Grabación de Llamadas
-                        </h5>
-                    </div>
-
-                    <!-- Twilio Rec -->
-                    <div class="flex justify-between items-center py-2 border-b border-white/5">
+        <!-- 2. SIP & TRUNKING -->
+        <div x-show="subTab === 'sip'" class="space-y-4 px-3 pb-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Phone SIP -->
+                <div class="bg-slate-800/50 p-4 rounded-lg">
+                    <h5 class="text-xs font-bold text-slate-300 mb-3">Twilio SIP Trunking</h5>
+                    <div class="space-y-3">
                         <div>
-                            <span class="text-xs text-slate-300">Twilio Recording</span>
-                            <div class="flex gap-2 mt-1">
-                                <select x-model="c.recordingChannelsPhone"
-                                    class="bg-black/30 border border-white/10 rounded text-[10px] text-slate-400">
-                                    <option value="mono">Mono (Mixed)</option>
-                                    <option value="dual">Dual (Stereo)</option>
-                                </select>
-                            </div>
+                            <label class="text-[10px] text-slate-500 block">SIP Trunk URI</label>
+                            <input type="text" x-model="c.sipTrunkUriPhone" placeholder="sip:..."
+                                class="glass-input w-full p-2 text-xs">
                         </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" x-model="c.sipAuthUserPhone" placeholder="User"
+                                class="glass-input w-full p-2 text-xs">
+                            <input type="password" x-model="c.sipAuthPassPhone" placeholder="Pass"
+                                class="glass-input w-full p-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 block">Geo-Region</label>
+                            <select x-model="c.geoRegionPhone" class="glass-input w-full p-2 text-xs bg-slate-900">
+                                <option value="us-east-1">US East (N. Virginia)</option>
+                                <option value="us-west-1">US West (Oregon)</option>
+                                <option value="eu-west-1">Europe (Ireland)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Telnyx SIP -->
+                <div class="bg-slate-800/50 p-4 rounded-lg">
+                    <h5 class="text-xs font-bold text-slate-300 mb-3">Telnyx SIP Trunking</h5>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[10px] text-slate-500 block">SIP Trunk URI</label>
+                            <input type="text" x-model="c.sipTrunkUriTelnyx" placeholder="sip:..."
+                                class="glass-input w-full p-2 text-xs">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" x-model="c.sipAuthUserTelnyx" placeholder="User"
+                                class="glass-input w-full p-2 text-xs">
+                            <input type="password" x-model="c.sipAuthPassTelnyx" placeholder="Pass"
+                                class="glass-input w-full p-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 block">Geo-Region</label>
+                            <select x-model="c.geoRegionTelnyx" class="glass-input w-full p-2 text-xs bg-slate-900">
+                                <option value="us-central">US Central (Chicago)</option>
+                                <option value="us-east">US East (Ashburn)</option>
+                                <option value="global">Global Anycast</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FALLBACK -->
+            <div class="bg-indigo-900/20 p-3 rounded border border-indigo-500/20">
+                <label class="text-xs font-bold text-indigo-300 block mb-1">Fallback Number (Desvío de
+                    Emergencia)</label>
+                <div class="flex gap-2">
+                    <input type="text" x-model="c.fallbackNumberPhone" placeholder="+1..."
+                        class="glass-input flex-1 p-2 text-xs">
+                    <span class="text-[10px] text-slate-500 self-center">Si falla el bot, desviar aquí.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. FEATURES & COMPLIANCE -->
+        <div x-show="subTab === 'features'" class="space-y-4 px-3 pb-3">
+
+            <!-- RECORDING -->
+            <div class="glass-panel p-4 rounded-lg border border-white/5">
+                <div class="flex justify-between items-center mb-3">
+                    <h5 class="text-sm font-bold text-white flex items-center gap-2">
+                        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                            </path>
+                        </svg>
+                        Grabación de Llamadas
+                    </h5>
+                </div>
+
+                <!-- Twilio Rec -->
+                <div class="flex justify-between items-center py-2 border-b border-white/5">
+                    <div>
+                        <span class="text-xs text-slate-300">Twilio Recording</span>
+                        <div class="flex gap-2 mt-1">
+                            <select x-model="c.recordingChannelsPhone"
+                                class="bg-black/30 border border-white/10 rounded text-[10px] text-slate-400">
+                                <option value="mono">Mono (Mixed)</option>
+                                <option value="dual">Dual (Stereo)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.recordingEnabledPhone" class="sr-only peer">
+                        <div
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500">
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Telnyx Rec -->
+                <div class="flex justify-between items-center py-2">
+                    <div>
+                        <span class="text-xs text-slate-300">Telnyx Recording</span>
+                        <div class="flex gap-2 mt-1">
+                            <select x-model="c.recordingChannelsTelnyx"
+                                class="bg-black/30 border border-white/10 rounded text-[10px] text-slate-400">
+                                <option value="dual">Dual (Stereo)</option>
+                                <option value="mono">Mono (Mixed)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="c.enableRecordingTelnyx" class="sr-only peer">
+                        <div
+                            class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- COMPLIANCE & TRANSFER -->
+            <!-- COMPLIANCE & TRANSFER -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Compliance -->
+                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                    <h5 class="text-xs font-bold text-slate-300 mb-3">Compliance & Security</h5>
+
+                    <!-- Twilio HIPAA -->
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs text-slate-400">HIPAA (Twilio)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" x-model="c.recordingEnabledPhone" class="sr-only peer">
+                            <input type="checkbox" x-model="c.hipaaEnabledPhone" class="sr-only peer">
                             <div
-                                class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500">
+                                class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500">
                             </div>
                         </label>
                     </div>
 
-                    <!-- Telnyx Rec -->
-                    <div class="flex justify-between items-center py-2">
-                        <div>
-                            <span class="text-xs text-slate-300">Telnyx Recording</span>
-                            <div class="flex gap-2 mt-1">
-                                <select x-model="c.recordingChannelsTelnyx"
-                                    class="bg-black/30 border border-white/10 rounded text-[10px] text-slate-400">
-                                    <option value="dual">Dual (Stereo)</option>
-                                    <option value="mono">Mono (Mixed)</option>
-                                </select>
-                            </div>
-                        </div>
+                    <!-- Telnyx HIPAA -->
+                    <div class="flex justify-between items-center mb-2 pt-2 border-t border-white/5">
+                        <span class="text-xs text-slate-400">HIPAA (Telnyx)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" x-model="c.enableRecordingTelnyx" class="sr-only peer">
+                            <input type="checkbox" x-model="c.hipaaEnabledTelnyx" class="sr-only peer">
                             <div
                                 class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
                             </div>
                         </label>
                     </div>
+
+                    <p class="text-[10px] text-slate-500 mt-2">Enforce encrypted storage & transport.</p>
                 </div>
 
-                <!-- COMPLIANCE & TRANSFER -->
-                <!-- COMPLIANCE & TRANSFER -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Compliance -->
-                    <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                        <h5 class="text-xs font-bold text-slate-300 mb-3">Compliance & Security</h5>
+                <!-- Transfer / DTMF / AMD -->
+                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                    <h5 class="text-xs font-bold text-slate-300 mb-3">Advanced Features</h5>
 
-                        <!-- Twilio HIPAA -->
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs text-slate-400">HIPAA (Twilio)</span>
+                    <div class="space-y-3">
+                        <!-- Twilio DTMF -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400">DTMF Listening (Twilio)</span>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" x-model="c.hipaaEnabledPhone" class="sr-only peer">
+                                <input type="checkbox" x-model="c.dtmfListeningEnabledPhone" class="sr-only peer">
                                 <div
-                                    class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500">
+                                    class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3">
                                 </div>
                             </label>
                         </div>
 
-                        <!-- Telnyx HIPAA -->
-                        <div class="flex justify-between items-center mb-2 pt-2 border-t border-white/5">
-                            <span class="text-xs text-slate-400">HIPAA (Telnyx)</span>
+                        <!-- Telnyx DTMF -->
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400">DTMF Listening (Telnyx)</span>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" x-model="c.hipaaEnabledTelnyx" class="sr-only peer">
+                                <input type="checkbox" x-model="c.dtmfListeningEnabledTelnyx" class="sr-only peer">
                                 <div
-                                    class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500">
+                                    class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3">
                                 </div>
                             </label>
                         </div>
 
-                        <p class="text-[10px] text-slate-500 mt-2">Enforce encrypted storage & transport.</p>
-                    </div>
-
-                    <!-- Transfer / DTMF / AMD -->
-                    <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                        <h5 class="text-xs font-bold text-slate-300 mb-3">Advanced Features</h5>
-
-                        <div class="space-y-3">
-                            <!-- Twilio DTMF -->
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-slate-400">DTMF Listening (Twilio)</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="c.dtmfListeningEnabledPhone" class="sr-only peer">
-                                    <div
-                                        class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3">
-                                    </div>
-                                </label>
-                            </div>
-
-                            <!-- Telnyx DTMF -->
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-slate-400">DTMF Listening (Telnyx)</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="c.dtmfListeningEnabledTelnyx" class="sr-only peer">
-                                    <div
-                                        class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3">
-                                    </div>
-                                </label>
-                            </div>
-
-                            <!-- Telnyx AMD -->
-                            <div class="pt-2 border-t border-white/5">
-                                <span class="text-xs text-slate-400 block mb-1">Telnyx Answer Machine (AMD)</span>
-                                <select x-model="c.amdConfig"
-                                    class="bg-black/30 border border-white/10 rounded w-full p-1 text-[10px] text-slate-300">
-                                    <option value="disabled">Disabled</option>
-                                    <option value="detect">Detect Only</option>
-                                    <option value="detect_hangup">Detect & Hangup</option>
-                                    <option value="detect_message_end">Detect Message End</option>
-                                </select>
-                            </div>
+                        <!-- Telnyx AMD -->
+                        <div class="pt-2 border-t border-white/5">
+                            <span class="text-xs text-slate-400 block mb-1">Telnyx Answer Machine (AMD)</span>
+                            <select x-model="c.amdConfig"
+                                class="bg-black/30 border border-white/10 rounded w-full p-1 text-[10px] text-slate-300">
+                                <option value="disabled">Disabled</option>
+                                <option value="detect">Detect Only</option>
+                                <option value="detect_hangup">Detect & Hangup</option>
+                                <option value="detect_message_end">Detect Message End</option>
+                            </select>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>

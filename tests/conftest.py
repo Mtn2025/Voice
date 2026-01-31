@@ -20,9 +20,8 @@ os.environ.setdefault("ADMIN_API_KEY", "test_admin_key_secure_123")
 os.environ.setdefault("AZURE_SPEECH_KEY", "mock_azure_key")
 os.environ.setdefault("AZURE_SPEECH_REGION", "eastus")
 os.environ.setdefault("GROQ_API_KEY", "mock_groq_key")
-os.environ.setdefault("TWILIO_ACCOUNT_SID", "mock_sid")
-os.environ.setdefault("TWILIO_AUTH_TOKEN", "mock_token")
 os.environ.setdefault("TELNYX_API_KEY", "mock_telnyx_key")
+
 
 import pytest
 
@@ -184,27 +183,3 @@ def mock_db_service(mocker):
     mock_db.update_call_extraction = mocker.AsyncMock()
 
     return mock_db
-
-
-@pytest.fixture
-def mock_service_factory(mocker, mock_stt_provider, mock_llm_provider, mock_tts_provider):
-    """Mock ServiceFactory to return mocked providers."""
-    factory_class = mocker.patch('app.core.orchestrator.ServiceFactory')
-
-    factory_class.get_stt_provider = mocker.MagicMock(return_value=mock_stt_provider)
-    factory_class.get_llm_provider = mocker.MagicMock(return_value=mock_llm_provider)
-    factory_class.get_tts_provider = mocker.MagicMock(return_value=mock_tts_provider)
-
-    return factory_class
-
-
-# =============================================================================
-# Database Fixtures (for future integration tests)
-# =============================================================================
-
-# TODO: Add DB session fixtures when needed for integration tests
-# @pytest.fixture
-# def test_db_session():
-#     """Create in-memory SQLite session for testing."""
-#     pass
-

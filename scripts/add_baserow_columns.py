@@ -1,19 +1,20 @@
 
 import asyncio
-import sys
 import os
+import sys
 
 # Fix path
 sys.path.append(os.getcwd())
 
-# Fix path
-sys.path.append(os.getcwd())
 
-# Do not override Env Vars here. 
+
+# Do not override Env Vars here.
 # Let app.core.config load them from .env or System Env (Coolify)
 
 from sqlalchemy import text
+
 from app.db.database import AsyncSessionLocal
+
 
 async def patch():
     # Debug: Print DB Host
@@ -29,7 +30,7 @@ async def patch():
             ("baserow_token", "VARCHAR"),
             ("baserow_table_id", "INTEGER")
         ]
-        
+
         for col_name, col_def in columns:
             try:
                 await session.execute(text(f"ALTER TABLE agent_configs ADD COLUMN {col_name} {col_def}"))
@@ -40,9 +41,9 @@ async def patch():
                 else:
                      print(f"❌ Critical Error adding {col_name}: {e}")
                      raise e
-        
+
         await session.commit()
-    
+
     print("🔍 Verifying Schema...")
     async with AsyncSessionLocal() as session:
          try:

@@ -3,17 +3,15 @@ Alembic environment configuration for async PostgreSQL.
 """
 import asyncio
 import os
-
-# Import app configuration and models
 import sys
 from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
 from alembic import context
 
+# Import app configuration and models
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.config import settings
@@ -22,7 +20,6 @@ from app.db.models import Base
 # this is the Alembic Config object
 config = context.config
 
-# Override sqlalchemy.url with our settings
 # Override sqlalchemy.url with our settings
 # Escape '%' to '%%' because ConfigParser treats '%' as start of interpolation
 config.set_main_option('sqlalchemy.url', settings.DATABASE_URL.replace('%', '%%'))

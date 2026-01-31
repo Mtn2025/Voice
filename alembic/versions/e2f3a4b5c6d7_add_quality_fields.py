@@ -19,30 +19,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    conn = op.get_bind()
-    inspector = sa.inspect(conn)
-    columns = [col['name'] for col in inspector.get_columns('agent_configs')]
-
-    if 'noise_suppression_level' not in columns:
-        op.add_column('agent_configs', sa.Column('noise_suppression_level', sa.String(), nullable=True))
-    
-    if 'audio_codec' not in columns:
-        op.add_column('agent_configs', sa.Column('audio_codec', sa.String(), nullable=True))
-        
-    if 'enable_backchannel' not in columns:
-        op.add_column('agent_configs', sa.Column('enable_backchannel', sa.Boolean(), nullable=True))
+    """Add quality and latency fields."""
+    op.add_column('agent_configs', sa.Column('noise_suppression_level', sa.String(), nullable=True))
+    op.add_column('agent_configs', sa.Column('audio_codec', sa.String(), nullable=True))
+    op.add_column('agent_configs', sa.Column('enable_backchannel', sa.Boolean(), nullable=True))
 
 
 def downgrade() -> None:
-    conn = op.get_bind()
-    inspector = sa.inspect(conn)
-    columns = [col['name'] for col in inspector.get_columns('agent_configs')]
-
-    if 'enable_backchannel' in columns:
-        op.drop_column('agent_configs', 'enable_backchannel')
-    
-    if 'audio_codec' in columns:
-        op.drop_column('agent_configs', 'audio_codec')
-        
-    if 'noise_suppression_level' in columns:
-        op.drop_column('agent_configs', 'noise_suppression_level')
+    """Remove quality and latency fields."""
+    op.drop_column('agent_configs', 'enable_backchannel')
+    op.drop_column('agent_configs', 'audio_codec')
+    op.drop_column('agent_configs', 'noise_suppression_level')

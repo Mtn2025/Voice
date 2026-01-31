@@ -12,7 +12,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("Simulation")
 
 from app.core.pipeline import Pipeline
-from app.core.frames import AudioFrame, TextFrame, UserStartedSpeakingFrame, UserStoppedSpeakingFrame
 # Processors
 from app.processors.logic.stt import STTProcessor
 from app.processors.logic.aggregator import ContextAggregator

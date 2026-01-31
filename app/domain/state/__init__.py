@@ -1,12 +1,8 @@
 """Domain state management - FSM and state transitions."""
-from .conversation_state import (
-    ConversationState,
-    ConversationFSM,
-    StateTransitionEvent
-)
+from .conversation_state import ConversationFSM, ConversationState, StateTransitionEvent
 
 __all__ = [
-    'ConversationState',
     'ConversationFSM',
+    'ConversationState',
     'StateTransitionEvent'
 ]

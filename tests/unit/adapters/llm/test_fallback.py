@@ -5,8 +5,6 @@ Validates LLMWithFallback wrapper functionality.
 Tests primary provider success, fallback on retryable errors.
 """
 import pytest
-import asyncio
-from unittest.mock import AsyncMock
 from app.domain.ports import LLMPort, LLMRequest, LLMMessage, LLMException
 from app.adapters.outbound.llm.llm_with_fallback import LLMWithFallback
 

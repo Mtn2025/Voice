@@ -1,15 +1,19 @@
 import asyncio
+import contextlib
 import logging
-from typing import List, Callable, Coroutine
+from collections.abc import Callable, Coroutine
 
-from app.core.frames import Frame, SystemFrame
-from app.core.processor import FrameProcessor, FrameDirection
+from app.core.frames import BackpressureFrame, Frame, SystemFrame
+from app.core.processor import FrameDirection, FrameProcessor
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 class PipelineSource(FrameProcessor):
-    """Entry point of the pipeline."""
+    """
+    Entry point of the pipeline.
+    Acts as the source adapter, feeding frames from upstream into the pipeline.
+    """
     def __init__(self, upstream_handler: Callable[[Frame], Coroutine]):
         super().__init__(name="PipelineSource")
         self._upstream_handler = upstream_handler
@@ -23,7 +27,10 @@ class PipelineSource(FrameProcessor):
             await self.push_frame(frame, direction)
 
 class PipelineSink(FrameProcessor):
-    """Exit point of the pipeline."""
+    """
+    Exit point of the pipeline.
+    Acts as the sink adapter, outputting frames from the pipeline to downstream.
+    """
     def __init__(self, downstream_handler: Callable[[Frame], Coroutine]):
         super().__init__(name="PipelineSink")
         self._downstream_handler = downstream_handler
@@ -39,39 +46,39 @@ class PipelineSink(FrameProcessor):
 class Pipeline(FrameProcessor):
     """
     Frame processing pipeline with backpressure management.
-    
-    ✅ Module 4: Backpressure Management
-    - max_queue_size: Limit queue growth (prevent OOM)
-    - Emits BackpressureFrame when queue approaching capacity
-    - Priority queue (SystemFrames bypass backpressure)
+
+    Features:
+    - Backpressure Management: Monitors queue size to prevent OOM.
+    - Priority Queue: Ensures SystemFrames bypass traffic congestion.
+    - Dropped Frame Tracking: Monitors system health under load.
     """
-    
-    def __init__(self, processors: List[FrameProcessor] = None, max_queue_size: int = 100):
+
+    def __init__(self, processors: list[FrameProcessor] | None = None, max_queue_size: int = 100):
         """
         Initialize pipeline.
-        
+
         Args:
             processors: List of frame processors
-            max_queue_size: Maximum queue size (default 100, prevents buffer overflow)
+            max_queue_size: Maximum queue size (default 100)
         """
         super().__init__(name="Pipeline")
         self._source = PipelineSource(self._handle_upstream)
         self._sink = PipelineSink(self._handle_downstream)
-        
+
         self.processors = processors or []
-        
+
         # Build the chain: Source -> [Processors] -> Sink
-        self._processors = [self._source] + self.processors + [self._sink]
+        self._processors = [self._source, *self.processors, self._sink]
         self._link_processors()
-        
-        # ✅ Module 4: Priority Queue with max size (prevents buffer overflow)
-        self._queue = asyncio.PriorityQueue(maxsize=max_queue_size)
+
+        # Priority Queue with max size (prevents buffer overflow)
+        self._queue: asyncio.PriorityQueue[tuple[int, int, Frame, int]] = asyncio.PriorityQueue(maxsize=max_queue_size)
         self.max_queue_size = max_queue_size
         self._running = False
         self._task = None
-        self._counter = 0  # To ensuring stable ordering for equal priorities
-        
-        # ✅ Module 4: Backpressure tracking
+        self._counter = 0  # Ensures stable ordering for equal priorities
+
+        # Backpressure tracking
         self._backpressure_warning_sent = False
         self._dropped_frames_count = 0
 
@@ -85,7 +92,7 @@ class Pipeline(FrameProcessor):
         """Start the pipeline processing loop."""
         if self._running:
             return
-            
+
         self._running = True
         self._task = asyncio.create_task(self._process_queue())
         logger.info("Pipeline started.")
@@ -95,11 +102,9 @@ class Pipeline(FrameProcessor):
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
-        
+
         for p in self._processors:
             await p.cleanup()
         logger.info("Pipeline stopped.")
@@ -107,21 +112,19 @@ class Pipeline(FrameProcessor):
     async def queue_frame(self, frame: Frame, direction: int = FrameDirection.DOWNSTREAM):
         """
         Add a frame to the processing queue.
-        
-        ✅ Module 4: Backpressure management
-        - Checks queue capacity before adding
-        - Emits BackpressureFrame when queue approaching/at capacity
-        - SystemFrames bypass backpressure (always queued)
+
+        Handles backpressure by checking queue capacity:
+        - Emits WARNING signal at 80% capacity.
+        - Emits CRITICAL signal when full.
+        - SystemFrames have higher priority (1) than DataFrame/ControlFrame (2).
         """
-        from app.core.frames import BackpressureFrame  # ✅ Module 4
-        
         priority = 1 if isinstance(frame, SystemFrame) else 2
         self._counter += 1
-        
-        # ✅ Module 4: Check queue capacity
+
+        # Check queue capacity
         queue_size = self._queue.qsize()
         capacity_percent = (queue_size / self.max_queue_size) * 100 if self.max_queue_size > 0 else 0
-        
+
         # Emit warning at 80% capacity
         if capacity_percent >= 80 and not self._backpressure_warning_sent:
             logger.warning(
@@ -129,27 +132,24 @@ class Pipeline(FrameProcessor):
                 f"({queue_size}/{self.max_queue_size})"
             )
             self._backpressure_warning_sent = True
-            
+
             # Emit BackpressureFrame to notify processors
-            backpressure_frame = BackpressureFrame(
-                queue_size=queue_size,
-                max_size=self.max_queue_size,
-                severity="warning"
+            await self._inject_critical_frame(
+                BackpressureFrame(
+                    queue_size=queue_size,
+                    max_size=self.max_queue_size,
+                    severity="warning"
+                ),
+                direction
             )
-            # Insert directly (bypass queue to avoid recursion)
-            try:
-                self._queue.put_nowait((0, self._counter, backpressure_frame, direction))
-                self._counter += 1
-            except asyncio.QueueFull:
-                pass
-        
+
         # Reset warning flag when queue drains below 50%
         if capacity_percent < 50:
             self._backpressure_warning_sent = False
-        
-        # Try to add frame to queue
+
+        # Try to add frame to queue (Non-blocking)
         try:
-            await self._queue.put((priority, self._counter, frame, direction))
+            self._queue.put_nowait((priority, self._counter, frame, direction))
         except asyncio.QueueFull:
             # Queue full - emit critical backpressure
             logger.error(
@@ -157,36 +157,50 @@ class Pipeline(FrameProcessor):
                 f"({self.max_queue_size}/{self.max_queue_size}). Dropping frame: {frame.name}"
             )
             self._dropped_frames_count += 1
-            
-            # Emit critical BackpressureFrame
-            backpressure_frame = BackpressureFrame(
-                queue_size=self.max_queue_size,
-                max_size=self.max_queue_size,
-                severity="critical"
+
+            # Emit critical BackpressureFrame (Attempt injection)
+            await self._inject_critical_frame(
+                BackpressureFrame(
+                    queue_size=self.max_queue_size,
+                    max_size=self.max_queue_size,
+                    severity="critical"
+                ),
+                direction
             )
-            # Try to insert (will likely still fail if queue full of SystemFrames)
-            try:
-                self._queue.put_nowait((0, self._counter, backpressure_frame, direction))
-            except asyncio.QueueFull:
-                pass  # Can't even emit backpressure signal, queue completely blocked
+
+    async def _inject_critical_frame(self, frame: Frame, direction: int, force: bool = False):
+        """Helper to inject high-priority system frames."""
+        # Critical frames always get highest priority (0)
+        priority = 0
+        self._counter += 1
+
+        try:
+            # Always attempt valid insertion.
+            # Note: Even critical frames can fail if queue is absolutely 100% full
+            # and locked, but priority queue usually allows insertion unless hard limit.
+            self._queue.put_nowait((priority, self._counter, frame, direction))
+        except asyncio.QueueFull:
+            logger.critical("[Pipeline] CRITICAL FAILURE: Cannot inject critical frame. Queue totally blocked.")
 
     async def _process_queue(self):
         """Main loop consuming frames from the queue."""
         while self._running:
             try:
                 priority, _, frame, direction = await self._queue.get()
-                
+
                 # Route the frame to the appropriate entry point
                 if direction == FrameDirection.DOWNSTREAM:
                     await self._source.process_frame(frame, direction)
                 else:
                     await self._sink.process_frame(frame, direction)
-                
+
                 self._queue.task_done()
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Pipeline loop error: {e}", exc_info=True)
+                # Prevent tight loop in case of persistent error
+                await asyncio.sleep(0.1)
 
     # --- FrameProcessor Interface Override ---
 
@@ -201,10 +215,9 @@ class Pipeline(FrameProcessor):
 
     async def _handle_upstream(self, frame: Frame):
         """Called when a frame reaches the very top (Source) going UP."""
-        # In a standalone pipeline, this might log or drop.
-        # In a nested pipeline, this would push up to the parent.
-        logger.debug(f"Frame reached upstream end: {frame}")
+        # Log flow for debug but keep clean
+        logger.debug(f"Frame reached upstream end: {frame.name}")
 
     async def _handle_downstream(self, frame: Frame):
         """Called when a frame reaches the very bottom (Sink) going DOWN."""
-        logger.debug(f"Frame reached downstream end: {frame}")
+        logger.debug(f"Frame reached downstream end: {frame.name}")

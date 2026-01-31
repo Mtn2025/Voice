@@ -5,7 +5,7 @@ Validates distributed tracing implementation from Gap Analysis.
 Tests trace_id propagation across frames, TTFB logging.
 """
 import pytest
-from app.core.frames import Frame, AudioFrame, TextFrame
+from app.core.frames import AudioFrame, TextFrame
 
 
 class TestTracePropagation:

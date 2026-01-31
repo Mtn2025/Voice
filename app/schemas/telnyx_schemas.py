@@ -9,6 +9,7 @@ Per auditoría 31 Ene 2026: Telnyx es entidad de primera clase, no clon de Twili
 """
 
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -125,7 +126,7 @@ class TelnyxConfigUpdate(BaseModel):
     tools_schema_telnyx: dict[str, Any] | None = Field(None, alias="toolsSchema")
     async_tools_telnyx: bool | None = Field(None, alias="asyncTools")
     client_tools_enabled_telnyx: bool | None = Field(None, alias="clientToolsEnabled")
-    
+
     # Tool Server Config (Telnyx)
     tool_server_url_telnyx: str | None = Field(None, alias="toolServerUrl")
     tool_server_secret_telnyx: str | None = Field(None, alias="toolServerSecret")
@@ -139,5 +140,24 @@ class TelnyxConfigUpdate(BaseModel):
     crm_enabled_telnyx: bool | None = Field(None, alias="crmEnabled")
     baserow_token_telnyx: str | None = Field(None, alias="baserowToken")
     baserow_table_id_telnyx: int | None = Field(None, alias="baserowTableId")
+
+    # Advanced Call Features (AMD)
+    voicemail_detection_enabled_telnyx: bool | None = Field(
+        default=True,
+        alias="voicemailDetectionEnabled",
+        description="Enable answering machine detection"
+    )
+    voicemail_message_telnyx: str | None = Field(
+        default="Hola, llamaba de Ubrokers. Le enviaré un WhatsApp.",
+        alias="voicemailMessage",
+        description="Message to leave on voicemail"
+    )
+    machine_detection_sensitivity_telnyx: float | None = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        alias="machineDetectionSensitivity",
+        description="Sensitivity for machine detection (0-1)"
+    )
 
     model_config = {"extra": "ignore", "populate_by_name": True}

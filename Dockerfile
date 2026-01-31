@@ -9,9 +9,6 @@
 # =============================================================================
 # Stage 1: Builder - Build dependencies and install packages
 # =============================================================================
-# =============================================================================
-# Stage 1: Builder - Build dependencies and install packages
-# =============================================================================
 # FORCE AMD64: Azure Speech SDK only supports x86_64
 FROM --platform=linux/amd64 python:3.11 as builder
 
@@ -66,7 +63,6 @@ FROM --platform=linux/amd64 python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies only
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
     curl \

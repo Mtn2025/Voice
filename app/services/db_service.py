@@ -39,7 +39,7 @@ class DBService:
         try:
             call_id = call_db_id
             if not call_id:
-                     # Fallback: Find call by session_id
+                # Fallback: Find call by session_id
                 result = await session.execute(select(Call).where(Call.session_id == session_id))
                 call = result.scalars().first()
                 if call:
@@ -95,9 +95,9 @@ class DBService:
         return result.scalars().all()
 
     async def get_total_calls(self, session: AsyncSession):
-             # Count query
-             result = await session.execute(select(func.count(Call.id)))
-             return result.scalar()
+        # Count query
+        result = await session.execute(select(func.count(Call.id)))
+        return result.scalar()
 
     async def delete_calls(self, session: AsyncSession, call_ids: list[int]):
         try:

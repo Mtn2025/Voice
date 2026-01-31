@@ -75,13 +75,7 @@ def update_env_file(updates: dict[str, Any], env_path: str = ".env") -> bool:
             if match:
                 key = match.group(1)
                 if key in updates:
-                    # Validate key security (optional safeguard)
-                    # if key not in VALID_KEYS: ...
-
                     val = str(updates[key])
-                    # Escape quotes if needed or just plain string
-                    # Simple approach: If spaces, wrap in quotes?
-                    # For now, simplistic replacement as used in original dashboard
                     new_lines.append(f"{key}={val}")
                     updated_keys.add(key)
                 else:
@@ -118,11 +112,11 @@ def read_env_file(env_path: str = ".env") -> dict[str, str]:
         content = path.read_text(encoding="utf-8")
 
         for line in content.splitlines():
-            line = line.strip()
-            if not line or line.startswith("#"):
+            stripped_line = line.strip()
+            if not stripped_line or stripped_line.startswith("#"):
                 continue
 
-            match = re.match(r"^([A-Z_][A-Z0-9_]*)=(.*)$", line)
+            match = re.match(r"^([A-Z_][A-Z0-9_]*)=(.*)$", stripped_line)
             if match:
                 key = match.group(1)
                 val = match.group(2)

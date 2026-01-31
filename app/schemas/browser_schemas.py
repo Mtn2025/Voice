@@ -5,7 +5,6 @@ Isolated schema for Browser profile following Hexagonal Architecture.
 NO cross-contamination with Phone or Telnyx profiles.
 """
 
-from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -72,12 +71,31 @@ class BrowserConfigUpdate(BaseModel):
     conversation_pacing: str | None = Field(None, alias="conversationPacing")
 
     # Advanced LLM Controls
-    context_window: int | None = Field(None, alias="contextWindow")
-    frequency_penalty: float | None = Field(None, alias="frequencyPenalty")
-    presence_penalty: float | None = Field(None, alias="presencePenalty")
-    tool_choice: str | None = Field(None, alias="toolChoice")
-    dynamic_vars_enabled: bool | None = Field(None, alias="dynamicVarsEnabled")
-    dynamic_vars: str | None = Field(None, alias="dynamicVars")
+    context_window: int | None = Field(default=10, ge=1, le=50, alias="contextWindow")
+    frequency_penalty: float | None = Field(default=0.0, ge=-2.0, le=2.0, alias="frequencyPenalty")
+    presence_penalty: float | None = Field(default=0.0, ge=-2.0, le=2.0, alias="presencePenalty")
+    tool_choice: str | None = Field(default="auto", alias="toolChoice")
+    dynamic_vars_enabled: bool | None = Field(default=False, alias="dynamicVarsEnabled")
+    dynamic_vars: dict | None = Field(default=None, alias="dynamicVars")
+
+    # Advanced Call Features (AMD - Answering Machine Detection)
+    voicemail_detection_enabled: bool | None = Field(
+        default=False,
+        alias="voicemailDetectionEnabled",
+        description="Enable answering machine detection"
+    )
+    voicemail_message: str | None = Field(
+        default="Hola, llamaba de Ubrokers. Le enviaré un WhatsApp.",
+        alias="voicemailMessage",
+        description="Message to leave on voicemail"
+    )
+    machine_detection_sensitivity: float | None = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        alias="machineDetectionSensitivity",
+        description="Sensitivity for machine detection (0-1)"
+    )
 
     # Features
     enable_denoising: bool | None = Field(None, alias="denoise")

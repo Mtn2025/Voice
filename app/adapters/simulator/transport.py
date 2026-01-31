@@ -1,8 +1,12 @@
 import base64
+import contextlib
 import json
-from typing import Any, Dict
+from typing import Any
+
 from fastapi import WebSocket
-from app.ports.transport import AudioTransport
+
+from app.domain.ports import AudioTransport
+
 
 class SimulatorTransport(AudioTransport):
     """
@@ -13,7 +17,7 @@ class SimulatorTransport(AudioTransport):
 
     async def send_audio(self, audio_data: bytes, sample_rate: int = 8000) -> None:
         # Simulator expects base64 audio in a specific JSON format
-        # It handles 16khz usually, but orchestrator decides logic. 
+        # It handles 16khz usually, but orchestrator decides logic.
         # Here we just transport.
         try:
             b64 = base64.b64encode(audio_data).decode("utf-8")
@@ -25,19 +29,15 @@ class SimulatorTransport(AudioTransport):
             logging.getLogger(__name__).error(f"SimulatorTransport Send Error: {e}")
             pass
 
-    async def send_json(self, data: Dict[str, Any]) -> None:
-        try:
+    async def send_json(self, data: dict[str, Any]) -> None:
+        with contextlib.suppress(Exception):
             await self.websocket.send_text(json.dumps(data))
-        except Exception:
-            pass
 
     def set_stream_id(self, stream_id: str) -> None:
-        # Simulator doesn't strictly need stream_id in messages, 
+        # Simulator doesn't strictly need stream_id in messages,
         # but we can store it or include it if 'debug' events need it.
         pass
 
     async def close(self) -> None:
-        # We don't necessarily close the WS here as routes might manage it, 
-        # but if we needed to:
-        # await self.websocket.close()
+        # Cleanup handled by route lifecycle
         pass

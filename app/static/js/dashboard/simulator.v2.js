@@ -35,7 +35,7 @@ export const SimulatorMixin = {
 
         this.transcripts = [];
 
-        this.transcripts = [];
+
 
         // Note: AudioContext init moved to initMicrophone() for robustness w/ user gesture policies
         this.simState = 'connecting';

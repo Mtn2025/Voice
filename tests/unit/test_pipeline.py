@@ -1,7 +1,6 @@
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
-from app.core.frames import Frame, TextFrame, AudioFrame, ControlFrame, CancelFrame
+from app.core.frames import Frame, TextFrame, CancelFrame
 from app.core.processor import FrameProcessor, FrameDirection
 from app.core.pipeline import Pipeline
 
@@ -58,7 +57,7 @@ async def test_processor_linking():
     """Verify processors are linked correctly."""
     p1 = MockProcessor("P1")
     p2 = MockProcessor("P2")
-    pipeline = Pipeline([p1, p2])
+    _pipeline = Pipeline([p1, p2])
     
     # Internal linking check (implementation detail)
     # Pipeline adds Source and Sink, so: Source -> P1 -> P2 -> Sink

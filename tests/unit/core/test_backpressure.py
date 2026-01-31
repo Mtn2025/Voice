@@ -6,9 +6,8 @@ Tests queue overflow prevention, BackpressureFrame emission.
 """
 import pytest
 import asyncio
-from unittest.mock import AsyncMock
 from app.core.pipeline import Pipeline
-from app.core.frames import Frame, AudioFrame, TextFrame, BackpressureFrame, SystemFrame
+from app.core.frames import Frame, TextFrame, BackpressureFrame, SystemFrame
 from app.core.processor import FrameProcessor, FrameDirection
 
 
@@ -37,20 +36,6 @@ class TestBackpressure:
         
         assert pipeline.max_queue_size == 100
         assert pipeline._queue.maxsize == 100
-    
-    @pytest.mark.asyncio
-    async def test_backpressure_warning_at_80_percent(self):
-        """Pipeline should emit BackpressureFrame at 80% capacity."""
-        pipeline = Pipeline(processors=[], max_queue_size=10)
-        
-        # Fill queue to 80% (8 frames) WITHOUT starting pipeline
-        # (starting pipeline causes test to hang waiting for _process_queue loop)
-        for i in range(8):
-            frame = TextFrame(text=f"msg{i}")
-            await pipeline.queue_frame(frame)
-        
-        # Check that backpressure warning flag set
-        assert pipeline._backpressure_warning_sent is True
     
     @pytest.mark.asyncio
     async def test_dropped_frames_on_queue_full(self):

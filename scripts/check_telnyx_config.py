@@ -8,13 +8,13 @@ from app.db.database import engine
 async def check_config():
     async with engine.begin() as conn:
         result = await conn.execute(text("""
-            SELECT 
+            SELECT
                 first_message_telnyx,
                 first_message,
                 llm_provider_telnyx,
                 stt_provider_telnyx,
                 voice_name_telnyx
-            FROM agent_configs 
+            FROM agent_configs
             LIMIT 1
         """))
         row = result.fetchone()

@@ -1,13 +1,15 @@
 
 import asyncio
-import sys
 import os
+import sys
 
 # Fix path
 sys.path.append(os.getcwd())
 
 from sqlalchemy import text
+
 from app.db.database import AsyncSessionLocal
+
 
 async def patch():
     print("🔌 [PATCH] Connecting to DB...")
@@ -16,7 +18,7 @@ async def patch():
         # Update logic: Only fix if it's unreasonably high (like the default 10)
         await session.execute(text("UPDATE agent_configs SET input_min_characters = 2 WHERE input_min_characters > 3"))
         await session.commit()
-    
+
     print("✅ DB Patch Complete.")
 
 if __name__ == "__main__":

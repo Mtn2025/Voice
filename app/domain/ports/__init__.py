@@ -1,45 +1,37 @@
 """Exports de todos los puertos del dominio."""
 
-from .tts_port import TTSPort, TTSRequest, VoiceMetadata, TTSException
-from .llm_port import LLMPort, LLMMessage, LLMRequest, LLMException
-from .stt_port import (
-    STTPort,
-    STTRecognizer,
-    STTConfig,
-    STTEvent,
-    STTResultReason,
-    STTException
-)
-from .config_repository_port import (
-    ConfigRepositoryPort,
-    ConfigDTO,
-    ConfigNotFoundException
-)
+from .audio_transport import AudioTransport
 from .cache_port import CachePort
-from .call_repository_port import CallRepositoryPort, CallRecord
+from .call_repository_port import CallRecord, CallRepositoryPort
+from .config_repository_port import ConfigDTO, ConfigNotFoundException, ConfigRepositoryPort
+from .llm_port import LLMException, LLMMessage, LLMPort, LLMRequest
+from .stt_port import STTConfig, STTEvent, STTException, STTPort, STTRecognizer, STTResultReason
+from .tts_port import TTSException, TTSPort, TTSRequest, VoiceMetadata
 
 __all__ = [
+    # Transport
+    "AudioTransport",
+    # Cache
+    "CachePort",
+    "ConfigDTO",
+    "ConfigNotFoundException",
+    # Config
+    "ConfigRepositoryPort",
+    "LLMException",
+    "LLMMessage",
+    # LLM
+    "LLMPort",
+    "LLMRequest",
+    "STTConfig",
+    "STTEvent",
+    "STTException",
+    # STT
+    "STTPort",
+    "STTRecognizer",
+    "STTResultReason",
+    "TTSException",
     # TTS
     "TTSPort",
     "TTSRequest",
     "VoiceMetadata",
-    "TTSException",
-    # LLM
-    "LLMPort",
-    "LLMMessage",
-    "LLMRequest",
-    "LLMException",
-    # STT
-    "STTPort",
-    "STTRecognizer",
-    "STTConfig",
-    "STTEvent",
-    "STTResultReason",
-    "STTException",
-    # Config
-    "ConfigRepositoryPort",
-    "ConfigDTO",
-    "ConfigNotFoundException",
-    # Cache
-    "CachePort",
 ]

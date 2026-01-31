@@ -1,9 +1,8 @@
 import logging
 import random
-from typing import Optional
 
-from app.core.processor import FrameProcessor, FrameDirection
 from app.core.frames import Frame, TextFrame
+from app.core.processor import FrameDirection, FrameProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -33,20 +32,16 @@ class HumanizerProcessor(FrameProcessor):
         Injects fillers if configured.
         """
         text = frame.text
-        
+
         # Check config
         enabled = getattr(self.config, 'voice_filler_injection', False)
-        
-        if enabled and text and len(text) > 10:
-             # Logic: Only inject at start of "turn" or random accumulation?
-             # For now, simple random injection at start of frame 
-             # (LLM outputs sentence chunks, so start of chunk is start of sentence/phrase)
-             
-             if random.random() < 0.2: # 20% chance per chunk
-                 filler = random.choice(self.fillers)
-                 logger.info(f"🗣️ [HUMANIZER] Injecting filler: '{filler}'")
-                 text = f"{filler} {text}"
-        
+
+        # 20% chance injection for chunks > 10 chars
+        if enabled and text and len(text) > 10 and random.random() < 0.2:
+            filler = random.choice(self.fillers)
+            logger.info(f"🗣️ [HUMANIZER] Injecting filler: '{filler}'")
+            text = f"{filler} {text}"
+
         # Create new frame or modify existing? TextFrame is likely immutable dataclass?
         # Check frames.py definition. Usually standard classes.
         # Let's create new frame to be safe.

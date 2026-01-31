@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any
+
 
 class STTResultReason(Enum):
     RECOGNIZING_SPEECH = "recognizing_speech"
@@ -11,12 +12,14 @@ class STTResultReason(Enum):
     CANCELED = "canceled"
     UNKNOWN = "unknown"
 
+
 @dataclass
 class STTEvent:
     reason: STTResultReason
     text: str
     duration: float = 0.0
     error_details: str = ""
+
 
 class STTProvider(ABC):
     @abstractmethod
@@ -28,10 +31,12 @@ class STTProvider(ABC):
     async def stop_recognition(self):
         pass
 
+
 class LLMProvider(ABC):
     @abstractmethod
-    async def get_stream(self, messages: list, system_prompt: str, temperature: float, max_tokens: int = 600, model: Optional[str] = None) -> AsyncGenerator[str, None]:
+    async def get_stream(self, messages: list, system_prompt: str, temperature: float, max_tokens: int = 600, model: str | None = None) -> AsyncGenerator[str, None]:
         pass
+
 
 class TTSProvider(ABC):
     @abstractmethod
@@ -42,8 +47,3 @@ class TTSProvider(ABC):
     async def synthesize_ssml(self, synthesizer: Any, ssml: str) -> bytes:
         """Synthesizes SSML to audio bytes."""
         pass
-
-# Aliases for backward compatibility if needed (though we encourage using the new names)
-AbstractSTT = STTProvider
-AbstractLLM = LLMProvider
-AbstractTTS = TTSProvider

@@ -2,12 +2,13 @@
 Script to apply Voice/TTS control fields migration to SQLite database.
 Bypasses Alembic for direct SQLite schema update.
 """
-import sqlite3
 import os
+import sqlite3
+import sys
 
 # Find database file
 db_path = None
-for root, dirs, files in os.walk('.'):
+for root, _dirs, files in os.walk('.'):
     for file in files:
         if file.endswith('.db'):
             db_path = os.path.join(root, file)
@@ -18,7 +19,7 @@ for root, dirs, files in os.walk('.'):
 
 if not db_path:
     print("❌ No SQLite database found")
-    exit(1)
+    sys.exit(1)
 
 # Connect to database
 conn = sqlite3.connect(db_path)
@@ -34,11 +35,11 @@ new_fields = [
     ("voice_style_exaggeration", "REAL DEFAULT 0.0"),
     ("voice_speaker_boost", "INTEGER DEFAULT 1"), # Boolean 1
     ("voice_multilingual", "INTEGER DEFAULT 1"), # Boolean 1
-    
+
     # Technical
     ("tts_latency_optimization", "INTEGER DEFAULT 0"),
     ("tts_output_format", "TEXT DEFAULT 'pcm_16000'"),
-    
+
     # Humanization
     ("voice_filler_injection", "INTEGER DEFAULT 0"), # Boolean 0
     ("voice_backchanneling", "INTEGER DEFAULT 0"), # Boolean 0
@@ -52,12 +53,12 @@ migrations = []
 for suffix in suffixes:
     for field_name, field_type in new_fields:
         full_name = f"{field_name}{suffix}"
-        
+
         # Phone specific defaults adjustments
         final_type = field_type
         if "pcm_16000" in field_type and suffix != "":
             final_type = "TEXT DEFAULT 'pcm_8000'"
-            
+
         migrations.append((full_name, final_type))
 
 # Check existing columns
@@ -84,7 +85,7 @@ for column_name, column_type in migrations:
 # Commit changes
 conn.commit()
 
-print(f"\n📊 Migration Summary:")
+print("\n📊 Migration Summary:")
 print(f"   Added: {added}")
 print(f"   Skipped: {skipped}")
 print(f"   Total: {added + skipped}/{len(migrations)}")
@@ -95,4 +96,4 @@ all_columns = cursor.fetchall()
 print(f"\n✅ Agent Configs table now has {len(all_columns)} columns")
 
 conn.close()
-print(f"\n✅ TTS Migration complete!")
+print("\n✅ TTS Migration complete!")

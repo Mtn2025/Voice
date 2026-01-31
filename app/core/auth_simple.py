@@ -5,7 +5,7 @@ Será reemplazado por sistema completo de usuarios en Etapa 2.
 import logging
 import secrets
 
-from fastapi import Header, HTTPException, Query, status, Request
+from fastapi import Header, HTTPException, Query, Request, status
 
 from app.core.config import settings
 
@@ -73,11 +73,11 @@ async def verify_dashboard_access(
     # 1. Check Session (Cookie)
     if request.session.get("authenticated") is True:
         return True
-    
+
     # 2. Check API Key (Header/Query)
     api_key_to_check = x_api_key or api_key_query
     valid_key = getattr(settings, 'ADMIN_API_KEY', None)
-    
+
     if api_key_to_check and valid_key and secrets.compare_digest(api_key_to_check, valid_key):
         # Valid Key found in request, allow pass
         return True
@@ -85,25 +85,7 @@ async def verify_dashboard_access(
     # 3. Failed - Redirect if Browser
     accept = request.headers.get("Accept", "")
     if "text/html" in accept:
-        # Redirect to login
-        # We must raise an Exception that FastAPI can handle, 
-        # OR return a RedirectResponse if we weren't a dependency.
-        # But dependencies cannot return Responses to interrupt.
-        # TRICK: Raise HTTPException(307) catches by browser? No.
-        # Better: Raise a custom exception or use a standard RedirectResponse logic inside the ROUTER?
-        # Actually, best practice (simple):
-        from fastapi.responses import RedirectResponse
-        # Raising HTTPException with 307/302 works if no exception handler overrides it?
-        # No, HTTPException is for errors.
-        # Let's simple return False? No.
-        
-        # We will Raise a Starlette HTTPException with status 302/303 and Location header
-        # But FastAPI wraps it.
-        # Let's just raise a specific 401 and let the global exception handler deal?
-        # Or just use `request.url_for` and redirect.
-        # Actually, let's just make `verify_dashboard_access` return the USER/True, 
-        # and if it fails, we raise `HTTPException(status_code=303, headers={"Location": "/login"})`
-        # 303 See Other is correct for redirecting GET.
+        # Redirect browser clients to login page using HTTP 303 See Other
         raise HTTPException(
             status_code=status.HTTP_303_SEE_OTHER,
             headers={"Location": "/login"}

@@ -7,6 +7,7 @@ NO cross-contamination with Browser or Telnyx profiles.
 """
 
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -98,5 +99,46 @@ class TwilioConfigUpdate(BaseModel):
     tool_choice_phone: str | None = Field(None, alias="toolChoice")
     dynamic_vars_enabled_phone: bool | None = Field(None, alias="dynamicVarsEnabled")
     dynamic_vars_phone: str | None = Field(None, alias="dynamicVars")
+
+    # Twilio Recording & Machine Detection
+    twilio_machine_detection: str | None = Field(
+        default="Enable",
+        alias="twilioMachineDetection",
+        description="Twilio answering machine detection setting"
+    )
+    twilio_record: bool | None = Field(
+        default=False,
+        alias="twilioRecord",
+        description="Enable call recording in Twilio"
+    )
+    twilio_recording_channels: str | None = Field(
+        default="dual",
+        alias="twilioRecordingChannels",
+        description="Recording channels: mono or dual"
+    )
+    twilio_trim_silence: bool | None = Field(
+        default=True,
+        alias="twilioTrimSilence",
+        description="Trim silence from recordings"
+    )
+
+    # Advanced Call Features (AMD)
+    voicemail_detection_enabled_phone: bool | None = Field(
+        default=True,
+        alias="voicemailDetectionEnabled",
+        description="Enable answering machine detection"
+    )
+    voicemail_message_phone: str | None = Field(
+        default="Hola, llamaba de Ubrokers. Le enviaré un WhatsApp.",
+        alias="voicemailMessage",
+        description="Message to leave on voicemail"
+    )
+    machine_detection_sensitivity_phone: float | None = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        alias="machineDetectionSensitivity",
+        description="Sensitivity for machine detection (0-1)"
+    )
 
     model_config = {"extra": "ignore", "populate_by_name": True}

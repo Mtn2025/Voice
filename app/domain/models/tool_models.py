@@ -5,16 +5,16 @@ Domain models defining tool communication contracts (Hexagonal Architecture).
 Compatible with OpenAI function calling format.
 """
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
 class ToolDefinition:
     """
     Tool metadata exportable for LLM function calling.
-    
+
     Compatible with OpenAI/Groq function calling format.
-    
+
     Example:
         >>> tool_def = ToolDefinition(
         ...     name="query_database",
@@ -38,13 +38,13 @@ class ToolDefinition:
     """
     name: str
     description: str
-    parameters: Dict[str, Any]  # JSON Schema properties
-    required: List[str] = field(default_factory=list)
-    
-    def to_openai_format(self) -> Dict[str, Any]:
+    parameters: dict[str, Any]  # JSON Schema properties
+    required: list[str] = field(default_factory=list)
+
+    def to_openai_format(self) -> dict[str, Any]:
         """
         Export to OpenAI/Groq function calling format.
-        
+
         Returns:
             Dictionary compatible with OpenAI functions API
         """
@@ -63,9 +63,9 @@ class ToolDefinition:
 class ToolRequest:
     """
     Request to execute a tool.
-    
+
     Contains tool name, arguments, and execution context (trace_id, timeout).
-    
+
     Example:
         >>> request = ToolRequest(
         ...     tool_name="query_database",
@@ -75,21 +75,20 @@ class ToolRequest:
         ... )
     """
     tool_name: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
     trace_id: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     timeout_seconds: float = 10.0  # Default 10s timeout
-    context: Dict[str, Any] = field(default_factory=dict)  # Phase VI: Dynamic Config (URL, Secret)
-    context: Dict[str, Any] = field(default_factory=dict)  # Phase VI: Dynamic Config (URL, Secret)
+    context: dict[str, Any] = field(default_factory=dict)  # Phase VI: Dynamic Config (URL, Secret)
 
 
 @dataclass
 class ToolResponse:
     """
     Response from tool execution.
-    
+
     Contains result (if successful), error message (if failed), and metrics.
-    
+
     Example (success):
         >>> response = ToolResponse(
         ...     tool_name="query_database",
@@ -98,7 +97,7 @@ class ToolResponse:
         ...     execution_time_ms=45.2,
         ...     trace_id="abc-123"
         ... )
-    
+
     Example (failure):
         >>> response = ToolResponse(
         ...     tool_name="query_database",

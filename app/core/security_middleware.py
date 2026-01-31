@@ -11,8 +11,9 @@ Implements security headers and protections:
 """
 import logging
 from collections.abc import Callable
+from typing import ClassVar
 
-from fastapi import Request, Response
+from fastapi import HTTPException, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
             "font-src 'self' https://fonts.gstatic.com",
             # img-src must allow blob: for some visualization libs, data: for 64bit imgs
-            "img-src 'self' data: blob: https:", 
+            "img-src 'self' data: blob: https:",
             # connect-src needs to allow the module import from unpkg if strict
             "connect-src 'self' wss: ws: https: http: https://unpkg.com",
             "media-src 'self' blob: https:",
@@ -88,7 +89,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
     """
 
     # Exempt paths that use other authentication (webhooks with signatures)
-    EXEMPT_PATHS = [
+    EXEMPT_PATHS: ClassVar[list[str]] = [
         "/twilio/incoming-call",
         "/twilio/status",
         "/telnyx/webhook",

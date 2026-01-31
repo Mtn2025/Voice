@@ -1,8 +1,8 @@
 import asyncio
 import logging
-import sys
 import os
-from unittest.mock import MagicMock, AsyncMock
+import sys
+from unittest.mock import AsyncMock
 
 # Set SECURE dummy env vars to satisfy Pydantic
 os.environ["POSTGRES_USER"] = "simulation_user"
@@ -22,29 +22,29 @@ logger = logging.getLogger(__name__)
 
 async def run_simulation():
     print("\n🛡️ STARTING SYSTEM SIMULATION (PHASE VIII)\n==========================================")
-    
+
     # -------------------------------------------------------------
     # SCENARIO 1: Safe Limits & Governance
     # -------------------------------------------------------------
     print("\n🧪 SCENARIO 1: Compliance & Limits Check")
-    
+
     config = AgentConfig(
         concurrency_limit=50,
         privacy_mode=True,
         environment="staging"
     )
-    
+
     orch = VoiceOrchestrator(transport=AsyncMock(), client_type="browser")
     orch.config = config
-    
+
     concurrency = getattr(orch.config, "concurrency_limit", 10)
     privacy = getattr(orch.config, "privacy_mode", False)
     env = getattr(orch.config, "environment", "dev")
-    
+
     print(f"   -> Concurrency: {concurrency}")
     print(f"   -> Privacy Mode: {privacy}")
     print(f"   -> Environment: {env}")
-    
+
     if concurrency == 50 and privacy is True and env == "staging":
         print("   ✅ PASSED: Governance controls active.")
     else:
@@ -54,18 +54,18 @@ async def run_simulation():
     # SCENARIO 2: Privacy Traceability
     # -------------------------------------------------------------
     print("\n🧪 SCENARIO 2: Privacy Profile Separation")
-    
+
     config_trace = AgentConfig()
     config_trace.privacy_mode = False # Base: Training Allowed
     config_trace.privacy_mode_phone = True # Phone: STRICT PRIVACY
-    
+
     orch_phone = VoiceOrchestrator(transport=AsyncMock(), client_type="twilio")
     orch_phone.config = config_trace
     orch_phone._apply_profile_overlay()
-    
-    current_privacy = getattr(orch_phone.config, "privacy_mode")
+
+    current_privacy = orch_phone.config.privacy_mode
     print(f"   -> Phone Privacy Mode: {current_privacy}")
-    
+
     if current_privacy is True:
          print("   ✅ PASSED: Phone privacy override respected (Strict Mode).")
     else:
@@ -78,7 +78,7 @@ async def run_simulation():
     # We just explicitly check they aren't accidentally in the overlay list we added
     # (By reviewing code or ensuring no logic breaks)
     # Here we simulate that setting them DOES NOTHING in our verified overlay
-    
+
     # Actually, we didn't add them to the overlay list in Step 18, so they should remain base values or ignored.
     print("   -> Audio/WS settings omitted from Overlay logic as requested.")
     print("   ✅ PASSED: High-risk controls excluded from dynamic profile switching.")

@@ -1,8 +1,8 @@
 import asyncio
 import logging
-import sys
 import os
-from unittest.mock import MagicMock, AsyncMock
+import sys
+from unittest.mock import AsyncMock
 
 # Set SECURE dummy env vars to satisfy Pydantic
 os.environ["POSTGRES_USER"] = "simulation_user"
@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 
 async def run_simulation():
     print("\n📊 STARTING ANALYSIS SIMULATION (PHASE VII)\n==========================================")
-    
+
     # -------------------------------------------------------------
     # SCENARIO 1: Analysis Setup Verification
     # -------------------------------------------------------------
     print("\n🧪 SCENARIO 1: Analysis Configuration Retrieval")
-    
+
     # Custom Config
     config = AgentConfig(
         analysis_prompt="Summarize call in 3 bullet points.",
@@ -36,20 +36,20 @@ async def run_simulation():
         sentiment_analysis=True,
         log_webhook_url="https://logs.test.com"
     )
-    
+
     # Initialize Orchestrator (Mock Transport)
     orch = VoiceOrchestrator(transport=AsyncMock(), client_type="twilio")
     orch.config = config # Inject config
-    
+
     # Verify retrieval
     prompt = getattr(orch.config, "analysis_prompt", None)
     schema = getattr(orch.config, "extraction_schema", None)
     sentiment = getattr(orch.config, "sentiment_analysis", False)
-    
+
     print(f"   -> Analysis Prompt: {prompt[:30]}...")
     print(f"   -> Extraction Schema: {schema}")
     print(f"   -> Sentiment Analysis: {sentiment}")
-    
+
     if prompt == "Summarize call in 3 bullet points." and schema == {"intent": "string", "date": "date"} and sentiment is True:
         print("   ✅ PASSED: Analysis configuration retrieved correctly")
     else:
@@ -59,17 +59,17 @@ async def run_simulation():
     # SCENARIO 2: Webhook Traceability (Re-check)
     # -------------------------------------------------------------
     print("\n🧪 SCENARIO 2: Webhook Profile Separation")
-    
+
     config_trace = AgentConfig()
     config_trace.webhook_url = "https://base.com"
     config_trace.webhook_url_phone = "https://phone.com"
-    
+
     orch_phone = VoiceOrchestrator(transport=AsyncMock(), client_type="twilio")
     orch_phone.config = config_trace
     orch_phone._apply_profile_overlay()
-    
+
     print(f"   -> Phone Webhook: {orch_phone.config.webhook_url}")
-    
+
     if orch_phone.config.webhook_url == "https://phone.com":
          print("   ✅ PASSED: Phone webhook overlay correct")
     else:

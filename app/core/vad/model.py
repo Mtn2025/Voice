@@ -1,7 +1,7 @@
 
-import os
-import numpy as np
 import logging
+
+import numpy as np
 
 try:
     import onnxruntime
@@ -46,7 +46,7 @@ class SileroOnnxModel:
 
         if sr not in self.sample_rates:
             raise ValueError(f"Supported sampling rates: {self.sample_rates}")
-            
+
         if sr / np.shape(x)[1] > 31.25:
             # Chunk too small logic from Pipecat
             raise ValueError("Input audio chunk is too short")
@@ -65,7 +65,7 @@ class SileroOnnxModel:
              x = x.astype(np.float32)
 
         x, sr = self._validate_input(x, sr)
-        
+
         # Silero V5 specific window sizes
         num_samples = 512 if sr == 16000 else 256
 

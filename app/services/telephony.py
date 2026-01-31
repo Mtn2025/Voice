@@ -1,9 +1,9 @@
 
-import os
-import aiohttp
 import json
 import logging
-from typing import Dict, Optional
+import os
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +24,14 @@ class TelnyxClient:
             "Content-Type": "application/json"
         }
 
-    async def dial(self, to_number: str, context_data: Dict, config: Dict = None):
+    async def dial(self, to_number: str, context_data: dict, config: dict | None = None):
         """
         Initiates an outbound call.
         'context_data' is encoded into 'client_state' string (base64).
         'config': Optional dictionary with keys: api_key, from_number, connection_id
         """
         import base64
-        
+
         # Resolve Credentials (Priority: Config arg > Env Var)
         config = config or {}
         api_key = config.get("api_key") or TELNYX_API_KEY
@@ -46,30 +46,29 @@ class TelnyxClient:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
-        
+
         # Serialize context
         json_str = json.dumps(context_data)
         client_state_b64 = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
-        
+
         payload = {
             "connection_id": connection_id,
             "to": to_number,
             "from": from_number,
             "client_state": client_state_b64
         }
-        
+
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(f"{self.base_url}/calls", headers=headers, json=payload) as resp:
-                    if resp.status == 200 or resp.status == 201:
+                    if resp.status in (200, 201):
                         data = await resp.json()
                         call_id = data['data']['call_control_id']
                         logger.info(f"✅ Outbound Call Initiated: {call_id} -> {to_number}")
                         return call_id
-                    else:
-                        text = await resp.text()
-                        logger.error(f"❌ Telnyx Call Failed ({resp.status}): {text}")
-                        return None
+                    text = await resp.text()
+                    logger.error(f"❌ Telnyx Call Failed ({resp.status}): {text}")
+                    return None
             except Exception as e:
                 logger.error(f"Telephony Error: {e}")
                 return None

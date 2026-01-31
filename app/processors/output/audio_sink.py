@@ -2,8 +2,8 @@ import asyncio
 import logging
 from typing import Any
 
-from app.core.processor import FrameProcessor, FrameDirection
-from app.core.frames import Frame, AudioFrame, ControlFrame
+from app.core.frames import AudioFrame, ControlFrame, Frame, UserStartedSpeakingFrame
+from app.core.processor import FrameDirection, FrameProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -18,24 +18,24 @@ class PipelineOutputSink(FrameProcessor):
         self.orchestrator = orchestrator
         self._queue = asyncio.Queue()
         self._worker_task = asyncio.create_task(self._worker())
-        
+
     async def process_frame(self, frame: Frame, direction: int):
         if direction == FrameDirection.DOWNSTREAM:
             if isinstance(frame, AudioFrame):
                 # Queue audio for background sending (Non-blocking)
                 await self._queue.put(frame)
-                
+
             elif isinstance(frame, UserStartedSpeakingFrame):
                  # Critical: Trigger Barge-in Logic
                  await self.orchestrator.interrupt_speaking()
                  # Also clear our own sink queue
-                 # Logic for clearing sink queue might be needed here or handled by orchestrator?
-                 # Since we have an internal worker, we should clear _queue too.
                  while not self._queue.empty():
                      try:
                         self._queue.get_nowait()
                         self._queue.task_done()
-                     except:
+                     except asyncio.QueueEmpty:
+                        break
+                     except Exception:
                         pass
 
             elif isinstance(frame, ControlFrame):
@@ -61,7 +61,6 @@ class PipelineOutputSink(FrameProcessor):
     async def _send_audio(self, frame: AudioFrame):
         # Delegate to orchestrator's buffered sender
         try:
-            # logger.info(f"🎤 [SINK] Sending Audio Chunk: {len(frame.data)} bytes") # Verbose
             await self.orchestrator.send_audio_chunked(frame.data)
         except Exception as e:
             logger.error(f"Error in PipelineOutputSink delegation: {e}")

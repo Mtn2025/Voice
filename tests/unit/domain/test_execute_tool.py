@@ -4,7 +4,6 @@ Unit tests for ExecuteToolUseCase.
 Validates domain use case for tool orchestration.
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 from app.domain.use_cases.execute_tool import ExecuteToolUseCase
 from app.domain.models.tool_models import ToolRequest, ToolResponse, ToolDefinition
 from app.domain.ports.tool_port import ToolPort

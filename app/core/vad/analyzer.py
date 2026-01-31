@@ -1,9 +1,9 @@
 
-import time
-import numpy as np
 import logging
-from typing import Optional
+import time
 from pathlib import Path
+
+import numpy as np
 
 from app.core.vad.model import SileroOnnxModel
 
@@ -18,7 +18,7 @@ class SileroVADAnalyzer:
         self._model = None
         self._last_reset_time = 0
         self._reset_interval = 5.0 # Seconds
-        
+
         # Load model using absolute path
         # Assuming model is in app/assets/silero_vad.onnx
         try:
@@ -27,14 +27,14 @@ class SileroVADAnalyzer:
             # Asset: app/assets/silero_vad.onnx
             base_dir = Path(__file__).parent.parent.parent.parent
             model_path = base_dir / "app" / "assets" / "silero_vad.onnx"
-            
+
             if not model_path.exists():
                 logger.error(f"Silero VAD model not found at {model_path}")
                 raise FileNotFoundError(f"Model not found: {model_path}")
-                
+
             self._model = SileroOnnxModel(str(model_path))
             logger.info("Silero VAD initialized successfully.")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize Silero VAD: {e}")
             raise
@@ -58,7 +58,7 @@ class SileroVADAnalyzer:
         try:
             # Convert bytes to int16 then float32 normalized
             audio_int16 = np.frombuffer(buffer, np.int16)
-            
+
             # Check length matches requirement
             required = self.num_frames_required()
             if len(audio_int16) != required:
@@ -69,7 +69,7 @@ class SileroVADAnalyzer:
                 return 0.0
 
             audio_float32 = audio_int16.astype(np.float32) / 32768.0
-            
+
             # Run inference
             # Output is [[confidence]]
             output = self._model(audio_float32, self.sample_rate)

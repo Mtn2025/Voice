@@ -6,12 +6,12 @@ lógica de persistencia pero exponiendo un contrato hexagonal limpio.
 """
 
 import logging
-from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.domain.ports import ConfigRepositoryPort, ConfigDTO, ConfigNotFoundException
-from app.services.db_service import db_service
-from app.db.models import AgentConfig
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models import AgentConfig
+from app.domain.ports import ConfigDTO, ConfigNotFoundException, ConfigRepositoryPort
+from app.services.db_service import db_service
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 class PostgresConfigRepository(ConfigRepositoryPort):
     """
     Repositorio para AgentConfig en PostgreSQL.
-    
+
     Traduce entre el modelo SQLAlchemy (100+ columnas denormalizadas)
     y el ConfigDTO del dominio (campos esenciales).
     """
-    
+
     def __init__(self, session: AsyncSession):
         """
         Args:
@@ -31,53 +31,53 @@ class PostgresConfigRepository(ConfigRepositoryPort):
         """
         self.session = session
         self._db_service = db_service
-    
+
     async def get_config(self, profile: str = "default") -> ConfigDTO:
         """Obtiene configuración por perfil."""
         try:
             config_model = await self._db_service.get_agent_config(self.session)
-            
+
             if not config_model:
                 raise ConfigNotFoundException(f"Config '{profile}' not found")
-            
+
             # Map SQLAlchemy model to DTO
             return self._model_to_dto(config_model)
-            
+
         except Exception as e:
             logger.error(f"❌ [Postgres Config Repo] Get failed: {e}")
             raise ConfigNotFoundException(str(e)) from e
-    
+
     async def update_config(self, profile: str, **updates) -> ConfigDTO:
         """Actualiza configuración."""
         try:
             # Use existing db_service method
             await self._db_service.update_agent_config(self.session, **updates)
-            
+
             # Return updated config
             return await self.get_config(profile)
-            
+
         except Exception as e:
             logger.error(f"❌ [Postgres Config Repo] Update failed: {e}")
             raise ConfigNotFoundException(str(e)) from e
-    
+
     async def create_config(self, profile: str, config: ConfigDTO) -> ConfigDTO:
         """Crea nueva configuración."""
         try:
             # Convert DTO to model
             model = AgentConfig(name=profile)
             self._apply_dto_to_model(config, model)
-            
+
             self.session.add(model)
             await self.session.commit()
             await self.session.refresh(model)
-            
+
             return self._model_to_dto(model)
-            
+
         except Exception as e:
             logger.error(f"❌ [Postgres Config Repo] Create failed: {e}")
             await self.session.rollback()
             raise ConfigNotFoundException(str(e)) from e
-    
+
     def _model_to_dto(self, model: AgentConfig) -> ConfigDTO:
         """Convierte AgentConfig model a ConfigDTO."""
         return ConfigDTO(
@@ -107,7 +107,7 @@ class PostgresConfigRepository(ConfigRepositoryPort):
             silence_timeout_ms_phone=model.silence_timeout_ms_phone,
             silence_timeout_ms_telnyx=model.silence_timeout_ms_telnyx,
         )
-    
+
     def _apply_dto_to_model(self, dto: ConfigDTO, model: AgentConfig):
         """Aplica valores del DTO al model."""
         model.llm_provider = dto.llm_provider

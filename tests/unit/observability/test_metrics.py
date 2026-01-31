@@ -5,7 +5,6 @@ Validates MetricsCollector and latency tracking.
 Tests metrics recording, global stats, trace management.
 """
 import pytest
-import asyncio
 from app.observability import MetricsCollector, LatencyMetrics, get_metrics_collector
 
 

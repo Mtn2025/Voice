@@ -6,7 +6,7 @@ Validates signal bypassing, non-blocking delivery, thread-safety.
 """
 import pytest
 import asyncio
-from app.core.control_channel import ControlChannel, ControlSignal, ControlMessage
+from app.core.control_channel import ControlChannel, ControlSignal
 
 
 class TestControlChannel:

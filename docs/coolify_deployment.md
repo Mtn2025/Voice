@@ -31,7 +31,7 @@ DEFAULT_TTS_PROVIDER=azure
 
 **Providers Disponibles**:
 - STT: `azure`, `google`
-- LLM: `groq` (openai, gemini pendientes)
+- LLM: `groq`, `openai` (production-ready)
 - TTS: `azure`, `google`
 
 ### 3. Database (Gestionado por Coolify)
@@ -58,8 +58,7 @@ APP_ENV=production
 ### 5. Telephony (Opcional)
 
 ```env
-TWILIO_ACCOUNT_SID=ACxxxxx
-TWILIO_AUTH_TOKEN=xxxxx
+# Telnyx (Production telephony provider)
 TELNYX_API_KEY=xxxxx
 TELNYX_PUBLIC_KEY=xxxxx
 ```

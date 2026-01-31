@@ -1,5 +1,5 @@
 import numpy as np
-import logging
+
 
 class AudioProcessor:
     """
@@ -22,15 +22,10 @@ class AudioProcessor:
 
         # --- U-LAW DECODE (8-bit -> 16-bit) ---
         # Standard G.711 u-law expansion
-        u = np.arange(256, dtype=np.uint8)
-        # Invert bytes (u-law is usually transmitted with bit inversion)
-        # However, standard files might not. Let's strictly follow standard implementation logic.
-        # Actually, standard audioop.ulaw2lin doesn't invert bits usually?
-        # Let's use the explicit formulas used by SPANDSP or standard RFCs.
-        
-        # Simpler approach: Create the classic expansion table
-        # We will use the formula: sgn(m) * (1/255) * ((1+mu)^|m| - 1) * max_amplitude
-        # But for 8-bit lookup, it's faster to just iterate.
+        # NOTE: Incomplete implementation - using lookup table approach
+        # Standard expansion formula: sgn(m) * (1/255) * ((1+mu)^|m| - 1) * max_amplitude
+
+        # Create expansion table
         table_ulaw = np.zeros(256, dtype=np.int16)
         for i in range(256):
             ulawbyte = ~i & 0xFF # Invert bits first
@@ -51,10 +46,7 @@ class AudioProcessor:
             sign = (alawbyte & 0x80)
             exponent = (alawbyte >> 4) & 0x07
             mantissa = (alawbyte & 0x0F)
-            if exponent == 0:
-                sample = (mantissa << 4) + 8
-            else:
-                sample = ((mantissa << 4) + 0x108) << (exponent - 1)
+            sample = (mantissa << 4) + 8 if exponent == 0 else (mantissa << 4) + 264 << exponent - 1
             if sign == 0:
                 sample = -sample
             table_alaw[i] = sample
@@ -113,42 +105,41 @@ class AudioProcessor:
     @staticmethod
     def lin2ulaw(fragment: bytes, width: int) -> bytes:
         """Converts linear PCM to u-law."""
-        # For encoding, the algorithm is complex to vectorize perfectly with bit manipulation 
+        # For encoding, the algorithm is complex to vectorize perfectly with bit manipulation
         # without C-level speed, but NumPy logic is fast enough for chunks.
         # Implements G.711 u-law compression.
-        
+
         dtype = np.int16 if width == 2 else np.int8
         pcm = np.frombuffer(fragment, dtype=dtype)
-        
+
         # Bias
-        BIAS = 0x84
-        CLIP = 32635
-        
-        # 1. Sign extraction
-        sign = (pcm < 0)
-        pcm = np.abs(pcm)
-        
+        BIAS = 0x84  # noqa: N806 - Algorithm constant
+        CLIP = 32635  # noqa: N806 - Algorithm constant
+
+        # Process: clip -> absolute value -> bias
+        pcm = np.abs(pcm)  # Get absolute value (sign will be encoded in output)
+
         # 2. Clipping
         pcm = np.minimum(pcm, CLIP)
-        
+
         # 3. Bias
         pcm = pcm + BIAS
-        
+
         # 4. Exponent
-        # Fast way to find exponent? 
+        # Fast way to find exponent?
         # We can loosely estimate using log2 or conditionals.
         # Standard map:
         # Exponent 0: < 0x100 (256) (actually we added bias 132... so range starts higher)
         # Let's use a simpler vectorized logic if possible.
-        
+
         # Given strict G.711 is tricky to vectorize concisely in pure py-numpy without loops or lookups,
         # we will use a "Quantization Table" approach which is standard.
-        # But mapping 65536 values to 256 is a big LUT (64KB). 
+        # But mapping 65536 values to 256 is a big LUT (64KB).
         # Actually 64KB is tiny for modern RAM. Generating the Encoding LUT is the best way.
-        
+
         if not hasattr(AudioProcessor, '_lin_to_ulaw_lut'):
              AudioProcessor._lin_to_ulaw_lut = AudioProcessor._generate_lin2ulaw_lut()
-             
+
         # Offset PCM to 0..65535 for array indexing (since it's signed int16)
         # pcm values are -32768 to 32767.
         # We need to cast inputs to uint16 index: (val + 32768)
@@ -159,7 +150,7 @@ class AudioProcessor:
     def lin2alaw(fragment: bytes, width: int) -> bytes:
         if not hasattr(AudioProcessor, '_lin_to_alaw_lut'):
              AudioProcessor._lin_to_alaw_lut = AudioProcessor._generate_lin2alaw_lut()
-        
+
         indices = (np.frombuffer(fragment, dtype=np.int16).astype(np.int32) + 32768)
         return AudioProcessor._lin_to_alaw_lut[indices].tobytes()
 
@@ -174,7 +165,7 @@ class AudioProcessor:
             # Encode logic
             sign = 0x80 if pcm_val < 0 else 0
             pcm_val = abs(pcm_val)
-            if pcm_val > 32635: pcm_val = 32635
+            pcm_val = min(pcm_val, 32635)
             pcm_val += 0x84
             exponent = 7
             for exp in range(7, -1, -1):
@@ -195,8 +186,8 @@ class AudioProcessor:
              sign = 0x00 if pcm_val < 0 else 0x80 # Note: A-law sign bit convention varies, using standard
              # Note: standard A-law: even bits inverted.
              pcm_val = abs(pcm_val)
-             if pcm_val > 32635: pcm_val = 32635
-             
+             pcm_val = min(pcm_val, 32635)
+
              if pcm_val >= 256:
                  exponent = 7
                  for exp in range(7, -1, -1):
@@ -207,7 +198,7 @@ class AudioProcessor:
              else:
                  exponent = 0
                  mantissa = (pcm_val >> 4) & 0x0F
-                 
+
              byte = (sign | (exponent << 4) | mantissa) ^ 0x55
              lut[i] = byte & 0xFF
          return lut
@@ -215,7 +206,8 @@ class AudioProcessor:
     @staticmethod
     def mul(fragment: bytes, width: int, factor: float) -> bytes:
         """Multiplies amplitude by factor."""
-        if len(fragment) == 0: return b""
+        if len(fragment) == 0:
+            return b""
         dtype = np.int16 if width == 2 else np.int8
         data = np.frombuffer(fragment, dtype=dtype)
         # Multiply and cast
@@ -228,13 +220,13 @@ class AudioProcessor:
         dtype = np.int16 if width == 2 else np.int8
         d1 = np.frombuffer(fragment1, dtype=dtype)
         d2 = np.frombuffer(fragment2, dtype=dtype)
-        
+
         # Pad to match lengths logic? audioop crashes or truncates?
         # audioop truncates to shortest.
         min_len = min(len(d1), len(d2))
         d1 = d1[:min_len]
         d2 = d2[:min_len]
-        
+
         # Add with Clipping to prevent overflow wrap-around
         # Cast to int32 for addition, then clip
         added = np.clip(d1.astype(np.int32) + d2.astype(np.int32), -32768, 32767).astype(dtype)

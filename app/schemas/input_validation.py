@@ -1,5 +1,5 @@
 """
-Pydantic Schemas for Input Validation - Punto A5
+Pydantic Schemas for Input Validation.
 
 These schemas validate all user inputs to prevent injection attacks.
 FastAPI automatically validates request data against these schemas.

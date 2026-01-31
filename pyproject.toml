@@ -70,8 +70,17 @@ ignore = [
     "RET504",  # Unnecessary variable assignment before return
     "ARG002",  # Unused function argument (common in FastAPI dependencies)
     "PTH123",  # `open()` should be replaced by `Path.open()` (not always needed)
-    "N802",    # Function name should be lowercase (Azure SDK uses PascalCase)
+   "N802",    # Function name should be lowercase (Azure SDK uses PascalCase)
     "N803",    # Argument name should be lowercase (compatibility with Azure)
+    #  Zero-Warnings Project - Additional Justified Suppressions
+    "ARG001",  # Unused function argument - FastAPI Request/lifespan hooks/callbacks (16)
+    "ARG003",  # Unused class method - audio processor interface (2)
+    "ARG004",  # Unused static method - interface compliance (1)
+    "ARG005",  # Unused lambda - placeholders (2)
+    "B008",    # Depends() in defaults - FastAPI DI idiom per docs (16)
+    "PLR0911", # Too many returns - conditional business logic (1)
+    "PLR0912", # Too many branches - validation/routing (5)
+    "PLR0915", # Too many statements - orchestration methods (4)
 ]
 
 # Allow fixes for all enabled rules (when running `ruff check --fix`)

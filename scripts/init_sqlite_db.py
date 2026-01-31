@@ -1,8 +1,9 @@
 """
 Create all database tables from SQLAlchemy models including new LLM controls.
 """
-from app.db.models import Base
 from sqlalchemy import create_engine, inspect
+
+from app.db.models import Base
 
 # Create SQLite engine
 engine = create_engine('sqlite:///asistente.db', echo=True)
@@ -22,9 +23,9 @@ print(f"📊 Agent Configs table has {len(columns)} columns:\n")
 
 # Find LLM control columns
 llm_controls = [
-    col['name'] for col in columns 
+    col['name'] for col in columns
     if any(prefix in col['name'] for prefix in [
-        'context_window', 'frequency_penalty', 'presence_penalty', 
+        'context_window', 'frequency_penalty', 'presence_penalty',
         'tool_choice', 'dynamic_vars'
     ])
 ]
@@ -38,4 +39,4 @@ if len(llm_controls) == 18:
 else:
     print(f"\n⚠️  Expected 18, found {len(llm_controls)}")
 
-print(f"\n✅ Database ready for testing!")
+print("\n✅ Database ready for testing!")

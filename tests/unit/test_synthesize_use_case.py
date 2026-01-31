@@ -67,7 +67,7 @@ async def test_synthesize_with_style():
         style_degree=1.5
     )
     
-    result = await use_case.execute("Hello", voice_config)
+    _result = await use_case.execute("Hello", voice_config)
     
     # Verify SSML includes style
     ssml = mock_tts.synthesize_ssml.call_args[0][0]

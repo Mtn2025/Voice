@@ -9,11 +9,11 @@ from typing import List, Dict, Set
 import csv
 
 # Paths
-BASE_DIR = Path(r"c:\Users\Martin\Desktop\Asistente Andrea")
+BASE_DIR = Path(__file__).parent
 DASHBOARD_HTML = BASE_DIR / "app" / "templates" / "dashboard.html"
 MODELS_PY = BASE_DIR / "app" / "db" / "models.py"
-ORCHESTRATOR_PY = BASE_DIR / "app" / "core" / "orchestrator.py"
-OUTPUT_DIR = Path(r"C:\Users\Martin\.gemini\antigravity\brain\e729e0bd-659f-4ec1-9d5d-9c68b75a4c65")
+ORCHESTRATOR_PY = BASE_DIR / "app" / "core" / "orchestrator_v2.py"  # Updated: orchestrator.py no longer exists
+OUTPUT_DIR = BASE_DIR  # Output to project root instead of hardcoded conversation dir
 
 def extract_ui_fields(html_path: Path) -> List[Dict]:
     """Extract all x-model bindings from dashboard.html"""
@@ -97,7 +97,7 @@ def extract_alpine_init_fields(html_path: Path) -> Dict[str, List[str]]:
 def extract_orchestrator_usage(orch_path: Path, schema_fields: List[Dict]) -> List[Dict]:
     """Check which schema fields are actually used in orchestrator"""
     print(f"\n[4/5] Analyzing orchestrator usage from {orch_path.name}...")
-    content =orch_path.read_text(encoding='utf-8')
+    content = orch_path.read_text(encoding='utf-8')
     
     usage = []
     for schema_field in schema_fields:

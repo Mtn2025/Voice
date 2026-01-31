@@ -9,22 +9,23 @@ from typing import Any
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, Depends, Request, Response, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, WebSocket
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from starlette.websockets import WebSocketDisconnect
 
+from app.adapters.simulator.transport import SimulatorTransport
+from app.adapters.telephony.transport import TelephonyTransport
 from app.api.connection_manager import manager
+from app.core.auth_simple import verify_api_key
 from app.core.config import settings
+
 # V2: Hexagonal Architecture with DI
 from app.core.orchestrator_v2 import VoiceOrchestratorV2
 from app.core.voice_ports import get_voice_ports
 from app.core.webhook_security import require_telnyx_signature, require_twilio_signature
-from app.core.auth_simple import verify_api_key
 from app.db.database import AsyncSessionLocal  # NEW
 from app.services.db_service import db_service
-from app.adapters.simulator.transport import SimulatorTransport
-from app.adapters.telephony.transport import TelephonyTransport
 
 router = APIRouter()
 
@@ -118,7 +119,7 @@ async def telnyx_call_control(request: Request, _: None = Depends(require_telnyx
                 active_calls[call_control_id]["answered_at"] = time.time()
                 # Get client_state (Context) if available
                 client_state_str = payload.get("client_state")
-                
+
                 # NOW start streaming (event-driven, not hardcoded delay)
                 await start_streaming(call_control_id, request, client_state_str)
 
@@ -184,14 +185,16 @@ async def answer_call(call_control_id: str, request: Request):
     try:
         async with AsyncSessionLocal() as session:
             config = await db_service.get_agent_config(session)
-            if getattr(config, 'enable_recording_telnyx', False):
+            telnyx_profile = config.get_profile('telnyx')
+
+            if telnyx_profile.enable_recording_telnyx:
                  task = asyncio.create_task(start_recording(call_control_id))
                  # Store in call metadata (RUF006)
                  if call_control_id not in active_calls:
                      active_calls[call_control_id] = {}
                  active_calls[call_control_id]["recording_task"] = task
 
-            amd_mode = getattr(config, 'amd_config_telnyx', 'disabled')
+            amd_mode = telnyx_profile.amd_config_telnyx or 'disabled'
     except Exception as e:
         logging.warning(f"Failed to check recording config: {e}")
 
@@ -249,7 +252,7 @@ async def answer_call(call_control_id: str, request: Request):
         logging.error(f"❌ Answer Exception: {e}")
 
 
-async def start_streaming(call_control_id: str, request: Request, client_state_inbound: str = None):
+async def start_streaming(call_control_id: str, request: Request, client_state_inbound: str | None = None):
     """
     Start media streaming via Telnyx Call Control API.
     Official docs: https://developers.telnyx.com/docs/v2/call-control/streaming-audio-websockets
@@ -261,7 +264,7 @@ async def start_streaming(call_control_id: str, request: Request, client_state_i
 
     encoded_id = quote(call_control_id, safe='')
     ws_url = f"{ws_scheme}://{host}/api/v1/ws/media-stream?client=telnyx&call_control_id={encoded_id}"
-    
+
     # Forward inbound context to WebSocket
     if client_state_inbound:
         ws_url += f"&client_state={client_state_inbound}"
@@ -272,7 +275,7 @@ async def start_streaming(call_control_id: str, request: Request, client_state_i
     # Note: start_streaming is often called without session. Should we pass it?
     # It takes request. We can get session or pass explicit key.
     # For now, fallback to env if db lookup hard (but we want consistency).
-    
+
     # Check if context inject has it? No.
     # Let's try to get it if reasonable.
     try:
@@ -336,30 +339,25 @@ async def start_noise_suppression(call_control_id: str):
     """
     api_key = settings.TELNYX_API_KEY
     enable_suppression = True
-    
-    # Load suppression config & API Key from DB
+
+    # Retrieve Config for Krisp
     try:
-        async with AsyncSessionLocal() as session:
-            config = await db_service.get_agent_config(session)
-            enable_suppression = getattr(config, 'enable_krisp_telnyx', True)
-            if getattr(config, 'telnyx_api_key', None):
-                api_key = config.telnyx_api_key
+        async with AsyncSessionLocal() as db:
+            config = await db_service.get_agent_config(db)
+            telnyx_profile = config.get_profile('telnyx')
+
+            # Default to Krisp enabled unless explicitly disabled
+            enable_suppression = telnyx_profile.enable_krisp_telnyx if telnyx_profile.enable_krisp_telnyx is not None else True
+            if telnyx_profile.telnyx_api_key:
+                api_key = telnyx_profile.telnyx_api_key
     except Exception as e:
         logging.warning(f"Could not load noise suppression config: {e}")
+        enable_suppression = True # Default to enabled if config fails
 
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-
-    # Load suppression config from DB
-    try:
-        async with AsyncSessionLocal() as session:
-            config = await db_service.get_agent_config(session)
-            enable_suppression = getattr(config, 'enable_krisp_telnyx', True)
-    except Exception as e:
-        logging.warning(f"Could not load noise suppression config: {e}")
-        enable_suppression = True
 
     if not enable_suppression:
         logging.info("🔇 Noise suppression disabled in config")
@@ -441,7 +439,7 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
 
     # Build ports once per connection
     ports = get_voice_ports()
-    
+
     # ✅ DI: Instantiate VoiceOrchestratorV2 with injected ports
     orchestrator = VoiceOrchestratorV2(
         transport=transport,
@@ -454,10 +452,10 @@ async def media_stream(websocket: WebSocket, client: str = "twilio", id: str | N
         initial_context=client_state,
         tools=ports.tools  # ✅ Module 7: Tool Calling
     )
-    
+
     # ✅ REGISTER FOR API ACCESS
     manager.register_orchestrator(client_id, orchestrator)
-    
+
     try:
         await orchestrator.start()
     except Exception as e:
@@ -576,29 +574,28 @@ async def update_call_context(call_id: str, payload: dict):
     Dynamic State Injection (Port 4).
     Allows external systems (n8n, CRM) to inject variables into the
     running LLM context mid-call.
-    
+
     Payload: {"customer_verified": true, "name": "Juan"}
     """
     # 1. Find the active orchestrator for this call_id
     target_orchestrator = manager.get_orchestrator(call_id)
-    
+
     if not target_orchestrator:
         return Response(
             content=json.dumps({"status": "error", "message": "Call not found or not active"}),
             status_code=404,
             media_type="application/json"
         )
-        
+
     # 2. Inject Context
     try:
         success = await target_orchestrator.update_context(payload)
         if success:
              return {"status": "success", "message": "Context updated"}
-        else:
-             return Response(
-                content=json.dumps({"status": "error", "message": "Orchestrator pipeline not ready"}),
-                status_code=503,
-                media_type="application/json"
+        return Response(
+           content=json.dumps({"status": "error", "message": "Orchestrator pipeline not ready"}),
+           status_code=503,
+           media_type="application/json"
             )
     except Exception as e:
         return Response(
@@ -617,17 +614,18 @@ async def test_outbound_call(request: Request, _: None = Depends(verify_api_key)
     try:
         body = await request.json()
         target_number = body.get("to")
-        
+
         if not target_number:
             raise HTTPException(status_code=400, detail="Missing 'to' phone number")
 
         # 1. Load Config
         async with AsyncSessionLocal() as session:
             config = await db_service.get_agent_config(session)
-            
-            api_key = getattr(config, 'telnyx_api_key', None) or settings.TELNYX_API_KEY
-            source_number = getattr(config, 'caller_id_telnyx', None) or getattr(config, 'telnyx_from_number', None)
-            connection_id = getattr(config, 'telnyx_connection_id', None)
+
+            telnyx_profile = config.get_profile('telnyx')
+            api_key = telnyx_profile.telnyx_api_key or settings.TELNYX_API_KEY
+            source_number = telnyx_profile.caller_id_telnyx or telnyx_profile.telnyx_from_number
+            connection_id = telnyx_profile.telnyx_connection_id
 
         if not api_key:
              raise HTTPException(status_code=400, detail="Missing Telnyx API Key in Settings")
@@ -646,25 +644,24 @@ async def test_outbound_call(request: Request, _: None = Depends(verify_api_key)
             "to": target_number,
             "from": source_number,
             "connection_id": connection_id,
-            # "webhook_url": Should already be configured in Telnyx Portal, 
+            # "webhook_url": Should already be configured in Telnyx Portal,
             # or we can override if needed: f"https://{request.headers.get('host')}/api/v1/telnyx/call-control"
         }
-        
+
         logging.info(f"🚀 Initiating Outbound Call to {target_number} via Telnyx")
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, json=payload)
-            
-        if response.status_code == 201 or response.status_code == 200:
+
+        if response.status_code in (201, 200):
             data = response.json()
             call_id = data.get("data", {}).get("call_control_id")
             return {"status": "success", "message": "Call Initiated", "call_id": call_id}
-        else:
-            error_msg = response.text
-            logging.error(f"❌ Telnyx Outbound Failed: {error_msg}")
-            raise HTTPException(status_code=response.status_code, detail=f"Telnyx Error: {error_msg}")
+        error_msg = response.text
+        logging.error(f"❌ Telnyx Outbound Failed: {error_msg}")
+        raise HTTPException(status_code=response.status_code, detail=f"Telnyx Error: {error_msg}")
 
     except HTTPException as he:
         raise he
     except Exception as e:
         logging.error(f"❌ Outbound Call Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

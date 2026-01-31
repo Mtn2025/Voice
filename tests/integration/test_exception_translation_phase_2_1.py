@@ -4,7 +4,7 @@ Tests for Phase 2.1: Exception Translation (Infrastructure -> Domain).
 Validates that adapters wrap errors in domain exceptions with metadata.
 """
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock, AsyncMock
 
 from app.adapters.outbound.llm.groq_llm_adapter import GroqLLMAdapter
 from app.adapters.outbound.tts.azure_tts_adapter import AzureTTSAdapter

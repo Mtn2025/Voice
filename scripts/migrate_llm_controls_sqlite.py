@@ -2,12 +2,13 @@
 Script to apply LLM control fields migration to SQLite database.
 Bypasses Alembic for direct SQLite schema update.
 """
-import sqlite3
 import os
+import sqlite3
+import sys
 
 # Find database file
 db_path = None
-for root, dirs, files in os.walk('.'):
+for root, _dirs, files in os.walk('.'):
     for file in files:
         if file.endswith('.db'):
             db_path = os.path.join(root, file)
@@ -18,7 +19,7 @@ for root, dirs, files in os.walk('.'):
 
 if not db_path:
     print("❌ No SQLite database found")
-    exit(1)
+    sys.exit(1)
 
 # Connect to database
 conn = sqlite3.connect(db_path)
@@ -35,7 +36,7 @@ migrations = [
     ("tool_choice", "TEXT DEFAULT 'auto'"),
     ("dynamic_vars_enabled", "INTEGER DEFAULT 0"),  # Boolean as INTEGER in SQLite
     ("dynamic_vars", "TEXT"),  # JSON as TEXT in SQLite
-    
+
     # Twilio Profile (phone suffix - 6 campos)
     ("context_window_phone", "INTEGER DEFAULT 10"),
     ("frequency_penalty_phone", "REAL DEFAULT 0.0"),
@@ -43,7 +44,7 @@ migrations = [
     ("tool_choice_phone", "TEXT DEFAULT 'auto'"),
     ("dynamic_vars_enabled_phone", "INTEGER DEFAULT 0"),
     ("dynamic_vars_phone", "TEXT"),
-    
+
     # Telnyx Profile (telnyx suffix - 6 campos)
     ("context_window_telnyx", "INTEGER DEFAULT 10"),
     ("frequency_penalty_telnyx", "REAL DEFAULT 0.0"),
@@ -77,7 +78,7 @@ for column_name, column_type in migrations:
 # Commit changes
 conn.commit()
 
-print(f"\n📊 Migration Summary:")
+print("\n📊 Migration Summary:")
 print(f"   Added: {added}")
 print(f"   Skipped: {skipped}")
 print(f"   Total: {added + skipped}/18")
@@ -96,4 +97,4 @@ for col in new_llm_columns:
     print(f"   - {col}")
 
 conn.close()
-print(f"\n✅ Migration complete!")
+print("\n✅ Migration complete!")

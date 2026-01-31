@@ -1,14 +1,15 @@
 import asyncio
-import httpx
 import json
 import os
 
+import httpx
+
 # Assuming running inside container on port 8000
 BASE_URL = os.getenv("API_URL", "http://localhost:8000/api/v1")
-API_KEY = os.getenv("ADMIN_API_KEY", "") 
+API_KEY = os.getenv("ADMIN_API_KEY", "")
 
 async def simulate_save():
-    print(f"🚀 Simulating 'Save Config' button click...")
+    print("🚀 Simulating 'Save Config' button click...")
     print(f"📡 Target: {BASE_URL}/config/browser")
 
     # Payload matching the UI structure
@@ -25,10 +26,7 @@ async def simulate_save():
         }
     }
 
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
+
     # Add API Key if needed (mostly for external calls, but checking just in case)
     params = {}
     if API_KEY:
@@ -37,23 +35,22 @@ async def simulate_save():
     async with httpx.AsyncClient() as client:
         try:
             response = await client.patch(
-                f"{BASE_URL}/config/browser", 
+                f"{BASE_URL}/config/browser",
                 json=payload,
                 params=params,
                 timeout=10.0
             )
-            
+
             print(f"📥 Status Code: {response.status_code}")
-            
+
             if response.status_code == 200:
                 data = response.json()
                 print("✅ Configuration Saved Successfully!")
                 print("📝 Response Data:", json.dumps(data, indent=2))
                 return True
-            else:
-                print("❌ Save Failed!")
-                print("🔴 Error:", response.text)
-                return False
+            print("❌ Save Failed!")
+            print("🔴 Error:", response.text)
+            return False
 
         except Exception as e:
             print(f"💥 Connection Error: {e}")

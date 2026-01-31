@@ -150,6 +150,8 @@ export function dashboardStore() {
                 sttProvider: s.stt_provider || 'azure',
                 sttLang: s.stt_language || 'es-MX',
                 interruptWords: s.interruption_threshold || 0,
+                interruptRMSTelnyx: s.voice_sensitivity_telnyx || 3000, // Explicit Telnyx Separation
+                interruptRMS: s.voice_sensitivity || 500, // Generic/Simulator
                 silence: s.silence_timeout_ms || 5000,
                 blacklist: s.hallucination_blacklist || '',
                 enableEndCall: s.enable_end_call,
@@ -169,6 +171,21 @@ export function dashboardStore() {
                 baserow_table_id: s.baserow_table_id || '',
                 webhook_url: s.webhook_url || '',
                 webhook_secret: s.webhook_secret || '',
+
+                // ORCHESTRATION & TOOLS
+                toolsSchema: s.tools_schema ? JSON.stringify(s.tools_schema) : '',
+                asyncTools: s.tools_async || false,
+                clientToolsEnabled: s.client_tools_enabled || false,
+
+                toolServerUrl: s.tool_server_url || '',
+                toolServerSecret: s.tool_server_secret || '',
+                toolTimeoutMs: s.tool_timeout_ms || 5000,
+                toolRetryCount: s.tool_retry_count || 0,
+                toolErrorMsg: s.tool_error_msg || '',
+
+                redactParams: s.redact_params ? JSON.stringify(s.redact_params) : '',
+                transferWhitelist: s.transfer_whitelist ? JSON.stringify(s.transfer_whitelist) : '',
+                stateInjectionEnabled: s.state_injection_enabled !== undefined ? s.state_injection_enabled : true,
 
                 // Global Rate Limits (Advanced)
                 rateLimitGlobal: s.rate_limit_global || 200,
@@ -274,7 +291,22 @@ export function dashboardStore() {
                 baserow_token: s.baserow_token || '',
                 baserow_table_id: s.baserow_table_id || '',
                 webhook_url: s.webhook_url || '',
-                webhook_secret: s.webhook_secret || ''
+                webhook_secret: s.webhook_secret || '',
+
+                // ORCHESTRATION & TOOLS (Phone)
+                toolsSchema: s.tools_schema_phone ? JSON.stringify(s.tools_schema_phone) : '',
+                asyncTools: s.tools_async_phone || false,
+                clientToolsEnabled: s.client_tools_enabled_phone || false,
+
+                toolServerUrl: s.tool_server_url_phone || '',
+                toolServerSecret: s.tool_server_secret_phone || '',
+                toolTimeoutMs: s.tool_timeout_ms_phone || 5000,
+                toolRetryCount: s.tool_retry_count_phone || 0,
+                toolErrorMsg: s.tool_error_msg_phone || '',
+
+                redactParams: s.redact_params_phone ? JSON.stringify(s.redact_params_phone) : '',
+                transferWhitelist: s.transfer_whitelist_phone ? JSON.stringify(s.transfer_whitelist_phone) : '',
+                stateInjectionEnabled: s.state_injection_enabled_phone !== undefined ? s.state_injection_enabled_phone : true
             };
         },
 
@@ -337,17 +369,63 @@ export function dashboardStore() {
                 krisp: s.enable_krisp_telnyx || false,
                 vad: s.enable_vad_telnyx || false,
                 vad_threshold: s.vad_threshold_telnyx || 0.5,
+
+                // Calculated UI Props
+                time_patience: (s.silence_timeout_ms_telnyx || 5000) / 1000,
+
                 idleTimeout: s.idle_timeout_telnyx || 20,
                 maxDuration: s.max_duration_telnyx || 600,
+
+                // Advanced Audio (Telnyx)
+                audioCodec: s.audio_codec_telnyx || 'PCMU',
+                noiseSuppressionLevel: s.noise_suppression_level_telnyx || 'balanced',
+                enableBackchannel: s.enable_backchannel_telnyx || false,
                 idleMessage: s.idle_message_telnyx || '',
                 enableRecording: s.enable_recording_telnyx || false,
                 amdConfig: s.amd_config_telnyx || 'disabled',
 
-                crm_enabled: s.crm_enabled || false,
-                baserow_token: s.baserow_token || '',
-                baserow_table_id: s.baserow_table_id || '',
-                webhook_url: s.webhook_url || '',
-                webhook_secret: s.webhook_secret || ''
+                crmEnabled: s.crm_enabled_telnyx !== undefined ? s.crm_enabled_telnyx : (s.crm_enabled || false),
+                baserowToken: s.baserow_token_telnyx || s.baserow_token || '',
+                baserowTableId: s.baserow_table_id_telnyx || s.baserow_table_id || '',
+                webhookUrl: s.webhook_url_telnyx || s.webhook_url || '',
+                webhookSecret: s.webhook_secret_telnyx || s.webhook_secret || '',
+
+                // ORCHESTRATION & TOOLS (Telnyx)
+                toolsSchema: s.tools_schema_telnyx ? JSON.stringify(s.tools_schema_telnyx) : '',
+                asyncTools: s.tools_async_telnyx || false,
+                clientToolsEnabled: s.client_tools_enabled_telnyx || false,
+
+                toolServerUrl: s.tool_server_url_telnyx || '',
+                toolServerSecret: s.tool_server_secret_telnyx || '',
+                toolTimeoutMs: s.tool_timeout_ms_telnyx || 5000,
+                toolRetryCount: s.tool_retry_count_telnyx || 0,
+                toolErrorMsg: s.tool_error_msg_telnyx || '',
+
+                redactParams: s.redact_params_telnyx ? JSON.stringify(s.redact_params_telnyx) : '',
+                transferWhitelist: s.transfer_whitelist_telnyx ? JSON.stringify(s.transfer_whitelist_telnyx) : '',
+                stateInjectionEnabled: s.state_injection_enabled_telnyx !== undefined ? s.state_injection_enabled_telnyx : true,
+
+                // SYSTEM & SAFETY (Telnyx)
+                maxRetries: s.max_retries_telnyx || 3,
+                concurrencyLimit: s.concurrency_limit_telnyx || 10,
+                spendLimitDaily: s.daily_spend_limit_telnyx || 50.00,
+                environment: s.environment_tag_telnyx || 'development',
+                privacyMode: s.privacy_mode_telnyx || false,
+                auditLogEnabled: s.audit_log_enabled_telnyx || false,
+
+                // CONNECTIVITY & SIP
+                telnyxConnectionId: s.telnyx_connection_id || '',
+                telnyxApiKey: s.telnyx_api_key || '', // Usually hidden/env
+                sipTrunkUriTelnyx: s.sip_trunk_uri_telnyx || '',
+                sipAuthUserTelnyx: s.sip_auth_user_telnyx || '',
+                sipAuthPassTelnyx: s.sip_auth_pass_telnyx || '',
+                callerIdTelnyx: s.caller_id_telnyx || '',
+                fallbackNumberTelnyx: s.fallback_number_telnyx || '',
+                geoRegionTelnyx: s.geo_region_telnyx || 'us-central',
+
+                // FLOW
+                endCallPhrases: s.end_call_phrases_telnyx ? JSON.stringify(s.end_call_phrases_telnyx) : '',
+                transferPhoneNumber: s.transfer_phone_number_telnyx || ''
             };
         },
 
@@ -547,7 +625,7 @@ export function dashboardStore() {
             }
         },
 
-        // Helper Logic from scripts_helpers.html
+        // Helper Logic
         async deleteSelectedCalls() {
             if (!confirm('¿Borrar llamadas seleccionadas?')) return;
 

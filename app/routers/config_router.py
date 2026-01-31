@@ -13,12 +13,11 @@ from app.db.database import get_db
 
 # HEXAGONAL SEPARATION: Each profile has its own schema file
 from app.schemas.browser_schemas import BrowserConfigUpdate
-from app.schemas.twilio_schemas import TwilioConfigUpdate
-from app.schemas.telnyx_schemas import TelnyxConfigUpdate
 
 # Core config remains in config_schemas for now
 from app.schemas.config_schemas import CoreConfigUpdate
-
+from app.schemas.telnyx_schemas import TelnyxConfigUpdate
+from app.schemas.twilio_schemas import TwilioConfigUpdate
 from app.services.db_service import db_service
 from app.utils.config_utils import update_profile_config
 

@@ -6,31 +6,31 @@ adaptadores (implementaciones) correspondientes.
 """
 
 import logging
-from typing import Optional
+
 from dependency_injector import containers, providers
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Ports
-from app.domain.ports import (
-    TTSPort,
-    LLMPort,
-    STTPort,
-    CachePort,
-    ConfigRepositoryPort,
-    CallRepositoryPort  # ✅ FIX VIOLATION #1
-)
-
 # Adapters
 from app.adapters.outbound import (
+    AzureSTTAdapter,
     AzureTTSAdapter,
     GroqLLMAdapter,
-    AzureSTTAdapter,
+    PostgresConfigRepository,
     RedisCacheAdapter,
-    PostgresConfigRepository
 )
-from app.adapters.outbound.persistence.sqlalchemy_call_repository import SQLAlchemyCallRepository  # ✅ FIX VIOLATION #1
+from app.adapters.outbound.persistence.sqlalchemy_call_repository import (
+    SQLAlchemyCallRepository,  # ✅ FIX VIOLATION #1
+)
 from app.db.database import AsyncSessionLocal  # ✅ Only in DI container, not in core!
 
+# Ports
+from app.domain.ports import (
+    CachePort,
+    ConfigRepositoryPort,  # ✅ FIX VIOLATION #1
+    LLMPort,
+    STTPort,
+    TTSPort,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,44 +38,44 @@ logger = logging.getLogger(__name__)
 class Container(containers.DeclarativeContainer):
     """
     Container de inyección de dependencias.
-    
+
     Centraliza la creación de adaptadores y permite cambiar
     implementaciones sin tocar el dominio.
     """
-    
+
     # Configuration
     config = providers.Configuration()
-    
+
     # Database session (provided externally)
     db_session = providers.Dependency(instance_of=AsyncSession)
-    
+
     # Cache
     cache_adapter = providers.Singleton(
         RedisCacheAdapter
     )
-    
+
     # TTS
     tts_adapter = providers.Factory(
         AzureTTSAdapter,
         audio_mode=config.audio_mode or "twilio"
     )
-    
+
     # LLM - ✅ CHANGED: Singleton → Factory (per-call isolation)
     llm_adapter = providers.Factory(
         GroqLLMAdapter
     )
-    
+
     # STT - ✅ CHANGED: Singleton → Factory (per-call isolation)
     stt_adapter = providers.Factory(
         AzureSTTAdapter
     )
-    
+
     # Config Repository
     config_repository = providers.Factory(
         PostgresConfigRepository,
         session=db_session
     )
-    
+
     # ✅ FIX VIOLATION #1: Call Repository
     call_repository = providers.Factory(
         SQLAlchemyCallRepository,
@@ -90,10 +90,10 @@ container = Container()
 def get_tts_port(audio_mode: str = "twilio") -> TTSPort:
     """
     Factory para obtener puerto TTS.
-    
+
     Args:
         audio_mode: "browser", "twilio", "telnyx"
-        
+
     Returns:
         Instancia de TTSPort (actualmente AzureTTSAdapter)
     """
@@ -104,7 +104,7 @@ def get_tts_port(audio_mode: str = "twilio") -> TTSPort:
 def get_llm_port() -> LLMPort:
     """
     Factory para obtener puerto LLM.
-    
+
     Returns:
         Instancia de LLMPort (actualmente GroqLLMAdapter)
     """
@@ -114,7 +114,7 @@ def get_llm_port() -> LLMPort:
 def get_stt_port() -> STTPort:
     """
     Factory para obtener puerto STT.
-    
+
     Returns:
         Instancia de STTPort (actualmente AzureSTTAdapter)
     """
@@ -124,7 +124,7 @@ def get_stt_port() -> STTPort:
 def get_cache_port() -> CachePort:
     """
     Factory para obtener puerto de cache.
-    
+
     Returns:
         Instancia de CachePort (actualmente RedisCacheAdapter)
     """
@@ -134,10 +134,10 @@ def get_cache_port() -> CachePort:
 def get_config_repository(session: AsyncSession) -> ConfigRepositoryPort:
     """
     Factory para obtener repositorio de configuración.
-    
+
     Args:
         session: Sesión de SQLAlchemy activa
-        
+
     Returns:
         Instancia de ConfigRepositoryPort
     """

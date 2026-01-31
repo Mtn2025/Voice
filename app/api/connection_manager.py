@@ -1,3 +1,4 @@
+import contextlib
 import logging
 from typing import Any
 
@@ -15,12 +16,10 @@ class ConnectionManager:
         # Enforce "Tunnel": If this client already has a connection, close it.
         if client_id in self.active_connections:
             logging.warning(f"Closing zombie connection for client {client_id}")
-            try:
-                # We expect the old loop to crash/exit, triggering its finally block.
-                # But we handle the cleanup logic carefully in disconnect()
+            # We expect the old loop to crash/exit, triggering its finally block.
+            # But we handle the cleanup logic carefully in disconnect()
+            with contextlib.suppress(Exception):
                 await self.active_connections[client_id].close()
-            except Exception:
-                pass
 
         await websocket.accept()
         self.active_connections[client_id] = websocket
@@ -37,7 +36,7 @@ class ConnectionManager:
         # Only remove if it's the SAME connection (avoid race where old socket kills new socket's entry)
         if client_id in self.active_connections and self.active_connections[client_id] == websocket:
             del self.active_connections[client_id]
-        
+
         # Cleanup orchestrator ref if matches (simple cleanup)
         if client_id in self.orchestrators:
             del self.orchestrators[client_id]

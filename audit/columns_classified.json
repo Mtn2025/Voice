@@ -1,0 +1,2276 @@
+{
+  "valid": [
+    {
+      "column": "stt_provider",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "stt_language",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "llm_provider",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "llm_model",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "interruption_threshold",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "interruption_threshold_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_provider",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "system_prompt",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_name",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_language",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_speed",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_speed_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_pitch",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_volume",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_degree",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_stability",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_similarity_boost",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_exaggeration",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_speaker_boost",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_multilingual",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_latency_optimization",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_output_format",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_filler_injection",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_backchanneling",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "text_normalization_rule",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "temperature",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "context_window",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "frequency_penalty",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "presence_penalty",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_choice",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "dynamic_vars_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "dynamic_vars",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "VALID"
+    },
+    {
+      "column": "background_sound",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "idle_timeout",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "idle_message",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "VALID"
+    },
+    {
+      "column": "inactivity_max_retries",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "max_duration",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "first_message",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "first_message_mode",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "max_tokens",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "response_length",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "conversation_tone",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "conversation_formality",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "conversation_pacing",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "stt_provider_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "stt_language_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "llm_provider_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "llm_model_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "system_prompt_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_provider_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_language_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_name_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_pitch_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_volume_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_degree_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_stability_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_similarity_boost_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_exaggeration_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_speaker_boost_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_multilingual_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_latency_optimization_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_output_format_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_filler_injection_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_backchanneling_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "text_normalization_rule_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "temperature_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "context_window_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "frequency_penalty_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "presence_penalty_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_choice_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "dynamic_vars_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "dynamic_vars_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "VALID"
+    },
+    {
+      "column": "background_sound_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "first_message_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "first_message_mode_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "max_tokens_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "input_min_characters_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_denoising_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "background_sound_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "hallucination_blacklist",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "hallucination_blacklist_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_pacing_ms",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_pacing_ms_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "silence_timeout_ms",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "silence_timeout_ms_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_denoising",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "vad_threshold_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "stt_provider_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "stt_language_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "llm_provider_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "llm_model_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "system_prompt_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_provider_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_language_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_name_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_pitch_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_volume_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_degree_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_stability_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_similarity_boost_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_style_exaggeration_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_speaker_boost_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_multilingual_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_latency_optimization_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "tts_output_format_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_filler_injection_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_backchanneling_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "text_normalization_rule_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "temperature_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "context_window_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "frequency_penalty_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "presence_penalty_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_choice_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "dynamic_vars_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "dynamic_vars_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "VALID"
+    },
+    {
+      "column": "background_sound_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "background_sound_url_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "first_message_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "first_message_mode_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "max_tokens_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "input_min_characters_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_denoising_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_pacing_ms_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "silence_timeout_ms_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "interruption_threshold_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "hallucination_blacklist_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_speed_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "voice_sensitivity_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_krisp_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "noise_suppression_level_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_vad_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "audio_codec_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_backchannel_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "idle_timeout_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "max_duration_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "idle_message_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_recording_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "amd_config_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "max_retries_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "concurrency_limit_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "daily_spend_limit_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "VALID"
+    },
+    {
+      "column": "environment_tag_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "privacy_mode_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "audit_log_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_end_call",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "enable_dial_keypad",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "transfer_phone_number",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "twilio_account_sid",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "twilio_auth_token",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "twilio_from_number",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "telnyx_api_key",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "telnyx_connection_id",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "caller_id_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "sip_trunk_uri_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "sip_auth_user_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "sip_auth_pass_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "fallback_number_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "geo_region_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "caller_id_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "sip_trunk_uri_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "sip_auth_user_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "sip_auth_pass_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "fallback_number_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "geo_region_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "tools_schema",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "VALID"
+    },
+    {
+      "column": "client_tools_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_server_url_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_server_secret_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_timeout_ms_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_retry_count_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "tool_error_msg_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "VALID"
+    },
+    {
+      "column": "webhook_url_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "webhook_secret_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "crm_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "baserow_token_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "baserow_table_id_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "VALID"
+    },
+    {
+      "column": "recording_channels_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "hipaa_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "recording_channels_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "VALID"
+    },
+    {
+      "column": "hipaa_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "dtmf_listening_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "dtmf_listening_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "async_tools",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    },
+    {
+      "column": "tools_schema_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "VALID"
+    },
+    {
+      "column": "async_tools_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "VALID"
+    }
+  ],
+  "missing": [],
+  "obsolete": [
+    {
+      "column": "extraction_model",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_model",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_keywords",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_silence_timeout",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_utterance_end_strategy",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_punctuation",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_profanity_filter",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_smart_formatting",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_diarization",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_multilingual",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "pronunciation_dictionary",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_model_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_keywords_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_silence_timeout_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_utterance_end_strategy_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_punctuation_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_profanity_filter_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_smart_formatting_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_diarization_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_multilingual_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "pronunciation_dictionary_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "initial_silence_timeout_ms_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "extra_settings_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "twilio_machine_detection",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "twilio_record",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "twilio_recording_channels",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "twilio_trim_silence",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voice_id_manual",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "input_min_characters",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "punctuation_boundaries",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "segmentation_max_time",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "segmentation_strategy",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "initial_silence_timeout_ms",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voice_sensitivity",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voice_sensitivity_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "vad_threshold",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "vad_threshold_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_model_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_keywords_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_silence_timeout_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_utterance_end_strategy_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_punctuation_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_profanity_filter_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_smart_formatting_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_diarization_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "stt_multilingual_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "pronunciation_dictionary_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "initial_silence_timeout_ms_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "crm_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "baserow_token",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "baserow_table_id",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "webhook_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "webhook_secret",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "is_active",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "barge_in_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "interruption_sensitivity",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "interruption_phrases",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "barge_in_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "interruption_sensitivity_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "interruption_phrases_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "barge_in_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "interruption_sensitivity_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "interruption_phrases_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voicemail_detection_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voicemail_message",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "machine_detection_sensitivity",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voicemail_detection_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voicemail_message_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "machine_detection_sensitivity_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voicemail_detection_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "voicemail_message_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "machine_detection_sensitivity_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "response_delay_seconds",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "wait_for_greeting",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "hyphenation_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "end_call_phrases",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "response_delay_seconds_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "wait_for_greeting_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "hyphenation_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "end_call_phrases_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "response_delay_seconds_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "wait_for_greeting_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "hyphenation_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "end_call_phrases_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "telnyx_api_user",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tools_async",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_server_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_server_secret",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_timeout_ms",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_retry_count",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_error_msg",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_server_url_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_server_secret_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_timeout_ms_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_retry_count_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tool_error_msg_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "redact_params",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transfer_whitelist",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "state_injection_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "redact_params_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transfer_whitelist_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "state_injection_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "redact_params_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transfer_whitelist_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "state_injection_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "recording_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transfer_type_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "dtmf_generation_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transfer_type_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "dtmf_generation_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "tools_schema_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "async_tools_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "rate_limit_global",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "rate_limit_twilio",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "rate_limit_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "rate_limit_websocket",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "limit_groq_tokens_per_min",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "limit_azure_requests_per_min",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "limit_twilio_calls_per_hour",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "limit_telnyx_calls_per_hour",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "concurrency_limit",
+      "profile": "global",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "spend_limit_daily",
+      "profile": "global",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "environment",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "privacy_mode",
+      "profile": "global",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "audit_log_enabled",
+      "profile": "global",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "noise_suppression_level",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "audio_codec",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "enable_backchannel",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "analysis_prompt",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "success_rubric",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "extraction_schema",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "analysis_prompt_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "success_rubric_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "extraction_schema_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "analysis_prompt_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "success_rubric_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "extraction_schema_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "sentiment_analysis",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transcript_format",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "cost_tracking_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "sentiment_analysis_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transcript_format_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "cost_tracking_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "sentiment_analysis_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "transcript_format_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "cost_tracking_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "log_webhook_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "pii_redaction_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "retention_days",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "webhook_url_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "webhook_secret_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "log_webhook_url_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "pii_redaction_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "retention_days_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "log_webhook_url_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "pii_redaction_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "retention_days_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "custom_headers",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "sub_account_id",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "allowed_api_keys",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "environment_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "privacy_mode_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    },
+    {
+      "column": "environment_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB"
+    }
+  ]
+}

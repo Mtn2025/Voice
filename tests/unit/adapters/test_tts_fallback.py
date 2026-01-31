@@ -4,10 +4,8 @@ Unit tests for TTSWithFallback (Module 11 - Resilience).
 Tests automatic fallback on primary TTS failure.
 """
 import pytest
-from unittest.mock import AsyncMock, Mock
 from app.adapters.outbound.tts.tts_with_fallback import TTSWithFallback
-from app.domain.ports import TTSRequest
-from app.domain.exceptions.tts_exceptions import TTSException
+from app.domain.ports import TTSRequest, TTSException
 
 
 class MockTTSPort:
@@ -43,7 +41,7 @@ async def test_tts_fallback_uses_primary_when_working():
     
     tts = TTSWithFallback(primary=primary, fallback=fallback)
     
-    request = TTSRequest(text="Hello", voice_name="test")
+    request = TTSRequest(text="Hello", voice_id="test")
     
     # Should use primary
     chunks = []
@@ -64,7 +62,7 @@ async def test_tts_fallback_uses_fallback_on_primary_fail():
     
     tts = TTSWithFallback(primary=primary, fallback=fallback)
     
-    request = TTSRequest(text="Hello", voice_name="test")
+    request = TTSRequest(text="Hello", voice_id="test")
     
     # Should fallback to fallback TTS
     chunks = []
@@ -85,7 +83,7 @@ async def test_tts_fallback_circuit_breaker():
     
     tts = TTSWithFallback(primary=primary, fallback=fallback)
     
-    request = TTSRequest(text="Hello", voice_name="test")
+    request = TTSRequest(text="Hello", voice_id="test")
     
     # Call 3 times (threshold)
     for _ in range(3):
@@ -115,7 +113,7 @@ async def test_tts_fallback_both_fail():
     
     tts = TTSWithFallback(primary=primary, fallback=fallback)
     
-    request = TTSRequest(text="Hello", voice_name="test")
+    request = TTSRequest(text="Hello", voice_id="test")
     
     # Should raise exception
     with pytest.raises(TTSException) as exc_info:

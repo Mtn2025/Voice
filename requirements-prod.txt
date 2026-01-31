@@ -28,8 +28,8 @@ python-multipart~=0.0.21
 # Templates
 jinja2~=3.1.6
 
-# Twilio
-twilio~=10.4.0.2
+# Twilio - REMOVED: Not used in production (only Telnyx)
+# twilio~=10.4.0.2
 
 # Rate Limiting
 slowapi~=0.1.9

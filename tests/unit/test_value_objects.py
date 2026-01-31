@@ -1,6 +1,5 @@
 """Unit tests for Value Objects."""
 import pytest
-from datetime import datetime
 from app.domain.value_objects import (
     VoiceConfig,
     AudioFormat,

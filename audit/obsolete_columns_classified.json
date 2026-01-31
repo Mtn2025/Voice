@@ -1,0 +1,1482 @@
+{
+  "ELIMINAR": [
+    {
+      "column": "extra_settings_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Unused catch-all field",
+      "action": "Delete, use specific fields instead"
+    },
+    {
+      "column": "voice_id_manual",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deprecated/unused experimental feature",
+      "action": "Safe to delete in migration"
+    },
+    {
+      "column": "input_min_characters",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deprecated/unused experimental feature",
+      "action": "Safe to delete in migration"
+    },
+    {
+      "column": "punctuation_boundaries",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deprecated/unused experimental feature",
+      "action": "Safe to delete in migration"
+    },
+    {
+      "column": "segmentation_max_time",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deprecated/unused experimental feature",
+      "action": "Safe to delete in migration"
+    },
+    {
+      "column": "segmentation_strategy",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deprecated/unused experimental feature",
+      "action": "Safe to delete in migration"
+    },
+    {
+      "column": "telnyx_api_user",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Credential field - use telnyx_api_key instead",
+      "action": "Delete"
+    }
+  ],
+  "MANTENER_SCHEMA": [
+    {
+      "column": "twilio_machine_detection",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Twilio-specific configuration - should be in TwilioConfigUpdate schema",
+      "action": "Add to twilio_schemas.py"
+    },
+    {
+      "column": "twilio_record",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Twilio-specific configuration - should be in TwilioConfigUpdate schema",
+      "action": "Add to twilio_schemas.py"
+    },
+    {
+      "column": "twilio_recording_channels",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Twilio-specific configuration - should be in TwilioConfigUpdate schema",
+      "action": "Add to twilio_schemas.py"
+    },
+    {
+      "column": "twilio_trim_silence",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Twilio-specific configuration - should be in TwilioConfigUpdate schema",
+      "action": "Add to twilio_schemas.py"
+    },
+    {
+      "column": "voicemail_detection_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "voicemail_message",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "machine_detection_sensitivity",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "voicemail_detection_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "voicemail_message_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "machine_detection_sensitivity_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "voicemail_detection_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "voicemail_message_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    },
+    {
+      "column": "machine_detection_sensitivity_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced telephony features - should be configurable",
+      "action": "Add to profile schemas"
+    }
+  ],
+  "DOCUMENTAR": [
+    {
+      "column": "extraction_model",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Unclassified - manual review needed",
+      "action": "Review individually"
+    },
+    {
+      "column": "stt_model",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_keywords",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_silence_timeout",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_utterance_end_strategy",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_punctuation",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_profanity_filter",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_smart_formatting",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_diarization",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_multilingual",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "pronunciation_dictionary",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced TTS feature - used internally",
+      "action": "Keep for future UI exposure"
+    },
+    {
+      "column": "stt_model_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_keywords_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_silence_timeout_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_utterance_end_strategy_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_punctuation_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_profanity_filter_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_smart_formatting_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_diarization_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_multilingual_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "pronunciation_dictionary_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced TTS feature - used internally",
+      "action": "Keep for future UI exposure"
+    },
+    {
+      "column": "initial_silence_timeout_ms_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Used in VoiceOrchestrator - internal timing control",
+      "action": "Keep in DB, not user-facing"
+    },
+    {
+      "column": "initial_silence_timeout_ms",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Used in VoiceOrchestrator - internal timing control",
+      "action": "Keep in DB, not user-facing"
+    },
+    {
+      "column": "voice_sensitivity",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "voice_sensitivity_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "vad_threshold",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "vad_threshold_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "stt_model_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_keywords_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_silence_timeout_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_utterance_end_strategy_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_punctuation_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_profanity_filter_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_smart_formatting_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_diarization_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "stt_multilingual_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Deepgram STT advanced features - used in backend but not exposed in UI",
+      "action": "Keep in DB, document as internal"
+    },
+    {
+      "column": "pronunciation_dictionary_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Advanced TTS feature - used internally",
+      "action": "Keep for future UI exposure"
+    },
+    {
+      "column": "initial_silence_timeout_ms_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Used in VoiceOrchestrator - internal timing control",
+      "action": "Keep in DB, not user-facing"
+    },
+    {
+      "column": "crm_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "baserow_token",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "baserow_table_id",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "webhook_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "webhook_secret",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "is_active",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Model metadata - not part of user configuration",
+      "action": "Keep as is"
+    },
+    {
+      "column": "barge_in_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "interruption_sensitivity",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "interruption_phrases",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "barge_in_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "interruption_sensitivity_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "interruption_phrases_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "barge_in_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "interruption_sensitivity_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "interruption_phrases_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Flow control features - used in backend processors",
+      "action": "Keep, may expose in UI later"
+    },
+    {
+      "column": "response_delay_seconds",
+      "profile": "browser",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "wait_for_greeting",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "hyphenation_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "end_call_phrases",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "response_delay_seconds_phone",
+      "profile": "phone",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "wait_for_greeting_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "hyphenation_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "end_call_phrases_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "response_delay_seconds_telnyx",
+      "profile": "telnyx",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "wait_for_greeting_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "hyphenation_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "end_call_phrases_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Conversation flow tuning - internal use",
+      "action": "Keep for fine-tuning"
+    },
+    {
+      "column": "tools_async",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_server_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_server_secret",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_timeout_ms",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_retry_count",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_error_msg",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_server_url_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_server_secret_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_timeout_ms_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_retry_count_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "tool_error_msg_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "redact_params",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "transfer_whitelist",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "state_injection_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "redact_params_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "transfer_whitelist_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "state_injection_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "redact_params_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "transfer_whitelist_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "state_injection_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "recording_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Telephony call features - used in adapters",
+      "action": "Keep for telephony providers"
+    },
+    {
+      "column": "transfer_type_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Telephony call features - used in adapters",
+      "action": "Keep for telephony providers"
+    },
+    {
+      "column": "dtmf_generation_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Telephony call features - used in adapters",
+      "action": "Keep for telephony providers"
+    },
+    {
+      "column": "transfer_type_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Telephony call features - used in adapters",
+      "action": "Keep for telephony providers"
+    },
+    {
+      "column": "dtmf_generation_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Telephony call features - used in adapters",
+      "action": "Keep for telephony providers"
+    },
+    {
+      "column": "tools_schema_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "async_tools_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Function calling infrastructure - used in LLM processor",
+      "action": "Keep for n8n integration"
+    },
+    {
+      "column": "rate_limit_global",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "rate_limit_twilio",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "rate_limit_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "rate_limit_websocket",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "limit_groq_tokens_per_min",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "limit_azure_requests_per_min",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "limit_twilio_calls_per_hour",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "limit_telnyx_calls_per_hour",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "concurrency_limit",
+      "profile": "global",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "spend_limit_daily",
+      "profile": "global",
+      "type": "FLOAT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "environment",
+      "profile": "global",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "privacy_mode",
+      "profile": "global",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System metadata - for enterprise features",
+      "action": "Keep for future RBAC/security"
+    },
+    {
+      "column": "audit_log_enabled",
+      "profile": "global",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System metadata - for enterprise features",
+      "action": "Keep for future RBAC/security"
+    },
+    {
+      "column": "noise_suppression_level",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Unclassified - manual review needed",
+      "action": "Review individually"
+    },
+    {
+      "column": "audio_codec",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Unclassified - manual review needed",
+      "action": "Review individually"
+    },
+    {
+      "column": "enable_backchannel",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Unclassified - manual review needed",
+      "action": "Review individually"
+    },
+    {
+      "column": "analysis_prompt",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "success_rubric",
+      "profile": "browser",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "extraction_schema",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "analysis_prompt_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "success_rubric_phone",
+      "profile": "phone",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "extraction_schema_phone",
+      "profile": "phone",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "analysis_prompt_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "success_rubric_telnyx",
+      "profile": "telnyx",
+      "type": "TEXT",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "extraction_schema_telnyx",
+      "profile": "telnyx",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "sentiment_analysis",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "transcript_format",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "cost_tracking_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "sentiment_analysis_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "transcript_format_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "cost_tracking_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "sentiment_analysis_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "transcript_format_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "cost_tracking_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "log_webhook_url",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "pii_redaction_enabled",
+      "profile": "browser",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "retention_days",
+      "profile": "browser",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "webhook_url_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "webhook_secret_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "log_webhook_url_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "pii_redaction_enabled_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "retention_days_phone",
+      "profile": "phone",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "log_webhook_url_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Integration features - used in CRM manager and webhooks",
+      "action": "Keep, already functional"
+    },
+    {
+      "column": "pii_redaction_enabled_telnyx",
+      "profile": "telnyx",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "retention_days_telnyx",
+      "profile": "telnyx",
+      "type": "INTEGER",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "Post-call analysis features - partially implemented",
+      "action": "Keep for analytics pipeline"
+    },
+    {
+      "column": "custom_headers",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System metadata - for enterprise features",
+      "action": "Keep for future RBAC/security"
+    },
+    {
+      "column": "sub_account_id",
+      "profile": "browser",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System metadata - for enterprise features",
+      "action": "Keep for future RBAC/security"
+    },
+    {
+      "column": "allowed_api_keys",
+      "profile": "browser",
+      "type": "JSON",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System metadata - for enterprise features",
+      "action": "Keep for future RBAC/security"
+    },
+    {
+      "column": "environment_phone",
+      "profile": "phone",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    },
+    {
+      "column": "privacy_mode_phone",
+      "profile": "phone",
+      "type": "BOOLEAN",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System metadata - for enterprise features",
+      "action": "Keep for future RBAC/security"
+    },
+    {
+      "column": "environment_telnyx",
+      "profile": "telnyx",
+      "type": "VARCHAR",
+      "status": "OBSOLETE",
+      "recommendation": "Review if still needed, or remove from DB",
+      "reason": "System governance - used in middleware/rate limiter",
+      "action": "Keep for production safety"
+    }
+  ],
+  "SUMMARY": {
+    "total_obsolete": 163,
+    "to_delete": 7,
+    "to_add_schema": 13,
+    "to_document": 143,
+    "deletion_percentage": "4.3%"
+  }
+}

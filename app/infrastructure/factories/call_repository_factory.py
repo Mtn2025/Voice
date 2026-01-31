@@ -8,9 +8,9 @@ from app.domain.ports import CallRepositoryPort
 def get_call_repository() -> CallRepositoryPort:
     """
     Factory for CallRepositoryPort.
-    
+
     ✅ FIX VIOLATION #1: Provides CallRepositoryPort from DI container.
-    
+
     Returns:
         Instance of CallRepositoryPort (SQLAlchemyCallRepository)
     """

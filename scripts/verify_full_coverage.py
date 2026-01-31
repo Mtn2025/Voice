@@ -1,14 +1,14 @@
-import sys
 import os
-import json
+import sys
 
 sys.path.append(os.getcwd())
 
-from app.schemas.config_schemas import BrowserConfigUpdate, TwilioConfigUpdate, TelnyxConfigUpdate
+from app.schemas.config_schemas import BrowserConfigUpdate, TelnyxConfigUpdate, TwilioConfigUpdate
+
 
 def verify_coverage():
     print("🚀 Verifying 100% Config Coverage...")
-    
+
     # 1. BROWSER PROFILE KEYS (Derived from store.v2.js initBrowserConfig)
     browser_keys = {
         "provider": "dummy", "model": "dummy", "temp": 0.5, "tokens": 100,
@@ -69,7 +69,7 @@ def verify_coverage():
         "silence": 500, "inputMin": 5, "blacklist": "dummy", "denoise": False,
         "crm_enabled": False, "baserow_token": "dummy", "baserow_table_id": "dummy",
         "webhook_url": "dummy", "webhook_secret": "dummy",
-        
+
         # Phone specific
         "twilioAccountSid": "dummy", "twilioAuthToken": "dummy", "twilioFromNumber": "dummy"
     }
@@ -98,14 +98,14 @@ def verify_coverage():
         "idleMessage": "dummy", "enableRecording": False, "amdConfig": "dummy",
         "crm_enabled": False, "baserow_token": "dummy", "baserow_table_id": "dummy",
         "webhook_url": "dummy", "webhook_secret": "dummy",
-        
+
         # Telnyx Specific
         "telnyxApiKey": "dummy", "telnyxConnectionId": "dummy"
     }
-    
+
     # 4. IGNORED KEYS (We expect these to be dropped as they are global or metadata)
     EXPECTED_DROPPED = {
-        "crm_enabled", "baserow_token", "baserow_table_id", "webhook_url", "webhook_secret", 
+        "crm_enabled", "baserow_token", "baserow_table_id", "webhook_url", "webhook_secret",
         "rateLimitGlobal", "rateLimitTwilio", "rateLimitTelnyx",
         "twilioAccountSid", "twilioAuthToken", "twilioFromNumber", # Global/Phone handled separately?
         "telnyxApiKey", "telnyxConnectionId", "callerIdTelnyx",
@@ -113,14 +113,14 @@ def verify_coverage():
         "sipTrunkUriTelnyx", "sipAuthUserTelnyx", "sipAuthPassTelnyx", "fallbackNumberTelnyx", "geoRegionTelnyx",
         "recordingChannelsPhone", "recordingChannelsTelnyx", "hipaaEnabledPhone", "hipaaEnabledTelnyx", "dtmfListeningEnabledPhone",
         "concurrencyLimit", "spendLimitDaily", "environment", "privacyMode", "auditLogEnabled",
-        "segmentationStrategy", "extractionModel" 
+        "segmentationStrategy", "extractionModel"
     }
-    
+
     # NOTE: "twilioAccountSid" IS present in Phone Config update?
     # Let's check schema. `TwilioConfigUpdate` has `twilio_account_sid` (aliased).
     # So it SHOULD be accepted for Twilio Profile.
     # `BrowserConfigUpdate` does NOT have them.
-    
+
     # ... (Previous keys definitions remain) ...
 
     errors = []
@@ -131,13 +131,13 @@ def verify_coverage():
             config = model_class(**input_keys)
             # Dump to snake_case dictionary
             dumped = config.model_dump(exclude_unset=True, by_alias=False)
-            
+
             # Map snake_case back to aliases to see what was covered?
             # Better: We iterate INPUT KEYS.
             # We need to know if an input key was "consumed".
             # Pydantic doesn't easily tell us "this key mapped to that field".
             # BUT we can check if the field it maps to is present in `dumped`.
-            
+
             # We can get the Alias mapping from the Model
             alias_map = {}
             for field_name, field_info in model_class.model_fields.items():
@@ -149,19 +149,19 @@ def verify_coverage():
             for key in input_keys:
                 if key in EXPECTED_DROPPED:
                     continue
-                
+
                 # Check if this key corresponds to a field in the model
                 target_field = alias_map.get(key)
-                
+
                 if not target_field:
                     # Maybe it matches a field name directly?
                     if key in model_class.model_fields:
                         target_field = key
-                
+
                 if not target_field:
                     errors.append(f"[{profile_name}] Key '{key}' has NO matching field/alias in Schema.")
                     continue
-                    
+
                 # Verify the value is in the dump (meaning not filtered out)
                 if target_field not in dumped:
                      errors.append(f"[{profile_name}] Key '{key}' mapped to '{target_field}' but was DROPPED from output.")

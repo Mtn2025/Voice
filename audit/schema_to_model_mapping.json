@@ -1,0 +1,1280 @@
+{
+  "browser": {
+    "matched": [
+      {
+        "schema_field": "system_prompt",
+        "alias": "prompt",
+        "db_column": "system_prompt",
+        "match": true
+      },
+      {
+        "schema_field": "temperature",
+        "alias": "temp",
+        "db_column": "temperature",
+        "match": true
+      },
+      {
+        "schema_field": "llm_model",
+        "alias": "model",
+        "db_column": "llm_model",
+        "match": true
+      },
+      {
+        "schema_field": "llm_provider",
+        "alias": "provider",
+        "db_column": "llm_provider",
+        "match": true
+      },
+      {
+        "schema_field": "max_tokens",
+        "alias": "tokens",
+        "db_column": "max_tokens",
+        "match": true
+      },
+      {
+        "schema_field": "tts_provider",
+        "alias": "voiceProvider",
+        "db_column": "tts_provider",
+        "match": true
+      },
+      {
+        "schema_field": "voice_name",
+        "alias": "voiceId",
+        "db_column": "voice_name",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style",
+        "alias": "voiceStyle",
+        "db_column": "voice_style",
+        "match": true
+      },
+      {
+        "schema_field": "voice_speed",
+        "alias": "voiceSpeed",
+        "db_column": "voice_speed",
+        "match": true
+      },
+      {
+        "schema_field": "voice_pacing_ms",
+        "alias": "voicePacing",
+        "db_column": "voice_pacing_ms",
+        "match": true
+      },
+      {
+        "schema_field": "voice_pitch",
+        "alias": "voicePitch",
+        "db_column": "voice_pitch",
+        "match": true
+      },
+      {
+        "schema_field": "voice_volume",
+        "alias": "voiceVolume",
+        "db_column": "voice_volume",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_degree",
+        "alias": "voiceStyleDegree",
+        "db_column": "voice_style_degree",
+        "match": true
+      },
+      {
+        "schema_field": "voice_language",
+        "alias": "voiceLang",
+        "db_column": "voice_language",
+        "match": true
+      },
+      {
+        "schema_field": "voice_stability",
+        "alias": "voiceStability",
+        "db_column": "voice_stability",
+        "match": true
+      },
+      {
+        "schema_field": "voice_similarity_boost",
+        "alias": "voiceSimilarityBoost",
+        "db_column": "voice_similarity_boost",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_exaggeration",
+        "alias": "voiceStyleExaggeration",
+        "db_column": "voice_style_exaggeration",
+        "match": true
+      },
+      {
+        "schema_field": "voice_speaker_boost",
+        "alias": "voiceSpeakerBoost",
+        "db_column": "voice_speaker_boost",
+        "match": true
+      },
+      {
+        "schema_field": "voice_multilingual",
+        "alias": "voiceMultilingual",
+        "db_column": "voice_multilingual",
+        "match": true
+      },
+      {
+        "schema_field": "tts_latency_optimization",
+        "alias": "ttsLatencyOptimization",
+        "db_column": "tts_latency_optimization",
+        "match": true
+      },
+      {
+        "schema_field": "tts_output_format",
+        "alias": "ttsOutputFormat",
+        "db_column": "tts_output_format",
+        "match": true
+      },
+      {
+        "schema_field": "voice_filler_injection",
+        "alias": "voiceFillerInjection",
+        "db_column": "voice_filler_injection",
+        "match": true
+      },
+      {
+        "schema_field": "voice_backchanneling",
+        "alias": "voiceBackchanneling",
+        "db_column": "voice_backchanneling",
+        "match": true
+      },
+      {
+        "schema_field": "text_normalization_rule",
+        "alias": "textNormalizationRule",
+        "db_column": "text_normalization_rule",
+        "match": true
+      },
+      {
+        "schema_field": "stt_language",
+        "alias": "sttLang",
+        "db_column": "stt_language",
+        "match": true
+      },
+      {
+        "schema_field": "stt_provider",
+        "alias": "sttProvider",
+        "db_column": "stt_provider",
+        "match": true
+      },
+      {
+        "schema_field": "background_sound",
+        "alias": "voiceBgSound",
+        "db_column": "background_sound",
+        "match": true
+      },
+      {
+        "schema_field": "background_sound_url",
+        "alias": "voiceBgUrl",
+        "db_column": "background_sound_url",
+        "match": true
+      },
+      {
+        "schema_field": "idle_timeout",
+        "alias": "idleTimeout",
+        "db_column": "idle_timeout",
+        "match": true
+      },
+      {
+        "schema_field": "idle_message",
+        "alias": "idleMessage",
+        "db_column": "idle_message",
+        "match": true
+      },
+      {
+        "schema_field": "inactivity_max_retries",
+        "alias": "maxRetries",
+        "db_column": "inactivity_max_retries",
+        "match": true
+      },
+      {
+        "schema_field": "max_duration",
+        "alias": "maxDuration",
+        "db_column": "max_duration",
+        "match": true
+      },
+      {
+        "schema_field": "interruption_threshold",
+        "alias": "interruptWords",
+        "db_column": "interruption_threshold",
+        "match": true
+      },
+      {
+        "schema_field": "silence_timeout_ms",
+        "alias": "silence",
+        "db_column": "silence_timeout_ms",
+        "match": true
+      },
+      {
+        "schema_field": "first_message",
+        "alias": "msg",
+        "db_column": "first_message",
+        "match": true
+      },
+      {
+        "schema_field": "first_message_mode",
+        "alias": "mode",
+        "db_column": "first_message_mode",
+        "match": true
+      },
+      {
+        "schema_field": "hallucination_blacklist",
+        "alias": "blacklist",
+        "db_column": "hallucination_blacklist",
+        "match": true
+      },
+      {
+        "schema_field": "response_length",
+        "alias": "responseLength",
+        "db_column": "response_length",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_tone",
+        "alias": "conversationTone",
+        "db_column": "conversation_tone",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_formality",
+        "alias": "conversationFormality",
+        "db_column": "conversation_formality",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_pacing",
+        "alias": "conversationPacing",
+        "db_column": "conversation_pacing",
+        "match": true
+      },
+      {
+        "schema_field": "context_window",
+        "alias": "contextWindow",
+        "db_column": "context_window",
+        "match": true
+      },
+      {
+        "schema_field": "frequency_penalty",
+        "alias": "frequencyPenalty",
+        "db_column": "frequency_penalty",
+        "match": true
+      },
+      {
+        "schema_field": "presence_penalty",
+        "alias": "presencePenalty",
+        "db_column": "presence_penalty",
+        "match": true
+      },
+      {
+        "schema_field": "tool_choice",
+        "alias": "toolChoice",
+        "db_column": "tool_choice",
+        "match": true
+      },
+      {
+        "schema_field": "dynamic_vars_enabled",
+        "alias": "dynamicVarsEnabled",
+        "db_column": "dynamic_vars_enabled",
+        "match": true
+      },
+      {
+        "schema_field": "dynamic_vars",
+        "alias": "dynamicVars",
+        "db_column": "dynamic_vars",
+        "match": true
+      },
+      {
+        "schema_field": "voicemail_detection_enabled",
+        "alias": "voicemailDetectionEnabled",
+        "db_column": "voicemail_detection_enabled",
+        "match": true
+      },
+      {
+        "schema_field": "voicemail_message",
+        "alias": "voicemailMessage",
+        "db_column": "voicemail_message",
+        "match": true
+      },
+      {
+        "schema_field": "machine_detection_sensitivity",
+        "alias": "machineDetectionSensitivity",
+        "db_column": "machine_detection_sensitivity",
+        "match": true
+      },
+      {
+        "schema_field": "enable_denoising",
+        "alias": "denoise",
+        "db_column": "enable_denoising",
+        "match": true
+      },
+      {
+        "schema_field": "enable_end_call",
+        "alias": "enableEndCall",
+        "db_column": "enable_end_call",
+        "match": true
+      },
+      {
+        "schema_field": "enable_dial_keypad",
+        "alias": "enableDialKeypad",
+        "db_column": "enable_dial_keypad",
+        "match": true
+      },
+      {
+        "schema_field": "transfer_phone_number",
+        "alias": "transferNum",
+        "db_column": "transfer_phone_number",
+        "match": true
+      }
+    ],
+    "schema_only": [],
+    "issues": []
+  },
+  "phone": {
+    "matched": [
+      {
+        "schema_field": "system_prompt_phone",
+        "alias": "prompt",
+        "db_column": "system_prompt_phone",
+        "match": true
+      },
+      {
+        "schema_field": "llm_provider_phone",
+        "alias": "provider",
+        "db_column": "llm_provider_phone",
+        "match": true
+      },
+      {
+        "schema_field": "llm_model_phone",
+        "alias": "model",
+        "db_column": "llm_model_phone",
+        "match": true
+      },
+      {
+        "schema_field": "temperature_phone",
+        "alias": "temp",
+        "db_column": "temperature_phone",
+        "match": true
+      },
+      {
+        "schema_field": "max_tokens_phone",
+        "alias": "tokens",
+        "db_column": "max_tokens_phone",
+        "match": true
+      },
+      {
+        "schema_field": "tts_provider_phone",
+        "alias": "voiceProvider",
+        "db_column": "tts_provider_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_name_phone",
+        "alias": "voiceId",
+        "db_column": "voice_name_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_phone",
+        "alias": "voiceStyle",
+        "db_column": "voice_style_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_speed_phone",
+        "alias": "voiceSpeed",
+        "db_column": "voice_speed_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_pacing_ms_phone",
+        "alias": "voicePacing",
+        "db_column": "voice_pacing_ms_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_language_phone",
+        "alias": "voiceLang",
+        "db_column": "voice_language_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_pitch_phone",
+        "alias": "voicePitch",
+        "db_column": "voice_pitch_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_volume_phone",
+        "alias": "voiceVolume",
+        "db_column": "voice_volume_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_degree_phone",
+        "alias": "voiceStyleDegree",
+        "db_column": "voice_style_degree_phone",
+        "match": true
+      },
+      {
+        "schema_field": "background_sound_phone",
+        "alias": "voiceBgSound",
+        "db_column": "background_sound_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_stability_phone",
+        "alias": "voiceStability",
+        "db_column": "voice_stability_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_similarity_boost_phone",
+        "alias": "voiceSimilarityBoost",
+        "db_column": "voice_similarity_boost_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_exaggeration_phone",
+        "alias": "voiceStyleExaggeration",
+        "db_column": "voice_style_exaggeration_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_speaker_boost_phone",
+        "alias": "voiceSpeakerBoost",
+        "db_column": "voice_speaker_boost_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_multilingual_phone",
+        "alias": "voiceMultilingual",
+        "db_column": "voice_multilingual_phone",
+        "match": true
+      },
+      {
+        "schema_field": "tts_latency_optimization_phone",
+        "alias": "ttsLatencyOptimization",
+        "db_column": "tts_latency_optimization_phone",
+        "match": true
+      },
+      {
+        "schema_field": "tts_output_format_phone",
+        "alias": "ttsOutputFormat",
+        "db_column": "tts_output_format_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_filler_injection_phone",
+        "alias": "voiceFillerInjection",
+        "db_column": "voice_filler_injection_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voice_backchanneling_phone",
+        "alias": "voiceBackchanneling",
+        "db_column": "voice_backchanneling_phone",
+        "match": true
+      },
+      {
+        "schema_field": "text_normalization_rule_phone",
+        "alias": "textNormalizationRule",
+        "db_column": "text_normalization_rule_phone",
+        "match": true
+      },
+      {
+        "schema_field": "stt_provider_phone",
+        "alias": "sttProvider",
+        "db_column": "stt_provider_phone",
+        "match": true
+      },
+      {
+        "schema_field": "stt_language_phone",
+        "alias": "sttLang",
+        "db_column": "stt_language_phone",
+        "match": true
+      },
+      {
+        "schema_field": "input_min_characters_phone",
+        "alias": "inputMin",
+        "db_column": "input_min_characters_phone",
+        "match": true
+      },
+      {
+        "schema_field": "enable_denoising_phone",
+        "alias": "denoise",
+        "db_column": "enable_denoising_phone",
+        "match": true
+      },
+      {
+        "schema_field": "interruption_threshold_phone",
+        "alias": "interruptWords",
+        "db_column": "interruption_threshold_phone",
+        "match": true
+      },
+      {
+        "schema_field": "silence_timeout_ms_phone",
+        "alias": "silence",
+        "db_column": "silence_timeout_ms_phone",
+        "match": true
+      },
+      {
+        "schema_field": "first_message_phone",
+        "alias": "msg",
+        "db_column": "first_message_phone",
+        "match": true
+      },
+      {
+        "schema_field": "first_message_mode_phone",
+        "alias": "mode",
+        "db_column": "first_message_mode_phone",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_account_sid",
+        "alias": "twilioAccountSid",
+        "db_column": "twilio_account_sid",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_auth_token",
+        "alias": "twilioAuthToken",
+        "db_column": "twilio_auth_token",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_from_number",
+        "alias": "twilioFromNumber",
+        "db_column": "twilio_from_number",
+        "match": true
+      },
+      {
+        "schema_field": "sip_trunk_uri_phone",
+        "alias": "sipTrunkUri",
+        "db_column": "sip_trunk_uri_phone",
+        "match": true
+      },
+      {
+        "schema_field": "sip_auth_user_phone",
+        "alias": "sipAuthUser",
+        "db_column": "sip_auth_user_phone",
+        "match": true
+      },
+      {
+        "schema_field": "sip_auth_pass_phone",
+        "alias": "sipAuthPass",
+        "db_column": "sip_auth_pass_phone",
+        "match": true
+      },
+      {
+        "schema_field": "fallback_number_phone",
+        "alias": "fallbackNumber",
+        "db_column": "fallback_number_phone",
+        "match": true
+      },
+      {
+        "schema_field": "geo_region_phone",
+        "alias": "geoRegion",
+        "db_column": "geo_region_phone",
+        "match": true
+      },
+      {
+        "schema_field": "caller_id_phone",
+        "alias": "callerIdPhone",
+        "db_column": "caller_id_phone",
+        "match": true
+      },
+      {
+        "schema_field": "recording_channels_phone",
+        "alias": "recordingChannels",
+        "db_column": "recording_channels_phone",
+        "match": true
+      },
+      {
+        "schema_field": "hipaa_enabled_phone",
+        "alias": "hipaaEnabled",
+        "db_column": "hipaa_enabled_phone",
+        "match": true
+      },
+      {
+        "schema_field": "dtmf_listening_enabled_phone",
+        "alias": "dtmfListeningEnabled",
+        "db_column": "dtmf_listening_enabled_phone",
+        "match": true
+      },
+      {
+        "schema_field": "tools_schema",
+        "alias": "toolsSchema",
+        "db_column": "tools_schema",
+        "match": true
+      },
+      {
+        "schema_field": "async_tools",
+        "alias": "asyncTools",
+        "db_column": "async_tools",
+        "match": true
+      },
+      {
+        "schema_field": "client_tools_enabled",
+        "alias": "clientToolsEnabled",
+        "db_column": "client_tools_enabled",
+        "match": true
+      },
+      {
+        "schema_field": "hallucination_blacklist_phone",
+        "alias": "blacklist",
+        "db_column": "hallucination_blacklist_phone",
+        "match": true
+      },
+      {
+        "schema_field": "response_length_phone",
+        "alias": "responseLength",
+        "db_column": "response_length_phone",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_tone_phone",
+        "alias": "conversationTone",
+        "db_column": "conversation_tone_phone",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_formality_phone",
+        "alias": "conversationFormality",
+        "db_column": "conversation_formality_phone",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_pacing_phone",
+        "alias": "conversationPacing",
+        "db_column": "conversation_pacing_phone",
+        "match": true
+      },
+      {
+        "schema_field": "context_window_phone",
+        "alias": "contextWindow",
+        "db_column": "context_window_phone",
+        "match": true
+      },
+      {
+        "schema_field": "frequency_penalty_phone",
+        "alias": "frequencyPenalty",
+        "db_column": "frequency_penalty_phone",
+        "match": true
+      },
+      {
+        "schema_field": "presence_penalty_phone",
+        "alias": "presencePenalty",
+        "db_column": "presence_penalty_phone",
+        "match": true
+      },
+      {
+        "schema_field": "tool_choice_phone",
+        "alias": "toolChoice",
+        "db_column": "tool_choice_phone",
+        "match": true
+      },
+      {
+        "schema_field": "dynamic_vars_enabled_phone",
+        "alias": "dynamicVarsEnabled",
+        "db_column": "dynamic_vars_enabled_phone",
+        "match": true
+      },
+      {
+        "schema_field": "dynamic_vars_phone",
+        "alias": "dynamicVars",
+        "db_column": "dynamic_vars_phone",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_machine_detection",
+        "alias": "twilioMachineDetection",
+        "db_column": "twilio_machine_detection",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_record",
+        "alias": "twilioRecord",
+        "db_column": "twilio_record",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_recording_channels",
+        "alias": "twilioRecordingChannels",
+        "db_column": "twilio_recording_channels",
+        "match": true
+      },
+      {
+        "schema_field": "twilio_trim_silence",
+        "alias": "twilioTrimSilence",
+        "db_column": "twilio_trim_silence",
+        "match": true
+      },
+      {
+        "schema_field": "voicemail_detection_enabled_phone",
+        "alias": "voicemailDetectionEnabled",
+        "db_column": "voicemail_detection_enabled_phone",
+        "match": true
+      },
+      {
+        "schema_field": "voicemail_message_phone",
+        "alias": "voicemailMessage",
+        "db_column": "voicemail_message_phone",
+        "match": true
+      },
+      {
+        "schema_field": "machine_detection_sensitivity_phone",
+        "alias": "machineDetectionSensitivity",
+        "db_column": "machine_detection_sensitivity_phone",
+        "match": true
+      }
+    ],
+    "schema_only": [],
+    "issues": []
+  },
+  "telnyx": {
+    "matched": [
+      {
+        "schema_field": "system_prompt_telnyx",
+        "alias": "prompt",
+        "db_column": "system_prompt_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "llm_provider_telnyx",
+        "alias": "provider",
+        "db_column": "llm_provider_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "llm_model_telnyx",
+        "alias": "model",
+        "db_column": "llm_model_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "temperature_telnyx",
+        "alias": "temp",
+        "db_column": "temperature_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "max_tokens_telnyx",
+        "alias": "tokens",
+        "db_column": "max_tokens_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tts_provider_telnyx",
+        "alias": "voiceProvider",
+        "db_column": "tts_provider_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_name_telnyx",
+        "alias": "voiceId",
+        "db_column": "voice_name_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_telnyx",
+        "alias": "voiceStyle",
+        "db_column": "voice_style_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_speed_telnyx",
+        "alias": "voiceSpeed",
+        "db_column": "voice_speed_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_pacing_ms_telnyx",
+        "alias": "voicePacing",
+        "db_column": "voice_pacing_ms_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_language_telnyx",
+        "alias": "voiceLang",
+        "db_column": "voice_language_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_pitch_telnyx",
+        "alias": "voicePitch",
+        "db_column": "voice_pitch_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_volume_telnyx",
+        "alias": "voiceVolume",
+        "db_column": "voice_volume_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_degree_telnyx",
+        "alias": "voiceStyleDegree",
+        "db_column": "voice_style_degree_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "background_sound_telnyx",
+        "alias": "voiceBgSound",
+        "db_column": "background_sound_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "background_sound_url_telnyx",
+        "alias": "voiceBgUrl",
+        "db_column": "background_sound_url_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_stability_telnyx",
+        "alias": "voiceStability",
+        "db_column": "voice_stability_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_similarity_boost_telnyx",
+        "alias": "voiceSimilarityBoost",
+        "db_column": "voice_similarity_boost_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_style_exaggeration_telnyx",
+        "alias": "voiceStyleExaggeration",
+        "db_column": "voice_style_exaggeration_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_speaker_boost_telnyx",
+        "alias": "voiceSpeakerBoost",
+        "db_column": "voice_speaker_boost_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_multilingual_telnyx",
+        "alias": "voiceMultilingual",
+        "db_column": "voice_multilingual_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tts_latency_optimization_telnyx",
+        "alias": "ttsLatencyOptimization",
+        "db_column": "tts_latency_optimization_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tts_output_format_telnyx",
+        "alias": "ttsOutputFormat",
+        "db_column": "tts_output_format_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_filler_injection_telnyx",
+        "alias": "voiceFillerInjection",
+        "db_column": "voice_filler_injection_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_backchanneling_telnyx",
+        "alias": "voiceBackchanneling",
+        "db_column": "voice_backchanneling_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "text_normalization_rule_telnyx",
+        "alias": "textNormalizationRule",
+        "db_column": "text_normalization_rule_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "audio_codec_telnyx",
+        "alias": "audioCodec",
+        "db_column": "audio_codec_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "noise_suppression_level_telnyx",
+        "alias": "noiseSuppressionLevel",
+        "db_column": "noise_suppression_level_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "enable_backchannel_telnyx",
+        "alias": "enableBackchannel",
+        "db_column": "enable_backchannel_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "stt_provider_telnyx",
+        "alias": "sttProvider",
+        "db_column": "stt_provider_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "stt_language_telnyx",
+        "alias": "sttLang",
+        "db_column": "stt_language_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "input_min_characters_telnyx",
+        "alias": "inputMin",
+        "db_column": "input_min_characters_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "enable_denoising_telnyx",
+        "alias": "denoise",
+        "db_column": "enable_denoising_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "enable_krisp_telnyx",
+        "alias": "krisp",
+        "db_column": "enable_krisp_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "enable_vad_telnyx",
+        "alias": "vad",
+        "db_column": "enable_vad_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "silence_timeout_ms_telnyx",
+        "alias": "silence",
+        "db_column": "silence_timeout_ms_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "interruption_threshold_telnyx",
+        "alias": "interruptWords",
+        "db_column": "interruption_threshold_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voice_sensitivity_telnyx",
+        "alias": "interruptRMS",
+        "db_column": "voice_sensitivity_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "vad_threshold_telnyx",
+        "alias": "vadThreshold",
+        "db_column": "vad_threshold_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "first_message_telnyx",
+        "alias": "msg",
+        "db_column": "first_message_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "first_message_mode_telnyx",
+        "alias": "mode",
+        "db_column": "first_message_mode_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "idle_message_telnyx",
+        "alias": "idleMessage",
+        "db_column": "idle_message_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "idle_timeout_telnyx",
+        "alias": "idleTimeout",
+        "db_column": "idle_timeout_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "max_duration_telnyx",
+        "alias": "maxDuration",
+        "db_column": "max_duration_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "context_window_telnyx",
+        "alias": "contextWindow",
+        "db_column": "context_window_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "frequency_penalty_telnyx",
+        "alias": "frequencyPenalty",
+        "db_column": "frequency_penalty_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "presence_penalty_telnyx",
+        "alias": "presencePenalty",
+        "db_column": "presence_penalty_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tool_choice_telnyx",
+        "alias": "toolChoice",
+        "db_column": "tool_choice_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "dynamic_vars_enabled_telnyx",
+        "alias": "dynamicVarsEnabled",
+        "db_column": "dynamic_vars_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "dynamic_vars_telnyx",
+        "alias": "dynamicVars",
+        "db_column": "dynamic_vars_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "response_length_telnyx",
+        "alias": "responseLength",
+        "db_column": "response_length_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_tone_telnyx",
+        "alias": "conversationTone",
+        "db_column": "conversation_tone_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_formality_telnyx",
+        "alias": "conversationFormality",
+        "db_column": "conversation_formality_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "conversation_pacing_telnyx",
+        "alias": "conversationPacing",
+        "db_column": "conversation_pacing_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "max_retries_telnyx",
+        "alias": "maxRetries",
+        "db_column": "max_retries_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "concurrency_limit_telnyx",
+        "alias": "concurrencyLimit",
+        "db_column": "concurrency_limit_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "daily_spend_limit_telnyx",
+        "alias": "dailySpendLimit",
+        "db_column": "daily_spend_limit_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "environment_tag_telnyx",
+        "alias": "environmentTag",
+        "db_column": "environment_tag_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "privacy_mode_telnyx",
+        "alias": "privacyMode",
+        "db_column": "privacy_mode_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "audit_log_enabled_telnyx",
+        "alias": "auditLogEnabled",
+        "db_column": "audit_log_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "enable_recording_telnyx",
+        "alias": "enableRecording",
+        "db_column": "enable_recording_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "amd_config_telnyx",
+        "alias": "amdConfig",
+        "db_column": "amd_config_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "hallucination_blacklist_telnyx",
+        "alias": "blacklist",
+        "db_column": "hallucination_blacklist_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "telnyx_api_key",
+        "alias": "telnyxApiKey",
+        "db_column": "telnyx_api_key",
+        "match": true
+      },
+      {
+        "schema_field": "telnyx_connection_id",
+        "alias": "telnyxConnectionId",
+        "db_column": "telnyx_connection_id",
+        "match": true
+      },
+      {
+        "schema_field": "sip_trunk_uri_telnyx",
+        "alias": "sipTrunkUri",
+        "db_column": "sip_trunk_uri_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "sip_auth_user_telnyx",
+        "alias": "sipAuthUser",
+        "db_column": "sip_auth_user_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "sip_auth_pass_telnyx",
+        "alias": "sipAuthPass",
+        "db_column": "sip_auth_pass_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "caller_id_telnyx",
+        "alias": "callerIdTelnyx",
+        "db_column": "caller_id_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "fallback_number_telnyx",
+        "alias": "fallbackNumber",
+        "db_column": "fallback_number_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "geo_region_telnyx",
+        "alias": "geoRegion",
+        "db_column": "geo_region_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "recording_channels_telnyx",
+        "alias": "recordingChannels",
+        "db_column": "recording_channels_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "hipaa_enabled_telnyx",
+        "alias": "hipaaEnabled",
+        "db_column": "hipaa_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "dtmf_listening_enabled_telnyx",
+        "alias": "dtmfListeningEnabled",
+        "db_column": "dtmf_listening_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tools_schema_telnyx",
+        "alias": "toolsSchema",
+        "db_column": "tools_schema_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "async_tools_telnyx",
+        "alias": "asyncTools",
+        "db_column": "async_tools_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "client_tools_enabled_telnyx",
+        "alias": "clientToolsEnabled",
+        "db_column": "client_tools_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tool_server_url_telnyx",
+        "alias": "toolServerUrl",
+        "db_column": "tool_server_url_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tool_server_secret_telnyx",
+        "alias": "toolServerSecret",
+        "db_column": "tool_server_secret_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tool_timeout_ms_telnyx",
+        "alias": "toolTimeoutMs",
+        "db_column": "tool_timeout_ms_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tool_retry_count_telnyx",
+        "alias": "toolRetryCount",
+        "db_column": "tool_retry_count_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "tool_error_msg_telnyx",
+        "alias": "toolErrorMsg",
+        "db_column": "tool_error_msg_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "webhook_url_telnyx",
+        "alias": "webhookUrl",
+        "db_column": "webhook_url_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "webhook_secret_telnyx",
+        "alias": "webhookSecret",
+        "db_column": "webhook_secret_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "crm_enabled_telnyx",
+        "alias": "crmEnabled",
+        "db_column": "crm_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "baserow_token_telnyx",
+        "alias": "baserowToken",
+        "db_column": "baserow_token_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "baserow_table_id_telnyx",
+        "alias": "baserowTableId",
+        "db_column": "baserow_table_id_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voicemail_detection_enabled_telnyx",
+        "alias": "voicemailDetectionEnabled",
+        "db_column": "voicemail_detection_enabled_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "voicemail_message_telnyx",
+        "alias": "voicemailMessage",
+        "db_column": "voicemail_message_telnyx",
+        "match": true
+      },
+      {
+        "schema_field": "machine_detection_sensitivity_telnyx",
+        "alias": "machineDetectionSensitivity",
+        "db_column": "machine_detection_sensitivity_telnyx",
+        "match": true
+      }
+    ],
+    "schema_only": [],
+    "issues": []
+  }
+}

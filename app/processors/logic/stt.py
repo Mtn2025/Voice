@@ -1,10 +1,13 @@
-import logging
 import asyncio
-from typing import Any, Optional
+import contextlib
+import json
+import logging
+from typing import Any
 
-from app.core.processor import FrameProcessor, FrameDirection
-from app.core.frames import Frame, AudioFrame, TextFrame
-from app.services.base import STTProvider, STTEvent, STTResultReason
+from app.core.frames import AudioFrame, CancelFrame, Frame, TextFrame
+from app.core.processor import FrameDirection, FrameProcessor
+from app.domain.ports.stt_port import STTConfig
+from app.services.base import STTEvent, STTProvider, STTResultReason
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +21,7 @@ class STTProcessor(FrameProcessor):
         self.provider = provider
         self.config = config
         self.loop = loop
-        self.control_channel = control_channel # ✅ Module 13: Out-of-Band Signaling
+        self.control_channel = control_channel
         self.push_stream = None # Azure PushAudioInputStream
         self.recognizer = None
 
@@ -26,82 +29,60 @@ class STTProcessor(FrameProcessor):
         """
         Initialize Azure Recoginzer and PushStream.
         """
-        from app.domain.ports.stt_port import STTConfig # Import here to avoid circulars if any
-        
-        # 1. Determine Suffix based on Client Type
+        # Get profile configuration (type-safe, centralized)
         client_type = getattr(self.config, 'client_type', 'twilio')
-        suffix = ""
-        if client_type == "twilio":
-            suffix = "_phone"
-        elif client_type == "telnyx":
-            suffix = "_telnyx"
-            
-        def get_conf(base_name, default=None):
-            """Helper to get config with profile fallback."""
-            # 1. Try suffixed version (e.g., stt_model_phone)
-            val = getattr(self.config, f"{base_name}{suffix}", None)
-            if val is not None:
-                return val
-            # 2. Fallback to base (e.g., stt_model)
-            return getattr(self.config, base_name, default)
-        
+        profile = self.config.get_profile(client_type)
+
         stt_config = STTConfig(
-            language=get_conf('stt_language', 'es-MX'),
+            language=profile.stt_language or 'es-MX',
             audio_mode=client_type,
-            
+
             # Basic
-            initial_silence_ms=get_conf('initial_silence_timeout_ms', 5000), # Note: model has suffix field
-            
-            # Phase III: Advanced STT Controls
-            model=get_conf('stt_model', 'default'),
-            keywords=get_conf('stt_keywords', None),
-            silence_timeout=get_conf('stt_silence_timeout', 500),
-            utterance_end_strategy=get_conf('stt_utterance_end_strategy', 'default'),
-            
-            # Formatting
-            punctuation=get_conf('stt_punctuation', True),
-            profanity_filter=get_conf('stt_profanity_filter', True),
-            smart_formatting=get_conf('stt_smart_formatting', True),
-            
-            # Advanced
-            diarization=get_conf('stt_diarization', False),
-            multilingual=get_conf('stt_multilingual', False)
+            initial_silence_ms=profile.initial_silence_timeout_ms or 5000,
+
+            # Phase III: Advanced STT Controls (not yet in ProfileConfig - using defaults)
+            model='default',  # TODO: Add to ProfileConfigSchema
+            keywords=None,
+            silence_timeout=500,
+            utterance_end_strategy='default',
+
+            # Formatting (defaults until added to ProfileConfig)
+            punctuation=True,
+            profanity_filter=True,
+            smart_formatting=True,
+
+            # Advanced (defaults until added to ProfileConfig)
+            diarization=False,
+            multilingual=False
         )
-        
+
         try:
              self.recognizer = self.provider.create_recognizer(
                 config=stt_config
             )
-             
+
              # Register unified callback via Wrapper's subscribe
-             if hasattr(self.recognizer, 'subscribe'):
-                 self.recognizer.subscribe(self._on_stt_event)
-             else:
-                 # Fallback for native object (unlikely if provider is AzureProvider)
-                 # But just in case
-                 if hasattr(self.recognizer, 'recognized'):
-                    self.recognizer.recognized.connect(self._on_recognized_native)
-                    self.recognizer.canceled.connect(self._on_canceled_native)
-             
+             # We assume the provider implements the uniform interface
+             self.recognizer.subscribe(self._on_stt_event)
+
              # Start recognition
-             if hasattr(self.recognizer, 'start_continuous_recognition_async'):
-                self.recognizer.start_continuous_recognition_async().get()
-             
+             # Note: wrapping in executor to avoid blocking loop if provider implementation is synchronous or uses .get()
+             await self.loop.run_in_executor(None, self.recognizer.start_continuous_recognition_async().get)
+
              logger.info("STTProcessor initialized and recognition started.")
-             
+
         except Exception as e:
             logger.error(f"Failed to initialize STTProcessor: {e}")
             raise
 
-    async def process_frame(self, frame: Frame, direction: int):
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
         if direction == FrameDirection.DOWNSTREAM:
             if isinstance(frame, AudioFrame):
                 # Write to Azure Stream
                 if self.recognizer and hasattr(self.recognizer, 'write'):
-                    # push_stream.write() expects bytes
                     self.recognizer.write(frame.data)
-                
-                # CRITICAL FIX: Propagate audio to next processor (VAD)
+
+                # Propagate audio to next processor (VAD)
                 await self.push_frame(frame, direction)
             else:
                 # Pass through other frames
@@ -111,14 +92,12 @@ class STTProcessor(FrameProcessor):
 
     async def cleanup(self):
         if self.recognizer:
-            try:
-                if hasattr(self.recognizer, 'stop_continuous_recognition_async'):
-                     self.recognizer.stop_continuous_recognition_async().get()
-            except Exception:
-                pass
-        
+            # Non-blocking cleanup attempt
+            with contextlib.suppress(Exception):
+                await self.loop.run_in_executor(None, self.recognizer.stop_continuous_recognition_async().get)
+
     # --- callbacks ---
-    
+
     def _on_stt_event(self, evt: STTEvent):
         """
         Unified callback from Provider Wrapper.
@@ -127,8 +106,8 @@ class STTProcessor(FrameProcessor):
         if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
             text = evt.text
             if text:
-                # --- AUDIT FIX: Filtering Logic ---
-                
+                # --- Filtering Logic ---
+
                 # 1. Blacklist (Hallucinations)
                 blacklist_str = getattr(self.config, 'hallucination_blacklist', '') or ''
                 blacklist = [x.strip() for x in blacklist_str.split(',') if x.strip()]
@@ -137,47 +116,42 @@ class STTProcessor(FrameProcessor):
                     return
 
                 # 2. Min Characters (Interruption Threshold)
-                # Note: UI says 'interruptWords' but maps to 'input_min_characters' usually. 
-                # Let's use 'input_min_characters' from DB.
                 val = getattr(self.config, 'input_min_characters', 2)
                 min_chars = val if val is not None else 2
                 if len(text) < min_chars:
                     logger.warning(f"🔇 [STT] Ignored (Too Short < {min_chars}): {text}")
                     return
 
-                # 3. Interruption Phrases (Phase IV - Force Stop)
-                # Dynamic Config Resolution
+                # 3. Interruption Phrases (Force Stop)
+                # Use profile configuration for type-safe access
                 client_type = getattr(self.config, 'client_type', 'twilio')
-                suffix = "_phone" if client_type == "twilio" else ("_telnyx" if client_type == "telnyx" else "")
-                
-                phrases_json = getattr(self.config, f"interruption_phrases{suffix}", None) or getattr(self.config, "interruption_phrases", None)
-                
+                profile = self.config.get_profile(client_type)
+
+                phrases_json = profile.interruption_phrases
+
                 if phrases_json:
-                    # Check if any phrase is in text (case insensitive)
                     text_lower = text.lower()
-                    import json
                     try:
                         if isinstance(phrases_json, str):
                             phrases = json.loads(phrases_json)
                         else:
-                            phrases = phrases_json # Already list/dict
-                            
+                            phrases = phrases_json
+
                         if isinstance(phrases, list):
                             for phrase in phrases:
                                 if phrase.lower() in text_lower:
                                     logger.info(f"⚡ [STT] Interruption Phrase Detected: '{phrase}' - FORCING STOP")
-                                    
-                                    # ✅ Module 13: Out-of-Band Signal (Priority)
+
+                                    # Out-of-Band Signal (Priority)
                                     if self.control_channel:
-                                        # Use run_coroutine_threadsafe because callback is thread-safe wrapper
-                                        future = asyncio.run_coroutine_threadsafe(
+                                        asyncio.run_coroutine_threadsafe(
                                             self.control_channel.send_interrupt(text=f"Keyword: {phrase}"),
                                             self.loop
                                         )
-                                    
-                                    # In-Band Signal (Legacy Fallback)
+
+                                    # In-Band Signal (Fallback)
                                     asyncio.run_coroutine_threadsafe(
-                                        self.push_frame(CancelFrame()), 
+                                        self.push_frame(CancelFrame()),
                                         self.loop
                                     )
                                     break
@@ -186,16 +160,8 @@ class STTProcessor(FrameProcessor):
 
                 logger.info(f"🎤 [STT] Recognized: {text}")
                 asyncio.run_coroutine_threadsafe(
-                    self.push_frame(TextFrame(text=text, is_final=True)), 
+                    self.push_frame(TextFrame(text=text, is_final=True)),
                     self.loop
                 )
         elif evt.reason == STTResultReason.CANCELED:
             logger.warning(f"STT Canceled. Details: {evt.error_details}")
-            
-    # Legacy/Native callbacks (Fallback only)
-    def _on_recognized_native(self, evt):
-        # ... logic for native azure event if needed ...
-        pass
-        
-    def _on_canceled_native(self, evt):
-        pass
