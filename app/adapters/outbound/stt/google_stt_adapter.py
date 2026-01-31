@@ -28,6 +28,17 @@ class MockSTTRecognizer(STTRecognizer):
     async def stop_continuous_recognition(self):
         logger.info("[GoogleSTT Mock] Stopped continuous recognition")
 
+    # --- Legacy Async Interface (for STTProcessor compatibility) ---
+    class MockFuture:
+        def get(self):
+            return None
+
+    def start_continuous_recognition_async(self):
+        return self.MockFuture()
+
+    def stop_continuous_recognition_async(self):
+        return self.MockFuture()
+
     def write(self, audio_data: bytes):
         # Mock behavior: randomly recognize something or silence
         # In a real mock, we might analyze bytes or just log
