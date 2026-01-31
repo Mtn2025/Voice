@@ -470,6 +470,10 @@ class VoiceOrchestratorV2:
 
         logger.info(f"Loaded config for agent: {self.config.name}")
 
+        # [RUNTIME] Inject client_type for Processor configuration
+        # This ensures STT/TTS adapters know if they should run in 8kHz (Phone) or 16kHz (Browser) mode.
+        self.config.client_type = self.client_type
+
         # Apply client overlay
         apply_client_overlay(self.config, self.client_type)
 

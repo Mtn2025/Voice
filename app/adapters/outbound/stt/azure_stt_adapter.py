@@ -92,7 +92,7 @@ class AzureRecognizerWrapper:
 
     def write(self, data):
         # [TRACING] Azure Stream Write
-        # logger.debug(f"👂 [AZURE_WRITE] Writing {len(data)} bytes")
+        logger.debug(f"👂 [AZURE_WRITE] Writing {len(data)} bytes")
         self._push_stream.write(data)
 
 
