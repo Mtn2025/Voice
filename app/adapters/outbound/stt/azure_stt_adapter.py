@@ -107,10 +107,24 @@ class AzureSTTRecognizerAdapter(STTRecognizer):
         # Azure returns a future, wait for it
         future.get()
 
+    def start_continuous_recognition_async(self):
+        """
+        Legacy support for STTProcessor calling this directly.
+        Returns the Azure Future object.
+        """
+        return self._azure_recognizer.start_continuous_recognition_async()
+
     async def stop_continuous_recognition(self):
         """Detiene reconocimiento continuo."""
         future = self._azure_recognizer.stop_continuous_recognition_async()
         future.get()
+
+    def stop_continuous_recognition_async(self):
+        """
+        Legacy support for STTProcessor calling this directly.
+        Returns the Azure Future object.
+        """
+        return self._azure_recognizer.stop_continuous_recognition_async()
 
     def write(self, audio_data: bytes):
         """Escribe datos de audio al stream."""

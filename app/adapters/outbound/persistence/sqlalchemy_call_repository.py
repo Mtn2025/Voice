@@ -40,9 +40,8 @@ class SQLAlchemyCallRepository(CallRepositoryPort):
             async with self.session_factory() as session:
                 call_record = await db_service.create_call(
                     session=session,
-                    stream_id=stream_id,
-                    client_type=client_type,
-                    metadata=metadata
+                    session_id=stream_id,
+                    client_type=client_type
                 )
 
                 # Translate ORM model to domain CallRecord
