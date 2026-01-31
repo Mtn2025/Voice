@@ -113,7 +113,7 @@ class PipelineFactory:
         execute_tool_use_case = ExecuteToolUseCase(tools)
 
         # Hold Audio Player (for tool execution delays)
-        hold_audio_player = HoldAudioPlayer()
+        hold_audio_player = HoldAudioPlayer(orchestrator_ref.audio_manager)
 
         llm = LLMProcessor(
             llm_port=llm_port,
