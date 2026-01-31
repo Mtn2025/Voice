@@ -70,6 +70,10 @@ class LLMProcessor(FrameProcessor):
         3. Handle Function Calls.
         """
         logger.info(f"🤖 [LLM] trace={self.trace_id} Processing: {text[:50]}...")
+        
+        # [TRACING] Log LLM Input
+        logger.debug(f"🧠 [LLM_IN] Prompt: '{text}' | History Depth: {len(self.conversation_history)}")
+
 
         # 1. Update History (Deduplicated logic)
         if not self.conversation_history or self.conversation_history[-1].get("content") != text:
@@ -167,6 +171,10 @@ class LLMProcessor(FrameProcessor):
             if chunk.has_text:
                 token_text = chunk.text
                 full_response_buffer += token_text
+
+                # [TRACING] Log Token Stream
+                # logger.debug(f"💭 [LLM_STREAM] Token: '{token_text}'")  # Commented out to reduce noise, enable for deep debug
+
 
                 # Check for [END_CALL] tag
                 if "[END_CALL]" in token_text:

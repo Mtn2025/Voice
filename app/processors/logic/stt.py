@@ -159,6 +159,10 @@ class STTProcessor(FrameProcessor):
                         logger.warning(f"Failed to parse interruption_phrases: {e}")
 
                 logger.info(f"🎤 [STT] Recognized: {text}")
+
+                # [TRACING] Log STT Event
+                logger.debug(f"👂 [STT_EVENT] Text: '{text}' | Confidence: High | Trace: {getattr(self.config, 'stream_id', 'unknown')}")
+
                 asyncio.run_coroutine_threadsafe(
                     self.push_frame(TextFrame(text=text, is_final=True)),
                     self.loop

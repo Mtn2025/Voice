@@ -109,6 +109,10 @@ class TTSProcessor(FrameProcessor):
 
         logger.info(f"🗣️ [TTS] trace={trace_id} Synthesizing: {text}")
 
+        # [TRACING] Log TTS Request
+        logger.debug(f"🔈 [TTS_REQ] Text: '{text}' | Config: {getattr(self.config, 'voice_name', 'default')}")
+
+
         try:
             # Backpressure Check
             queue_depth = self._tts_queue.qsize()
@@ -143,6 +147,9 @@ class TTSProcessor(FrameProcessor):
                    await self.push_frame(
                        AudioFrame(data=audio_chunk, sample_rate=sr, channels=1)
                    )
+                   # [TRACING] Log TTS Audio Chunk
+                   logger.debug(f"🔊 [TTS_CHUNK] Sent {len(audio_chunk)} bytes")
+
 
             # Note: We don't log "Received X bytes" total anymore since we stream
             logger.debug(f"🗣️ [TTS] trace={trace_id} Synthesis complete")
