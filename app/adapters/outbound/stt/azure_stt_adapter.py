@@ -56,7 +56,12 @@ class AzureRecognizerWrapper:
 
         text = evt.result.text
         if not text:
+            # logger.debug("[AzureSTT] Empty text in event")
             return
+
+        # [TRACING] Azure Native Event
+        logger.debug(f"👂 [AZURE_NATIVE] Reason: {reason} | Text: {text}")
+
 
         event = STTEvent(
             reason=reason,
@@ -86,6 +91,8 @@ class AzureRecognizerWrapper:
         return self._recognizer.stop_continuous_recognition_async()
 
     def write(self, data):
+        # [TRACING] Azure Stream Write
+        # logger.debug(f"👂 [AZURE_WRITE] Writing {len(data)} bytes")
         self._push_stream.write(data)
 
 
