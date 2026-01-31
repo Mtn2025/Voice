@@ -340,6 +340,7 @@ class VoiceOrchestratorV2:
                     data=audio_bytes, 
                     sample_rate=sample_rate, 
                     channels=1,
+                    metadata={'source': 'user_input'}
                 )
             )
 
