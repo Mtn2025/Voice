@@ -20,12 +20,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Add System & Safety columns for Telnyx Profile (Isolation)
-    op.add_column('agent_config', sa.Column('max_retries_telnyx', sa.Integer(), server_default='3', nullable=True))
-    op.add_column('agent_config', sa.Column('concurrency_limit_telnyx', sa.Integer(), nullable=True))
-    op.add_column('agent_config', sa.Column('daily_spend_limit_telnyx', sa.Float(), nullable=True))
-    op.add_column('agent_config', sa.Column('environment_tag_telnyx', sa.String(), server_default='development', nullable=True))
-    op.add_column('agent_config', sa.Column('privacy_mode_telnyx', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('agent_config', sa.Column('audit_log_enabled_telnyx', sa.Boolean(), server_default='false', nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'max_retries_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('max_retries_telnyx', sa.Integer(), server_default='3', nullable=True))
+    if 'concurrency_limit_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('concurrency_limit_telnyx', sa.Integer(), nullable=True))
+    if 'daily_spend_limit_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('daily_spend_limit_telnyx', sa.Float(), nullable=True))
+    if 'environment_tag_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('environment_tag_telnyx', sa.String(), server_default='development', nullable=True))
+    if 'privacy_mode_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('privacy_mode_telnyx', sa.Boolean(), server_default='false', nullable=True))
+    if 'audit_log_enabled_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('audit_log_enabled_telnyx', sa.Boolean(), server_default='false', nullable=True))
 
 
 def downgrade() -> None:

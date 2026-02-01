@@ -18,15 +18,25 @@ depends_on = None
 
 def upgrade() -> None:
     # ADVANCED TAB (PHASE IX)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
     # 1. Quality & Codecs
-    op.add_column('agent_config', sa.Column('noise_suppression_level', sa.String(), server_default='balanced', nullable=True))
-    op.add_column('agent_config', sa.Column('audio_codec', sa.String(), server_default='PCMU', nullable=True))
-    op.add_column('agent_config', sa.Column('enable_backchannel', sa.Boolean(), server_default='false', nullable=True))
+    if 'noise_suppression_level' not in columns:
+        op.add_column('agent_configs', sa.Column('noise_suppression_level', sa.String(), server_default='balanced', nullable=True))
+    if 'audio_codec' not in columns:
+        op.add_column('agent_configs', sa.Column('audio_codec', sa.String(), server_default='PCMU', nullable=True))
+    if 'enable_backchannel' not in columns:
+        op.add_column('agent_configs', sa.Column('enable_backchannel', sa.Boolean(), server_default='false', nullable=True))
     
     # 2. Safety Limits (Legacy but requested)
-    op.add_column('agent_config', sa.Column('max_duration', sa.Integer(), server_default='600', nullable=True))
-    op.add_column('agent_config', sa.Column('inactivity_max_retries', sa.Integer(), server_default='2', nullable=True))
-    op.add_column('agent_config', sa.Column('idle_message', sa.Text(), server_default='¿Sigues ahí?', nullable=True))
+    if 'max_duration' not in columns:
+        op.add_column('agent_configs', sa.Column('max_duration', sa.Integer(), server_default='600', nullable=True))
+    if 'inactivity_max_retries' not in columns:
+        op.add_column('agent_configs', sa.Column('inactivity_max_retries', sa.Integer(), server_default='2', nullable=True))
+    if 'idle_message' not in columns:
+        op.add_column('agent_configs', sa.Column('idle_message', sa.Text(), server_default='¿Sigues ahí?', nullable=True))
 
 
 def downgrade() -> None:

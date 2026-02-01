@@ -18,30 +18,51 @@ depends_on = None
 
 def upgrade():
     """Add 18 new LLM control fields (6 controls × 3 profiles)."""
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
     
     # Browser Profile (6 campos)
-    op.add_column('agent_configs', sa.Column('context_window', sa.Integer(), nullable=False, server_default='10'))
-    op.add_column('agent_configs', sa.Column('frequency_penalty', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('agent_configs', sa.Column('presence_penalty', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('agent_configs', sa.Column('tool_choice', sa.String(), nullable=False, server_default='auto'))
-    op.add_column('agent_configs', sa.Column('dynamic_vars_enabled', sa.Boolean(), nullable=False, server_default='false'))
-    op.add_column('agent_configs', sa.Column('dynamic_vars', postgresql.JSON(astext_type=sa.Text()), nullable=True))
+    if 'context_window' not in columns:
+        op.add_column('agent_configs', sa.Column('context_window', sa.Integer(), nullable=False, server_default='10'))
+    if 'frequency_penalty' not in columns:
+        op.add_column('agent_configs', sa.Column('frequency_penalty', sa.Float(), nullable=False, server_default='0.0'))
+    if 'presence_penalty' not in columns:
+        op.add_column('agent_configs', sa.Column('presence_penalty', sa.Float(), nullable=False, server_default='0.0'))
+    if 'tool_choice' not in columns:
+        op.add_column('agent_configs', sa.Column('tool_choice', sa.String(), nullable=False, server_default='auto'))
+    if 'dynamic_vars_enabled' not in columns:
+        op.add_column('agent_configs', sa.Column('dynamic_vars_enabled', sa.Boolean(), nullable=False, server_default='false'))
+    if 'dynamic_vars' not in columns:
+        op.add_column('agent_configs', sa.Column('dynamic_vars', postgresql.JSON(astext_type=sa.Text()), nullable=True))
     
     # Twilio Profile (phone suffix - 6 campos)
-    op.add_column('agent_configs', sa.Column('context_window_phone', sa.Integer(), nullable=False, server_default='10'))
-    op.add_column('agent_configs', sa.Column('frequency_penalty_phone', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('agent_configs', sa.Column('presence_penalty_phone', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('agent_configs', sa.Column('tool_choice_phone', sa.String(), nullable=False, server_default='auto'))
-    op.add_column('agent_configs', sa.Column('dynamic_vars_enabled_phone', sa.Boolean(), nullable=False, server_default='false'))
-    op.add_column('agent_configs', sa.Column('dynamic_vars_phone', postgresql.JSON(astext_type=sa.Text()), nullable=True))
+    if 'context_window_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('context_window_phone', sa.Integer(), nullable=False, server_default='10'))
+    if 'frequency_penalty_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('frequency_penalty_phone', sa.Float(), nullable=False, server_default='0.0'))
+    if 'presence_penalty_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('presence_penalty_phone', sa.Float(), nullable=False, server_default='0.0'))
+    if 'tool_choice_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('tool_choice_phone', sa.String(), nullable=False, server_default='auto'))
+    if 'dynamic_vars_enabled_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('dynamic_vars_enabled_phone', sa.Boolean(), nullable=False, server_default='false'))
+    if 'dynamic_vars_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('dynamic_vars_phone', postgresql.JSON(astext_type=sa.Text()), nullable=True))
     
     # Telnyx Profile (telnyx suffix - 6 campos)
-    op.add_column('agent_configs', sa.Column('context_window_telnyx', sa.Integer(), nullable=False, server_default='10'))
-    op.add_column('agent_configs', sa.Column('frequency_penalty_telnyx', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('agent_configs', sa.Column('presence_penalty_telnyx', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('agent_configs', sa.Column('tool_choice_telnyx', sa.String(), nullable=False, server_default='auto'))
-    op.add_column('agent_configs', sa.Column('dynamic_vars_enabled_telnyx', sa.Boolean(), nullable=False, server_default='false'))
-    op.add_column('agent_configs', sa.Column('dynamic_vars_telnyx', postgresql.JSON(astext_type=sa.Text()), nullable=True))
+    if 'context_window_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('context_window_telnyx', sa.Integer(), nullable=False, server_default='10'))
+    if 'frequency_penalty_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('frequency_penalty_telnyx', sa.Float(), nullable=False, server_default='0.0'))
+    if 'presence_penalty_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('presence_penalty_telnyx', sa.Float(), nullable=False, server_default='0.0'))
+    if 'tool_choice_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('tool_choice_telnyx', sa.String(), nullable=False, server_default='auto'))
+    if 'dynamic_vars_enabled_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('dynamic_vars_enabled_telnyx', sa.Boolean(), nullable=False, server_default='false'))
+    if 'dynamic_vars_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('dynamic_vars_telnyx', postgresql.JSON(astext_type=sa.Text()), nullable=True))
 
 
 def downgrade():
