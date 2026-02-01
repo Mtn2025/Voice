@@ -70,7 +70,12 @@ class AzureTTSAdapter(TTSPort):
         )
 
     async def _ensure_voices_loaded(self):
-        """Fetches voices from Azure if cache is empty or expired."""
+        """
+        Fetches voices from Azure if cache is empty or expired.
+
+        Official Method Verified: `speech_synthesizer.get_voices_async()`
+        Source: https://learn.microsoft.com/en-us/python/api/azure-cognitiveservices-speech/azure.cognitiveservices.speech.speechsynthesizer?view=azure-python#azure-cognitiveservices-speech-speechsynthesizer-get-voices-async
+        """
         global _VOICE_CACHE, _STYLE_CACHE, _LAST_CACHE_UPDATE
         
         current_time = time.time()
