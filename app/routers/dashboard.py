@@ -200,6 +200,12 @@ async def dashboard(
 
     # Languages
     azure_langs = await tts_adapter.get_available_languages()
+    
+    # Fallback for languages if API fails (Auth Error 401 protection)
+    if not azure_langs:
+        logger.warning("⚠️ Azure Languages list empty. Using fallback.")
+        azure_langs = ["es-MX", "en-US", "es-ES"]
+        
     languages = {
         "azure": azure_langs
     }
@@ -248,6 +254,7 @@ async def dashboard(
 
         # Fallback
         if not voices["azure"]:
+            logger.warning("⚠️ Azure Voices list empty. Using fallback catalog.")
             voices["azure"] = {
                 "es-MX": [
                     {"id": "es-MX-DaliaNeural", "name": "Dalia (Neural)", "gender": "female"},
@@ -255,6 +262,9 @@ async def dashboard(
                 ],
                 "en-US": [
                     {"id": "en-US-JennyNeural", "name": "Jenny (Neural)", "gender": "female"}
+                ],
+                "es-ES": [
+                     {"id": "es-ES-ElviraNeural", "name": "Elvira (Neural)", "gender": "female"}
                 ]
             }
 
