@@ -130,7 +130,7 @@ class ControlChannel:
                 return msg
 
         except TimeoutError:
-            logger.debug("[ControlChannel] wait_for_signal timeout")
+            # logger.debug("[ControlChannel] wait_for_signal timeout")
             raise
 
     def has_pending(self) -> bool:

@@ -209,10 +209,15 @@ class VoiceOrchestratorV2:
             return
 
         # STEP 7: Send Initial Greeting
-        greeting_enabled = getattr(self.config, 'greeting_enabled', False)
-        greeting_text = getattr(self.config, 'greeting_text', '')
-        if greeting_enabled and greeting_text:
-            logger.info("👋 Sending greeting")
+        # STEP 7: Send Initial Greeting
+        first_mode = getattr(self.config, 'first_message_mode', 'speak-first')
+        greeting_text = getattr(self.config, 'first_message', '')
+        
+        # Check if we should speak first
+        should_speak = (first_mode == 'speak-first')
+        
+        if should_speak and greeting_text:
+            logger.info(f"👋 Sending greeting: {greeting_text[:30]}...")
             await self.pipeline.push_frame(TextFrame(text=greeting_text))
 
         # STEP 8: Start Control Loop
