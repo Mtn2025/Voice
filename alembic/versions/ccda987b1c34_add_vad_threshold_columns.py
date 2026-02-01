@@ -20,9 +20,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add vad_threshold columns to agent_configs."""
-    op.add_column('agent_configs', sa.Column('vad_threshold', sa.Float(), nullable=True, server_default='0.5'))
-    op.add_column('agent_configs', sa.Column('vad_threshold_phone', sa.Float(), nullable=True, server_default='0.5'))
-    op.add_column('agent_configs', sa.Column('vad_threshold_telnyx', sa.Float(), nullable=True, server_default='0.5'))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'vad_threshold' not in columns:
+        op.add_column('agent_configs', sa.Column('vad_threshold', sa.Float(), nullable=True, server_default='0.5'))
+    if 'vad_threshold_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('vad_threshold_phone', sa.Float(), nullable=True, server_default='0.5'))
+    if 'vad_threshold_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('vad_threshold_telnyx', sa.Float(), nullable=True, server_default='0.5'))
 
 
 def downgrade() -> None:

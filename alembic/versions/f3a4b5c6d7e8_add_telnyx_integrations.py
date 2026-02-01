@@ -20,11 +20,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Add Webhook/CRM columns for Telnyx Profile
-    op.add_column('agent_config', sa.Column('webhook_url_telnyx', sa.String(), nullable=True))
-    op.add_column('agent_config', sa.Column('webhook_secret_telnyx', sa.String(), nullable=True))
-    op.add_column('agent_config', sa.Column('crm_enabled_telnyx', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('agent_config', sa.Column('baserow_token_telnyx', sa.String(), nullable=True))
-    op.add_column('agent_config', sa.Column('baserow_table_id_telnyx', sa.Integer(), nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'webhook_url_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('webhook_url_telnyx', sa.String(), nullable=True))
+    if 'webhook_secret_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('webhook_secret_telnyx', sa.String(), nullable=True))
+    if 'crm_enabled_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('crm_enabled_telnyx', sa.Boolean(), server_default='false', nullable=True))
+    if 'baserow_token_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('baserow_token_telnyx', sa.String(), nullable=True))
+    if 'baserow_table_id_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('baserow_table_id_telnyx', sa.Integer(), nullable=True))
 
 
 def downgrade() -> None:

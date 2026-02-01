@@ -20,19 +20,31 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add missing voice_language and TTS configuration fields."""
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
     # Add voice_language to base profile
-    op.add_column('agent_configs', sa.Column('voice_language', sa.String(), nullable=True, server_default='es-MX'))
+    if 'voice_language' not in columns:
+        op.add_column('agent_configs', sa.Column('voice_language', sa.String(), nullable=True, server_default='es-MX'))
     
     # Add missing TTS/voice fields for Phone profile  
-    op.add_column('agent_configs', sa.Column('tts_provider_phone', sa.String(), nullable=True, server_default='azure'))
-    op.add_column('agent_configs', sa.Column('voice_language_phone', sa.String(), nullable=True, server_default='es-MX'))
-    op.add_column('agent_configs', sa.Column('background_sound_phone', sa.String(), nullable=True, server_default='none'))
+    if 'tts_provider_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('tts_provider_phone', sa.String(), nullable=True, server_default='azure'))
+    if 'voice_language_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('voice_language_phone', sa.String(), nullable=True, server_default='es-MX'))
+    if 'background_sound_phone' not in columns:
+        op.add_column('agent_configs', sa.Column('background_sound_phone', sa.String(), nullable=True, server_default='none'))
     
     # Add missing TTS/voice fields for Telnyx profile
-    op.add_column('agent_configs', sa.Column('tts_provider_telnyx', sa.String(), nullable=True, server_default='azure'))
-    op.add_column('agent_configs', sa.Column('voice_language_telnyx', sa.String(), nullable=True, server_default='es-MX'))
-    op.add_column('agent_configs', sa.Column('background_sound_telnyx', sa.String(), nullable=True, server_default='none'))
-    op.add_column('agent_configs', sa.Column('background_sound_url_telnyx', sa.String(), nullable=True))
+    if 'tts_provider_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('tts_provider_telnyx', sa.String(), nullable=True, server_default='azure'))
+    if 'voice_language_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('voice_language_telnyx', sa.String(), nullable=True, server_default='es-MX'))
+    if 'background_sound_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('background_sound_telnyx', sa.String(), nullable=True, server_default='none'))
+    if 'background_sound_url_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('background_sound_url_telnyx', sa.String(), nullable=True))
 
 
 def downgrade() -> None:

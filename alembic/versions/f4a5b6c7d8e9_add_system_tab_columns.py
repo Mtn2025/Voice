@@ -18,11 +18,20 @@ depends_on = None
 
 def upgrade() -> None:
     # SYSTEM TAB (PHASE VIII)
-    op.add_column('agent_config', sa.Column('concurrency_limit', sa.Integer(), server_default='10', nullable=True))
-    op.add_column('agent_config', sa.Column('spend_limit_daily', sa.Float(), server_default='50.0', nullable=True))
-    op.add_column('agent_config', sa.Column('environment', sa.String(), server_default='development', nullable=True))
-    op.add_column('agent_config', sa.Column('privacy_mode', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('agent_config', sa.Column('audit_log_enabled', sa.Boolean(), server_default='true', nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'concurrency_limit' not in columns:
+        op.add_column('agent_configs', sa.Column('concurrency_limit', sa.Integer(), server_default='10', nullable=True))
+    if 'spend_limit_daily' not in columns:
+        op.add_column('agent_configs', sa.Column('spend_limit_daily', sa.Float(), server_default='50.0', nullable=True))
+    if 'environment' not in columns:
+        op.add_column('agent_configs', sa.Column('environment', sa.String(), server_default='development', nullable=True))
+    if 'privacy_mode' not in columns:
+        op.add_column('agent_configs', sa.Column('privacy_mode', sa.Boolean(), server_default='false', nullable=True))
+    if 'audit_log_enabled' not in columns:
+        op.add_column('agent_configs', sa.Column('audit_log_enabled', sa.Boolean(), server_default='true', nullable=True))
 
 
 def downgrade() -> None:
