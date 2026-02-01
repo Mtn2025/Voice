@@ -199,12 +199,12 @@ async def dashboard(
     tts_adapter = AzureTTSAdapter() # Lightweight init
 
     # Languages
-    azure_langs = tts_adapter.get_available_languages()
+    azure_langs = await tts_adapter.get_available_languages()
     languages = {
         "azure": azure_langs
     }
 
-    voice_styles = tts_adapter.get_voice_styles("es-MX-DaliaNeural") # Default example or empty
+    voice_styles = await tts_adapter.get_voice_styles("es-MX-DaliaNeural") # Default example or empty
 
     # Models - CURATED lists
     models = {
@@ -230,7 +230,7 @@ async def dashboard(
     if not voices:
         logger.info("🔄 Loading voices from Azure (cache miss)")
         voices = {"azure": {}}
-        azure_voices_objects = tts_adapter.get_available_voices()
+        azure_voices_objects = await tts_adapter.get_available_voices()
 
         for v in azure_voices_objects:
             locale = v.locale
@@ -268,7 +268,7 @@ async def dashboard(
     if not voice_styles_cached:
         # We need the full styles map for the frontend
         # Assuming we added this method to adapter
-        voice_styles = tts_adapter.get_all_voice_styles()
+        voice_styles = await tts_adapter.get_all_voice_styles()
         await cache.set("voice_styles", voice_styles, ttl=86400)
     else:
         voice_styles = voice_styles_cached
