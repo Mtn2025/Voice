@@ -20,20 +20,33 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add missing CRM, Webhook, and Conversation Style columns."""
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
     # Conversation Style Controls
-    op.add_column('agent_configs', sa.Column('response_length', sa.String(), nullable=True, server_default='short'))
-    op.add_column('agent_configs', sa.Column('conversation_tone', sa.String(), nullable=True, server_default='warm'))
-    op.add_column('agent_configs', sa.Column('conversation_formality', sa.String(), nullable=True, server_default='semi_formal'))
-    op.add_column('agent_configs', sa.Column('conversation_pacing', sa.String(), nullable=True, server_default='moderate'))
+    if 'response_length' not in columns:
+        op.add_column('agent_configs', sa.Column('response_length', sa.String(), nullable=True, server_default='short'))
+    if 'conversation_tone' not in columns:
+        op.add_column('agent_configs', sa.Column('conversation_tone', sa.String(), nullable=True, server_default='warm'))
+    if 'conversation_formality' not in columns:
+        op.add_column('agent_configs', sa.Column('conversation_formality', sa.String(), nullable=True, server_default='semi_formal'))
+    if 'conversation_pacing' not in columns:
+        op.add_column('agent_configs', sa.Column('conversation_pacing', sa.String(), nullable=True, server_default='moderate'))
 
     # CRM Integration
-    op.add_column('agent_configs', sa.Column('crm_enabled', sa.Boolean(), nullable=True, server_default='false'))
-    op.add_column('agent_configs', sa.Column('baserow_token', sa.String(), nullable=True))
-    op.add_column('agent_configs', sa.Column('baserow_table_id', sa.Integer(), nullable=True))
+    if 'crm_enabled' not in columns:
+        op.add_column('agent_configs', sa.Column('crm_enabled', sa.Boolean(), nullable=True, server_default='false'))
+    if 'baserow_token' not in columns:
+        op.add_column('agent_configs', sa.Column('baserow_token', sa.String(), nullable=True))
+    if 'baserow_table_id' not in columns:
+        op.add_column('agent_configs', sa.Column('baserow_table_id', sa.Integer(), nullable=True))
 
     # Webhook Integration
-    op.add_column('agent_configs', sa.Column('webhook_url', sa.String(), nullable=True))
-    op.add_column('agent_configs', sa.Column('webhook_secret', sa.String(), nullable=True))
+    if 'webhook_url' not in columns:
+        op.add_column('agent_configs', sa.Column('webhook_url', sa.String(), nullable=True))
+    if 'webhook_secret' not in columns:
+        op.add_column('agent_configs', sa.Column('webhook_secret', sa.String(), nullable=True))
 
 
 def downgrade() -> None:

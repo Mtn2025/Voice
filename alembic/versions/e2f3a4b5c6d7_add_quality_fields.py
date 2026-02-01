@@ -20,9 +20,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Add quality and latency fields."""
-    op.add_column('agent_configs', sa.Column('noise_suppression_level', sa.String(), nullable=True))
-    op.add_column('agent_configs', sa.Column('audio_codec', sa.String(), nullable=True))
-    op.add_column('agent_configs', sa.Column('enable_backchannel', sa.Boolean(), nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'noise_suppression_level' not in columns:
+        op.add_column('agent_configs', sa.Column('noise_suppression_level', sa.String(), nullable=True))
+    if 'audio_codec' not in columns:
+        op.add_column('agent_configs', sa.Column('audio_codec', sa.String(), nullable=True))
+    if 'enable_backchannel' not in columns:
+        op.add_column('agent_configs', sa.Column('enable_backchannel', sa.Boolean(), nullable=True))
 
 
 def downgrade() -> None:
