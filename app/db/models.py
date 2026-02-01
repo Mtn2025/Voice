@@ -233,7 +233,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     initial_silence_timeout_ms_phone = Column(Integer, default=30000)
     input_min_characters_phone = Column(Integer, default=1)
     enable_denoising_phone = Column(Boolean, default=True)
-    extra_settings_phone = Column(JSON, nullable=True)
+
 
     # TWILIO SPECIFIC (Platform Capabilities)
     twilio_machine_detection = Column(String, default="Enable")
@@ -241,21 +241,20 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     twilio_recording_channels = Column(String, default="dual")
     twilio_trim_silence = Column(Boolean, default=True)
 
-    voice_id_manual = Column(String, nullable=True)
+
     background_sound_url = Column(String, nullable=True)
-    input_min_characters = Column(Integer, default=2)
+
     input_min_characters_phone = Column(Integer, default=4)
     hallucination_blacklist = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.")
     hallucination_blacklist_phone = Column(String, default="Pero.,Y...,Mm.,Oye.,Ah.")
     voice_pacing_ms = Column(Integer, default=300)
     voice_pacing_ms_phone = Column(Integer, default=500)
-    punctuation_boundaries = Column(String, nullable=True)
+
 
     # Transcriber & Functions
     silence_timeout_ms = Column(Integer, default=500)
     silence_timeout_ms_phone = Column(Integer, default=2000)
-    segmentation_max_time = Column(Integer, default=30000)
-    segmentation_strategy = Column(String, default="default")
+
     enable_denoising = Column(Boolean, default=True)
     initial_silence_timeout_ms = Column(Integer, default=30000)
 
@@ -451,7 +450,7 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     twilio_from_number = Column(String, nullable=True)
     # Telnyx
     telnyx_api_key = Column(String, nullable=True)
-    telnyx_api_user = Column(String, nullable=True)
+
     telnyx_connection_id = Column(String, nullable=True)
 
     # --- 2. INFRASTRUCTURE & SIP ---
