@@ -20,9 +20,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Add Advanced Audio columns for Telnyx Profile (Isolation)
-    op.add_column('agent_config', sa.Column('audio_codec_telnyx', sa.String(), server_default='PCMU', nullable=True))
-    op.add_column('agent_config', sa.Column('noise_suppression_level_telnyx', sa.String(), server_default='balanced', nullable=True))
-    op.add_column('agent_config', sa.Column('enable_backchannel_telnyx', sa.Boolean(), server_default='false', nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'audio_codec_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('audio_codec_telnyx', sa.String(), server_default='PCMU', nullable=True))
+    if 'noise_suppression_level_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('noise_suppression_level_telnyx', sa.String(), server_default='balanced', nullable=True))
+    if 'enable_backchannel_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('enable_backchannel_telnyx', sa.Boolean(), server_default='false', nullable=True))
 
 
 def downgrade() -> None:
