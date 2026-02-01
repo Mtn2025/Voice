@@ -40,6 +40,7 @@ class TTSProcessor(FrameProcessor):
 
     async def process_frame(self, frame: Frame, direction: int):
         if direction == FrameDirection.DOWNSTREAM:
+            logger.info(f"debug_frame_type: {type(frame)} isinstance_text={isinstance(frame, TextFrame)}")
             if isinstance(frame, TextFrame):
                 # Ensure worker is running (defensive programming)
                 if not self._is_running:
