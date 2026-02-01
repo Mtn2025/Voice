@@ -21,93 +21,12 @@ from app.observability import get_metrics_collector
 logger = logging.getLogger(__name__)
 
 
-# --- Static Data (Moved from Legacy Provider) ---
-AZURE_VOICES_DATA = [
-    # --- Spanish (Mexico) ---
-    {"id": "es-MX-DaliaNeural", "name": "Dalia", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-JorgeNeural", "name": "Jorge", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-BeatrizNeural", "name": "Beatriz", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-CandelaNeural", "name": "Candela", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-CarlotaNeural", "name": "Carlota", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-CecilioNeural", "name": "Cecilio", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-GerardoNeural", "name": "Gerardo", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-LarissaNeural", "name": "Larissa", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-LibertoNeural", "name": "Liberto", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-LucianoNeural", "name": "Luciano", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-MarinaNeural", "name": "Marina", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-NurielNeural", "name": "Nuriel", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-PelayoNeural", "name": "Pelayo", "gender": "Male", "locale": "es-MX"},
-    {"id": "es-MX-RenataNeural", "name": "Renata", "gender": "Female", "locale": "es-MX"},
-    {"id": "es-MX-YagoNeural", "name": "Yago", "gender": "Male", "locale": "es-MX"},
 
-    # --- Spanish (Spain) ---
-    {"id": "es-ES-ElviraNeural", "name": "Elvira", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-AlvaroNeural", "name": "Alvaro", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-AbrilNeural", "name": "Abril", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-ArnauNeural", "name": "Arnau", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-DarioNeural", "name": "Dario", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-EliasNeural", "name": "Elias", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-EstrellaNeural", "name": "Estrella", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-IreneNeural", "name": "Irene", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-LaiaNeural", "name": "Laia", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-LiaNeural", "name": "Lia", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-NilNeural", "name": "Nil", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-SaulNeural", "name": "Saul", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-TeoNeural", "name": "Teo", "gender": "Male", "locale": "es-ES"},
-    {"id": "es-ES-TrianaNeural", "name": "Triana", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-VeraNeural", "name": "Vera", "gender": "Female", "locale": "es-ES"},
-    {"id": "es-ES-XimenaNeural", "name": "Ximena", "gender": "Female", "locale": "es-ES"},
-
-    # --- Spanish (US) ---
-    {"id": "es-US-PalomaNeural", "name": "Paloma", "gender": "Female", "locale": "es-US"},
-    {"id": "es-US-AlonsoNeural", "name": "Alonso", "gender": "Male", "locale": "es-US"},
-    {"id": "es-US-MiguelNeural", "name": "Miguel", "gender": "Male", "locale": "es-US"},
-
-    # --- English (US) ---
-    {"id": "en-US-JennyNeural", "name": "Jenny", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-GuyNeural", "name": "Guy", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-AriaNeural", "name": "Aria", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-DavisNeural", "name": "Davis", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-AmberNeural", "name": "Amber", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-AndrewNeural", "name": "Andrew", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-AshleyNeural", "name": "Ashley", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-BrandonNeural", "name": "Brandon", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-BrianNeural", "name": "Brian", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-ChristopherNeural", "name": "Christopher", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-CoraNeural", "name": "Cora", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-ElizabethNeural", "name": "Elizabeth", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-EricNeural", "name": "Eric", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-JacobNeural", "name": "Jacob", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-JaneNeural", "name": "Jane", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-JasonNeural", "name": "Jason", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-MichelleNeural", "name": "Michelle", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-MonicaNeural", "name": "Monica", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-NancyNeural", "name": "Nancy", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-RogerNeural", "name": "Roger", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-SaraNeural", "name": "Sara", "gender": "Female", "locale": "en-US"},
-    {"id": "en-US-SteffanNeural", "name": "Steffan", "gender": "Male", "locale": "en-US"},
-    {"id": "en-US-TonyNeural", "name": "Tony", "gender": "Male", "locale": "en-US"}
-]
-
-AZURE_VOICE_STYLES = {
-    # Mexico
-    "es-MX-DaliaNeural": ["customerservice", "chat", "cheerful", "calm", "sad", "angry", "fearful", "disgruntled", "serious", "affectionate", "gentle"],
-    "es-MX-JorgeNeural": ["chat", "conversational", "customerservice", "cheerful", "empathetic", "serious"],
-
-    # Spain
-    "es-ES-ElviraNeural": ["customerservice", "empathetic", "cheerful", "calm", "chat"],
-
-    # English US
-    "en-US-JennyNeural": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
-    "en-US-GuyNeural": ["newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
-    "en-US-AriaNeural": ["chat", "customerservice", "narration-professional", "newscast-casual", "newscast-formal", "cheerful", "empathetic", "angry", "sad", "excited", "friendly", "terrified", "shouting", "unfriendly", "whispering", "hopeful"],
-    "en-US-DavisNeural": ["chat", "angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
-    "en-US-JaneNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
-    "en-US-JasonNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
-    "en-US-NancyNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
-    "en-US-SaraNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
-    "en-US-TonyNeural": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"]
-}
+# --- Cache for Dynamic Data ---
+_VOICE_CACHE: list[dict] = []
+_STYLE_CACHE: dict[str, list[str]] = {}
+_LAST_CACHE_UPDATE: float = 0
+CACHE_TTL = 3600  # 1 hour
 
 
 class AzureTTSAdapter(TTSPort):
@@ -131,23 +50,18 @@ class AzureTTSAdapter(TTSPort):
         )
         self._synthesizer: speechsdk.SpeechSynthesizer | None = None
 
-        # Executor for blocking SDK calls moved to run_in_executor in core
-        # We rely on asyncio.to_thread / run_in_executor
-
-    def _create_synthesizer(self, voice_name: str):
+    def _create_synthesizer(self, voice_name: str | None = None):
         """Creates standard SpeechSynthesizer."""
-        self.speech_config.speech_synthesis_voice_name = voice_name
+        if voice_name:
+            self.speech_config.speech_synthesis_voice_name = voice_name
 
         if self.audio_mode == "browser":
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
         elif self.audio_mode == "telnyx":
-            # Telnyx (Mexico/Global) -> A-Law 8kHz
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoALaw)
         else:
-            # Twilio Default -> Mu-Law 8kHz
             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
 
-        # Redirect internal output to /dev/null to prevent hardware usage
         audio_config = speechsdk.audio.AudioConfig(filename="/dev/null")
 
         return speechsdk.SpeechSynthesizer(
@@ -155,52 +69,88 @@ class AzureTTSAdapter(TTSPort):
             audio_config=audio_config
         )
 
+    async def _ensure_voices_loaded(self):
+        """Fetches voices from Azure if cache is empty or expired."""
+        global _VOICE_CACHE, _STYLE_CACHE, _LAST_CACHE_UPDATE
+        
+        current_time = time.time()
+        if _VOICE_CACHE and (current_time - _LAST_CACHE_UPDATE < CACHE_TTL):
+            return
+
+        logger.info("☁️ [Azure TTS] Fetching fresh voice list from Azure API...")
+        
+        loop = asyncio.get_running_loop()
+        
+        def _fetch_blocking():
+            # Use a temporary synthesizer for fetching voices (no voice_name needed)
+            # IMPORTANT: Authentication must be valid here
+            synth = speechsdk.SpeechSynthesizer(speech_config=self.speech_config, audio_config=None)
+            result = synth.get_voices_async().get()
+            
+            if result.reason == speechsdk.ResultReason.VoicesListRetrieved:
+                return result.voices
+            else:
+                logger.error(f"❌ [Azure TTS] Failed to list voices: {result.error_details}")
+                return []
+
+        try:
+            voices = await loop.run_in_executor(None, _fetch_blocking)
+            
+            new_voice_cache = []
+            new_style_cache = {}
+
+            for v in voices:
+                # Extract metadata
+                voice_entry = {
+                    "id": v.name,              # e.g., "es-MX-DaliaNeural"
+                    "name": v.local_name,      # e.g., "Dalia"
+                    "gender": v.gender.name,   # e.g., "Female"
+                    "locale": v.locale         # e.g., "es-MX"
+                }
+                new_voice_cache.append(voice_entry)
+                
+                # Extract styles if available
+                # Azure usage: v.style_list produces a list of strings
+                if v.style_list:
+                    new_style_cache[v.name] = list(v.style_list)
+                else:
+                    new_style_cache[v.name] = []
+
+            # Atomic update
+            _VOICE_CACHE = new_voice_cache
+            _STYLE_CACHE = new_style_cache
+            _LAST_CACHE_UPDATE = current_time
+            logger.info(f"✅ [Azure TTS] Cached {len(_VOICE_CACHE)} voices and styles.")
+
+        except Exception as e:
+            logger.error(f"❌ [Azure TTS] Error fetching voices: {e}")
+            # Fallback not implemented to force real connectivity check as requested by user
+            # If API fails, lists will be empty.
+
     @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=TTSException)
     @track_streaming_latency("azure_tts")
     async def synthesize_stream(self, request: TTSRequest) -> AsyncIterator[bytes]:
-        """
-        Genera audio desde texto en streaming.
-
-        For Azure, we simulate streaming by invoking the full synthesis and yielding chunks,
-        or we could use PullAudioOutputStream if we wanted true streaming.
-        Due to previous implementation, we wrap the `synthesize` result or use a stream.
-        """
+        """Genera audio desde texto en streaming."""
         trace_id = request.metadata.get('trace_id', 'unknown')
         start_time = time.time()
         first_byte_time = None
         metrics_collector = get_metrics_collector()
 
         try:
-             # Ensure synthesizer exists
             if not self._synthesizer:
-                 self._synthesizer = self._create_synthesizer(request.voice_id)
-
-            # Using PullAudioOutputStream logic or standard async synthesis
-            # For simplicity matching previous provider logic which allowed iterating
-            # We'll stick to a simpler async call for now to respect the contract
-
-            # NOTE: Azure SDK for Python `start_speaking_ssml_async` returns a PullAudioOutputStream
-            # we can read from.
+                self._synthesizer = self._create_synthesizer(request.voice_id)
 
             ssml = self._build_ssml(request)
-
-            # Execute standard synthesis (non-streaming for now, chunked return)
-            # True streaming with Azure Python SDK is complex (callbacks/Push/Pull).
-            # The previous provider was using speak_text_async and blocking .get().
-
-            # Let's perform the synthesis
             audio_data = await self.synthesize_ssml(ssml)
 
-            # Yield as chunks
             chunk_size = 4096
             for i in range(0, len(audio_data), chunk_size):
-                 chunk = audio_data[i:i+chunk_size]
-                 if first_byte_time is None:
+                chunk = audio_data[i:i+chunk_size]
+                if first_byte_time is None:
                     first_byte_time = time.time()
                     ttfb = (first_byte_time - start_time) * 1000
                     logger.info(f"[TTS Azure] trace={trace_id} TTFB={ttfb:.0f}ms voice={request.voice_id}")
-
-                 yield chunk
+                yield chunk
 
             total_time = (time.time() - start_time) * 1000
             await metrics_collector.record_latency(trace_id, 'tts', total_time)
@@ -215,7 +165,6 @@ class AzureTTSAdapter(TTSPort):
         try:
             if not self._synthesizer:
                 self._synthesizer = self._create_synthesizer(request.voice_id)
-
             ssml = self._build_ssml(request)
             return await self.synthesize_ssml(ssml)
         except Exception as e:
@@ -223,9 +172,8 @@ class AzureTTSAdapter(TTSPort):
 
     async def synthesize_ssml(self, ssml: str) -> bytes:
         """Sintetiza directamente desde SSML."""
-
-        # Ensure synthesizer configured (default voice if not set)
         if not self._synthesizer:
+             # Default fallback if simple synthesize called without context
              self._synthesizer = self._create_synthesizer("es-MX-DaliaNeural")
 
         loop = asyncio.get_running_loop()
@@ -248,9 +196,11 @@ class AzureTTSAdapter(TTSPort):
              logger.error(f"SSML Synthesis error: {e}")
              raise TTSException(f"Azure SSML Error: {e}", retryable=True, provider="azure") from e
 
-    def get_available_voices(self, language: str | None = None) -> list[VoiceMetadata]:
+    async def get_available_voices(self, language: str | None = None) -> list[VoiceMetadata]:
+        await self._ensure_voices_loaded()
+        
         voices = []
-        for v in AZURE_VOICES_DATA:
+        for v in _VOICE_CACHE:
             if language and v.get("locale") != language:
                 continue
             voices.append(VoiceMetadata(
@@ -261,25 +211,28 @@ class AzureTTSAdapter(TTSPort):
             ))
         return voices
 
-    def get_voice_styles(self, voice_id: str) -> list[str]:
-        return AZURE_VOICE_STYLES.get(voice_id, ["default"])
+    async def get_voice_styles(self, voice_id: str) -> list[str]:
+        await self._ensure_voices_loaded()
+        return _STYLE_CACHE.get(voice_id, [])
 
     async def close(self):
         """Limpia."""
         pass
 
-    def get_available_languages(self) -> list[str]:
+    async def get_available_languages(self) -> list[str]:
         """Deriva idiomas disponibles de la lista de voces."""
+        await self._ensure_voices_loaded()
+        
         locales = set()
-        for v in AZURE_VOICES_DATA:
+        for v in _VOICE_CACHE:
             if "locale" in v:
                 locales.add(v["locale"])
         return sorted(locales)
 
-    def get_all_voice_styles(self) -> dict[str, list[str]]:
+    async def get_all_voice_styles(self) -> dict[str, list[str]]:
         """Devuelve el mapa completo de estilos (para el Dashboard)."""
-        return AZURE_VOICE_STYLES
-
+        await self._ensure_voices_loaded()
+        return _STYLE_CACHE
 
     def _build_ssml(self, request: TTSRequest) -> str:
         """Construye SSML."""
@@ -290,7 +243,6 @@ class AzureTTSAdapter(TTSPort):
         else:
             style_close = ""
 
-        # Determine Rate/Vol/Pitch format
         rate = f"{request.speed}"
         pitch_val = request.provider_options.get('pitch_hz', request.pitch)
         pitch = f"{pitch_val:+.0f}Hz" if pitch_val != 0 else "0Hz"

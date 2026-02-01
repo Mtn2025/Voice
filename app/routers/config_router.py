@@ -308,3 +308,74 @@ async def update_config_json(
     except Exception as e:
         logger.error(f"❌ [CONFIG-JSON] Error: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+# =============================================================================
+# DYNAMIC OPTIONS ENDPOINTS (Real Connection)
+# =============================================================================
+
+@router.get("/options/tts/languages")
+async def get_tts_languages(db: AsyncSession = Depends(get_db)):
+    """
+    Get list of available TTS languages dynamically from Azure.
+    """
+    try:
+        from app.adapters.outbound.tts.azure_tts_adapter import AzureTTSAdapter
+        # Instantiate transient adapter to fetch data (uses internal cache)
+        adapter = AzureTTSAdapter()
+        languages = await adapter.get_available_languages()
+        await adapter.close()
+        return {"languages": languages}
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch TTS languages: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch languages from provider")
+
+
+@router.get("/options/tts/voices")
+async def get_tts_voices(
+    language: str | None = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get list of available TTS voices, optionally filtered by language.
+    """
+    try:
+        from app.adapters.outbound.tts.azure_tts_adapter import AzureTTSAdapter
+        adapter = AzureTTSAdapter()
+        voices = await adapter.get_available_voices(language=language)
+        
+        # Format for frontend
+        voices_list = [
+            {
+                "id": v.id,
+                "name": v.name,
+                "gender": v.gender,
+                "locale": v.locale,
+                "styles": await adapter.get_voice_styles(v.id) # Include styles eagerly
+            }
+            for v in voices
+        ]
+        
+        await adapter.close()
+        return {"voices": voices_list}
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch TTS voices: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch voices from provider")
+
+
+@router.get("/options/tts/styles")
+async def get_tts_styles(
+    voice_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get list of available styles for a specific voice.
+    """
+    try:
+        from app.adapters.outbound.tts.azure_tts_adapter import AzureTTSAdapter
+        adapter = AzureTTSAdapter()
+        styles = await adapter.get_voice_styles(voice_id)
+        await adapter.close()
+        return {"styles": styles}
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch TTS styles: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch styles from provider")
