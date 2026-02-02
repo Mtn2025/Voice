@@ -96,3 +96,12 @@ class SQLAlchemyCallRepository(CallRepositoryPort):
         except Exception as e:
             logger.warning(f"Failed to get call {call_id}: {e}")
             return None
+
+    async def update_call_extraction(self, call_id: int, extracted_data: dict) -> None:
+        """Update call record with extracted data."""
+        try:
+            async with self.session_factory() as session:
+                await db_service.update_call_extraction(session, call_id, extracted_data)
+                logger.info(f"Updated extraction for call {call_id}: {extracted_data}")
+        except Exception as e:
+            logger.error(f"Failed to update extraction for call {call_id}: {e}")

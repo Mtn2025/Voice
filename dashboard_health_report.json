@@ -1,0 +1,30 @@
+{
+  "orphaned_controls": [
+    {
+      "tab": "transcriber",
+      "file": "tab_transcriber.html",
+      "type": "range",
+      "model": "c.interruption_threshold",
+      "line": 59
+    },
+    {
+      "tab": "transcriber",
+      "file": "tab_transcriber.html",
+      "type": "textarea",
+      "model": "c.hallucination_blacklist",
+      "line": 68
+    },
+    {
+      "tab": "transcriber",
+      "file": "tab_transcriber.html",
+      "type": "range",
+      "model": "c.sttSilenceTimeout",
+      "line": 78
+    }
+  ],
+  "missing_hidden_inputs": [],
+  "summary": {
+    "total_controls": 115,
+    "store_keys": 337
+  }
+}

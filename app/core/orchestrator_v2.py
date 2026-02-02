@@ -29,11 +29,13 @@ from app.domain.ports import (
     LLMPort,
     STTPort,
     TTSPort,
+    TranscriptRepositoryPort
 )
 from app.domain.state import ConversationFSM, ConversationState
 from app.domain.use_cases import ExecuteToolUseCase, HandleBargeInUseCase
 from app.domain.value_objects import VoiceConfig
 from app.use_cases.voice import SynthesizeTextUseCase
+from app.services.extraction_service import extraction_service
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +58,7 @@ class VoiceOrchestratorV2:
         tts_port: TTSPort,
         config_repo: ConfigRepositoryPort,
         call_repo: CallRepositoryPort,
+        transcript_repo: TranscriptRepositoryPort | None = None,
         client_type: str = "twilio",
         initial_context: str | None = None,
         tools: dict | None = None
@@ -101,6 +104,27 @@ class VoiceOrchestratorV2:
         self.tts = tts_port
         self.config_repo = config_repo
         self.call_repo = call_repo
+        self.transcript_repo = transcript_repo
+
+        # [Refactor] Inject AudioConfig based on client_type (Ports & Adapters)
+        from app.core.audio_config import AudioConfig
+        
+        if self.client_type == "browser":
+            audio_config = AudioConfig.for_browser()
+        elif self.client_type == "telnyx":
+            audio_config = AudioConfig.for_telnyx()
+        else:
+            audio_config = AudioConfig.for_twilio()
+
+        # Inject into STT Port (if it accepts it)
+        if hasattr(self.stt, 'audio_config'):
+             self.stt.audio_config = audio_config
+             logger.debug(f"🎧 [Orchestrator] Injected STT config: {audio_config}")
+
+        # Inject into TTS Port (if it accepts it)
+        if hasattr(self.tts, 'audio_config'):
+             self.tts.audio_config = audio_config
+             logger.debug(f"🗣️ [Orchestrator] Injected TTS config: {audio_config}")
 
         # Finite State Machine
         self.fsm = ConversationFSM()
@@ -209,7 +233,6 @@ class VoiceOrchestratorV2:
             return
 
         # STEP 7: Send Initial Greeting
-        # STEP 7: Send Initial Greeting
         first_mode = getattr(self.config, 'first_message_mode', 'speak-first')
         greeting_text = getattr(self.config, 'first_message', '')
         
@@ -265,6 +288,13 @@ class VoiceOrchestratorV2:
         # Close DB record
         if self.call_db_id:
             try:
+                # Automatic Post-Call Analysis (Extraction)
+                if self.conversation_history:
+                    logger.info("🔎 Requesting post-call extraction...")
+                    extracted = await extraction_service.extract_post_call(self.stream_id, self.conversation_history)
+                    if extracted:
+                         await self.call_repo.update_call_extraction(self.call_db_id, extracted)
+
                 await self.call_repo.end_call(self.call_db_id)
                 logger.info(f"✅ Call record {self.call_db_id} closed")
             except Exception as e:
@@ -520,8 +550,15 @@ class VoiceOrchestratorV2:
     async def _handle_transcript(self, role: str, text: str) -> None:
         """
         Handle transcript events from the reporter.
-        Sends JSON event to the client (Browser/Simulator).
+        Sends JSON event to the client (Browser/Simulator) and persists to DB.
         """
+        # 1. Persist to DB (Async)
+        if self.transcript_repo and self.call_db_id:
+            await self.transcript_repo.save(self.call_db_id, role, text)
+
+        # 2. Update InMemory History (For Extraction)
+        self.conversation_history.append({"role": role, "content": text})
+
         if self.client_type == "browser":
             try:
                 msg = {

@@ -10,6 +10,7 @@ import logging
 from app.adapters.outbound.llm.groq_llm_adapter import GroqLLMAdapter
 from app.adapters.outbound.llm.llm_with_fallback import LLMWithFallback
 from app.adapters.outbound.persistence.sqlalchemy_call_repository import SQLAlchemyCallRepository
+from app.adapters.outbound.persistence.sqlalchemy_transcript_repository import SQLAlchemyTranscriptRepository
 from app.adapters.outbound.repositories.sqlalchemy_config_repository import (
     SQLAlchemyConfigRepository,
 )
@@ -24,7 +25,7 @@ from app.adapters.outbound.tts.tts_with_fallback import TTSWithFallback
 from app.core.adapter_registry import AdapterRegistry
 from app.core.config import settings
 from app.db.database import AsyncSessionLocal
-from app.domain.ports import CallRepositoryPort, ConfigRepositoryPort, LLMPort, STTPort, TTSPort
+from app.domain.ports import CallRepositoryPort, ConfigRepositoryPort, LLMPort, STTPort, TTSPort, TranscriptRepositoryPort
 from app.domain.ports.provider_config import LLMProviderConfig, STTProviderConfig, TTSProviderConfig
 from app.infrastructure.provider_registry import get_provider_registry
 
@@ -46,6 +47,7 @@ class VoicePorts:
         tts: TTSPort,
         config_repo: ConfigRepositoryPort,
         call_repo: CallRepositoryPort,
+        transcript_repo: TranscriptRepositoryPort,
         tools: dict | None = None,
         registry = None
     ):
@@ -54,6 +56,7 @@ class VoicePorts:
         self.tts = tts
         self.config_repo = config_repo
         self.call_repo = call_repo
+        self.transcript_repo = transcript_repo
         self.tools = tools or {}
         self.registry = registry
 
@@ -185,6 +188,7 @@ def get_voice_ports(audio_mode: str = "twilio") -> VoicePorts:
     # ✅ Call Repository
     # -------------------------------------------------------------------------
     call_repo = SQLAlchemyCallRepository(session_factory=AsyncSessionLocal)
+    transcript_repo = SQLAlchemyTranscriptRepository(session_factory=AsyncSessionLocal)
 
     # -------------------------------------------------------------------------
     # ✅ Tool Calling Infrastructure
@@ -207,6 +211,7 @@ def get_voice_ports(audio_mode: str = "twilio") -> VoicePorts:
         tts=tts_adapter,
         config_repo=config_repo,
         call_repo=call_repo,
+        transcript_repo=transcript_repo,
         tools=tools,
         registry=adapter_registry
     )

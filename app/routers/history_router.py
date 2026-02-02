@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth_simple import verify_api_key
 from app.db.database import get_db
-from app.db.models import Call
+from app.db.models import Call, Transcript
 
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="app/templates")
@@ -23,6 +23,51 @@ router = APIRouter(
     tags=["history"],
     dependencies=[Depends(verify_api_key)]
 )
+
+
+@router.get("/{call_id}/detail")
+async def get_call_detail(
+    call_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get detailed view of a call (Transcripts + Extracted Data).
+    """
+    try:
+        # Fetch Call
+        res_call = await db.execute(select(Call).where(Call.id == call_id))
+        call = res_call.scalar_one_or_none()
+        
+        if not call:
+            raise HTTPException(status_code=404, detail="Call not found")
+
+        # Fetch Transcripts
+        res_trans = await db.execute(
+            select(Transcript)
+            .where(Transcript.call_id == call_id)
+            .order_by(Transcript.timestamp)
+        )
+        transcripts = res_trans.scalars().all()
+
+        return {
+            "call": {
+                "id": call.id,
+                "start_time": call.start_time.isoformat() if call.start_time else None,
+                "client_type": call.client_type,
+                "extracted_data": call.extracted_data 
+            },
+            "transcripts": [
+                {
+                    "role": t.role,
+                    "content": t.content,
+                    "timestamp": t.timestamp.isoformat() if t.timestamp else None
+                } for t in transcripts
+            ]
+        }
+
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch call detail: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch detail") from e
 
 
 @router.get("/rows", response_class=HTMLResponse)

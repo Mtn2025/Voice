@@ -42,11 +42,6 @@ class ElevenLabsAdapter(TTSPort):
              return
 
         # TODO: Implement real API call
-        # async with aiohttp.ClientSession() as session:
-        #     payload = { ... }
-        #     async with session.post(url, json=payload) as resp:
-        #         async for chunk in resp.content.iter_chunked(1024):
-        #             yield chunk
 
         logger.warning("⚠️ [ELEVENLABS] Not fully implemented. Returning silence.")
         yield b'\x00' * 320 # 20ms of silence

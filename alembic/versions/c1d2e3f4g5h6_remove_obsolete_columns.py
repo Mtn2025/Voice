@@ -36,7 +36,7 @@ def upgrade():
     op.drop_column('agent_configs', 'segmentation_max_time')
     op.drop_column('agent_configs', 'segmentation_strategy')
     op.drop_column('agent_configs', 'extra_settings_phone')
-    op.drop_column('agent_configs', 'telnyx_api_user')
+    # op.drop_column('agent_configs', 'telnyx_api_user') # Error in SQLite: column does not exist
 
 
 def downgrade():

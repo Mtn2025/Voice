@@ -64,5 +64,35 @@ class TelephonyTransport(AudioTransport):
         except Exception:
             pass
 
+    def handle_event(self, event: dict[str, Any]) -> None:
+        """
+        Handle protocol-specific events.
+        """
+        if self.protocol == "telnyx":
+            self._handle_telnyx_event(event)
+        elif self.protocol == "twilio":
+            pass
+
+    def _handle_telnyx_event(self, event: dict[str, Any]) -> None:
+        """
+        Process Telnyx specific events like VAD.
+        """
+        event_type = event.get("event")
+        
+        if event_type == "vad":
+            vad_data = event.get("vad", {})
+            is_speech = vad_data.get("is_speech", False)
+            confidence = vad_data.get("confidence", 0.0)
+
+            # Use local logger if possible, or print/dedicated logger
+            # Assuming we can import logging here
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            logger.info(f"🎤 VAD | Speech: {is_speech} | Confidence: {confidence:.2f}")
+
+            if not is_speech or confidence < 0.7:
+                logger.info("⚠️ VAD: Low confidence, likely background noise")
+
     async def close(self) -> None:
         pass

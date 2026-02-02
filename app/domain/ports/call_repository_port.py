@@ -74,3 +74,14 @@ class CallRepositoryPort(ABC):
             CallRecord or None if not found
         """
         pass
+
+    @abstractmethod
+    async def update_call_extraction(self, call_id: int, extracted_data: dict) -> None:
+        """
+        Update call record with extracted data.
+
+        Args:
+            call_id: Call record ID
+            extracted_data: JSON data extracted from call
+        """
+        pass

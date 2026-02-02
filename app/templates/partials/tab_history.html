@@ -77,8 +77,10 @@
                         {% endif %}
                     </td>
                     <td class="px-4 py-2">
-                        <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
-                            class="text-blue-400 hover:underline">Ver</a>
+                        <button type="button" @click="showCallDetail({{ call.id }})"
+                            class="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1">
+                            <span>👁️</span> Ver
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -109,11 +111,10 @@
             </div>
         </div>
 
-        <form action="/api/history/clear?api_key={{ request.query_params.get('api_key', '') }}" method="POST"
-            onsubmit="return confirm('¿Borrar todo el historial?');">
-            <button type="submit" class="text-xs text-red-500 hover:text-red-400 underline decoration-dotted">
-                🗑️ Borrar Historial Completo
-            </button>
+        </button>
         </form>
     </div>
+
+    <!-- Include Modal -->
+    {% include 'partials/call_detail_modal.html' %}
 </div>

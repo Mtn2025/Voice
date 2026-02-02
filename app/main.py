@@ -11,7 +11,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.api import routes_v2
+# New Routes
+from app.api import routes_v2, routes_simulator, routes_telephony, routes_admin
+
 from app.core.config import settings
 from app.core.http_client import http_client
 from app.core.logging_config import configure_logging
@@ -159,7 +161,11 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Routes
-app.include_router(routes_v2.router, prefix=settings.API_V1_STR)
+app.include_router(routes_simulator.router, prefix="/ws/simulator", tags=["Simulator"])
+app.include_router(routes_telephony.router, prefix=settings.API_V1_STR, tags=["Telephony"])
+app.include_router(routes_admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(routes_v2.router, prefix=settings.API_V1_STR) # Deprecated redirects
+
 app.include_router(dashboard.router)
 app.include_router(system.router)
 app.include_router(config_router.router)

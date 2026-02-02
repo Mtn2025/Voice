@@ -56,7 +56,6 @@ class AzureRecognizerWrapper:
 
         text = evt.result.text
         if not text:
-            # logger.debug("[AzureSTT] Empty text in event")
             return
 
         # [TRACING] Azure Native Event
@@ -138,18 +137,33 @@ class AzureSTTRecognizerAdapter(STTRecognizer):
         self._azure_recognizer.write(audio_data)
 
 
+from app.core.audio_config import AudioConfig
+
 class AzureSTTAdapter(STTPort):
     """
     Adaptador para Azure STT que implementa STTPort.
     """
 
-    def __init__(self, config: Any | None = None):
+    def __init__(self, config: Any | None = None, audio_config: AudioConfig | None = None):
         """
         Args:
             config: Clean config object (provided by factory) or None.
+            audio_config: Explicit audio configuration.
         """
         self.api_key = config.api_key if config else settings.AZURE_SPEECH_KEY
         self.region = config.region if config else settings.AZURE_SPEECH_REGION
+
+        # Configuración de Audio (Ports & Adapters)
+        if audio_config:
+            self.audio_config = audio_config
+        elif config and hasattr(config, 'audio_mode'):
+             # Legacy support
+             logger.warning(f"⚠️ [AzureSTT] Using legacy audio_mode from config: {config.audio_mode}")
+             self.audio_config = AudioConfig.from_legacy_mode(config.audio_mode)
+        else:
+             # Default fallback
+             logger.warning("⚠️ [AzureSTT] No audio config provided, defaulting to Twilio")
+             self.audio_config = AudioConfig.for_twilio()
 
         self.speech_config = speechsdk.SpeechConfig(
             subscription=self.api_key,
@@ -173,11 +187,12 @@ class AzureSTTAdapter(STTPort):
             self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, str(config.initial_silence_ms))
             self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, str(config.segmentation_silence_ms))
 
-            if config.audio_mode == "browser":
-                 format = speechsdk.audio.AudioStreamFormat(samples_per_second=16000, bits_per_sample=16, channels=1)
-            else:
-                 # Manual Decode Mode (Twilio/Telnyx) -> 8000Hz
-                 format = speechsdk.audio.AudioStreamFormat(samples_per_second=8000, bits_per_sample=16, channels=1)
+            # Configuración de formato usando AudioConfig (Clean Architecture)
+            format = speechsdk.audio.AudioStreamFormat(
+                samples_per_second=self.audio_config.sample_rate,
+                bits_per_sample=self.audio_config.bits_per_sample, 
+                channels=self.audio_config.channels
+            )
 
             push_stream = speechsdk.audio.PushAudioInputStream(stream_format=format)
             audio_config = speechsdk.audio.AudioConfig(stream=push_stream)

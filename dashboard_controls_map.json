@@ -1,0 +1,618 @@
+{
+  "tabs": {
+    "advanced": {
+      "controls": {
+        "c.time_patience": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_advanced.html"
+        },
+        "c.audioCodec": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_advanced.html"
+        },
+        "c.enableBackchannel": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_advanced.html"
+        },
+        "c.maxDuration": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_advanced.html"
+        },
+        "c.maxRetries": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_advanced.html"
+        },
+        "c.idleMessage": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_advanced.html"
+        }
+      }
+    },
+    "analysis": {
+      "controls": {
+        "c.analysisPrompt": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.successRubric": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.sentimentAnalysis": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.costTrackingEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.extractionSchema": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.piiRedactionEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.webhookUrl": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.webhookSecret": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.logWebhookUrl": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        },
+        "c.retentionDays": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_analysis.html"
+        }
+      }
+    },
+    "campaigns": {
+      "controls": {
+        "campaignName": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_campaigns.html"
+        },
+        "c.crmEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_campaigns.html"
+        },
+        "c.webhookUrl": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_campaigns.html"
+        },
+        "c.webhookSecret": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_campaigns.html"
+        }
+      }
+    },
+    "connectivity": {
+      "controls": {
+        "c.twilioFromNumber": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.telnyxConnectionId": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.callerIdTelnyx": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "target": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.sipTrunkUriPhone": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.sipAuthUserPhone": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.sipAuthPassPhone": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.geoRegionPhone": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.sipTrunkUriTelnyx": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.sipAuthUserTelnyx": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.sipAuthPassTelnyx": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.geoRegionTelnyx": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.fallbackNumberPhone": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.recordingChannelsPhone": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.recordingEnabledPhone": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.recordingChannelsTelnyx": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.enableRecordingTelnyx": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.hipaaEnabledPhone": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.hipaaEnabledTelnyx": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.dtmfListeningEnabledPhone": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.dtmfListeningEnabledTelnyx": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        },
+        "c.amdConfig": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_connectivity.html"
+        }
+      }
+    },
+    "flow": {
+      "controls": {
+        "c.bargeInEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.interruptionSensitivity": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.interruptionPhrases": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.voicemailDetectionEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.voicemailMessage": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.machineDetectionSensitivity": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.responseDelaySeconds": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.waitForGreeting": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.hyphenationEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_flow.html"
+        },
+        "c.endCallPhrases": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_flow.html"
+        }
+      }
+    },
+    "model": {
+      "controls": {
+        "c.provider": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.model": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.responseLength": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.conversationTone": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.conversationFormality": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.conversationPacing": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.contextWindow": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.frequencyPenalty": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.presencePenalty": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.toolChoice": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.dynamicVarsEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.dynamicVars": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.temp": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.tokens": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.prompt": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.msg": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.mode": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_model.html"
+        },
+        "c.blacklist": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_model.html"
+        }
+      }
+    },
+    "system": {
+      "controls": {
+        "c.concurrencyLimit": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_system.html"
+        },
+        "c.spendLimitDaily": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_system.html"
+        },
+        "c.environment": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_system.html"
+        },
+        "c.privacyMode": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_system.html"
+        },
+        "c.auditLogEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_system.html"
+        }
+      }
+    },
+    "tools": {
+      "controls": {
+        "c.toolsSchema": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.asyncTools": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.toolServerUrl": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.toolServerSecret": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.toolTimeoutMs": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.toolRetryCount": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.toolErrorMsg": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.clientToolsEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.redactParams": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.transferWhitelist": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_tools.html"
+        },
+        "c.stateInjectionEnabled": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_tools.html"
+        }
+      }
+    },
+    "transcriber": {
+      "controls": {
+        "c.sttProvider": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttModel": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttLang": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttKeywords": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.interruption_threshold": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.hallucination_blacklist": {
+          "type": "textarea",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttSilenceTimeout": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.interruptRMS": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttPunctuation": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttSmartFormatting": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttProfanityFilter": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttDiarization": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        },
+        "c.sttMultilingual": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_transcriber.html"
+        }
+      }
+    },
+    "voice": {
+      "controls": {
+        "c.voiceProvider": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceLang": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "search": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceId": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceStyle": {
+          "type": "unknown",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceSpeed": {
+          "type": "range",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceBgSound": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceBgUrl": {
+          "type": "input",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceSpeakerBoost": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceMultilingual": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceFillerInjection": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.voiceBackchanneling": {
+          "type": "checkbox",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.textNormalizationRule": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_voice.html"
+        },
+        "c.ttsOutputFormat": {
+          "type": "select",
+          "status": "detected",
+          "file": "tab_voice.html"
+        }
+      }
+    },
+    "simulator": {
+      "controls": {
+        "visualizerMode": {
+          "type": "select",
+          "status": "detected",
+          "file": "panel_simulator.html"
+        }
+      }
+    }
+  }
+}

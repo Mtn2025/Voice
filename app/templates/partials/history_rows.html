@@ -24,8 +24,10 @@
         {% endif %}
     </td>
     <td class="px-4 py-2">
-        <a href="/dashboard/call/{{ call.id }}?api_key={{ request.query_params.get('api_key', '') }}"
-            class="text-blue-400 hover:underline">Ver</a>
+        <button type="button" @click="showCallDetail({{ call.id }})"
+            class="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1">
+            <span>👁️</span> Ver
+        </button>
     </td>
 </tr>
 {% endfor %}

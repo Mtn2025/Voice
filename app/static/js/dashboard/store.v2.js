@@ -228,7 +228,43 @@ export function dashboardStore() {
                 spendLimitDaily: s.spend_limit_daily || 50.0,
                 environment: s.environment || 'development',
                 privacyMode: s.privacy_mode || false,
-                auditLogEnabled: s.audit_log_enabled || true
+                auditLogEnabled: s.audit_log_enabled || true,
+
+                // FIXED: Added Orphaned Controls (Analysis)
+                analysisPrompt: s.analysis_prompt || '',
+                successRubric: s.success_rubric || '',
+                sentimentAnalysis: s.sentiment_analysis || false,
+                costTrackingEnabled: s.cost_tracking_enabled || false,
+                extractionSchema: s.extraction_schema || '',
+                piiRedactionEnabled: s.pii_redaction_enabled || false,
+                logWebhookUrl: s.log_webhook_url || '',
+                retentionDays: s.retention_days || 30,
+
+                // FIXED: Orphaned Controls (Flow)
+                bargeInEnabled: s.barge_in_enabled || false,
+                interruptionSensitivity: s.interruption_sensitivity || 0.5,
+                interruptionPhrases: s.interruption_phrases || '',
+                voicemailDetectionEnabled: s.voicemail_detection_enabled || false,
+                voicemailMessage: s.voicemail_message || '',
+                machineDetectionSensitivity: s.machine_detection_sensitivity || 0.5,
+                responseDelaySeconds: s.response_delay_seconds || 0,
+                waitForGreeting: s.wait_for_greeting || false,
+                hyphenationEnabled: s.hyphenation_enabled || false,
+                endCallPhrases: s.end_call_phrases || '',
+
+                // FIXED: Orphaned Controls (Transcriber) - Reasserting if missing
+                sttModel: s.stt_model || 'nova-2',
+                sttKeywords: s.stt_keywords || '',
+                sttPunctuation: s.stt_punctuation || true,
+                sttSmartFormatting: s.stt_smart_formatting || true,
+                sttProfanityFilter: s.stt_profanity_filter || false,
+                sttDiarization: s.stt_diarization || false,
+                sttMultilingual: s.stt_multilingual || false,
+
+                // FIXED: Connectivity (Specifics)
+                recordingEnabledPhone: s.recording_enabled_phone || false,
+                enableRecordingTelnyx: s.enable_recording_telnyx || false,
+                dtmfListeningEnabledTelnyx: s.dtmf_listening_enabled_telnyx || false
             };
         },
 
@@ -306,7 +342,41 @@ export function dashboardStore() {
 
                 redactParams: s.redact_params_phone ? JSON.stringify(s.redact_params_phone) : '',
                 transferWhitelist: s.transfer_whitelist_phone ? JSON.stringify(s.transfer_whitelist_phone) : '',
-                stateInjectionEnabled: s.state_injection_enabled_phone !== undefined ? s.state_injection_enabled_phone : true
+                stateInjectionEnabled: s.state_injection_enabled_phone !== undefined ? s.state_injection_enabled_phone : true,
+
+                // FIXED: Added Orphaned Controls (Analysis - Phone)
+                analysisPrompt: s.analysis_prompt_phone || '',
+                successRubric: s.success_rubric_phone || '',
+                sentimentAnalysis: s.sentiment_analysis_phone || false,
+                costTrackingEnabled: s.cost_tracking_enabled_phone || false,
+                extractionSchema: s.extraction_schema_phone || '',
+                piiRedactionEnabled: s.pii_redaction_enabled_phone || false,
+                logWebhookUrl: s.log_webhook_url_phone || '',
+                retentionDays: s.retention_days_phone || 30,
+
+                // FIXED: Orphaned Controls (Flow - Phone)
+                bargeInEnabled: s.barge_in_enabled_phone || false,
+                interruptionSensitivity: s.interruption_sensitivity_phone || 0.5,
+                interruptionPhrases: s.interruption_phrases_phone || '',
+                voicemailDetectionEnabled: s.voicemail_detection_enabled_phone || false,
+                voicemailMessage: s.voicemail_message_phone || '',
+                machineDetectionSensitivity: s.machine_detection_sensitivity_phone || 0.5,
+                responseDelaySeconds: s.response_delay_seconds_phone || 0,
+                waitForGreeting: s.wait_for_greeting_phone || false,
+                hyphenationEnabled: s.hyphenation_enabled_phone || false,
+                endCallPhrases: s.end_call_phrases_phone || '',
+
+                // FIXED: Orphaned Controls (Transcriber - Phone)
+                sttModel: s.stt_model_phone || 'nova-2',
+                sttKeywords: s.stt_keywords_phone || '',
+                sttPunctuation: s.stt_punctuation_phone || true,
+                sttSmartFormatting: s.stt_smart_formatting_phone || true,
+                sttProfanityFilter: s.stt_profanity_filter_phone || false,
+                sttDiarization: s.stt_diarization_phone || false,
+                sttMultilingual: s.stt_multilingual_phone || false,
+
+                // FIXED: Connectivity specifics
+                recordingEnabledPhone: s.recording_enabled_phone || false
             };
         },
 
@@ -425,7 +495,42 @@ export function dashboardStore() {
 
                 // FLOW
                 endCallPhrases: s.end_call_phrases_telnyx ? JSON.stringify(s.end_call_phrases_telnyx) : '',
-                transferPhoneNumber: s.transfer_phone_number_telnyx || ''
+                transferPhoneNumber: s.transfer_phone_number_telnyx || '',
+
+                // FIXED: Added Orphaned Controls (Analysis - Telnyx)
+                analysisPrompt: s.analysis_prompt_telnyx || '',
+                successRubric: s.success_rubric_telnyx || '',
+                sentimentAnalysis: s.sentiment_analysis_telnyx || false,
+                costTrackingEnabled: s.cost_tracking_enabled_telnyx || false,
+                extractionSchema: s.extraction_schema_telnyx || '',
+                piiRedactionEnabled: s.pii_redaction_enabled_telnyx || false,
+                logWebhookUrl: s.log_webhook_url_telnyx || '',
+                retentionDays: s.retention_days_telnyx || 30,
+
+                // FIXED: Orphaned Controls (Flow - Telnyx)
+                bargeInEnabled: s.barge_in_enabled_telnyx || false,
+                interruptionSensitivity: s.interruption_sensitivity_telnyx || 0.5,
+                interruptionPhrases: s.interruption_phrases_telnyx || '',
+                voicemailDetectionEnabled: s.voicemail_detection_enabled_telnyx || false,
+                voicemailMessage: s.voicemail_message_telnyx || '',
+                machineDetectionSensitivity: s.machine_detection_sensitivity_telnyx || 0.5,
+                responseDelaySeconds: s.response_delay_seconds_telnyx || 0,
+                waitForGreeting: s.wait_for_greeting_telnyx || false,
+                hyphenationEnabled: s.hyphenation_enabled_telnyx || false,
+                // endCallPhrases handled above
+
+                // FIXED: Orphaned Controls (Transcriber - Telnyx)
+                sttModel: s.stt_model_telnyx || 'nova-2',
+                sttKeywords: s.stt_keywords_telnyx || '',
+                sttPunctuation: s.stt_punctuation_telnyx || true,
+                sttSmartFormatting: s.stt_smart_formatting_telnyx || true,
+                sttProfanityFilter: s.stt_profanity_filter_telnyx || false,
+                sttDiarization: s.stt_diarization_telnyx || false,
+                sttMultilingual: s.stt_multilingual_telnyx || false,
+
+                // FIXED: Connectivity specifics
+                enableRecordingTelnyx: s.enable_recording_telnyx || false,
+                dtmfListeningEnabledTelnyx: s.dtmf_listening_enabled_telnyx || false
             };
         },
 
@@ -646,6 +751,104 @@ export function dashboardStore() {
                 this.updateDeleteButton();
             } catch (e) {
                 alert('Error al borrar');
+            }
+        },
+
+        async showCallDetail(callId) {
+            console.log("🔍 Showing detail for call:", callId);
+            const modalEl = document.getElementById('callDetailModal');
+            if (!modalEl) {
+                console.error("Modal not found in DOM");
+                return;
+            }
+            const modal = new bootstrap.Modal(modalEl);  // Use existing Bootstrap global
+
+            // 1. Reset UI
+            document.getElementById('detail-call-id').textContent = `#${callId}`;
+            document.getElementById('detail-transcripts').innerHTML = '<div class="text-center text-slate-500 italic mt-10">Cargando...</div>';
+            document.getElementById('detail-extraction-content').innerHTML = '<div class="text-slate-500 italic">Cargando datos...</div>';
+
+            modal.show();
+
+            try {
+                // 2. Fetch Data
+                const urlParams = new URLSearchParams(window.location.search);
+                // Note: The backend endpoint is defined as /api/history/{id}/detail in history_router
+                // But we mounted it at /api/history
+                const res = await fetch(`/api/history/${callId}/detail?api_key=${urlParams.get('api_key') || ''}`);
+                if (!res.ok) throw new Error("Error fetching details");
+
+                const data = await res.json();
+
+                // 3. Render Transcripts
+                const transDiv = document.getElementById('detail-transcripts');
+                if (data.transcripts.length === 0) {
+                    transDiv.innerHTML = '<div class="text-center text-slate-500 italic mt-10">Sin transcripciones disponibles.</div>';
+                } else {
+                    transDiv.innerHTML = data.transcripts.map(t => {
+                        const isUser = t.role === 'user';
+                        const align = isUser ? 'items-end' : 'items-start';
+                        const bg = isUser ? 'bg-slate-700 text-slate-200' : 'bg-blue-900/40 text-blue-200 border border-blue-800/50';
+                        const label = isUser ? 'Usuario' : 'Asistente';
+                        return `
+                            <div class="flex flex-col ${align} w-full">
+                                <span class="text-[10px] text-slate-500 mb-0.5 uppercase font-bold tracking-wider">${label}</span>
+                                <div class="${bg} px-3 py-2 rounded-lg text-sm max-w-[90%] shadow-sm">
+                                    ${t.content}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 4. Render Extraction
+                const extDiv = document.getElementById('detail-extraction-content');
+                const ext = data.call.extracted_data;
+
+                if (!ext) {
+                    extDiv.innerHTML = '<div class="p-3 rounded border border-yellow-700/50 bg-yellow-900/10 text-yellow-500 text-xs">⚠️ Sin datos extraídos.</div>';
+                } else {
+                    let parsed = ext;
+                    if (typeof ext === 'string') {
+                        try { parsed = JSON.parse(ext); } catch (e) { }
+                    }
+
+                    const entities = parsed.extracted_entities || {};
+
+                    extDiv.innerHTML = `
+                         <div class="mb-4">
+                            <label class="block text-xs text-slate-500 uppercase font-bold">Resumen</label>
+                            <p class="text-slate-300 text-sm leading-snug">${parsed.summary || '-'}</p>
+                         </div>
+                         
+                         <div class="grid grid-cols-1 gap-3">
+                             <div class="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                                <div class="text-xs text-slate-500 uppercase">Nombre</div>
+                                <div class="text-white font-medium">${entities.name || '-'}</div>
+                             </div>
+                             <div class="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                                <div class="text-xs text-slate-500 uppercase">Teléfono</div>
+                                <div class="text-white font-mono">${entities.phone || '-'}</div>
+                             </div>
+                             <div class="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                                <div class="text-xs text-slate-500 uppercase">Intención</div>
+                                <div class="text-blue-300 font-mono text-xs">${parsed.intent || '-'}</div>
+                             </div>
+                              <div class="bg-slate-800/50 p-2 rounded border border-slate-700/50">
+                                <div class="text-xs text-slate-500 uppercase">Próxima Acción</div>
+                                <div class="text-emerald-300 font-mono text-xs">${parsed.next_action || '-'}</div>
+                             </div>
+                         </div>
+                    `;
+                }
+
+                // 5. Metadata
+                document.getElementById('detail-client-type').textContent = data.call.client_type;
+                document.getElementById('detail-start-time').textContent = data.call.start_time ? new Date(data.call.start_time).toLocaleString() : '-';
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('detail-transcripts').innerHTML = '<div class="text-center text-red-400 mt-10">Error al cargar detalles.</div>';
             }
         },
 

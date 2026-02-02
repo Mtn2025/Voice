@@ -62,7 +62,6 @@ def upgrade() -> None:
             sa.Column('id', sa.Integer(), nullable=False),
             sa.Column('name', sa.String(), nullable=True),
             
-            # Providers
             sa.Column('stt_provider', sa.String(), nullable=True),
             sa.Column('stt_language', sa.String(), nullable=True),
             sa.Column('llm_provider', sa.String(), nullable=True),
@@ -71,6 +70,17 @@ def upgrade() -> None:
             sa.Column('interruption_threshold', sa.Integer(), nullable=True),
             sa.Column('interruption_threshold_phone', sa.Integer(), nullable=True),
             sa.Column('tts_provider', sa.String(), nullable=True),
+
+            # STT Advanced (Missing)
+            sa.Column('stt_model', sa.String(), nullable=True),
+            sa.Column('stt_keywords', sa.JSON(), nullable=True),
+            sa.Column('stt_silence_timeout', sa.Integer(), nullable=True),
+            sa.Column('stt_utterance_end_strategy', sa.String(), nullable=True),
+            sa.Column('stt_punctuation', sa.Boolean(), nullable=True),
+            sa.Column('stt_profanity_filter', sa.Boolean(), nullable=True),
+            sa.Column('stt_smart_formatting', sa.Boolean(), nullable=True),
+            sa.Column('stt_diarization', sa.Boolean(), nullable=True),
+            sa.Column('stt_multilingual', sa.Boolean(), nullable=True),
             
             # Parameters
             sa.Column('system_prompt', sa.Text(), nullable=True),
@@ -80,12 +90,42 @@ def upgrade() -> None:
             sa.Column('voice_speed_phone', sa.Float(), nullable=True),
             sa.Column('temperature', sa.Float(), nullable=True),
             sa.Column('background_sound', sa.String(), nullable=True),
+
+            # Voice Expression (Azure)
+            sa.Column('voice_pitch', sa.Integer(), nullable=True),
+            sa.Column('voice_volume', sa.Integer(), nullable=True),
+            sa.Column('voice_style_degree', sa.Float(), nullable=True),
+            
+            # ElevenLabs
+            sa.Column('voice_stability', sa.Float(), nullable=True),
+            sa.Column('voice_similarity_boost', sa.Float(), nullable=True),
+            sa.Column('voice_style_exaggeration', sa.Float(), nullable=True),
+            sa.Column('voice_speaker_boost', sa.Boolean(), nullable=True),
+            sa.Column('voice_multilingual', sa.Boolean(), nullable=True),
+
+            # Technical TTS
+            sa.Column('tts_latency_optimization', sa.Integer(), nullable=True),
+            sa.Column('tts_output_format', sa.String(), nullable=True),
+
+            # Humanization
+            sa.Column('voice_filler_injection', sa.Boolean(), nullable=True),
+            sa.Column('voice_backchanneling', sa.Boolean(), nullable=True),
+            sa.Column('text_normalization_rule', sa.String(), nullable=True),
+            sa.Column('pronunciation_dictionary', sa.JSON(), nullable=True),
             
             # Flow Control
             sa.Column('idle_timeout', sa.Float(), nullable=True),
             sa.Column('idle_message', sa.String(), nullable=True),
             sa.Column('inactivity_max_retries', sa.Integer(), nullable=True),
             sa.Column('max_duration', sa.Integer(), nullable=True),
+
+            # Advanced LLM & Style (Missing in original export)
+            sa.Column('context_window', sa.Integer(), nullable=True),
+            sa.Column('tool_choice', sa.String(), nullable=True),
+            sa.Column('response_length', sa.String(), nullable=True),
+            sa.Column('conversation_tone', sa.String(), nullable=True),
+            sa.Column('conversation_formality', sa.String(), nullable=True),
+            sa.Column('conversation_pacing', sa.String(), nullable=True),
             
             # VAPI Stage 1
             sa.Column('first_message', sa.String(), nullable=True),
@@ -95,6 +135,18 @@ def upgrade() -> None:
             # Phone Profile (Twilio)
             sa.Column('stt_provider_phone', sa.String(), nullable=True),
             sa.Column('stt_language_phone', sa.String(), nullable=True),
+            
+            # STT Advanced Phone
+            sa.Column('stt_model_phone', sa.String(), nullable=True),
+            sa.Column('stt_keywords_phone', sa.JSON(), nullable=True),
+            sa.Column('stt_silence_timeout_phone', sa.Integer(), nullable=True),
+            sa.Column('stt_utterance_end_strategy_phone', sa.String(), nullable=True),
+            sa.Column('stt_punctuation_phone', sa.Boolean(), nullable=True),
+            sa.Column('stt_profanity_filter_phone', sa.Boolean(), nullable=True),
+            sa.Column('stt_smart_formatting_phone', sa.Boolean(), nullable=True),
+            sa.Column('stt_diarization_phone', sa.Boolean(), nullable=True),
+            sa.Column('stt_multilingual_phone', sa.Boolean(), nullable=True),
+
             sa.Column('llm_provider_phone', sa.String(), nullable=True),
             sa.Column('llm_model_phone', sa.String(), nullable=True),
             sa.Column('system_prompt_phone', sa.Text(), nullable=True),
@@ -108,7 +160,37 @@ def upgrade() -> None:
             sa.Column('input_min_characters_phone', sa.Integer(), nullable=True),
             sa.Column('enable_denoising_phone', sa.Boolean(), nullable=True),
             sa.Column('extra_settings_phone', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+
+            # Advanced LLM & Style Phone (Missing in original export)
+            sa.Column('context_window_phone', sa.Integer(), nullable=True),
+            sa.Column('tool_choice_phone', sa.String(), nullable=True),
+            sa.Column('response_length_phone', sa.String(), nullable=True),
+            sa.Column('conversation_tone_phone', sa.String(), nullable=True),
+            sa.Column('conversation_formality_phone', sa.String(), nullable=True),
+            sa.Column('conversation_pacing_phone', sa.String(), nullable=True),
             
+            # Voice Expression Phone
+            sa.Column('voice_pitch_phone', sa.Integer(), nullable=True),
+            sa.Column('voice_volume_phone', sa.Integer(), nullable=True),
+            sa.Column('voice_style_degree_phone', sa.Float(), nullable=True),
+            
+            # ElevenLabs Phone
+            sa.Column('voice_stability_phone', sa.Float(), nullable=True),
+            sa.Column('voice_similarity_boost_phone', sa.Float(), nullable=True),
+            sa.Column('voice_style_exaggeration_phone', sa.Float(), nullable=True),
+            sa.Column('voice_speaker_boost_phone', sa.Boolean(), nullable=True),
+            sa.Column('voice_multilingual_phone', sa.Boolean(), nullable=True),
+
+            # Technical TTS Phone
+            sa.Column('tts_latency_optimization_phone', sa.Integer(), nullable=True),
+            sa.Column('tts_output_format_phone', sa.String(), nullable=True),
+
+            # Humanization Phone
+            sa.Column('voice_filler_injection_phone', sa.Boolean(), nullable=True),
+            sa.Column('voice_backchanneling_phone', sa.Boolean(), nullable=True),
+            sa.Column('text_normalization_rule_phone', sa.String(), nullable=True),
+            sa.Column('pronunciation_dictionary_phone', sa.JSON(), nullable=True),
+
             # Twilio Specific
             sa.Column('twilio_machine_detection', sa.String(), nullable=True),
             sa.Column('twilio_record', sa.Boolean(), nullable=True),
@@ -138,6 +220,18 @@ def upgrade() -> None:
             # Telnyx Profile
             sa.Column('stt_provider_telnyx', sa.String(), nullable=True),
             sa.Column('stt_language_telnyx', sa.String(), nullable=True),
+            
+            # STT Advanced Telnyx
+            sa.Column('stt_model_telnyx', sa.String(), nullable=True),
+            sa.Column('stt_keywords_telnyx', sa.JSON(), nullable=True),
+            sa.Column('stt_silence_timeout_telnyx', sa.Integer(), nullable=True),
+            sa.Column('stt_utterance_end_strategy_telnyx', sa.String(), nullable=True),
+            sa.Column('stt_punctuation_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('stt_profanity_filter_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('stt_smart_formatting_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('stt_diarization_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('stt_multilingual_telnyx', sa.Boolean(), nullable=True),
+
             sa.Column('llm_provider_telnyx', sa.String(), nullable=True),
             sa.Column('llm_model_telnyx', sa.String(), nullable=True),
             sa.Column('system_prompt_telnyx', sa.Text(), nullable=True),
@@ -164,6 +258,36 @@ def upgrade() -> None:
             sa.Column('enable_recording_telnyx', sa.Boolean(), nullable=True),
             sa.Column('amd_config_telnyx', sa.String(), nullable=True),
             
+            # Advanced LLM & Style Telnyx (Missing in original export)
+            sa.Column('context_window_telnyx', sa.Integer(), nullable=True),
+            sa.Column('tool_choice_telnyx', sa.String(), nullable=True),
+            sa.Column('response_length_telnyx', sa.String(), nullable=True),
+            sa.Column('conversation_tone_telnyx', sa.String(), nullable=True),
+            sa.Column('conversation_formality_telnyx', sa.String(), nullable=True),
+            sa.Column('conversation_pacing_telnyx', sa.String(), nullable=True),
+
+            # Voice Expression Telnyx
+            sa.Column('voice_pitch_telnyx', sa.Integer(), nullable=True),
+            sa.Column('voice_volume_telnyx', sa.Integer(), nullable=True),
+            sa.Column('voice_style_degree_telnyx', sa.Float(), nullable=True),
+            
+            # ElevenLabs Telnyx
+            sa.Column('voice_stability_telnyx', sa.Float(), nullable=True),
+            sa.Column('voice_similarity_boost_telnyx', sa.Float(), nullable=True),
+            sa.Column('voice_style_exaggeration_telnyx', sa.Float(), nullable=True),
+            sa.Column('voice_speaker_boost_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('voice_multilingual_telnyx', sa.Boolean(), nullable=True),
+
+            # Technical TTS Telnyx
+            sa.Column('tts_latency_optimization_telnyx', sa.Integer(), nullable=True),
+            sa.Column('tts_output_format_telnyx', sa.String(), nullable=True),
+
+            # Humanization Telnyx
+            sa.Column('voice_filler_injection_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('voice_backchanneling_telnyx', sa.Boolean(), nullable=True),
+            sa.Column('text_normalization_rule_telnyx', sa.String(), nullable=True),
+            sa.Column('pronunciation_dictionary_telnyx', sa.JSON(), nullable=True),
+
             # Call Control
             sa.Column('enable_end_call', sa.Boolean(), nullable=True),
             sa.Column('enable_dial_keypad', sa.Boolean(), nullable=True),

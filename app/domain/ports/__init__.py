@@ -7,6 +7,7 @@ from .config_repository_port import ConfigDTO, ConfigNotFoundException, ConfigRe
 from .llm_port import LLMException, LLMMessage, LLMPort, LLMRequest
 from .stt_port import STTConfig, STTEvent, STTException, STTPort, STTRecognizer, STTResultReason
 from .tts_port import TTSException, TTSPort, TTSRequest, VoiceMetadata
+from .transcript_repository_port import TranscriptRepositoryPort
 
 __all__ = [
     # Transport
@@ -34,4 +35,8 @@ __all__ = [
     "TTSPort",
     "TTSRequest",
     "VoiceMetadata",
+    # Data
+    "CallRecord",
+    "CallRepositoryPort",
+    "TranscriptRepositoryPort",
 ]

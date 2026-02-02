@@ -29,20 +29,30 @@ _LAST_CACHE_UPDATE: float = 0
 CACHE_TTL = 3600  # 1 hour
 
 
+from app.core.audio_config import AudioConfig
+
 class AzureTTSAdapter(TTSPort):
     """
     Adaptador para Azure TTS que implementa TTSPort.
     """
 
-    def __init__(self, config: Any | None = None, audio_mode: str = "twilio"):
+    def __init__(self, config: Any | None = None, audio_mode: str = "twilio", audio_config: AudioConfig | None = None):
         """
         Args:
             config: Clean config object or None.
-            audio_mode: "browser", "twilio", or "telnyx".
+            audio_mode: "browser", "twilio", or "telnyx" (Legacy).
+            audio_config: Explicit audio configuration.
         """
         self.api_key = config.api_key if config else settings.AZURE_SPEECH_KEY
         self.region = config.region if config else settings.AZURE_SPEECH_REGION
-        self.audio_mode = config.audio_mode if config else audio_mode
+
+        # Audio Config Logic
+        if audio_config:
+            self.audio_config = audio_config
+        else:
+            legacy_mode = config.audio_mode if config else audio_mode
+            logger.warning(f"⚠️ [AzureTTS] Using legacy audio_mode: {legacy_mode}")
+            self.audio_config = AudioConfig.from_legacy_mode(legacy_mode)
 
         self.speech_config = speechsdk.SpeechConfig(
             subscription=self.api_key,
@@ -55,12 +65,15 @@ class AzureTTSAdapter(TTSPort):
         if voice_name:
             self.speech_config.speech_synthesis_voice_name = voice_name
 
-        if self.audio_mode == "browser":
-            self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
-        elif self.audio_mode == "telnyx":
-            self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoALaw)
+        # Determine Output Format based on AudioConfig
+        if self.audio_config.encoding == "pcm":
+             # 16kHz PCM (Browser)
+             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm)
+        elif self.audio_config.encoding == "alaw":
+             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoALaw)
         else:
-            self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
+             # Default fallback mulaw 8khz
+             self.speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw)
 
         audio_config = speechsdk.audio.AudioConfig(filename="/dev/null")
 
