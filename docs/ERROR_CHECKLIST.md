@@ -55,3 +55,15 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: `object has no attribute 'x'`. Común al delegar lógica entre componentes (ej. Sink -> Orchestrator).
     *   **Verificación**: ¿La clase contenedora expone el método que el componente hijo intenta llamar?
     *   **Solución**: Implementar el método "proxy" que delegue al gestor correspondiente.
+
+*   [ ] **Desincronización de Base de Datos (Schema Drift)**:
+    *   **Síntoma**: Error 500 `ProgrammingError: column "x" does not exist` aunque `alembic current` diga que está al día.
+    *   **Causa**: Cambios manuales en Modelos sin generar migración, o migración fallida silenciosamente.
+    *   **Solución**:
+        1.  `docker compose exec app alembic revision --autogenerate -m "fix_drift"`
+        2.  `docker compose exec app alembic upgrade head`
+
+*   [ ] **Archivos Faltantes en Docker (Bind Mount Issues)**:
+    *   **Síntoma**: `FileNotFoundError` en scripts que existen en local.
+    *   **Causa**: Docker no está montando el volumen correctamente o la imagen no copió el archivo.
+    *   **Solución**: `docker cp archivo_local container:/ruta/` o reconstruir imagen (`docker compose build`).
