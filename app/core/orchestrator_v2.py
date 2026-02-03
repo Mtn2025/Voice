@@ -441,6 +441,16 @@ class VoiceOrchestratorV2:
         await self.audio_manager.send_audio_chunked(audio_data)
         self.last_interaction_time = time.time()
 
+    async def interrupt_speaking(self) -> None:
+        """
+        Interrupt any current speech output.
+        Delegates to AudioManager and logs the event.
+        """
+        logger.info("🛑 [Orchestrator] Interrupting speech output...")
+        await self.audio_manager.interrupt_speaking()
+        # Ensure FSM state reflects interruption if needed, although handle_interruption does this too.
+        # This is primarily called by AudioSink on user interruption frame.
+
     async def speak_direct(self, text: str) -> None:
         """
         Speak text directly, bypassing LLM.

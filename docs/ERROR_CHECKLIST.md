@@ -50,3 +50,8 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: Server Error tras un refactor. Log: `name 'X' is not defined`.
     *   **Verificación**: ¿Se borró accidentalmente un bloque de código necesario al reemplazar otro? (e.g. `models` en dashboard).
     *   **Solución**: Revisar el diff y restaurar el código faltante.
+
+*   [ ] **Métodos Faltantes en Clases (`AttributeError`)**:
+    *   **Síntoma**: `object has no attribute 'x'`. Común al delegar lógica entre componentes (ej. Sink -> Orchestrator).
+    *   **Verificación**: ¿La clase contenedora expone el método que el componente hijo intenta llamar?
+    *   **Solución**: Implementar el método "proxy" que delegue al gestor correspondiente.
