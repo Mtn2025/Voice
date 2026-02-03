@@ -648,8 +648,30 @@ export function dashboardStore() {
             const profile = this.activeProfile || 'browser';
 
             // DATA SOURCE: Trust the Alpine Store state, NOT the DOM inputs.
-            // This ensures we save exactly what is in memory for this profile.
-            const payload = this.configs[profile];
+            const rawPayload = this.configs[profile];
+
+            // SANITIZE: Convert JSON strings back to Objects for the API
+            const payload = { ...rawPayload }; // Shallow copy
+
+            const jsonFields = [
+                'dynamicVars', 'toolsSchema', 'redactParams', 'transferWhitelist',
+                'endCallPhrases', 'extractionSchema'
+            ];
+
+            for (const field of jsonFields) {
+                if (typeof payload[field] === 'string') {
+                    if (!payload[field].trim()) {
+                        payload[field] = null;
+                    } else {
+                        try {
+                            payload[field] = JSON.parse(payload[field]);
+                        } catch (e) {
+                            this.showToast(`Error JSON en ${field}: ${e.message}`, 'error');
+                            return; // Stop save if invalid JSON
+                        }
+                    }
+                }
+            }
 
             try {
                 // Use new Profile-Aware Endpoint
