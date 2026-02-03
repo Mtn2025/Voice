@@ -281,6 +281,24 @@ async def dashboard(
     else:
         voice_styles = voice_styles_cached
 
+    # Models - CURATED lists
+    models = {
+        "groq": [
+            {"id": "llama-3.3-70b-versatile", "name": "⭐ Llama 3.3 70B Versatile (MEJOR)"},
+            {"id": "llama-3.3-70b-specdec", "name": "Llama 3.3 70B SpecDec (Ultra Rápido)"},
+            {"id": "llama-3.1-70b-versatile", "name": "Llama 3.1 70B Versatile"},
+            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8b Instant (Económico)"},
+            {"id": "gemma-2-9b-it", "name": "Gemma 2 9B IT"},
+            {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B"},
+        ],
+        "azure": [
+            {"id": "gpt-4o", "name": "⭐ GPT-4o (Omni - MEJOR)"},
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini (Rápido + Económico)"},
+            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo (Alta capacidad)"},
+            {"id": "gpt-35-turbo", "name": "GPT-3.5 Turbo (Económico)"}
+        ]
+    }
+
     history = await db_service.get_recent_calls(session=db, limit=10)
 
     # Helpers for serialization

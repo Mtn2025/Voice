@@ -45,3 +45,8 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: `UndefinedColumn` o `RelationNotFound`.
     *   **Verificación**: Ejecutar `alembic current` vs `alembic heads`.
     *   **Solución**: Generar (`revision --autogenerate`) o aplicar (`upgrade head`) migraciones.
+
+*   [ ] **Errores 500 por Variables no Definidas (`NameError`)**:
+    *   **Síntoma**: Server Error tras un refactor. Log: `name 'X' is not defined`.
+    *   **Verificación**: ¿Se borró accidentalmente un bloque de código necesario al reemplazar otro? (e.g. `models` en dashboard).
+    *   **Solución**: Revisar el diff y restaurar el código faltante.
