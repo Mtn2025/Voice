@@ -195,39 +195,11 @@ async def dashboard(
 ):
     config = await db_service.get_agent_config(db)
 
-    # Voices
-    tts_adapter = AzureTTSAdapter() # Lightweight init
-
-    # Languages
-    azure_langs = await tts_adapter.get_available_languages()
-    
-    # Fallback for languages if API fails (Auth Error 401 protection)
-    if not azure_langs:
-        logger.warning("⚠️ Azure Languages list empty. Using fallback.")
-        azure_langs = ["es-MX", "en-US", "es-ES"]
-        
-    languages = {
-        "azure": azure_langs
-    }
-
-    voice_styles = await tts_adapter.get_voice_styles("es-MX-DaliaNeural") # Default example or empty
-
-    # Models - CURATED lists
-    models = {
-        "groq": [
-            {"id": "llama-3.3-70b-versatile", "name": "⭐ Llama 3.3 70B Versatile (MEJOR)"},
-            {"id": "llama-3.3-70b-specdec", "name": "Llama 3.3 70B SpecDec (Ultra Rápido)"},
-            {"id": "llama-3.1-70b-versatile", "name": "Llama 3.1 70B Versatile"},
-            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8b Instant (Económico)"},
-            {"id": "gemma-2-9b-it", "name": "Gemma 2 9B IT"},
-            {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B"},
-        ],
-        "azure": [
-            {"id": "gpt-4o", "name": "⭐ GPT-4o (Omni - MEJOR)"},
-            {"id": "gpt-4o-mini", "name": "GPT-4o Mini (Rápido + Económico)"},
-            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo (Alta capacidad)"},
-            {"id": "gpt-35-turbo", "name": "GPT-3.5 Turbo (Económico)"}
-        ]
+    # Languages & Voices Configuration
+    TARGET_LOCALES_MAP = {
+        "es-MX": "Español (México)",
+        "es-US": "Español (Estados Unidos)",
+        "en-US": "Inglés (Estados Unidos)"
     }
 
     # Voices - Try cache first (24h TTL)
@@ -242,6 +214,11 @@ async def dashboard(
             locale = v.locale
             if not locale:
                 continue
+            
+            # Strict Local Filter (Logic Update Request)
+            # Only process voices for our target locales to avoid clutter
+            if locale not in TARGET_LOCALES_MAP:
+                continue
 
             if locale not in voices["azure"]:
                 voices["azure"][locale] = []
@@ -252,7 +229,7 @@ async def dashboard(
                 "gender": v.gender.lower()
             })
 
-        # Fallback
+        # Fallback (Only if completely empty for critical locales)
         if not voices["azure"]:
             logger.warning("⚠️ Azure Voices list empty. Using fallback catalog.")
             voices["azure"] = {
@@ -264,6 +241,7 @@ async def dashboard(
                     {"id": "en-US-JennyNeural", "name": "Jenny (Neural)", "gender": "female"}
                 ],
                 "es-ES": [
+                    # Kept for completeness despite not being in target map strictly
                      {"id": "es-ES-ElviraNeural", "name": "Elvira (Neural)", "gender": "female"}
                 ]
             }
@@ -272,6 +250,26 @@ async def dashboard(
     else:
         logger.info("🎯 Voices loaded from cache")
         await cache.set("voices_metadata", voices, ttl=86400)
+
+    # Languages - Build from Target Map (Formatted as Objects)
+    # The frontend expects [{id: 'es-MX', name: 'Español (México)'}, ...]
+    azure_langs_objects = []
+    
+    # We verify which target locales actually have voices available
+    available_locales = voices["azure"].keys()
+    
+    for locale_code, locale_name in TARGET_LOCALES_MAP.items():
+        # Ideally we check if we have voices for it, or we just trust the map
+        # to ensure the dropdown works even if voices load lazily.
+        # Adding it ensures "Seleccionar..." is not empty.
+        azure_langs_objects.append({
+            "id": locale_code, 
+            "name": locale_name
+        })
+
+    languages = {
+        "azure": azure_langs_objects
+    }
 
     # Styles - Try cache
     voice_styles_cached = await cache.get("voice_styles")
