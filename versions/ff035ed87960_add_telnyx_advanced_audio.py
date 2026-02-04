@@ -1,0 +1,38 @@
+"""add telnyx advanced audio
+
+Revision ID: ff035ed87960
+Revises: f3a4b5c6d7e8
+Create Date: 2026-01-31 16:58:00.000000
+
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+
+# revision identifiers, used by Alembic.
+revision: str = 'ff035ed87960'
+down_revision: Union[str, None] = 'f3a4b5c6d7e8'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    # Add Advanced Audio columns for Telnyx Profile (Isolation)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('agent_configs')]
+
+    if 'audio_codec_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('audio_codec_telnyx', sa.String(), server_default='PCMU', nullable=True))
+    if 'noise_suppression_level_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('noise_suppression_level_telnyx', sa.String(), server_default='balanced', nullable=True))
+    if 'enable_backchannel_telnyx' not in columns:
+        op.add_column('agent_configs', sa.Column('enable_backchannel_telnyx', sa.Boolean(), server_default='false', nullable=True))
+
+
+def downgrade() -> None:
+    op.drop_column('agent_config', 'enable_backchannel_telnyx')
+    op.drop_column('agent_config', 'noise_suppression_level_telnyx')
+    op.drop_column('agent_config', 'audio_codec_telnyx')
