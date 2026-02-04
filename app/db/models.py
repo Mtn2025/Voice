@@ -284,6 +284,13 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     fallback_number_phone = Column(String, nullable=True)
     geo_region_phone = Column(String, default="us-east-virginia")
 
+    # ---------------- SYSTEM & GOVERNANCE (Added) ----------------
+    concurrency_limit = Column(Integer, default=10)
+    spend_limit_daily = Column(Float, default=50.0)
+    environment = Column(String, default="development")
+    privacy_mode = Column(Boolean, default=False)
+    audit_log_enabled = Column(Boolean, default=False)
+
     # ---------------- TELNYX PROFILE ----------------
     # Cloned configs for independent tuning
     stt_provider_telnyx = Column(String, default="azure")

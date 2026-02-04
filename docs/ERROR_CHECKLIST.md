@@ -39,9 +39,9 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
 
 *   [ ] **Validación de Tipos Pydantic**:
 
-*   [ ] **Falta de Columnas System (Configuración de Gobierno)**:
+*   [x] **Falta de Columnas System (Configuración de Gobierno)**:
     *   **Síntoma**: Los campos Concurrency, Spend Limit y Privacy no se guardan.
-    *   **Solución**: Agregar columnas a `agent_configs`.
+    *   **Solución**: Agregar columnas a `agent_configs`. (CORREGIDO)
 
 ## 3. Infraestructura y Despliegue
 
