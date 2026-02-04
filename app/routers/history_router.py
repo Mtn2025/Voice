@@ -83,7 +83,7 @@ async def history_rows(
     """
     try:
         offset = (page - 1) * limit
-        query = select(Call).order_by(Call.created_at.desc())
+        query = select(Call).order_by(Call.start_time.desc())
 
         # Filter by client_type if provided and not 'all'
         if client_type and client_type.lower() != 'all':
