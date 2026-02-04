@@ -53,6 +53,8 @@ class AgentConfig(Base):
     stt_language = Column(String, default="es-MX")
     llm_provider = Column(String, default="groq")
     llm_model = Column(String, default="llama-3.3-70b-versatile")
+    temperature = Column(Float, default=0.7)
+    max_tokens = Column(Integer, default=250)
     extraction_model = Column(String, default="llama-3.1-8b-instant")
     interruption_threshold = Column(Integer, default=5)  # Noise Tolerance (Browser)
     interruption_threshold_phone = Column(Integer, default=2)  # Noise Tolerance (Phone)

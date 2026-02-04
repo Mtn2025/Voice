@@ -48,6 +48,11 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: Error 500 al cargar historial (AttributeError: created_at).
     *   **Solución**: Cambiar ordenamiento a `Call.start_time`. (CORREGIDO)
 
+*   [x] **Falta de Columnas Model (Temperatura)**:
+    *   **Síntoma**: No se guarda la temperatura ni tokens.
+    *   **Solución**: Agregar columnas a `agent_configs`. (CORREGIDO)
+
+
 ## 3. Infraestructura y Despliegue
 
 *   [ ] **Exposición de Puertos Docker**:
