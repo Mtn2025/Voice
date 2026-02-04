@@ -29,6 +29,14 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Causa**: El router `campaigns.py` no existe ni está montado en `main.py`.
     *   **Solución**: Crear `app/routers/campaigns.py` y registrarlo en `main.py`. (CORREGIDO)
 
+*   [x] **Política de Credenciales (Diseño)**:
+    *   **Nota**: Las credenciales sensibles (Twilio SID, Telnyx API Key) NO se guardan en la DB.
+    *   **Estado**: Correcto (Configured via Environment). El Dashboard solo muestra estado, no permite edición.
+
+*   [x] **Falta de Columnas SIP & Trunking**:
+    *   **Síntoma**: Los campos SIP (URI, User, Pass) no se guardan.
+    *   **Solución**: Agregar columnas a `agent_config` para configuración SIP dinámica. (CORREGIDO)
+
 *   [ ] **Validación de Tipos Pydantic**:
     *   **Síntoma**: Error 422 en llamadas API.
     *   **Verificación**: Revisar si un campo numérico está recibiendo un string numérico desde el FormData.

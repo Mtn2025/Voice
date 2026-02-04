@@ -262,10 +262,27 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     voice_sensitivity = Column(Integer, default=500)
     voice_sensitivity_phone = Column(Integer, default=3000)
 
-    # Silero VAD Threshold
+    # VAD Threshold
     vad_threshold = Column(Float, default=0.5)
     vad_threshold_phone = Column(Float, default=0.5)
     vad_threshold_telnyx = Column(Float, default=0.5)
+
+    # ---------------- SIP & CONNECTIVITY (Added) ----------------
+    # Telnyx
+    sip_trunk_uri_telnyx = Column(String, nullable=True)
+    sip_auth_user_telnyx = Column(String, nullable=True)
+    sip_auth_pass_telnyx = Column(String, nullable=True)
+    caller_id_telnyx = Column(String, nullable=True)
+    fallback_number_telnyx = Column(String, nullable=True)
+    geo_region_telnyx = Column(String, default="us-central")
+
+    # Twilio
+    sip_trunk_uri_phone = Column(String, nullable=True)
+    sip_auth_user_phone = Column(String, nullable=True)
+    sip_auth_pass_phone = Column(String, nullable=True)
+    caller_id_phone = Column(String, nullable=True)
+    fallback_number_phone = Column(String, nullable=True)
+    geo_region_phone = Column(String, default="us-east-virginia")
 
     # ---------------- TELNYX PROFILE ----------------
     # Cloned configs for independent tuning
