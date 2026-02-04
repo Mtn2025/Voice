@@ -24,6 +24,11 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: Los datos se guardan pero no aparecen al recargar, o no se guardan.
     *   **Verificación**: Revisar `FIELD_ALIASES` en los routers. El frontend suele usar camelCase (`voiceProvider`) y el modelo DB snake_case (`tts_provider`).
 
+*   [x] **Endpoint de Campañas Faltante (Dead Code)**:
+    *   **Síntoma**: Error 404 al intentar "Iniciar Campaña".
+    *   **Causa**: El router `campaigns.py` no existe ni está montado en `main.py`.
+    *   **Solución**: Crear `app/routers/campaigns.py` y registrarlo en `main.py`. (CORREGIDO)
+
 *   [ ] **Validación de Tipos Pydantic**:
     *   **Síntoma**: Error 422 en llamadas API.
     *   **Verificación**: Revisar si un campo numérico está recibiendo un string numérico desde el FormData.
