@@ -44,6 +44,10 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: Los campos Noise Suppression, Codec, Backchannel y Safety Limits no se guardan.
     *   **Solución**: Agregar columnas a `agent_configs`. (CORREGIDO)
 
+*   [x] **Bug en Historial (Sorting)**:
+    *   **Síntoma**: Error 500 al cargar historial (AttributeError: created_at).
+    *   **Solución**: Cambiar ordenamiento a `Call.start_time`. (CORREGIDO)
+
 ## 3. Infraestructura y Despliegue
 
 *   [ ] **Exposición de Puertos Docker**:
