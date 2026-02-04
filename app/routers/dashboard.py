@@ -54,6 +54,25 @@ FIELD_ALIASES = {
     'voiceBgUrl': 'background_sound_url',
     'voiceLang': 'voice_language',
 
+    # Voice Expression (Azure/ElevenLabs)
+    'voicePitch': 'voice_pitch',
+    'voiceVolume': 'voice_volume',
+    'voiceStyleDegree': 'voice_style_degree',
+
+    # ElevenLabs Specifics
+    'voiceStability': 'voice_stability',
+    'voiceSimilarityBoost': 'voice_similarity_boost',
+    'voiceStyleExaggeration': 'voice_style_exaggeration',
+    'voiceSpeakerBoost': 'voice_speaker_boost',
+    'voiceMultilingual': 'voice_multilingual',
+
+    # Humanization & Technical
+    'voiceFillerInjection': 'voice_filler_injection',
+    'voiceBackchanneling': 'voice_backchanneling',
+    'textNormalizationRule': 'text_normalization_rule',
+    'ttsLatencyOptimization': 'tts_latency_optimization',
+    'ttsOutputFormat': 'tts_output_format',
+
     # Conversation Style Configuration
     'responseLength': 'response_length',
     'conversationTone': 'conversation_tone',
