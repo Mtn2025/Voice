@@ -291,6 +291,15 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     privacy_mode = Column(Boolean, default=False)
     audit_log_enabled = Column(Boolean, default=False)
 
+    # ---------------- ADVANCED: QUALITY & SAFETY (Added) ----------------
+    noise_suppression_level = Column(String, default="High")
+    audio_codec = Column(String, default="PCMU")
+    enable_backchannel = Column(Boolean, default=False)
+    
+    max_duration_seconds = Column(Integer, default=600)
+    max_retries = Column(Integer, default=2)
+    inactivity_message = Column(String, nullable=True)
+
     # ---------------- TELNYX PROFILE ----------------
     # Cloned configs for independent tuning
     stt_provider_telnyx = Column(String, default="azure")

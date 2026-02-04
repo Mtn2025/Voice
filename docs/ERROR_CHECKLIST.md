@@ -40,9 +40,9 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
 *   [ ] **Validación de Tipos Pydantic**:
 
 *   [x] **Falta de Columnas System (Configuración de Gobierno)**:
-*   [ ] **Falta de Columnas Advanced (Calidad y Safety)**:
+*   [x] **Falta de Columnas Advanced (Calidad y Safety)**:
     *   **Síntoma**: Los campos Noise Suppression, Codec, Backchannel y Safety Limits no se guardan.
-    *   **Solución**: Agregar columnas a `agent_configs`.
+    *   **Solución**: Agregar columnas a `agent_configs`. (CORREGIDO)
 
 ## 3. Infraestructura y Despliegue
 

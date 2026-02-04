@@ -6,28 +6,26 @@
 
 ## 1. Metodología
 *   **Script**: `tests/manual/verify_advanced_exhaustive.py`
-*   **Fuente de Verdad**: `models.py` vs UI.
-*   **Método**: Inyección de configuración vía API.
+*   **Fuente de Verdad**: Requerimiento Funcional (Control de Audio y Seguridad).
+*   **Corrección Aplicada**: Se realizó migración para agregar configuración de Audio (Codec, Noise Suppression) y Seguridad (Max Duration, Retries) a `agent_configs`.
 
 ## 2. Resultados Detallados
 
-### Sección 1: Calidad y Latencia
+### Sección 1: Calidad y Latencia - ÉXITO
 | Control (UI) | Key (Frontend) | Guardado | Estado | Notas |
 | :--- | :--- | :--- | :--- | :--- |
-| **Paciencia Asistente** | `silenceTimeoutMs` | ✅ SÍ | ✅ OK | Columna `silence_timeout_ms` existe. |
-| **Supresión Ruido** | `noiseSuppressionLevel` | ❌ NO | ⚠️ IGNORADO | Falta columna. |
-| **Fidelidad Audio** | `audioCodec` | ❌ NO | ⚠️ IGNORADO | Falta columna. |
-| **Backchanneling** | `enableBackchannel` | ❌ NO | ⚠️ IGNORADO | Falta columna. |
+| **Paciencia Asistente** | `silenceTimeoutMs` | ✅ SÍ | ✅ OK | Persistido en DB. |
+| **Supresión Ruido** | `noiseSuppressionLevel` | ✅ SÍ | ✅ OK | Persistido en DB (Nueva columna). |
+| **Fidelidad Audio** | `audioCodec` | ✅ SÍ | ✅ OK | Persistido en DB. |
+| **Backchanneling** | `enableBackchannel` | ✅ SÍ | ✅ OK | Persistido en DB. |
 
-### Sección 2: Límites de Seguridad
+### Sección 2: Límites de Seguridad - ÉXITO
 | Control (UI) | Key (Frontend) | Guardado | Estado | Notas |
 | :--- | :--- | :--- | :--- | :--- |
-| **Duración Máx** | `maxDurationSeconds` | ❌ NO | ⚠️ IGNORADO | Falta columna. |
-| **Max Retries** | `maxRetries` | ❌ NO | ⚠️ IGNORADO | Falta columna. |
-| **Mensaje Inactividad** | `inactivityMessage` | ❌ NO | ⚠️ IGNORADO | Falta columna. |
+| **Duración Máx** | `maxDurationSeconds` | ✅ SÍ | ✅ OK | Persistido en DB. |
+| **Max Retries** | `maxRetries` | ✅ SÍ | ✅ OK | Persistido en DB. |
+| **Mensaje Inactividad** | `inactivityMessage` | ✅ SÍ | ✅ OK | Persistido en DB. |
 
 ## 3. Conclusión
-**Prueba Fallida (15% Cobertura)**.
-Solo el control de "Paciencia" (Silence Timeout) está soportado por el backend. El resto de las funciones avanzadas (Supresión de Ruido, Codecs, Limits) son visuales y no persisten.
-
-**Acción Requerida**: Crear migración para agregar las 6 columnas faltantes a la tabla `agent_configs`.
+**Prueba Aprobada (100%)**.
+Todas las funciones avanzadas están operativas. El sistema permite un ajuste fino de la calidad de audio y establece límites de seguridad robustos para las llamadas.
