@@ -97,6 +97,23 @@ class BrowserConfigUpdate(BaseModel):
         description="Sensitivity for machine detection (0-1)"
     )
 
+    # Tools (Phase VI)
+    tools_schema: dict | None = Field(None, alias="toolsSchema")
+    tool_server_url: str | None = Field(None, alias="toolServerUrl")
+    tool_server_secret: str | None = Field(None, alias="toolServerSecret")
+    async_tools: bool | None = Field(None, alias="asyncTools")
+    client_tools_enabled: bool | None = Field(None, alias="clientToolsEnabled")
+    tool_retry_count: int | None = Field(None, alias="toolRetryCount")
+    tool_error_msg: str | None = Field(None, alias="toolErrorMsg")
+    redact_params: str | None = Field(None, alias="redactParams") # In frontend it's a textarea string? Or JSON? It is textarea.
+    state_injection_enabled: bool | None = Field(None, alias="stateInjectionEnabled")
+    transfer_whitelist: str | None = Field(None, alias="transferWhitelist")
+
+    # Integrations (Campaigns/CRM)
+    crm_enabled: bool | None = Field(None, alias="crmEnabled")
+    webhook_url: str | None = Field(None, alias="webhookUrl")
+    webhook_secret: str | None = Field(None, alias="webhookSecret")
+
     # Features
     enable_denoising: bool | None = Field(None, alias="denoise")
     enable_end_call: bool | None = Field(None, alias="enableEndCall")

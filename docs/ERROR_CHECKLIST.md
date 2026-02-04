@@ -94,10 +94,7 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
 
 ## 5. Deuda Técnica y Procesos (Código y Arquitectura)
 
-*   [ ] **Desalineación de Payloads Frontend-Backend**:
-    *   **Síntoma**: Errores silenciosos donde campos del frontend no se guardan en DB.
-    *   **Causa Técnica**: El endpoint `/api/config/update-json` utiliza un mapeo manual (`FIELD_ALIASES`) que puede estar desactualizado respecto al HTML o al Modelo DB.
-    *   **Solución Arquitectónica**:
-        1.  **Validación Estricta**: Implementar esquemas Pydantic que rechacen keys no mapeadas (hoy se ignoran con warning).
-        2.  **Pruebas de Integración**: Scripts que iteren sobre el esquema JSON esperado y validen `updated_count > 0`.
-        3.  **Single Source of Truth**: Generar el formulario HTML dinámicamente desde el esquema Pydantic para evitar discrepancias.
+*   [x] **Desalineación de Payloads Frontend-Backend (Silent Schema Ignorance)**:
+    *   **Síntoma**: Errores silenciosos donde campos del frontend no se guardan en DB (Ignored).
+    *   **Causa Técnica**: `BrowserConfigUpdate` (Pydantic) filtraba campos no declarados explícitamente, aunque `dashboard.py` los mapeara en `FIELD_ALIASES`.
+    *   **Solución**: Se auditaron las 10 pestañas y se agregaron todos los campos faltantes al Schema (`tools_schema`, `crm_enabled`, `pitch`, etc). (CORREGIDO)
