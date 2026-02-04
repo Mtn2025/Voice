@@ -38,9 +38,10 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Solución**: Agregar columnas a `agent_config` para configuración SIP dinámica. (CORREGIDO)
 
 *   [ ] **Validación de Tipos Pydantic**:
-    *   **Síntoma**: Error 422 en llamadas API.
-    *   **Verificación**: Revisar si un campo numérico está recibiendo un string numérico desde el FormData.
-    *   **Solución**: Conversión explícita en el endpoint o validador `BeforeValidator` en Pydantic.
+
+*   [ ] **Falta de Columnas System (Configuración de Gobierno)**:
+    *   **Síntoma**: Los campos Concurrency, Spend Limit y Privacy no se guardan.
+    *   **Solución**: Agregar columnas a `agent_configs`.
 
 ## 3. Infraestructura y Despliegue
 
