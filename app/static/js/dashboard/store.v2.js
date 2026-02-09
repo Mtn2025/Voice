@@ -650,6 +650,28 @@ export function dashboardStore() {
             // DATA SOURCE: Trust the Alpine Store state, NOT the DOM inputs.
             const rawPayload = this.configs[profile];
 
+            // VALIDATE: TTS/STT language synchronization
+            if (this.c.voiceLang && this.c.sttLang && this.c.voiceLang !== this.c.sttLang) {
+                const userConfirm = confirm(
+                    `⚠️ ADVERTENCIA DE CONFIGURACIÓN:\n\n` +
+                    `Idioma TTS (Voz): ${this.c.voiceLang}\n` +
+                    `Idioma STT (Transcripción): ${this.c.sttLang}\n\n` +
+                    `Los idiomas NO coinciden. Esto causará problemas:\n` +
+                    `• El asistente hablará en un idioma pero entenderá otro\n` +
+                    `• Ejemplo: Audio en español pero transcripción en inglés\n\n` +
+                    `¿Deseas SINCRONIZAR STT con TTS automáticamente?\n` +
+                    `(Si eliges "Cancelar", se guardará con idiomas diferentes)`
+                );
+
+                if (userConfirm) {
+                    // Auto-sincronizar: STT toma el valor de TTS
+                    this.c.sttLang = this.c.voiceLang;
+                    console.log(`✅ Idiomas sincronizados: ${this.c.voiceLang}`);
+                } else {
+                    this.showToast('⚠️ Guardando con idiomas diferentes - verifica que esto sea intencional', 'warning');
+                }
+            }
+
             // SANITIZE: Convert JSON strings back to Objects for the API
             const payload = { ...rawPayload }; // Shallow copy
 

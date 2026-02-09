@@ -59,6 +59,8 @@ class AgentConfig(Base):
     interruption_threshold = Column(Integer, default=5)  # Noise Tolerance (Browser)
     interruption_threshold_phone = Column(Integer, default=2)  # Noise Tolerance (Phone)
     tts_provider = Column(String, default="azure")
+    allowed_tts_languages = Column(String, default="es-MX,es-US,en-US")  # Filtro configurable de idiomas TTS
+
 
     # =============================================================================
     # STT ADVANCED FEATURES (Internal - Backend Only)

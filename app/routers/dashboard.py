@@ -17,7 +17,10 @@ from app.core.input_sanitization import register_template_filters
 from app.db.database import get_db
 from app.services.cache import cache
 from app.services.db_service import db_service
+from app.services.groq_models import fetch_groq_models
+from app.services.azure_openai_models import fetch_azure_openai_models
 from app.utils.ssml_builder import build_azure_ssml
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -338,23 +341,30 @@ async def dashboard(
     else:
         voice_styles = voice_styles_cached
 
-    # Models - CURATED lists
-    models = {
-        "groq": [
-            {"id": "llama-3.3-70b-versatile", "name": "⭐ Llama 3.3 70B Versatile (MEJOR)"},
-            {"id": "llama-3.3-70b-specdec", "name": "Llama 3.3 70B SpecDec (Ultra Rápido)"},
-            {"id": "llama-3.1-70b-versatile", "name": "Llama 3.1 70B Versatile"},
-            {"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8b Instant (Económico)"},
-            {"id": "gemma-2-9b-it", "name": "Gemma 2 9B IT"},
-            {"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B"},
-        ],
-        "azure": [
-            {"id": "gpt-4o", "name": "⭐ GPT-4o (Omni - MEJOR)"},
-            {"id": "gpt-4o-mini", "name": "GPT-4o Mini (Rápido + Económico)"},
-            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo (Alta capacidad)"},
-            {"id": "gpt-35-turbo", "name": "GPT-3.5 Turbo (Económico)"}
-        ]
-    }
+    # Models - Try cache first (24h TTL)
+    models_cached = await cache.get("llm_models")
+
+    if not models_cached:
+        logger.info("🔄 Cargando modelos LLM desde APIs (caché vacío)")
+        
+        # Obtener modelos de Groq
+        groq_api_key = settings.GROQ_API_KEY or ""
+        groq_models = await fetch_groq_models(groq_api_key)
+        
+        # Obtener modelos de Azure/OpenAI
+        azure_models = await fetch_azure_openai_models()
+        
+        models = {
+            "groq": groq_models,
+            "azure": azure_models
+        }
+        
+        await cache.set("llm_models", models, ttl=86400)
+        logger.info(f"✅ Modelos cargados: Groq={len(groq_models)}, Azure={len(azure_models)}")
+    else:
+        logger.info("🎯 Modelos LLM cargados desde caché")
+        models = models_cached
+
 
     history = await db_service.get_recent_calls(session=db, limit=10)
 
