@@ -39,7 +39,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "${PORT:-8000}:8000"
     restart: always
 
   db:
@@ -63,7 +63,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
 
   # =============================================================================
   # Punto A9: Redis for Horizontal Scaling
@@ -81,7 +81,7 @@ services:
       timeout: 3s
       retries: 5
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
 
 volumes:
   postgres_data_v2:
