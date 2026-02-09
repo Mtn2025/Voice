@@ -379,8 +379,8 @@ class VoiceOrchestratorV2:
                 )
             )
 
-            # [TRACING] Log Audio Packet In
-            logger.debug(f"🎤 [AUDIO_IN] Packet Trace | Size: {len(audio_bytes)} bytes | Stream: {self.stream_id}")
+            # Production: Only log errors, not every packet (reduces 250ms log flood)
+            # logger.debug(f"🎤 [AUDIO_IN] Packet Trace | Size: {len(audio_bytes)} bytes | Stream: {self.stream_id}")
 
             # Update last interaction time
             self.last_interaction_time = time.time()

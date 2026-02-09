@@ -73,8 +73,15 @@ class AzureRecognizerWrapper:
         if not self._callback:
             return
         details = ""
-        if hasattr(evt, 'result') and hasattr(evt.result, 'cancellation_details'):
-             details = evt.result.cancellation_details.error_details
+        reason_str = "UNKNOWN"
+        if hasattr(evt, 'result'):
+            reason_str = str(evt.result.reason) if hasattr(evt.result, 'reason') else "NO_REASON"
+            if hasattr(evt.result, 'cancellation_details'):
+                details = evt.result.cancellation_details.error_details
+        
+        # 🔍 Enhanced Error Logging for Production Debugging
+        logger.error(f"❌ [AZURE_CANCELED] Reason: {reason_str}")
+        logger.error(f"❌ [AZURE_CANCELED] Details: {details}")
 
         event = STTEvent(
             reason=STTResultReason.CANCELED,
@@ -90,8 +97,7 @@ class AzureRecognizerWrapper:
         return self._recognizer.stop_continuous_recognition_async()
 
     def write(self, data):
-        # [TRACING] Azure Stream Write
-        logger.debug(f"👂 [AZURE_WRITE] Writing {len(data)} bytes")
+        # Only log on errors, not every packet (production noise reduction)
         self._push_stream.write(data)
 
 
@@ -152,6 +158,14 @@ class AzureSTTAdapter(STTPort):
         """
         self.api_key = config.api_key if config else settings.AZURE_SPEECH_KEY
         self.region = config.region if config else settings.AZURE_SPEECH_REGION
+
+        # 🔍 Diagnostic Logging for Production Debugging
+        logger.warning(f"🔑 [AZURE_STT_INIT] Key present: {bool(self.api_key)}, Key length: {len(self.api_key) if self.api_key else 0}")
+        logger.warning(f"🌍 [AZURE_STT_INIT] Region: {self.region}")
+        
+        if not self.api_key or not self.api_key.strip():
+            logger.error("❌ [AZURE_STT_INIT] AZURE_SPEECH_KEY is empty! Check Coolify environment variables")
+            raise ValueError("AZURE_SPEECH_KEY must be set in environment")
 
         # Configuración de Audio (Ports & Adapters)
         if audio_config:
