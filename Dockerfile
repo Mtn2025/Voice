@@ -98,7 +98,8 @@ COPY --from=builder --chown=app:app /root/.local /home/app/.local
 COPY --chown=app:app . .
 
 # Install Node.js dependencies for Vite/Tailwind CSS compilation
-RUN npm install
+# Change ownership to app:app so Vite can write temp files during build
+RUN npm install && chown -R app:app node_modules
 
 # Fix line endings for shell scripts (Windows CRLF -> Unix LF)
 # This prevents "exec: no such file or directory" errors
