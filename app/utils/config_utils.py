@@ -26,8 +26,10 @@ async def update_profile_config(db: AsyncSession, profile: str, data_dict: dict)
         'concurrency_limit', 'spend_limit_daily', 'environment',
         'audit_log_enabled', 'privacy_mode',
         'twilio_account_sid', 'twilio_auth_token', 'twilio_from_number',
+        'twilio_record', 'twilio_recording_channels', 'twilio_trim_silence', 'twilio_machine_detection',
         'telnyx_api_key', 'telnyx_connection_id',
-        'webhook_url', 'webhook_secret',
+        'webhook_url', 'webhook_secret', 'crm_enabled',
+        'tools_schema', 'client_tools_enabled',
         'pg_host', 'pg_port', 'pg_user', 'pg_pass', 'pg_dbname',
         'rate_limit_global', 'rate_limit_twilio', 'rate_limit_telnyx'
     }

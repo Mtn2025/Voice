@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.redis_state import redis_state
 from app.db.database import get_db
 
-router = APIRouter()
+router = APIRouter(prefix="/api/system")
 
 @router.get("/health", tags=["System"], status_code=status.HTTP_200_OK)
 async def health_check(db: AsyncSession = Depends(get_db)):

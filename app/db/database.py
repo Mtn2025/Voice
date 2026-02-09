@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
+print(f"DATABASE_URL: {settings.DATABASE_URL.replace(settings.POSTGRES_PASSWORD, '***')}")
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 
 AsyncSessionLocal = sessionmaker(

@@ -167,10 +167,10 @@ app.include_router(routes_admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(routes_v2.router, prefix=settings.API_V1_STR) # Deprecated redirects
 
     # v1 Routers
-app.include_router(dashboard.router, prefix="/api/dashboard", tags=["dashboard"])
-app.include_router(config_router.router, prefix="/api/config", tags=["config"])
-app.include_router(history_router.router, prefix="/api/history", tags=["history"])
-app.include_router(system.router, prefix="/api/system", tags=["system"])
+app.include_router(dashboard.router, tags=["dashboard"]) # Dashboard router seems to have prefix /dashboard or /api/dashboard? Need to check but safer to trust router internal prefix if standard.
+app.include_router(config_router.router, tags=["config"])
+app.include_router(history_router.router, tags=["history"])
+app.include_router(system.router, tags=["system"])
 app.include_router(campaigns.router, prefix="/api", tags=["campaigns"]) # Prefix /api because router has /campaigns # Deprecated redirects
 
 

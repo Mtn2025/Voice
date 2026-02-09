@@ -71,10 +71,10 @@ class BrowserConfigUpdate(BaseModel):
     conversation_pacing: str | None = Field(None, alias="conversationPacing")
 
     # Advanced LLM Controls
-    context_window: int | None = Field(default=10, ge=1, le=50, alias="contextWindow")
-    frequency_penalty: float | None = Field(default=0.0, ge=-2.0, le=2.0, alias="frequencyPenalty")
-    presence_penalty: float | None = Field(default=0.0, ge=-2.0, le=2.0, alias="presencePenalty")
-    tool_choice: str | None = Field(default="auto", alias="toolChoice")
+    context_window: int | None = Field(None, ge=1, le=50, alias="contextWindow")
+    frequency_penalty: float | None = Field(None, ge=-2.0, le=2.0, alias="frequencyPenalty")
+    presence_penalty: float | None = Field(None, ge=-2.0, le=2.0, alias="presencePenalty")
+    tool_choice: str | None = Field(None, alias="toolChoice")
     dynamic_vars_enabled: bool | None = Field(default=False, alias="dynamicVarsEnabled")
     dynamic_vars: dict | None = Field(default=None, alias="dynamicVars")
 

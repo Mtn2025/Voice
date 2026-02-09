@@ -44,6 +44,14 @@ FIELD_ALIASES = {
     'msg': 'first_message',
     'mode': 'first_message_mode',
 
+    # Advanced LLM Controls
+    'contextWindow': 'context_window',
+    'frequencyPenalty': 'frequency_penalty',
+    'presencePenalty': 'presence_penalty',
+    'toolChoice': 'tool_choice',
+    'dynamicVarsEnabled': 'dynamic_vars_enabled',
+    'dynamicVars': 'dynamic_vars',
+
     # TTS Configuration
     'voiceProvider': 'tts_provider',
     'voiceId': 'voice_name',
@@ -82,6 +90,8 @@ FIELD_ALIASES = {
     # STT Configuration
     'sttProvider': 'stt_provider',
     'sttLang': 'stt_language',
+    'sttModel': 'stt_model',
+    'sttSilenceTimeout': 'stt_silence_timeout',
     'interruptWords': 'interruption_threshold',
     'interruptRMS': 'voice_sensitivity',  # Generic / Simulator
     'interruptRMSTelnyx': 'voice_sensitivity_telnyx',  # Explicit Telnyx
@@ -112,7 +122,7 @@ FIELD_ALIASES = {
 
     # TOOLS & ACTIONS (PHASE VI)
     'toolsSchema': 'tools_schema',
-    'asyncTools': 'tools_async',
+    'asyncTools': 'async_tools',
     'clientToolsEnabled': 'client_tools_enabled',
     'toolServerUrl': 'tool_server_url',
     'toolServerSecret': 'tool_server_secret',
@@ -165,8 +175,10 @@ FIELD_ALIASES = {
 
     # SYSTEM & GOVERNANCE (PHASE VIII)
     'concurrencyLimit': 'concurrency_limit',
-    'spendLimitDaily': 'spend_limit_daily',
-    'environment': 'environment',
+    'spendLimitDaily': 'daily_spend_limit',
+    'dailySpendLimit': 'daily_spend_limit',
+    'environment': 'environment_tag',
+    'environmentTag': 'environment_tag',
     'privacyMode': 'privacy_mode',
     'auditLogEnabled': 'audit_log_enabled',
 
@@ -178,6 +190,28 @@ FIELD_ALIASES = {
     # Quality & Latency
     'silenceTimeoutMs': 'silence_timeout_ms',
     'silenceTimeoutMsPhone': 'silence_timeout_ms_phone',
+
+    # FLOW & ORCHESTRATION (PHASE X)
+    'bargeInEnabled': 'barge_in_enabled',
+    'interruptionSensitivity': 'interruption_sensitivity',
+    'interruptionPhrases': 'interruption_phrases',
+    'voicemailDetectionEnabled': 'voicemail_detection_enabled',
+    'voicemailMessage': 'voicemail_message',
+    'machineDetectionSensitivity': 'machine_detection_sensitivity',
+    'responseDelaySeconds': 'response_delay_seconds',
+    'waitForGreeting': 'wait_for_greeting',
+    'hyphenationEnabled': 'hyphenation_enabled',
+    'endCallPhrases': 'end_call_phrases',
+
+    # ANALYSIS & DATA (PHASE XI)
+    'analysisPrompt': 'analysis_prompt',
+    'successRubric': 'success_rubric',
+    'sentimentAnalysis': 'sentiment_analysis',
+    'costTrackingEnabled': 'cost_tracking_enabled',
+    'extractionSchema': 'extraction_schema',
+    'piiRedactionEnabled': 'pii_redaction_enabled',
+    'logWebhookUrl': 'log_webhook_url',
+    'retentionDays': 'retention_days',
 }
 
 # =============================================================================
@@ -213,6 +247,10 @@ async def dashboard(
     db: AsyncSession = Depends(get_db)
 ):
     config = await db_service.get_agent_config(db)
+    
+    # Instantiate Adapter for Metadata Fetching
+    # We use 'browser' mode as this is for the dashboard
+    tts_adapter = AzureTTSAdapter(audio_mode="browser")
 
     # Languages & Voices Configuration
     TARGET_LOCALES_MAP = {
@@ -356,32 +394,71 @@ async def dashboard(
 @router.post("/api/config/update-json", dependencies=[Depends(verify_api_key)])
 async def update_config_json(
     request: Request,
+    profile: str = "browser",  # Default to browser for backward compatibility
     db: AsyncSession = Depends(get_db)
 ):
+    """
+    Update configuration fields via JSON payload.
+    
+    Supports profile-specific updates (browser, twilio, telnyx).
+    Fields are mapped using FIELD_ALIASES and suffixed with profile identifier.
+    """
     try:
         data = await request.json()
-        logger.info(f"🔄 [CONFIG-JSON] Received update payload: {len(data)} keys")
+        logger.info(f"🔄 [CONFIG-JSON] Received update for profile '{profile}': {len(data)} keys")
+        
+        # Validate profile
+        if profile not in ["browser", "twilio", "telnyx"]:
+            return {
+                "status": "error",
+                "message": f"Invalid profile '{profile}'. Must be one of: browser, twilio, telnyx"
+            }, 400
+
+        # Determine suffix based on profile
+        if profile == "telnyx":
+            suffix = "_telnyx"
+        elif profile == "twilio":
+            suffix = "_phone"
+        else:
+            suffix = ""  # Browser has no suffix
 
         # Fetch current config
         current_config = await db_service.get_agent_config(db)
 
         updated_count = 0
         normalized_count = 0
+        ignored_fields = []
 
         for key, value in data.items():
             # Skip non-config metadata
             if key in ["id", "name", "created_at", "api_key"]:
                 continue
 
-            # Normalize field names
+            # Normalize field names using FIELD_ALIASES
             normalized_key = FIELD_ALIASES.get(key, key)
             if normalized_key != key:
                 normalized_count += 1
                 logger.debug(f"🔀 [NORMALIZE] {key} → {normalized_key}")
+            
+            # Build final DB column name with suffix
+            # SPECIAL CASES - Skip suffix for fields that:
+            # 1. Already end with suffix (e.g., caller_id_telnyx)
+            # 2. Start with profile name (e.g., telnyx_connection_id, telnyx_api_key)
+            profile_name = suffix.lstrip('_') if suffix else ''
+            skip_suffix = (
+                normalized_key.endswith(suffix) or 
+                (profile_name and normalized_key.startswith(f"{profile_name}_"))
+            )
+            
+            if skip_suffix:
+                db_column = normalized_key
+            else:
+                db_column = f"{normalized_key}{suffix}"
 
-            # Check if key exists in model
-            if hasattr(current_config, normalized_key):
+            # Check if column exists in model
+            if hasattr(current_config, db_column):
                 normalized_value = value
+                
                 # Sanitize Empty Strings
                 if normalized_value == "":
                     normalized_value = None
@@ -395,21 +472,30 @@ async def update_config_json(
                     elif normalized_value.replace('.', '', 1).replace('-', '', 1).isdigit():
                         normalized_value = float(normalized_value) if "." in normalized_value else int(normalized_value)
 
-                setattr(current_config, normalized_key, normalized_value)
+                setattr(current_config, db_column, normalized_value)
                 updated_count += 1
+                logger.debug(f"✅ [UPDATE] {db_column} = {normalized_value}")
             else:
-                logger.warning(f"⚠️ [CONFIG-JSON] Ignored unknown key: {key} (normalized: {normalized_key})")
+                logger.warning(f"⚠️ [CONFIG-JSON] Ignored unknown column: {db_column} (from key: {key})")
+                ignored_fields.append(key)
 
         await db.commit()
         await db.refresh(current_config)
-        logger.info(f"✅ [CONFIG-JSON] Updated {updated_count} fields ({normalized_count} normalized).")
+        logger.info(f"✅ [CONFIG-JSON] Profile '{profile}': Updated {updated_count} fields ({normalized_count} normalized), {len(ignored_fields)} ignored.")
 
         # Validation Result
         warnings = []
-        if hasattr(current_config, 'system_prompt') and current_config.system_prompt:
-             unknowns = validate_prompt_variables(current_config.system_prompt)
-             if unknowns:
-                 warnings.append(f"Variables desconocidas en Prompt: {', '.join(unknowns)}")
+        if ignored_fields:
+            warnings.append(f"Campos ignorados (columna no existe): {', '.join(ignored_fields)}")
+        
+        # Check system prompt variables if updated
+        prompt_column = f"system_prompt{suffix}"
+        if hasattr(current_config, prompt_column):
+            prompt_value = getattr(current_config, prompt_column)
+            if prompt_value:
+                unknowns = validate_prompt_variables(prompt_value)
+                if unknowns:
+                    warnings.append(f"Variables desconocidas en Prompt: {', '.join(unknowns)}")
 
         return {
             "status": "success",

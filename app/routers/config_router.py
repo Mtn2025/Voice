@@ -40,6 +40,9 @@ FIELD_ALIASES = {
     'voiceStyle': 'voice_style',
     'voiceSpeed': 'voice_speed',
     'voicePacing': 'voice_pacing_ms',
+    'voicePitch': 'voice_pitch',
+    'voiceVolume': 'voice_volume',
+    'voiceStyleDegree': 'voice_style_degree',
     'voiceBgSound': 'background_sound',
     'voiceBgUrl': 'background_sound_url',
     'voiceLang': 'voice_language',
@@ -129,6 +132,89 @@ router = APIRouter(
     tags=["configuration"],
     dependencies=[Depends(verify_api_key)]
 )
+
+
+def _map_db_to_frontend(config, profile: str) -> dict:
+    """
+    Auto-map DB columns to frontend aliases using schema definitions.
+    
+    Args:
+        config: AgentConfig SQLAlchemy model
+        profile: One of 'browser', 'twilio', 'telnyx'
+    
+    Returns:
+        Dict with frontend camelCase keys and values from DB
+    """
+    # Select the appropriate schema
+    if profile == "telnyx":
+        schema_class = TelnyxConfigUpdate
+    elif profile == "twilio":
+        schema_class = TwilioConfigUpdate
+    elif profile == "browser":
+        schema_class = BrowserConfigUpdate
+    else:
+        raise ValueError(f"Invalid profile: {profile}")
+    
+    result = {}
+    
+    # Iterate through schema fields
+    for field_name, field_info in schema_class.model_fields.items():
+        # Get the frontend alias (camelCase)
+        frontend_key = field_info.alias or field_name
+        
+        # The field_name in the schema ALREADY includes the suffix
+        # e.g., for Telnyx: 'system_prompt_telnyx', 'llm_provider_telnyx'
+        # e.g., for Browser: 'system_prompt', 'llm_provider'
+        db_column = field_name
+        
+        # Extract value from config
+        value = getattr(config, db_column, None)
+        
+        # Only include non-None values
+        if value is not None:
+            result[frontend_key] = value
+    
+    return result
+
+
+@router.get("/")
+async def get_config(
+    profile: str = "browser",
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get current configuration for specific profile.
+    
+    Args:
+        profile: One of 'browser', 'twilio', 'telnyx' (default: 'browser')
+    
+    Returns:
+        Dict with frontend-formatted keys (camelCase) and values from DB
+    """
+    # Validate profile
+    if profile not in ["browser", "twilio", "telnyx"]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid profile '{profile}'. Must be one of: browser, twilio, telnyx"
+        )
+    
+    try:
+        config = await db_service.get_agent_config(db)
+        if not config:
+            raise HTTPException(status_code=404, detail="Config not found")
+        
+        # Map DB columns to frontend aliases based on profile
+        profile_data = _map_db_to_frontend(config, profile)
+        
+        logger.info(f"✅ Retrieved config for profile '{profile}' ({len(profile_data)} fields)")
+        return profile_data
+        
+    except ValueError as e:
+        # Profile validation error
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch config for profile '{profile}': {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.patch("/browser")

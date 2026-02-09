@@ -17,27 +17,49 @@ echo "📦 Waiting for PostgreSQL..."
 python -c "
 import time
 import asyncio
+import os
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import text
 from app.core.config import settings
 
 async def wait_for_db():
     max_retries = 30
     retry_interval = 2
     
+    # Print diagnostic info
+    db_url = settings.DATABASE_URL
+    safe_url = db_url.split('@')[-1] if '@' in db_url else 'UNKNOWN'
+    print(f'🔌 Connecting to database at: {safe_url}')
+    print(f'📊 Server: {settings.POSTGRES_SERVER}')
+    print(f'📊 Port: {settings.POSTGRES_PORT}')
+    print(f'📊 Database: {settings.POSTGRES_DB}')
+    print(f'📊 User: {settings.POSTGRES_USER}')
+    
     for i in range(max_retries):
         try:
-            engine = create_async_engine(settings.DATABASE_URL)
+            engine = create_async_engine(settings.DATABASE_URL, echo=False)
             async with engine.connect() as conn:
                 await conn.execute(text('SELECT 1'))
             await engine.dispose()
             print(f'✅ Database ready after {i+1} attempts')
             return True
         except Exception as e:
+            error_type = type(e).__name__
+            error_msg = str(e)
+            
             if i < max_retries - 1:
-                print(f'⏳ Database not ready, retry {i+1}/{max_retries}...')
+                print(f'⏳ Retry {i+1}/{max_retries}: {error_type} - {error_msg[:100]}')
                 time.sleep(retry_interval)
             else:
                 print(f'❌ Database connection failed after {max_retries} attempts')
+                print(f'❌ Last error: {error_type}')
+                print(f'❌ Details: {error_msg}')
+                print(f'')
+                print(f'💡 Troubleshooting:')
+                print(f'   - Check if PostgreSQL container is running')
+                print(f'   - Verify POSTGRES_SERVER={settings.POSTGRES_SERVER} is correct')
+                print(f'   - Check docker-compose depends_on healthcheck')
+                print(f'   - Ensure database credentials are correct')
                 raise
 
 asyncio.run(wait_for_db())
@@ -52,28 +74,16 @@ alembic upgrade head || {
 }
 
 # =============================================================================
-# 2.1 Run Manual Patches (Fases 7, 8, 9) - TEMPORARY FIX
-# =============================================================================
-echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
-echo "🛠️ Applying manual patches (CRM, Webhook, VAD)..."
-# Environment vars are injected by Coolify/Docker. Do not override locally. 
-
-python scripts/add_baserow_columns.py
-python scripts/add_webhook_columns.py
-python scripts/add_vad_columns.py
-python scripts/patch_threshold.py
-
-# =============================================================================
-# 2.2 Compile CSS (Vite + Tailwind)
+# 2.1 Compile CSS (Vite + Tailwind)
 # =============================================================================
 echo "🎨 Compiling Tailwind CSS via Vite..."
-npm run build || echo "⚠️ CSS Build failed"
+npm run build || echo "⚠️ CSS Build failed (non-critical)"
 
 # =============================================================================
-# 2.2 Verify/Download Models (Phase 1)
+# 2.2 Verify/Download Models (Optional)
 # =============================================================================
 echo "🧠 Verifying AI Models..."
-python scripts/download_model.py || echo "⚠️ Model download failed"
+python scripts/download_model.py || echo "⚠️ Model download failed (non-critical)"
 
 # =============================================================================
 # 3. Start Application

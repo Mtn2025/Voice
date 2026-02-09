@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "control": "Proveedor LLM",
+    "frontend_key": "provider",
+    "test_value": "groq",
+    "http_status": 200,
+    "http_updated": 1,
+    "db_persisted": null,
+    "readback_value": "groq",
+    "readback_ok": true,
+    "errors": [],
+    "status": 

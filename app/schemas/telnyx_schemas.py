@@ -58,6 +58,15 @@ class TelnyxConfigUpdate(BaseModel):
     # STT Configuration
     stt_provider_telnyx: str | None = Field(None, max_length=50, alias="sttProvider")
     stt_language_telnyx: str | None = Field(None, max_length=10, alias="sttLang")
+    stt_model_telnyx: str | None = Field(None, max_length=50, alias="sttModel")
+    stt_keywords_telnyx: list | dict | None = Field(None, alias="sttKeywords")
+    stt_silence_timeout_telnyx: int | None = Field(None, ge=200, le=5000, alias="sttSilenceTimeout")
+    stt_utterance_end_strategy_telnyx: str | None = Field(None, max_length=50, alias="sttUtteranceEnd")
+    stt_punctuation_telnyx: bool | None = Field(None, alias="sttPunctuation")
+    stt_smart_formatting_telnyx: bool | None = Field(None, alias="sttSmartFormatting")
+    stt_profanity_filter_telnyx: bool | None = Field(None, alias="sttProfanityFilter")
+    stt_diarization_telnyx: bool | None = Field(None, alias="sttDiarization")
+    stt_multilingual_telnyx: bool | None = Field(None, alias="sttMultilingual")
     input_min_characters_telnyx: int | None = Field(None, ge=1, le=100, alias="inputMin")
 
     # Audio Processing
@@ -134,6 +143,11 @@ class TelnyxConfigUpdate(BaseModel):
     tool_retry_count_telnyx: int | None = Field(None, alias="toolRetryCount")
     tool_error_msg_telnyx: str | None = Field(None, alias="toolErrorMsg")
 
+    # Tool Security (Telnyx)
+    redact_params_telnyx: list | dict | None = Field(None, alias="redactParams")
+    transfer_whitelist_telnyx: list | dict | None = Field(None, alias="transferWhitelist")
+    state_injection_enabled_telnyx: bool | None = Field(None, alias="stateInjectionEnabled")
+
     # Integrations (Webhook/CRM Telnyx)
     webhook_url_telnyx: str | None = Field(None, alias="webhookUrl")
     webhook_secret_telnyx: str | None = Field(None, alias="webhookSecret")
@@ -159,5 +173,26 @@ class TelnyxConfigUpdate(BaseModel):
         alias="machineDetectionSensitivity",
         description="Sensitivity for machine detection (0-1)"
     )
+
+    # Flow & Orchest ration - Interruption Controls (Telnyx)
+    barge_in_enabled_telnyx: bool | None = Field(None, alias="bargeInEnabled")
+    interruption_sensitivity_telnyx: float | None = Field(None, alias="interruptionSensitivity")
+    interruption_phrases_telnyx: list | dict | None = Field(None, alias="interruptionPhrases")
+    
+    # Flow & Orchestration - Pacing/Naturalness (Telnyx)
+    response_delay_seconds_telnyx: float | None = Field(None, alias="responseDelaySeconds")
+    wait_for_greeting_telnyx: bool | None = Field(None, alias="waitForGreeting")
+    hyphenation_enabled_telnyx: bool | None = Field(None, alias="hyphenationEnabled")
+    end_call_phrases_telnyx: list | dict | None = Field(None, alias="endCallPhrases")
+    
+    # Analysis & Data (Telnyx)
+    analysis_prompt_telnyx: str | None = Field(None, alias="analysisPrompt")
+    success_rubric_telnyx: str | None = Field(None, alias="successRubric")
+    sentiment_analysis_telnyx: bool | None = Field(None, alias="sentimentAnalysis")
+    cost_tracking_enabled_telnyx: bool | None = Field(None, alias="costTrackingEnabled")
+    extraction_schema_telnyx: dict[str, Any] | None = Field(None, alias="extractionSchema")
+    pii_redaction_enabled_telnyx: bool | None = Field(None, alias="piiRedactionEnabled")
+    log_webhook_url_telnyx: str | None = Field(None, alias="logWebhookUrl")
+    retention_days_telnyx: int | None = Field(None, alias="retentionDays")
 
     model_config = {"extra": "ignore", "populate_by_name": True}

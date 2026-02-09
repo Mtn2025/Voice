@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, text
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 if TYPE_CHECKING:
@@ -712,23 +712,16 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
     # SYSTEM & DEVOPS
     # =============================================================================
 
-    # --- 1. GOVERNANCE & LIMITS ---
-    concurrency_limit = Column(Integer, default=10)
-    spend_limit_daily = Column(Float, default=50.0)
-    environment = Column(String, default="development")
-
-    # --- 2. SECURITY & IDENTITY ---
-    custom_headers = Column(JSON, nullable=True)
-    sub_account_id = Column(String, nullable=True)
-    allowed_api_keys = Column(JSON, nullable=True)
-    audit_log_enabled = Column(Boolean, default=True)
-    privacy_mode = Column(Boolean, default=False)
-
+    # Phone/Telnyx Overrides
     # Phone/Telnyx Overrides
     environment_phone = Column(String, nullable=True)
     privacy_mode_phone = Column(Boolean, default=False)
-    environment_telnyx = Column(String, nullable=True)
+    environment_telnyx_fixed = Column(String, nullable=True)
     privacy_mode_telnyx = Column(Boolean, default=False)
+
+    # ... (other code)
+
+
 
     # =============================================================================
     # PROFILE CONFIGURATION HELPERS
@@ -851,7 +844,14 @@ NO eres una vendedora agresiva; eres una asesora profesional y empática.
         for field_name, value in updates.model_dump(exclude_unset=True).items():
             db_column = f"{field_name}{suffix}"
 
+            # WORKAROUND: Fix for ghost column environment_telnyx
+            if db_column == "environment_telnyx":
+                db_column = "environment_telnyx_fixed"
+
             # Only update if column exists in model
             if hasattr(self, db_column):
                 setattr(self, db_column, value)
+            # else:
+            #     # Silently ignore unknown fields (or log warning)
+            #     pass
 

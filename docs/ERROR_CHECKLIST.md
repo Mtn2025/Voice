@@ -63,6 +63,11 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
     *   **Síntoma**: Errores 500 al iniciar servicios externos (Azure, Twilio).
     *   **Verificación**: Confirmar que `.env` contiene todas las claves requeridas y que `app/core/config.py` las está leyendo.
 
+*   [ ] **Docker Desktop / Daemon Apagado**:
+    *   **Síntoma**: `npipe:////./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified`.
+    *   **Verificación**: Ejecutar `docker ps`. Si falla, Docker Desktop no está corriendo.
+    *   **Solución**: Iniciar Docker Desktop manualmente.
+
 ## 4. Base de Datos
 
 *   [ ] **Migraciones Pendientes**:
@@ -96,5 +101,260 @@ Este documento sirve como un checklist de primera respuesta para identificar y c
 
 *   [x] **Desalineación de Payloads Frontend-Backend (Silent Schema Ignorance)**:
     *   **Síntoma**: Errores silenciosos donde campos del frontend no se guardan en DB (Ignored).
-    *   **Causa Técnica**: `BrowserConfigUpdate` (Pydantic) filtraba campos no declarados explícitamente, aunque `dashboard.py` los mapeara en `FIELD_ALIASES`.
-    *   **Solución**: Se auditaron las 10 pestañas y se agregaron todos los campos faltantes al Schema (`tools_schema`, `crm_enabled`, `pitch`, etc). (CORREGIDO)
+    *   **Causa Técnica**: `BrowserConfigUpdate` y `TwilioConfigUpdate` filtraban campos no declarados explícitamente.
+    *   **Solución**: Se auditaron todas las pestañas y se agregaron campos faltantes a los esquemas (incluyendo `tools_schema`, `crm_enabled` y campos `_phone` específicos). (CORREGIDO)
+
+*   [x] **Bug de Doble Prefijo en API Routers (404 Not Found)**:
+    *   **Síntoma**: Endpoints inaccesibles (`/api/config/twilio` devuelve 404).
+    *   **Causa**: `main.py` añadía prefijos a routers que ya los tenían definidos internamente. Resultado: `/api/config/api/config/...`.
+    *   **Solución**: Eliminación de prefijos redundantes en `main.py` y normalización de routers. (CORREGIDO)
+
+*   [x] **Bloqueo de Lista Blanca en Config Utils**:
+    *   **Síntoma**: Actualizaciones de perfil ignoraban cambios globales (como CRM o Tools) aunque el esquema los aceptara.
+    *   **Causa**: `update_profile_config` filtraba claves globales contra una lista blanca estricta.
+    *   **Solución**: Se añadieron `crm_enabled`, `tools_schema`, `tools_async` y otros a la `global_keys` whitelist. (CORREGIDO)
+
+*   [x] **Campos Ignorados por FIELD_ALIASES Faltantes (Silent Ignore)** ✅ **RESUELTO**:
+    *   **Síntoma**: Campos como `voicePitch`, `voiceVolume`, `voiceStyleDegree`, `contextWindow`, `toolChoice` se envían desde frontend pero no se guardan en DB.
+    *   **Detección**: Script `verify_integral_gap_closure.py` reporta "Ignored (No DB Mapping)" aunque columnas DB existen.
+    *   **Causa Raíz**: `FIELD_ALIASES` en `dashboard.py` no incluía mapeo camelCase → snake_case para estos campos.
+    *   **Archivos Afectados**:
+        - `app/routers/config_router.py` (endpoint secundario)
+        - `app/routers/dashboard.py` (endpoint principal `/api/config/update-json`)
+    *   **Solución Aplicada**:
+        1. Agregados 3 aliases Voice en `config_router.py`:
+           - `'voicePitch': 'voice_pitch'`
+           - `'voiceVolume': 'voice_volume'`
+           - `'voiceStyleDegree': 'voice_style_degree'`
+        2. Agregados 6 aliases LLM en `dashboard.py`:
+           - `'contextWindow': 'context_window'`
+           - `'toolChoice': 'tool_choice'`
+           - `'frequencyPenalty': 'frequency_penalty'`
+           - `'presencePenalty': 'presence_penalty'`
+           - `'dynamicVarsEnabled': 'dynamic_vars_enabled'`
+           - `'dynamicVars': 'dynamic_vars'`
+        3. Removidos defaults de Pydantic en `browser_schemas.py` (precaución)
+    *   **Verificación**: ✅ `python tests/manual/verify_integral_gap_closure.py`
+        - `contextWindow`: ✅ Persisted
+        - `toolChoice`: ✅ Persisted
+        - `voicePitch`: ✅ Persisted
+        - Score final: **27/28 campos (96.4%)**
+    *   **Nota**: Requirió rebuild completo (`docker-compose up --build`) para aplicar cambios en código Python.
+    *   **Fecha**: 2026-02-07
+
+
+## 6. Profile-Specific Fields (Telnyx/Twilio/Browser) - CRITICAL PATTERNS
+
+### 🔥 PATRÓN COMÚN: "Campo no existe" aunque exists en DB y Model
+
+**Síntoma Exacto**:
+```
+Response: {'status': 'success', 'updated': 0, 'normalized': 0, 'warnings': ['Campos ignorados (columna no existe): sttSilenceTimeout']}
+```
+
+**Detección Ultra-Rápida** (30 segundos):
+```python
+# 1. Verificar que columna existe en DB
+docker-compose exec db psql -U postgres -d voice_db -c "SELECT column_name FROM information_schema.columns WHERE table_name='agent_configs' AND column_name='stt_silence_timeout_telnyx';"
+
+# 2. Verificar que atributo existe en modelo Python
+python -c "from app.db.models import AgentConfig; print(hasattr(AgentConfig, 'stt_silence_timeout_telnyx'))"
+
+# 3. Si ambos = TRUE pero sigue failing → BUG DE SCHEMA PYDANTIC
+```
+
+**Root Causes Posibles** (en orden de frecuencia):
+
+#### A. ❌ Campo faltante en Pydantic Schema (`*_schemas.py`) - **80% de casos**
+
+**Síntoma**: 
+- DB tiene columna ✅
+- Model tiene atributo ✅  
+- POST devuelve `updated: 0` o "columna no existe" ❌
+- GET no devuelve el campo ❌
+
+**Causa**: El campo NO está definido en `TelnyxConfigUpdate` / `TwilioConfigUpdate` / `BrowserConfigUpdate`
+
+**Solución**:
+```python
+# En app/schemas/telnyx_schemas.py (o twilio/browser)
+class TelnyxConfigUpdate(BaseConfig):
+    # AGREGAR campo faltante con alias correcto:
+    stt_silence_timeout_telnyx: int | None = Field(None, ge=200, le=5000, alias="sttSilenceTimeout")
+    vad_threshold_telnyx: float | None = Field(None, alias="vadThreshold")
+```
+
+**Archivos a revisar**:
+- `app/schemas/telnyx_schemas.py`
+- `app/schemas/twilio_schemas.py`  
+- `app/schemas/browser_schemas.py`
+
+**Verificación**:
+```bash
+# Rebuild OBLIGATORIO (schema changes require reload)
+docker-compose down
+docker-compose up -d --build app
+```
+
+---
+
+#### B. ❌ Alias faltante en FIELD_ALIASES (`dashboard.py`) - **15% de casos**
+
+**Síntoma**:
+- Schema tiene campo ✅
+- DB tiene columna ✅
+- POST devuelve `updated: 0` o "columna no existe" ❌
+
+**Causa**: El POST endpoint no sabe mapear `sttSilenceTimeout` (frontend) → `stt_silence_timeout` (base)
+
+**Solución**:
+```python
+# En app/routers/dashboard.py
+FIELD_ALIASES = {
+    # STT Configuration
+    'sttProvider': 'stt_provider',
+    'sttLang': 'stt_language',
+    'sttModel': 'stt_model',  # ← AGREGAR
+    'sttSilenceTimeout': 'stt_silence_timeout',  # ← AGREGAR
+    'vadThreshold': 'vad_threshold',
+    # ...
+}
+```
+
+**Archivos a revisar**:
+- `app/routers/dashboard.py` (líneas 37-160)
+- `app/routers/config_router.py` (si existe FIELD_ALIASES secundario)
+
+#### B2. ❌ Alias INCORRECTO (mapea a nombre base equivocado) - **Menos común**
+
+**Síntoma**:
+- Schema tiene campo ✅
+- DB tiene columna ✅
+- FIELD_ALIASES tiene entrada ✅
+- POST devuelve `updated: 0` o "columna no existe" ❌
+
+**Causa**: El alias existe pero mapea a nombre base incorrecto (ej: `'asyncTools': 'tools_async'` cuando debería ser `'asyncTools': 'async_tools'`)
+
+**Detección**:
+```bash
+# 1. Verificar que alias existe
+grep "asyncTools" app/routers/dashboard.py
+# Output: 'asyncTools': 'tools_async',  ← EXISTE
+
+# 2. Verificar nombre columna DB
+python -c "from app.db.models import AgentConfig; print([a for a in dir(AgentConfig) if 'async_tools' in a])"
+# Output: ['async_tools_telnyx']  ← Nombre base es async_tools NO tools_async
+
+# 3. El alias mapea 'asyncTools' → 'tools_async' → 'tools_async_telnyx' (NO EXISTE ❌)
+# 4. Debería mapear 'asyncTools' → 'async_tools' → 'async_tools_telnyx' (EXISTE ✅)
+```
+
+**Solución**:
+```python
+# En app/routers/dashboard.py
+# ANTES (INCORRECTO):
+'asyncTools': 'tools_async',
+
+# DESPUÉS (CORRECTO):
+'asyncTools': 'async_tools',
+```
+
+**Caso real**: Tab TOOLS - asyncTools (2026-02-07)
+
+---
+
+#### C. ❌ Inconsistencia camelCase vs snake_case en test/frontend - **5% de casos**
+
+**Síntoma**:
+- POST funciona ✅ (`updated: 1`)
+- GET devuelve `None` ❌
+
+**Causa**: Frontend/test usa `vad_threshold` pero API espera `vadThreshold`
+
+**Detección**:
+```python
+# Verificar qué devuelve el GET
+python -c "from dotenv import load_dotenv; import os, requests; load_dotenv(); key = os.getenv('ADMIN_API_KEY'); r = requests.get('http://localhost:8000/api/config?profile=telnyx', headers={'X-API-Key': key}); print([k for k in r.json() if 'vad' in k.lower()])"
+
+# Si devuelve ['vad', 'vadThreshold'] → usar vadThreshold
+# Si devuelve ['vad_threshold'] → usar vad_threshold
+```
+
+**Solución**: Actualizar test para usar key correcta (camelCase es estándar)
+
+---
+
+### 📋 Checklist de Diagnóstico Rápido (5 min)
+
+Cuando veas `"Campos ignorados (columna no existe): X"`:
+
+```bash
+# PASO 1: ¿Existe en DB? (10 seg)
+docker-compose exec db psql -U postgres -d voice_db -c "\d agent_configs" | findstr "campo_name"
+
+# PASO 2: ¿Existe en Model? (5 seg)  
+python -c "from app.db.models import AgentConfig; print([a for a in dir(AgentConfig) if 'campo_name' in a])"
+
+# PASO 3: ¿Existe en Schema Pydantic? (30 seg)
+# Buscar en app/schemas/*_schemas.py
+grep -r "campo_name" app/schemas/*.py
+
+# PASO 4: ¿Existe en FIELD_ALIASES? (30 seg)
+grep "frontendKey" app/routers/dashboard.py app/routers/config_router.py
+
+# PASO 5: Si 1 y 2 = SI, pero 3 o 4 = NO → AGREGAR y REBUILD
+```
+
+---
+
+### 🛠️ Fix Aplicado: TRANSCRIBER Tab (2026-02-07)
+
+**Contexto**: Tab TRANSCRIBER pasó de 18.2% → 100% tras encontrar este patrón
+
+**Issues Encontrados**:
+1. 9 campos STT faltaban en `telnyx_schemas.py` aunque existían en DB
+2. 2 aliases faltaban en `dashboard.py` FIELD_ALIASES  
+3. 1 test usaba snake_case en lugar de camelCase
+
+**Archivos Modificados**:
+```python
+# app/schemas/telnyx_schemas.py (+9 campos)
+stt_model_telnyx: str | None = Field(None, max_length=50, alias="sttModel")
+stt_keywords_telnyx: list | dict | None = Field(None, alias="sttKeywords")
+stt_silence_timeout_telnyx: int | None = Field(None, ge=200, le=5000, alias="sttSilenceTimeout")
+stt_utterance_end_strategy_telnyx: str | None = Field(None, max_length=50, alias="sttUtteranceEnd")
+stt_punctuation_telnyx: bool | None = Field(None, alias="sttPunctuation")
+stt_smart_formatting_telnyx: bool | None = Field(None, alias="sttSmartFormatting")
+stt_profanity_filter_telnyx: bool | None = Field(None, alias="sttProfanityFilter")
+stt_diarization_telnyx: bool | None = Field(None, alias="sttDiarization")
+stt_multilingual_telnyx: bool | None = Field(None, alias="sttMultilingual")
+
+# app/routers/dashboard.py (+2 aliases)
+'sttModel': 'stt_model',
+'sttSilenceTimeout': 'stt_silence_timeout',
+```
+
+**Resultado**: ✅ 11/11 (100%) - TRANSCRIBER completamente funcional
+
+**Tiempo Debug Total**: ~2 horas (se pudo reducir a 15 min con este checklist)
+
+---
+
+### ⚡ Quick Reference Commands
+
+```bash
+# Ver TODAS las columnas de un perfil en DB
+docker-compose exec db psql -U postgres -d voice_db -c "SELECT column_name FROM information_schema.columns WHERE table_name='agent_configs' AND column_name LIKE '%_telnyx' ORDER BY column_name;"
+
+# Ver TODOS los campos de un schema Pydantic
+python -c "from app.schemas.telnyx_schemas import TelnyxConfigUpdate; print([f for f in TelnyxConfigUpdate.model_fields.keys()])"
+
+# Ver TODOS los aliases de dashboard
+grep "': '" app/routers/dashboard.py | head -50
+
+# Test directo de un campo
+python -c "from dotenv import load_dotenv; import os, requests; load_dotenv(); key = os.getenv('ADMIN_API_KEY'); r = requests.post('http://localhost:8000/api/config/update-json?profile=telnyx', json={'CAMPO': VALOR}, headers={'X-API-Key': key}); print(r.json()); r2 = requests.get('http://localhost:8000/api/config?profile=telnyx', headers={'X-API-Key': key}); print('GET:', r2.json().get('CAMPO'))"
+```
+
+---
+

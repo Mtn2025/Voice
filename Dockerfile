@@ -97,6 +97,10 @@ COPY --from=builder --chown=app:app /root/.local /home/app/.local
 # Copy application code with correct ownership
 COPY --chown=app:app . .
 
+# Fix line endings for shell scripts (Windows CRLF -> Unix LF)
+# This prevents "exec: no such file or directory" errors
+RUN sed -i 's/\r$//' scripts/startup.sh
+
 # Make startup script executable
 RUN chmod +x scripts/startup.sh
 
@@ -105,9 +109,9 @@ ENV PATH=/home/app/.local/bin:$PATH
 ENV PYTHONPATH=/home/app/.local/lib/python3.11/site-packages:/app
 ENV PYTHONUNBUFFERED=1
 
-# Health check - calls /health endpoint
+# Health check - calls /api/system/health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/api/system/health || exit 1
 
 # Expose port
 EXPOSE 8000
