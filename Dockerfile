@@ -97,6 +97,9 @@ COPY --from=builder --chown=app:app /root/.local /home/app/.local
 # Copy application code with correct ownership
 COPY --chown=app:app . .
 
+# Install Node.js dependencies for Vite/Tailwind CSS compilation
+RUN npm install
+
 # Fix line endings for shell scripts (Windows CRLF -> Unix LF)
 # This prevents "exec: no such file or directory" errors
 RUN sed -i 's/\r$//' scripts/startup.sh
