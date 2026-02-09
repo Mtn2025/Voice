@@ -94,6 +94,11 @@ class Pipeline(FrameProcessor):
             return
 
         self._running = True
+        
+        # ✅ Start all processors (initializes background workers like TTS)
+        for processor in self._processors:
+            await processor.start()
+        
         self._task = asyncio.create_task(self._process_queue())
         logger.info("Pipeline started.")
 
