@@ -242,7 +242,7 @@ class VoiceOrchestratorV2:
         if should_speak and greeting_text:
             logger.info(f"👋 Sending greeting: {greeting_text[:30]}...")
             # Use 'role': 'assistant' and 'source': 'system' so Aggregator/LLM pass it through to TTS
-            await self.pipeline.push_frame(
+            await self.pipeline.queue_frame(
                 TextFrame(
                     text=greeting_text,
                     metadata={'role': 'assistant', 'source': 'system'}
