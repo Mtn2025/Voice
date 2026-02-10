@@ -39,22 +39,29 @@ class TTSProcessor(FrameProcessor):
             logger.info("🔊 [TTS] Worker started")
 
     async def process_frame(self, frame: Frame, direction: int):
-        # [DEBUG] Inspect incoming frame for Greeting Bug
-        if isinstance(frame, TextFrame):
-             logger.info(f"🔍 [TTS DEBUG] Received TextFrame: {frame.text[:50]} (Source: {frame.metadata.get('source')})")
+        # [DEBUG] Robust Type Identification
+        frame_type = type(frame).__name__
+        if frame_type == "TextFrame":
+             logger.info(f"🔍 [TTS DEBUG] Received TextFrame (DuckTyped): '{getattr(frame, 'text', '')[:50]}' | Source: {frame.metadata.get('source')}")
         else:
-             logger.debug(f"🔍 [TTS DEBUG] Received Non-TextFrame: {type(frame)}")
+             logger.debug(f"🔍 [TTS DEBUG] Received {frame_type}: {frame}")
 
         if direction == FrameDirection.DOWNSTREAM:
-            if isinstance(frame, TextFrame):
-                # Ensure worker is running (defensive programming)
+            # ROBUST CHECK: Accept if isinstance OR class name matches 'TextFrame'
+            is_text_frame = isinstance(frame, TextFrame) or frame_type == "TextFrame"
+            
+            if is_text_frame:
+                # Ensure worker is running
                 if not self._is_running:
                     await self.start()
 
-                logger.debug(f"📥 [TTS] Queuing TextFrame: '{frame.text[:30]}...'")
-                await self._tts_queue.put((frame.text, frame.trace_id))
+                text = getattr(frame, 'text', '')
+                trace_id = getattr(frame, 'trace_id', '')
 
-            elif isinstance(frame, CancelFrame):
+                logger.debug(f"📥 [TTS] Queuing TextFrame: '{text[:30]}...'")
+                await self._tts_queue.put((text, trace_id))
+
+            elif isinstance(frame, CancelFrame) or frame_type == "CancelFrame":
                 logger.info("🛑 [TTS] Received CancelFrame. Clearing queue.")
                 await self._clear_queue()
                 await self.push_frame(frame, direction)
