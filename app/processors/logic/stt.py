@@ -106,72 +106,76 @@ class STTProcessor(FrameProcessor):
         Unified callback from Provider Wrapper.
         evt is app.services.base.STTEvent
         """
-        if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
-            text = evt.text
-            if text:
-                # --- Filtering Logic ---
+        try:
+            if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
+                text = evt.text
+                if text:
+                    # --- Filtering Logic ---
 
-                # 1. Blacklist (Hallucinations)
-                blacklist_str = getattr(self.config, 'hallucination_blacklist', '') or ''
-                blacklist = [x.strip() for x in blacklist_str.split(',') if x.strip()]
-                if any(bad_phrase in text for bad_phrase in blacklist):
-                    logger.warning(f"🔇 [STT] Ignored (Blacklist): {text}")
-                    return
+                    # 1. Blacklist (Hallucinations)
+                    blacklist_str = getattr(self.config, 'hallucination_blacklist', '') or ''
+                    blacklist = [x.strip() for x in blacklist_str.split(',') if x.strip()]
+                    if any(bad_phrase in text for bad_phrase in blacklist):
+                        logger.warning(f"🔇 [STT] Ignored (Blacklist): {text}")
+                        return
 
-                # 2. Min Characters (Interruption Threshold)
-                val = getattr(self.config, 'input_min_characters', 2)
-                min_chars = val if val is not None else 2
-                if len(text) < min_chars:
-                    logger.warning(f"🔇 [STT] Ignored (Too Short < {min_chars}): {text}")
-                    return
+                    # 2. Min Characters (Interruption Threshold)
+                    val = getattr(self.config, 'input_min_characters', 2)
+                    min_chars = val if val is not None else 2
+                    if len(text) < min_chars:
+                        logger.warning(f"🔇 [STT] Ignored (Too Short < {min_chars}): {text}")
+                        return
 
-                # 3. Interruption Phrases (Force Stop)
-                # Use profile configuration for type-safe access
-                client_type = getattr(self.config, 'client_type', 'twilio')
-                if hasattr(self.config, 'get_profile'):
-                    profile = self.config.get_profile(client_type)
-                else:
-                    profile = self.config
+                    # 3. Interruption Phrases (Force Stop)
+                    # Use profile configuration for type-safe access
+                    client_type = getattr(self.config, 'client_type', 'twilio')
+                    if hasattr(self.config, 'get_profile'):
+                        profile = self.config.get_profile(client_type)
+                    else:
+                        profile = self.config
 
-                phrases_json = profile.interruption_phrases
+                    phrases_json = profile.interruption_phrases
 
-                if phrases_json:
-                    text_lower = text.lower()
-                    try:
-                        if isinstance(phrases_json, str):
-                            phrases = json.loads(phrases_json)
-                        else:
-                            phrases = phrases_json
+                    if phrases_json:
+                        text_lower = text.lower()
+                        try:
+                            if isinstance(phrases_json, str):
+                                phrases = json.loads(phrases_json)
+                            else:
+                                phrases = phrases_json
 
-                        if isinstance(phrases, list):
-                            for phrase in phrases:
-                                if phrase.lower() in text_lower:
-                                    logger.info(f"⚡ [STT] Interruption Phrase Detected: '{phrase}' - FORCING STOP")
+                            if isinstance(phrases, list):
+                                for phrase in phrases:
+                                    if phrase.lower() in text_lower:
+                                        logger.info(f"⚡ [STT] Interruption Phrase Detected: '{phrase}' - FORCING STOP")
 
-                                    # Out-of-Band Signal (Priority)
-                                    if self.control_channel:
+                                        # Out-of-Band Signal (Priority)
+                                        if self.control_channel:
+                                            asyncio.run_coroutine_threadsafe(
+                                                self.control_channel.send_interrupt(text=f"Keyword: {phrase}"),
+                                                self.loop
+                                            )
+
+                                        # In-Band Signal (Fallback)
                                         asyncio.run_coroutine_threadsafe(
-                                            self.control_channel.send_interrupt(text=f"Keyword: {phrase}"),
+                                            self.push_frame(CancelFrame()),
                                             self.loop
                                         )
+                                        break
+                        except Exception as e:
+                            logger.warning(f"Failed to parse interruption_phrases: {e}")
 
-                                    # In-Band Signal (Fallback)
-                                    asyncio.run_coroutine_threadsafe(
-                                        self.push_frame(CancelFrame()),
-                                        self.loop
-                                    )
-                                    break
-                    except Exception as e:
-                        logger.warning(f"Failed to parse interruption_phrases: {e}")
+                    logger.info(f"🎤 [STT] Recognized: {text}")
 
-                logger.info(f"🎤 [STT] Recognized: {text}")
+                    # [TRACING] Log STT Event
+                    logger.debug(f"👂 [STT_EVENT] Text: '{text}' | Confidence: High | Trace: {getattr(self.config, 'stream_id', 'unknown')}")
 
-                # [TRACING] Log STT Event
-                logger.debug(f"👂 [STT_EVENT] Text: '{text}' | Confidence: High | Trace: {getattr(self.config, 'stream_id', 'unknown')}")
+                    asyncio.run_coroutine_threadsafe(
+                        self.push_frame(TextFrame(text=text, is_final=True)),
+                        self.loop
+                    )
+            elif evt.reason == STTResultReason.CANCELED:
+                logger.warning(f"STT Canceled. Details: {evt.error_details}")
 
-                asyncio.run_coroutine_threadsafe(
-                    self.push_frame(TextFrame(text=text, is_final=True)),
-                    self.loop
-                )
-        elif evt.reason == STTResultReason.CANCELED:
-            logger.warning(f"STT Canceled. Details: {evt.error_details}")
+        except Exception as e:
+            logger.error(f"❌ [STT] Critical Error in _on_stt_event: {e}", exc_info=True)

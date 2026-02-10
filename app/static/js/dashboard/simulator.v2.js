@@ -41,7 +41,17 @@ export const SimulatorMixin = {
         this.simState = 'connecting';
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser`;
+
+        // [Dynamic Config] Scrape UI values to override server defaults
+        const initialMsg = document.querySelector('input[name="first_message"]')?.value || '';
+        const initiator = document.querySelector('input[name="first_message_mode"]')?.value || 'speak-first';
+        const voiceStyle = document.querySelector('input[name="voice_style"]')?.value || '';
+
+        // Append overrides to URL
+        const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/media-stream?client=browser` +
+            `&initial_message=${encodeURIComponent(initialMsg)}` +
+            `&initiator=${encodeURIComponent(initiator)}` +
+            `&voice_style=${encodeURIComponent(voiceStyle)}`;
 
         try {
             this.ws = new WebSocket(wsUrl);
@@ -54,6 +64,9 @@ export const SimulatorMixin = {
                 // CRITICAL FIX: Await Audio Engine (Worklet) BEFORE telling backend to start.
                 // This prevents the "Greeting" from arriving before we are ready to play it.
                 await this.initMicrophone();
+
+                // Start Visualizer Loop
+                this.drawVisualizer();
 
                 if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                     this.ws.send(JSON.stringify({

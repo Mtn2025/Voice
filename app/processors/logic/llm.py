@@ -51,19 +51,37 @@ class LLMProcessor(FrameProcessor):
                 # [DEBUG] Trace Greeting
                 role = frame.metadata.get('role')
                 src = frame.metadata.get('source')
-                logger.info(f"🧐 [LLM DEBUG] TextFrame: '{getattr(frame, 'text', '')[:30]}...' | Role: {role} | Source: {src}")
+                turn_status = frame.metadata.get('turn_status', 'complete') # Default to complete for safety
 
-                # Bypass System/Assistant Output (e.g. Greeting, TTS-only)
+                # Case 1: Partial Transcript (Feedback only) -> Pass Through
+                if turn_status == 'partial':
+                    # logger.debug(f"⏩ [LLM] Passing partial transcript: '{getattr(frame, 'text', '')[:20]}...'")
+                    await self.push_frame(frame, direction)
+                    return
+
+                # Case 2: System/Assistant output -> Pass Through
                 if role == 'assistant' or src == 'system':
                     logger.info("⏩ [LLM] Bypassing System TextFrame")
                     await self.push_frame(frame, direction)
                     return
+                
+                logger.info(f"🧐 [LLM DEBUG] Processing TURN: '{getattr(frame, 'text', '')[:30]}...' | Status: {turn_status}")
 
                 # Implicit interruption: cancel previous generation
                 if self._current_task and not self._current_task.done():
                     self._current_task.cancel()
 
                 # Start new generation (User Input)
+                # Note: We do NOT push this frame downstream immediately, because 
+                # we want the LLM to 'consume' the turn and produce a response. 
+                # However, if we don't push it, the Reporter won't see the *final* text if it differs from partials.
+                # Actually, Aggregator already pushed partials. 
+                # If we want the final clean text in transcript, we SHOULD push it, 
+                # BUT `TranscriptReporter` handles duplicates? 
+                # Let's consume it to avoid triggering another "User: ..." line if Reporter is dumb.
+                # But wait, implementation plan says: "Consume (do NOT pass through)".
+                # So we won't push frame.
+                
                 self._current_task = asyncio.create_task(self._handle_user_text(getattr(frame, 'text', '')))
 
             elif isinstance(frame, CancelFrame):

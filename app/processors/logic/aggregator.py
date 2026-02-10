@@ -92,6 +92,17 @@ class ContextAggregator(FrameProcessor):
         if not text.strip():
             return
 
+        # [FEEDBACK] Immediately emit partial text for UI/Reporter
+        # This frame is marked 'partial' so LLM ignores it, but Reporter sees it.
+        await self.push_frame(
+             TextFrame(
+                 text=text, 
+                 is_final=False, 
+                 metadata={'turn_status': 'partial', 'role': 'user'}
+             ),
+             FrameDirection.DOWNSTREAM
+        )
+
         # Append to current turn buffer
         self.current_turn_text += " " + text
 
@@ -178,4 +189,11 @@ class ContextAggregator(FrameProcessor):
         self.current_turn_text = ""
 
         # 3. Trigger LLM by pushing Final TextFrame
-        await self.push_frame(TextFrame(text=text, is_final=True))
+        # Marked 'complete' so LLM knows to process it.
+        await self.push_frame(
+            TextFrame(
+                text=text, 
+                is_final=True,
+                metadata={'turn_status': 'complete', 'role': 'user'}
+            )
+        )

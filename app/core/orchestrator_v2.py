@@ -537,6 +537,20 @@ class VoiceOrchestratorV2:
             self.config.id = original_id
             self.config.name = original_name
 
+        # [RUNTIME OVERRIDES] Apply Session-Specific Config (from Browser/API)
+        if self.initial_context_data:
+            if 'first_message' in self.initial_context_data:
+                self.config.first_message = self.initial_context_data['first_message']
+                logger.debug(f"🔹 Override: first_message = {self.config.first_message}")
+            
+            if 'first_message_mode' in self.initial_context_data:
+                self.config.first_message_mode = self.initial_context_data['first_message_mode']
+                logger.debug(f"🔹 Override: first_message_mode = {self.config.first_message_mode}")
+            
+            if 'voice_style' in self.initial_context_data:
+                self.config.voice_style = self.initial_context_data['voice_style']
+                logger.debug(f"🔹 Override: voice_style = {self.config.voice_style}")
+
         # [RUNTIME] Inject client_type for Processor configuration
         # This ensures STT/TTS adapters know if they should run in 8kHz (Phone) or 16kHz (Browser) mode.
         self.config.client_type = self.client_type

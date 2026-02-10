@@ -139,10 +139,31 @@ async def start_noise_suppression_logic(call_control_id: str):
 # --- WebSocket ---
 
 @router.websocket("/ws/media-stream")
-async def telephony_media_stream(websocket: WebSocket, client: str = "twilio", call_control_id: str | None = None, client_state: str | None = None):
+async def telephony_media_stream(
+    websocket: WebSocket, 
+    client: str = "twilio", 
+    call_control_id: str | None = None, 
+    client_state: str | None = None,
+    # [Dynamic Overrides] Support browser-initiated session config
+    initial_message: str | None = None,
+    initiator: str | None = None,
+    voice_style: str | None = None
+):
     """
     Telephony WebSocket (Twilio/Telnyx).
     """
+    # [Browser Support] Construct initial context from overrides if provided
+    if client == "browser" and not client_state:
+        context_data = {}
+        if initial_message:
+            context_data["first_message"] = initial_message
+        if initiator:
+            context_data["first_message_mode"] = initiator
+        if voice_style:
+            context_data["voice_style"] = voice_style
+            
+        if context_data:
+            client_state = base64.b64encode(json.dumps(context_data).encode()).decode()
     client_id = call_control_id or str(uuid.uuid4())
     logger.info(f"🔌 Telephony WS: {client} | ID: {client_id}")
 
