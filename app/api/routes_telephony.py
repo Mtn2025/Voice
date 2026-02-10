@@ -180,6 +180,9 @@ async def telephony_media_stream(websocket: WebSocket, client: str = "twilio", c
             # Hybrid Receive Loop (Text for control/Twilio, Bytes for Browser Audio)
             message = await websocket.receive()
 
+            if message["type"] == "websocket.disconnect":
+                break
+
             if "text" in message:
                 data = message["text"]
                 msg = json.loads(data)

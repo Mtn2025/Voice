@@ -45,6 +45,7 @@ export const SimulatorMixin = {
 
         try {
             this.ws = new WebSocket(wsUrl);
+            this.ws.binaryType = 'arraybuffer'; // Optimization: Receive raw bytes
 
             this.ws.onopen = async () => {
                 console.log("WS Connected");
@@ -68,9 +69,27 @@ export const SimulatorMixin = {
 
             this.ws.onmessage = (event) => {
                 try {
+                    // Handle Binary Audio (PCM16 from Backend)
+                    if (event.data instanceof ArrayBuffer) {
+                        const pcm16 = new Int16Array(event.data);
+                        if (this.processor) {
+                            this.processor.port.postMessage(pcm16);
+
+                            // Visualizer State
+                            this.isAgentSpeaking = true;
+                            if (this.speakingTimer) clearTimeout(this.speakingTimer);
+                            this.speakingTimer = setTimeout(() => {
+                                this.isAgentSpeaking = false;
+                            }, 300);
+                        }
+                        return;
+                    }
+
+                    // Handle Text Control Messages
                     const msg = JSON.parse(event.data);
 
                     if (msg.event === 'media' || msg.type === 'audio') {
+                        // Legacy/Fallback for JSON encoded audio
                         const payload = msg.media ? msg.media.payload : msg.data;
                         this.playAudio(payload);
                     } else if (msg.type === 'config') {
