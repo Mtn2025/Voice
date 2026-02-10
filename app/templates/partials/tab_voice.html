@@ -81,7 +81,7 @@
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">Voz</label>
         <div x-data="customSelect({ value: c.voiceId })"
             x-effect="options = availableVoices.map(v => ({value: v.id, label: v.name}))" x-modelable="value"
-            x-model="c.voiceId" @change="updateStyleList()" class="relative z-[40]">
+            x-model="c.voiceId" @change="updateStyleList($event.detail)" class="relative z-[40]">
             <button type="button" @click="toggle()" @click.away="clickOutside()"
                 class="glass-input w-full p-2.5 rounded-lg text-sm flex justify-between items-center transition-colors hover:bg-slate-800">
                 <span x-text="selectedLabel" class="truncate"></span>

@@ -626,8 +626,8 @@ export function dashboardStore() {
             this.updateStyleList();
         },
 
-        updateStyleList() {
-            const vid = this.c.voiceId;
+        updateStyleList(voiceIdOverride = null) {
+            const vid = voiceIdOverride || this.c.voiceId;
             const rawStyles = this.styles[vid] || [];
 
             // Styles already come in {id, label} format from backend (with Spanish translations)

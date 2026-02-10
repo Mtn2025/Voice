@@ -131,12 +131,12 @@ class AzureTTSAdapter(TTSPort):
                 # Extract styles if available - TRADUCIDOS AL ESPAÑOL
                 # Azure usage: v.style_list produces a list of strings (in English)
                 # We translate them to Spanish using official mapping
-                if v.style_list:
-                    # Get Spanish translations for this specific voice
-                    spanish_styles = get_voice_styles_spanish(v.name)
-                    new_style_cache[v.name] = spanish_styles
-                else:
-                    new_style_cache[v.name] = []
+                # FORCE Strict Style Mapping from our Manual Source of Truth
+                # We ignore v.style_list from Azure SDK because it might be inconsistent
+                # or incompatible with our UI expectations.
+                # get_voice_styles_spanish() handles the 'default' -> [] fallback strictly.
+                spanish_styles = get_voice_styles_spanish(v.name)
+                new_style_cache[v.name] = spanish_styles or []
 
             # Atomic update
             _VOICE_CACHE = new_voice_cache
