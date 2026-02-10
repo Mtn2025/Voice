@@ -262,7 +262,7 @@ async def dashboard(
         "en-US": "Inglés (Estados Unidos)"
     }
 
-    voices = await cache.get("voices_metadata_v5")
+    voices = await cache.get("voices_metadata_v6")
 
     if not voices:
         logger.info("🔄 Loading voices from Azure (cache miss)")
@@ -306,10 +306,10 @@ async def dashboard(
                 ]
             }
 
-        await cache.set("voices_metadata_v5", voices, ttl=86400)
+        await cache.set("voices_metadata_v6", voices, ttl=86400)
     else:
         logger.info("🎯 Voices loaded from cache")
-        await cache.set("voices_metadata_v5", voices, ttl=86400)
+        await cache.set("voices_metadata_v6", voices, ttl=86400)
 
     # Languages - Build from Target Map (Formatted as Objects)
     # The frontend expects [{id: 'es-MX', name: 'Español (México)'}, ...]
@@ -332,12 +332,12 @@ async def dashboard(
     }
 
     # Styles - Try cache
-    voice_styles_cached = await cache.get("voice_styles_v5")
+    voice_styles_cached = await cache.get("voice_styles_v6")
     if not voice_styles_cached:
         # We need the full styles map for the frontend
         # Assuming we added this method to adapter
         voice_styles = await tts_adapter.get_all_voice_styles()
-        await cache.set("voice_styles_v5", voice_styles, ttl=86400)
+        await cache.set("voice_styles_v6", voice_styles, ttl=86400)
     else:
         voice_styles = voice_styles_cached
 

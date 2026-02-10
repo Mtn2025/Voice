@@ -222,9 +222,12 @@ def translate_style_list(api_styles: list[str]) -> list[dict[str, str]]:
     sorted_styles = sorted(list(set(api_styles)))
     
     for style_id in sorted_styles:
+        if not style_id or not style_id.strip():
+            continue
+
         # 0. Filter out trivial/default styles that shouldn't trigger UI
         s_lower = style_id.lower()
-        if s_lower in ["default", "general", "standard"]:
+        if s_lower in ["default", "general", "standard", "none"]:
             continue
 
         # 1. Try strict dictionary lookup
