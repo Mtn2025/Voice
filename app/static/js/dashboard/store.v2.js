@@ -82,6 +82,14 @@ export function dashboardStore() {
                 }
             });
 
+            // Watch voiceId changes - CRITICAL for updating emotional styles visibility
+            this.$watch('c.voiceId', (newVal, oldVal) => {
+                if (oldVal !== undefined && newVal !== oldVal) {
+                    console.log(`🎤 Voice changed: ${oldVal} → ${newVal}`);
+                    this.updateStyleList();
+                }
+            });
+
             // 3.1 Initial UI Refresh
             this.refreshUI();
 
@@ -619,13 +627,23 @@ export function dashboardStore() {
         },
 
         updateStyleList() {
-            let vid = this.c.voiceId;
-            let rawStyles = this.styles[vid] || this.styles['default'] || [];
+            const vid = this.c.voiceId;
+            const rawStyles = this.styles[vid] || [];
+
+            // Styles already come in {id, label} format from backend (with Spanish translations)
+            // No transformation needed - just validate format for legacy compatibility
             this.availableStyles = rawStyles.map(s => {
-                if (typeof s === 'string') return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
+                // Legacy compatibility: if somehow a string slips through, convert it
+                if (typeof s === 'string') {
+                    console.warn(`⚠️ Legacy string style detected: "${s}" for voice ${vid}`);
+                    return { id: s, label: s.charAt(0).toUpperCase() + s.slice(1) };
+                }
                 return s;
             });
+
+            // If current style doesn't exist for new voice, reset it
             if (this.c.voiceStyle && !this.availableStyles.find(s => s.id === this.c.voiceStyle)) {
+                console.log(`⚠️ Style "${this.c.voiceStyle}" not available for voice ${vid}, resetting`);
                 this.c.voiceStyle = '';
             }
         },
