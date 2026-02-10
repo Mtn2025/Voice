@@ -121,6 +121,7 @@ class STTProcessor(FrameProcessor):
                         return
 
                     # 2. Min Characters (Interruption Threshold)
+                    logger.debug("🔍 [STT_CALLBACK] Checking Min Chars...")
                     val = getattr(self.config, 'input_min_characters', 2)
                     min_chars = val if val is not None else 2
                     if len(text) < min_chars:
@@ -128,6 +129,7 @@ class STTProcessor(FrameProcessor):
                         return
 
                     # 3. Interruption Phrases (Force Stop)
+                    logger.debug("🔍 [STT_CALLBACK] Checking Interruption Phrases...")
                     # Use profile configuration for type-safe access
                     client_type = getattr(self.config, 'client_type', 'twilio')
                     if hasattr(self.config, 'get_profile'):
@@ -135,7 +137,8 @@ class STTProcessor(FrameProcessor):
                     else:
                         profile = self.config
 
-                    phrases_json = profile.interruption_phrases
+                    phrases_json = getattr(profile, 'interruption_phrases', None)
+                    logger.debug(f"🔍 [STT_CALLBACK] Phrases: {phrases_json}")
 
                     if phrases_json:
                         text_lower = text.lower()
