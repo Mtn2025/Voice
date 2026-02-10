@@ -28,7 +28,8 @@ class LLMProcessor(FrameProcessor):
         context: dict | None = None,
         execute_tool_use_case: ExecuteToolUseCase | None = None,
         trace_id: str | None = None,
-        hold_audio_player: HoldAudioPlayer | None = None
+        hold_audio_player: HoldAudioPlayer | None = None,
+        transcript_callback=None
     ):
         super().__init__(name="LLMProcessor")
         self.llm_port = llm_port
@@ -39,6 +40,7 @@ class LLMProcessor(FrameProcessor):
         self.execute_tool = execute_tool_use_case
         self.trace_id = trace_id or str(uuid.uuid4())
         self.hold_audio_player = hold_audio_player
+        self.transcript_callback = transcript_callback
         self._current_task: asyncio.Task | None = None
 
     async def process_frame(self, frame: Frame, direction: int):
@@ -219,11 +221,17 @@ class LLMProcessor(FrameProcessor):
                 # Smart heuristic for sentence splitting (Punctuation + Space or End of Line)
                 # Adds logical pause for TTS
                 if len(sentence_buffer) > 10 and re.search(r'[.?!]\s+$', sentence_buffer):
+                    # Report Sentence
+                    if self.transcript_callback:
+                        asyncio.create_task(self.transcript_callback("assistant", sentence_buffer))
+
                     await self.push_frame(TextFrame(text=sentence_buffer, trace_id=self.trace_id))
                     sentence_buffer = ""
 
         # Flush remaining text
         if sentence_buffer.strip():
+            if self.transcript_callback:
+                asyncio.create_task(self.transcript_callback("assistant", sentence_buffer))
             await self.push_frame(TextFrame(text=sentence_buffer, trace_id=self.trace_id))
 
         # Update History

@@ -20,13 +20,15 @@ class ContextAggregator(FrameProcessor):
     Manages Conversation History.
     Triggers LLM only when "Turn" is complete (Smart Silence).
     """
-    def __init__(self, config: Any, conversation_history: list[dict], llm_provider: Any = None):
+    def __init__(self, config: Any, conversation_history: list[dict], llm_provider: Any = None, transcript_callback=None):
         super().__init__(name="ContextAggregator")
         self.config = config
         # NOTE: conversation_history is a shared mutable list reference.
         # It MUST be modified in-place to maintain sync with Orchestrator.
         self.conversation_history = conversation_history
         self.llm_provider = llm_provider
+        self.transcript_callback = transcript_callback
+
 
         # State
         self.interim_buffer = ""
@@ -93,6 +95,16 @@ class ContextAggregator(FrameProcessor):
             return
 
         # [FEEDBACK] Immediately emit partial text for UI/Reporter
+        # This frame is marked 'partial' so LLM ignores it, but Reporter sees it.
+        # [FEEDBACK] Immediately emit partial text for UI/Reporter
+        if self.transcript_callback:
+            # Report partial transcript
+            # Note: We need to ensure we don't block. 
+            # If callback is async, use create_task or run_coroutine_threadsafe if needed.
+            # Assuming callback is async and we are in async context:
+            if asyncio.iscoroutinefunction(self.transcript_callback):
+                asyncio.create_task(self.transcript_callback("user", text))
+
         # This frame is marked 'partial' so LLM ignores it, but Reporter sees it.
         await self.push_frame(
              TextFrame(

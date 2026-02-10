@@ -91,7 +91,7 @@ class AudioManager:
         # Mark bot as speaking when we enqueue data
         self.is_bot_speaking = True
 
-        logger.debug(f"📤 [AudioManager] Queuing {len(audio_data)} bytes for transmission")
+        # logger.debug(f"📤 [AudioManager] Queuing {len(audio_data)} bytes for transmission")
         await self.audio_queue.put(audio_data)
 
     async def clear_queue(self):
@@ -195,7 +195,7 @@ class AudioManager:
         if self.client_type == CLIENT_TYPE_BROWSER:
             # Browser: send full blob
             await self.transport.send_audio(audio_blob)
-            logger.debug(f"📤 [AudioManager] Sent {len(audio_blob)} bytes (browser)")
+            # logger.debug(f"📤 [AudioManager] Sent {len(audio_blob)} bytes (browser)")
         else:
             # Telephony: chunking
             chunk_size = CHUNK_SIZE_TELEPHONY
@@ -203,7 +203,7 @@ class AudioManager:
                 chunk = audio_blob[i:i + chunk_size]
                 await self.transport.send_audio(chunk)
 
-            logger.debug(f"📤 [AudioManager] Sent {len(audio_blob)} bytes in chunks")
+            # logger.debug(f"📤 [AudioManager] Sent {len(audio_blob)} bytes in chunks")
 
         # Note: We do NOT auto-reset is_bot_speaking to False here anymore.
         # It's safer to let the Orchestrator/Pipeline signal explicit "End of Turn".

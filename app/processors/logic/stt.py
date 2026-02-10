@@ -107,6 +107,7 @@ class STTProcessor(FrameProcessor):
         evt is app.services.base.STTEvent
         """
         try:
+            logger.debug(f"🔍 [STT_CALLBACK] Event Received: {evt.reason} | Text: '{evt.text}'")
             if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
                 text = evt.text
                 if text:

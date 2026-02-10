@@ -100,7 +100,8 @@ class PipelineFactory:
         agg = ContextAggregator(
             config=config,
             conversation_history=conversation_history,
-            llm_provider=llm_port  # Needed for semantic context analysis
+            llm_provider=llm_port,  # Needed for semantic context analysis
+            transcript_callback=transcript_callback # [FEEDBACK] Direct Reporting
         )
 
         # 4. LLM Processor
@@ -122,7 +123,8 @@ class PipelineFactory:
             context=context_data,
             execute_tool_use_case=execute_tool_use_case,
             trace_id=stream_id,
-            hold_audio_player=hold_audio_player
+            hold_audio_player=hold_audio_player,
+            transcript_callback=transcript_callback # [FEEDBACK] Direct Reporting
         )
 
         # 5. TTS Processor
@@ -131,14 +133,14 @@ class PipelineFactory:
         # 6. Metrics Processor
         metrics = MetricsProcessor(config)
 
-        # 7. Transcript Reporter
-        reporter = TranscriptReporter(transcript_callback, role_label="assistant")
+        # 7. Transcript Reporter (REMOVED: Redundant, replaced by direct reporting)
+        # reporter = TranscriptReporter(transcript_callback, role_label="assistant")
 
         # 8. Output Sink
         output_sink = PipelineOutputSink(orchestrator_ref)
 
         # Assemble Pipeline
-        processors = [stt, vad, agg, llm, tts, metrics, reporter, output_sink]
+        processors = [stt, vad, agg, llm, tts, metrics, output_sink]
         logger.info(f"🏭 [Factory] Pipeline assembled with {len(processors)} processors")
 
         return Pipeline(processors)

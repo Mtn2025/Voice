@@ -66,7 +66,7 @@ class PipelineOutputSink(FrameProcessor):
         # Delegate to orchestrator's buffered sender
         try:
             # [TRACING] Log Audio Out to User
-            logger.debug(f"📢 [AUDIO_OUT] Sending {len(frame.data)} bytes to User")
+            # logger.debug(f"📢 [AUDIO_OUT] Sending {len(frame.data)} bytes to User")
             await self.orchestrator.send_audio_chunked(frame.data)
         except Exception as e:
             logger.error(f"Error in PipelineOutputSink delegation: {e}")
