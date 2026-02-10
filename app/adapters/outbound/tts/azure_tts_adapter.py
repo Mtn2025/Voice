@@ -148,6 +148,8 @@ class AzureTTSAdapter(TTSPort):
 
     @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=TTSException)
     @track_streaming_latency("azure_tts")
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=TTSException)
+    @track_streaming_latency("azure_tts")
     async def synthesize_stream(self, request: TTSRequest) -> AsyncIterator[bytes]:
         """Genera audio desde texto en streaming."""
         trace_id = request.metadata.get('trace_id', 'unknown')
@@ -155,27 +157,76 @@ class AzureTTSAdapter(TTSPort):
         first_byte_time = None
         metrics_collector = get_metrics_collector()
 
+        # Determine client type from metadata (set by TTSProcessor)
+        client_type = request.metadata.get('client_type', 'twilio') # Default to legacy/twilio if missing
+
         try:
-            if not self._synthesizer:
-                self._synthesizer = self._create_synthesizer(request.voice_id)
+            # Create a FRESH synthesizer for this request to ensure correct Audio Format
+            # Do NOT use self._synthesizer (Global) as it might have wrong format cached
+            
+            # 1. Config Object
+            if client_type == 'browser':
+                speech_fmt = speechsdk.SpeechSynthesisOutputFormat.Raw16Khz16BitMonoPcm
+                logger.debug(f"🔈 [TTS Azure] Creating Synthesizer for Browser (16kHz)")
+            else:
+                speech_fmt = speechsdk.SpeechSynthesisOutputFormat.Raw8Khz8BitMonoMULaw
+                logger.debug(f"📞 [TTS Azure] Creating Synthesizer for Phone/Twilio (8kHz Mulaw)")
 
+            speech_config = speechsdk.SpeechConfig(subscription=self.api_key, region=self.region)
+            speech_config.set_speech_synthesis_output_format(speech_fmt)
+            if request.voice_id:
+                speech_config.speech_synthesis_voice_name = request.voice_id
+
+            # 2. Synthesizer
+            # We use a null audio config to prevent playback on server default speakers
+            msg_audio_config = speechsdk.audio.AudioConfig(filename="/dev/null")
+            synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=msg_audio_config)
+
+            # 3. SSML
             ssml = self._build_ssml(request)
-            audio_data = await self.synthesize_ssml(ssml)
+            
+            # 4. Stream Loop (Using PullStream or Memory?) 
+            # Original code used `synthesize_ssml` which was blocking and returned ALL bytes.
+            # We want TRUE streaming? 
+            # SDK `start_speaking_ssml_async` returns a result, but `SpeechSynthesizer` can also pull?
+            # For now, let's stick to the previous `synthesize_ssml` logic 
+            # BUT we must pass the LOCALLY created synthesizer to it.
+            # Refactoring synthesize_ssml to take synthesizer argument?
+            # Or just inline the call here for clarity.
+            
+            # Inline synthesis (Blocking -> ThreadPool)
+            loop = asyncio.get_running_loop()
 
+            def _blocking_synthesis_full():
+                # Note: Azure SDK `speak_ssml_async` synthesizes the WHOLE thing in memory if using `AudioConfig(filename=...)`?
+                # Actually, effectively we are not streaming byte-by-byte from Azure in this implementation yet.
+                # We are waiting for full synthesis then chunking it.
+                # Use `start_speaking_ssml_async` + `Connection` for true streaming?
+                # For this bugfix, let's keep behavior consistent but FIX THE FORMAT.
+                result = synthesizer.speak_ssml_async(ssml).get()
+                if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+                    return result.audio_data
+                if result.reason == speechsdk.ResultReason.Canceled:
+                    raise Exception(f"Canceled: {result.cancellation_details.reason}")
+                return b""
+
+            audio_data = await loop.run_in_executor(None, _blocking_synthesis_full)
+
+            # Chunk and yield
             chunk_size = 4096
             for i in range(0, len(audio_data), chunk_size):
                 chunk = audio_data[i:i+chunk_size]
                 if first_byte_time is None:
                     first_byte_time = time.time()
                     ttfb = (first_byte_time - start_time) * 1000
-                    logger.info(f"[TTS Azure] trace={trace_id} TTFB={ttfb:.0f}ms voice={request.voice_id}")
+                    logger.info(f"🔊 [TTS] First Byte Sent (TTFB={ttfb:.0f}ms)")
                 yield chunk
 
             total_time = (time.time() - start_time) * 1000
             await metrics_collector.record_latency(trace_id, 'tts', total_time)
 
         except Exception as e:
-            logger.error(f"[TTS Azure] trace={trace_id} ERROR: {e!s}")
+            logger.error(f"❌ [TTS Azure] Synthesis Failed: {e!s}")
             raise TTSException(f"Azure TTS synthesis failed: {e!s}", retryable=True, provider="azure") from e
 
     @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=TTSException)

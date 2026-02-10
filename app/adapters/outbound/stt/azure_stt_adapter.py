@@ -59,7 +59,10 @@ class AzureRecognizerWrapper:
             return
 
         # [TRACING] Azure Native Event
-        logger.debug(f"👂 [AZURE_NATIVE] Reason: {reason} | Text: {text}")
+        if reason == STTResultReason.RECOGNIZED_SPEECH:
+            logger.info(f"👂 [AZURE_STT] FINAL: '{text}' (Duration: {getattr(evt.result, 'duration', 0)/10000000:.2f}s)")
+        else:
+            logger.debug(f"👂 [AZURE_STT] ... '{text}'")
 
 
         event = STTEvent(
@@ -201,11 +204,23 @@ class AzureSTTAdapter(STTPort):
             self.speech_config.set_property(speechsdk.PropertyId.SpeechServiceConnection_InitialSilenceTimeoutMs, str(config.initial_silence_ms))
             self.speech_config.set_property(speechsdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, str(config.segmentation_silence_ms))
 
-            # Configuración de formato usando AudioConfig (Clean Architecture)
+            # Determine Audio Config dynamically from STTConfig (per call)
+            # This fixes the bug where global adapter init (Twilio default) overrode Browser calls
+            local_audio_config = self.audio_config # Fallback
+            
+            if hasattr(config, 'audio_mode') and config.audio_mode:
+                if config.audio_mode == 'browser':
+                    local_audio_config = AudioConfig.for_browser()
+                    logger.info("🎤 [AzureSTT] Configured for Browser (16kHz PCM)")
+                elif config.audio_mode == 'twilio':
+                    local_audio_config = AudioConfig.for_twilio()
+                    logger.info("📞 [AzureSTT] Configured for Twilio (8kHz Mulaw)")
+            
+            # Formato
             format = speechsdk.audio.AudioStreamFormat(
-                samples_per_second=self.audio_config.sample_rate,
-                bits_per_sample=self.audio_config.bits_per_sample, 
-                channels=self.audio_config.channels
+                samples_per_second=local_audio_config.sample_rate,
+                bits_per_sample=local_audio_config.bits_per_sample, 
+                channels=local_audio_config.channels
             )
 
             push_stream = speechsdk.audio.PushAudioInputStream(stream_format=format)

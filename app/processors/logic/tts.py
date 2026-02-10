@@ -45,6 +45,7 @@ class TTSProcessor(FrameProcessor):
                 if not self._is_running:
                     await self.start()
 
+                logger.debug(f"📥 [TTS] Queuing TextFrame: '{frame.text[:30]}...'")
                 await self._tts_queue.put((frame.text, frame.trace_id))
 
             elif isinstance(frame, CancelFrame):
@@ -124,6 +125,10 @@ class TTSProcessor(FrameProcessor):
             if backpressure_detected:
                 logger.warning(f"⚠️ [TTS] Backpressure detected: queue={queue_depth}")
 
+            # Determine correct sample rate
+            client_type = getattr(self.config, 'client_type', 'twilio')
+            sr = 16000 if client_type == 'browser' else 8000
+
             # Request
             request = TTSRequest(
                 text=text,
@@ -134,11 +139,11 @@ class TTSProcessor(FrameProcessor):
                 volume=getattr(self.config, 'voice_volume', 100.0),
                 style=getattr(self.config, 'voice_style', None),
                 backpressure_detected=backpressure_detected,
-                metadata={"trace_id": trace_id}
+                metadata={
+                    "trace_id": trace_id,
+                    "client_type": client_type  # Pass client type for Adapter to select format
+                }
             )
-
-            # Determine correct sample rate
-            sr = 16000 if getattr(self.config, 'client_type', 'twilio') == 'browser' else 8000
 
             # True Streaming: Emit processing audio chunks as they arrive
             # This reduces TTFB (Time To First Byte) significantly
