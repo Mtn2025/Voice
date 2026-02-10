@@ -178,6 +178,17 @@ class STTProcessor(FrameProcessor):
                         self.push_frame(TextFrame(text=text, is_final=True)),
                         self.loop
                     )
+
+            elif evt.reason == STTResultReason.RECOGNIZING_SPEECH:
+                # [FEEDBACK] Handle Partial Results (Interim)
+                text = evt.text
+                if text and len(text.strip()) > 0:
+                     # logger.debug(f"📝 [STT_PARTIAL] '{text}'") # Optional: verbose
+                     asyncio.run_coroutine_threadsafe(
+                        self.push_frame(TextFrame(text=text, is_final=False)),
+                        self.loop
+                    )
+
             elif evt.reason == STTResultReason.CANCELED:
                 logger.warning(f"STT Canceled. Details: {evt.error_details}")
 
