@@ -44,11 +44,16 @@ class LLMProcessor(FrameProcessor):
     async def process_frame(self, frame: Frame, direction: int):
         if direction == FrameDirection.DOWNSTREAM:
             if isinstance(frame, TextFrame) and frame.is_final:
+                # Bypass System/Assistant Output (e.g. Greeting, TTS-only)
+                if frame.metadata.get('role') == 'assistant' or frame.metadata.get('source') == 'system':
+                    await self.push_frame(frame, direction)
+                    return
+
                 # Implicit interruption: cancel previous generation
                 if self._current_task and not self._current_task.done():
                     self._current_task.cancel()
 
-                # Start new generation
+                # Start new generation (User Input)
                 self._current_task = asyncio.create_task(self._handle_user_text(frame.text))
 
             elif isinstance(frame, CancelFrame):

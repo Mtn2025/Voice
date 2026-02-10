@@ -54,9 +54,12 @@ class ContextAggregator(FrameProcessor):
                 await self.push_frame(frame, direction)
 
             elif isinstance(frame, TextFrame):
-                # Assume TextFrames from STT are FINAL unless marked otherwise
-                # We consume them here to build the turn.
-                await self._handle_text(frame.text)
+                # Is it System/Assistant output? Pass through immediately.
+                if frame.metadata.get('role') == 'assistant' or frame.metadata.get('source') == 'system':
+                    await self.push_frame(frame, direction)
+                else:
+                    # User Input: Aggregate turn
+                    await self._handle_text(frame.text)
 
             else:
                 await self.push_frame(frame, direction)
