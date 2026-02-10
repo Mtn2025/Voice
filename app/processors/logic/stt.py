@@ -107,8 +107,10 @@ class STTProcessor(FrameProcessor):
         evt is app.services.base.STTEvent
         """
         try:
-            logger.debug(f"🔍 [STT_CALLBACK] Event Received: {evt.reason} | Text: '{evt.text}'")
-            if evt.reason == STTResultReason.RECOGNIZED_SPEECH:
+            logger.debug(f"🔍 [STT_CALLBACK] Event Received: {evt.reason} | Equality Check: {evt.reason == STTResultReason.RECOGNIZED_SPEECH}")
+            
+            # Robust check for Recognized Speech (handles potential Enum import mismatches)
+            if evt.reason == STTResultReason.RECOGNIZED_SPEECH or str(evt.reason) == 'STTResultReason.RECOGNIZED_SPEECH':
                 text = evt.text
                 if text:
                     # --- Filtering Logic ---
@@ -179,7 +181,7 @@ class STTProcessor(FrameProcessor):
                         self.loop
                     )
 
-            elif evt.reason == STTResultReason.RECOGNIZING_SPEECH:
+            elif evt.reason == STTResultReason.RECOGNIZING_SPEECH or str(evt.reason) == 'STTResultReason.RECOGNIZING_SPEECH':
                 # [FEEDBACK] Handle Partial Results (Interim)
                 text = evt.text
                 if text and len(text.strip()) > 0:
