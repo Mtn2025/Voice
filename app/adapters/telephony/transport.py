@@ -34,6 +34,8 @@ class TelephonyTransport(AudioTransport):
                     "streamSid": self.stream_id,
                     "media": {"payload": b64}
                 }
+                await self.websocket.send_text(json.dumps(msg))
+
             elif self.protocol == "telnyx":
                  msg = {
                     "event": "media",
@@ -43,8 +45,12 @@ class TelephonyTransport(AudioTransport):
                         "track": "inbound_track"  # Send audio TO Telnyx (so user hears it)
                     }
                 }
+                 await self.websocket.send_text(json.dumps(msg))
 
-            await self.websocket.send_text(json.dumps(msg))
+            elif self.protocol == "browser":
+                 # Send Raw Binary for Browser
+                 # No JSON wrapping needed for raw PCM streaming to AudioWorklet
+                 await self.websocket.send_bytes(chunk)
         except Exception:
             pass
 
