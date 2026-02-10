@@ -72,7 +72,7 @@ class STTProcessor(FrameProcessor):
              # Note: wrapping in executor to avoid blocking loop if provider implementation is synchronous or uses .get()
              await self.loop.run_in_executor(None, self.recognizer.start_continuous_recognition_async().get)
 
-             logger.info("STTProcessor initialized and recognition started.")
+             logger.info("STTProcessor initialized and recognition started. [v2026-02-10-FIX-V3]")
 
         except Exception as e:
             logger.error(f"Failed to initialize STTProcessor: {e}")
