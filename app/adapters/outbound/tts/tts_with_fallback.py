@@ -156,3 +156,11 @@ class TTSWithFallback(TTSPort):
         except Exception as e:
             logger.warning(f"[TTSFallback] SSML Primary failed: {e}. Trying fallback.")
             return await self.fallback.synthesize_ssml(ssml)
+
+    async def synthesize_stream(self, request: TTSRequest) -> AsyncIterator[bytes]:
+        """
+        True Streaming wrapper for synthesize.
+        Matches TTSPort interface expected by TTSProcessor.
+        """
+        async for chunk in self.synthesize(request):
+            yield chunk
