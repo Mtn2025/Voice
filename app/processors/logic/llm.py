@@ -43,9 +43,19 @@ class LLMProcessor(FrameProcessor):
 
     async def process_frame(self, frame: Frame, direction: int):
         if direction == FrameDirection.DOWNSTREAM:
-            if isinstance(frame, TextFrame) and frame.is_final:
+            frame_type = type(frame).__name__
+            is_text_frame = (isinstance(frame, TextFrame) or frame_type == "TextFrame")
+            is_final = getattr(frame, 'is_final', True)
+
+            if is_text_frame and is_final:
+                # [DEBUG] Trace Greeting
+                role = frame.metadata.get('role')
+                src = frame.metadata.get('source')
+                logger.info(f"🧐 [LLM DEBUG] TextFrame: '{getattr(frame, 'text', '')[:30]}...' | Role: {role} | Source: {src}")
+
                 # Bypass System/Assistant Output (e.g. Greeting, TTS-only)
-                if frame.metadata.get('role') == 'assistant' or frame.metadata.get('source') == 'system':
+                if role == 'assistant' or src == 'system':
+                    logger.info("⏩ [LLM] Bypassing System TextFrame")
                     await self.push_frame(frame, direction)
                     return
 
@@ -54,7 +64,7 @@ class LLMProcessor(FrameProcessor):
                     self._current_task.cancel()
 
                 # Start new generation (User Input)
-                self._current_task = asyncio.create_task(self._handle_user_text(frame.text))
+                self._current_task = asyncio.create_task(self._handle_user_text(getattr(frame, 'text', '')))
 
             elif isinstance(frame, CancelFrame):
                 logger.info("🛑 [LLM] Received CancelFrame. Stopping generation.")

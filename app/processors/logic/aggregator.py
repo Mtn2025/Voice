@@ -53,13 +53,19 @@ class ContextAggregator(FrameProcessor):
                 # Push downstream
                 await self.push_frame(frame, direction)
 
-            elif isinstance(frame, TextFrame):
+            elif isinstance(frame, TextFrame) or type(frame).__name__ == "TextFrame":
+                # [DEBUG] Trace Greeting
+                role = frame.metadata.get('role')
+                src = frame.metadata.get('source')
+                logger.info(f"🧐 [AGG DEBUG] TextFrame: '{getattr(frame, 'text', '')[:30]}...' | Role: {role} | Source: {src}")
+
                 # Is it System/Assistant output? Pass through immediately.
-                if frame.metadata.get('role') == 'assistant' or frame.metadata.get('source') == 'system':
+                if role == 'assistant' or src == 'system':
+                    logger.info("⏩ [AGG] Bypassing System TextFrame")
                     await self.push_frame(frame, direction)
                 else:
                     # User Input: Aggregate turn
-                    await self._handle_text(frame.text)
+                    await self._handle_text(getattr(frame, 'text', ''))
 
             else:
                 await self.push_frame(frame, direction)
