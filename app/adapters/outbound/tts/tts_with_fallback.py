@@ -159,8 +159,49 @@ class TTSWithFallback(TTSPort):
 
     async def synthesize_stream(self, request: TTSRequest) -> AsyncIterator[bytes]:
         """
-        True Streaming wrapper for synthesize.
-        Matches TTSPort interface expected by TTSProcessor.
+        Stream synthesis with fallback capabilities.
+        Prioritizes streaming methods, falls back to buffering if needed.
         """
-        async for chunk in self.synthesize(request):
-            yield chunk
+        # Auto-recovery logic
+        if self._fallback_active and self._primary_failures == 0:
+            self._fallback_active = False
+            logger.info("[TTSFallback] Primary recovered, switching back from fallback")
+
+        # TRY PRIMARY
+        if not self._fallback_active:
+            try:
+                # Prioritize Stream Method
+                if hasattr(self.primary, 'synthesize_stream'):
+                    async for chunk in self.primary.synthesize_stream(request):
+                        yield chunk
+                else:
+                    # Fallback to buffer-and-yield
+                    data = await self.primary.synthesize(request)
+                    yield data
+
+                self._primary_failures = 0
+                return
+
+            except Exception as e:
+                self._primary_failures += 1
+                logger.warning(
+                    f"[TTSFallback] Primary failed ({self._primary_failures}/{self._failure_threshold}): {e}. "
+                    f"Switching to fallback."
+                )
+                if self._primary_failures >= self._failure_threshold:
+                    self._fallback_active = True
+                    logger.error(f"[TTSFallback] Primary threshold reached. Mode=FALLBACK.")
+
+        # TRY FALLBACK
+        try:
+            logger.info(f"[TTSFallback] Using FALLBACK: {type(self.fallback).__name__}")
+            if hasattr(self.fallback, 'synthesize_stream'):
+                async for chunk in self.fallback.synthesize_stream(request):
+                    yield chunk
+            else:
+                data = await self.fallback.synthesize(request)
+                yield data
+
+        except Exception as fallback_error:
+            logger.error(f"[TTSFallback] Critical Failure: Both providers failed. {fallback_error}")
+            raise TTSException(f"TTS complete failure") from fallback_error
