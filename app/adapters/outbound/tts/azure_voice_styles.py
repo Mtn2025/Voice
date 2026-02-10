@@ -207,6 +207,36 @@ def get_voice_styles_spanish(voice_id: str) -> list[dict[str, str]]:
     return result
 
 
+def translate_style_list(api_styles: list[str]) -> list[dict[str, str]]:
+    """
+    Traduce una lista dinámica de estilos (desde API Azure) al español.
+    
+    Args:
+        api_styles: Lista de strings de estilos en inglés (ej: ["cheerful", "sad"])
+        
+    Returns:
+        Lista de dicts para UI: [{"id": "cheerful", "label": "Alegre"}, ...]
+    """
+    result = []
+    # Deduplicate and sort
+    sorted_styles = sorted(list(set(api_styles)))
+    
+    for style_id in sorted_styles:
+        # 1. Try strict dictionary lookup
+        label = STYLE_TRANSLATIONS.get(style_id.lower())
+        
+        # 2. Heuristic fallback (if new style appears in API)
+        if not label:
+            label = style_id.replace("-", " ").title()
+            
+        result.append({
+            "id": style_id,
+            "label": label
+        })
+        
+    return result
+
+
 def get_all_voice_styles_spanish() -> dict[str, list[dict[str, str]]]:
     """
     Retorna mapeo completo de TODAS las voces con estilos en español.

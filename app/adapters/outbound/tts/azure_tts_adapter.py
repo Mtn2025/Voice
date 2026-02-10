@@ -17,7 +17,7 @@ from app.core.config import settings
 from app.core.decorators import track_streaming_latency
 from app.domain.ports import TTSException, TTSPort, TTSRequest, VoiceMetadata
 from app.observability import get_metrics_collector
-from app.adapters.outbound.tts.azure_voice_styles import get_voice_styles_spanish
+from app.adapters.outbound.tts.azure_voice_styles import get_voice_styles_spanish, translate_style_list
 
 logger = logging.getLogger(__name__)
 
@@ -128,15 +128,12 @@ class AzureTTSAdapter(TTSPort):
                 }
                 new_voice_cache.append(voice_entry)
                 
-                # Extract styles if available - TRADUCIDOS AL ESPAÑOL
-                # Azure usage: v.style_list produces a list of strings (in English)
-                # We translate them to Spanish using official mapping
-                # FORCE Strict Style Mapping from our Manual Source of Truth
-                # We ignore v.style_list from Azure SDK because it might be inconsistent
-                # or incompatible with our UI expectations.
-                # get_voice_styles_spanish() handles the 'default' -> [] fallback strictly.
-                spanish_styles = get_voice_styles_spanish(v.name)
-                new_style_cache[v.name] = spanish_styles or []
+                if v.style_list:
+                    # DYNAMIC: Use styles from API, but translate them to Spanish
+                    spanish_styles = translate_style_list(v.style_list)
+                    new_style_cache[v.name] = spanish_styles
+                else:
+                    new_style_cache[v.name] = []
 
             # Atomic update
             _VOICE_CACHE = new_voice_cache
