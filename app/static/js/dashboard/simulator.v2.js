@@ -215,7 +215,10 @@ export const SimulatorMixin = {
                 }
 
                 // Create Worklet Node
-                this.processor = new AudioWorkletNode(this.audioContext, 'pcm-processor');
+                // [FIX] Force mono usage to prevent panning issues/drift
+                this.processor = new AudioWorkletNode(this.audioContext, 'pcm-processor', {
+                    outputChannelCount: [1]
+                });
 
                 // Handle Messages from Worklet (Mic Data)
                 this.processor.port.onmessage = (event) => {

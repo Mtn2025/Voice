@@ -64,9 +64,17 @@ class ContextAggregator(FrameProcessor):
                 # Is it System/Assistant output? Pass through immediately.
                 if role == 'assistant' or src == 'system':
                     logger.info("⏩ [AGG] Bypassing System TextFrame")
+                    
+                    # [FIX] Report Immediate Assistant/System messages (e.g. Greeting) to UI
+                    if self.transcript_callback:
+                        # Ensure we don't block
+                        if asyncio.iscoroutinefunction(self.transcript_callback):
+                            asyncio.create_task(self.transcript_callback("assistant", getattr(frame, 'text', '')))
+                            
                     await self.push_frame(frame, direction)
                 else:
                     # User Input: Aggregate turn
+                    logger.debug(f"🛑 [AGG DEBUG] Processing User Text: '{getattr(frame, 'text', '')}'")
                     await self._handle_text(getattr(frame, 'text', ''))
 
             else:
