@@ -222,8 +222,13 @@ def translate_style_list(api_styles: list[str]) -> list[dict[str, str]]:
     sorted_styles = sorted(list(set(api_styles)))
     
     for style_id in sorted_styles:
+        # 0. Filter out trivial/default styles that shouldn't trigger UI
+        s_lower = style_id.lower()
+        if s_lower in ["default", "general", "standard"]:
+            continue
+
         # 1. Try strict dictionary lookup
-        label = STYLE_TRANSLATIONS.get(style_id.lower())
+        label = STYLE_TRANSLATIONS.get(s_lower)
         
         # 2. Heuristic fallback (if new style appears in API)
         if not label:
