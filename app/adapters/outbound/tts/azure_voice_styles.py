@@ -65,13 +65,26 @@ VOICE_STYLES_OFFICIAL = {
         "styles": ["chat", "cheerful", "excited", "sad", "whispering"],
         "styles_es": ["Conversación", "Alegre", "Emocionado", "Triste", "Susurrando"]
     },
+
+    "es-MX-BeatrizNeural": {"styles": [], "styles_es": []},
+    "es-MX-CandelaNeural": {"styles": [], "styles_es": []},
+    "es-MX-CarlotaNeural": {"styles": [], "styles_es": []},
+    "es-MX-CecilioNeural": {"styles": [], "styles_es": []},
+    "es-MX-GerardoNeural": {"styles": [], "styles_es": []},
+    "es-MX-LarissaNeural": {"styles": [], "styles_es": []},
+    "es-MX-LibertoNeural": {"styles": [], "styles_es": []},
+    "es-MX-LucianoNeural": {"styles": [], "styles_es": []},
+    "es-MX-MarinaNeural": {"styles": [], "styles_es": []},
+    "es-MX-NuriaNeural": {"styles": [], "styles_es": []},
+    "es-MX-PelayoNeural": {"styles": [], "styles_es": []},
+    "es-MX-RenataNeural": {"styles": [], "styles_es": []},
+    "es-MX-YagoNeural": {"styles": [], "styles_es": []},
     
-    # Nota: Otras voces es-MX (Beatriz, Candela, Carlota, etc.) NO tienen estilos según docs oficiales
     
     # ========== ESPAÑOL (ESTADOS UNIDOS) - es-US ========== #
     
-    # Nota: Según documentación oficial de Microsoft (2024-2026), las voces es-US
-    # NO tienen estilos emocionales documentados. Solo voces es-MX y es-ES tienen soporte.
+    "es-US-AlonsoNeural": {"styles": [], "styles_es": []},
+    "es-US-PalomaNeural": {"styles": [], "styles_es": []},
     
     # ========== ESPAÑOL (ESPAÑA) - es-ES ========== #
     
@@ -80,7 +93,82 @@ VOICE_STYLES_OFFICIAL = {
         "styles_es": ["Alegre", "Triste"]
     },
     
-    # Nota: Otras voces es-ES NO tienen estilos según docs oficiales
+    "es-ES-ElviraNeural": {"styles": [], "styles_es": []},
+    "es-ES-AbrilNeural": {"styles": [], "styles_es": []},
+    "es-ES-ArnauNeural": {"styles": [], "styles_es": []},
+    "es-ES-DarioNeural": {"styles": [], "styles_es": []},
+    "es-ES-EliasNeural": {"styles": [], "styles_es": []},
+    "es-ES-EstrellaNeural": {"styles": [], "styles_es": []},
+    "es-ES-IreneNeural": {"styles": [], "styles_es": []},
+    "es-ES-LaiaNeural": {"styles": [], "styles_es": []},
+    "es-ES-LiaNeural": {"styles": [], "styles_es": []},
+    "es-ES-NilNeural": {"styles": [], "styles_es": []},
+    "es-ES-SaulNeural": {"styles": [], "styles_es": []},
+    "es-ES-TeoNeural": {"styles": [], "styles_es": []},
+    "es-ES-TrianaNeural": {"styles": [], "styles_es": []},
+    "es-ES-VeraNeural": {"styles": [], "styles_es": []},
+    
+    # ========== INGLÉS (ESTADOS UNIDOS) - en-US ========== #
+    
+    "en-US-AriaNeural": {
+        "styles": ["chat", "customerservice", "empathetic", "excited", "friendly", "hopeful", "narration-professional", "newscast-casual", "newscast-formal", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+        "styles_es": ["Conversación", "Servicio al Cliente", "Empático", "Emocionado", "Amigable", "Esperanzado", "Narración Profesional", "Noticiero Casual", "Noticiero Formal", "Triste", "Gritando", "Aterrorizado", "Poco Amigable", "Susurrando"]
+    },
+    
+    "en-US-DavisNeural": {
+        "styles": ["chat", "angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+        "styles_es": ["Conversación", "Enojado", "Alegre", "Emocionado", "Amigable", "Esperanzado", "Triste", "Gritando", "Aterrorizado", "Poco Amigable", "Susurrando"]
+    },
+    
+    "en-US-GuyNeural": {
+        "styles": ["newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "whispering", "hopeful", "unfriendly"],
+        "styles_es": ["Noticiero", "Enojado", "Alegre", "Triste", "Emocionado", "Amigable", "Aterrorizado", "Gritando", "Susurrando", "Esperanzado", "Poco Amigable"]
+    },
+    
+    "en-US-JennyNeural": {
+        "styles": ["assistant", "chat", "customerservice", "newscast", "angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "whispering", "hopeful", "unfriendly"],
+        "styles_es": ["Asistente", "Conversación", "Servicio al Cliente", "Noticiero", "Enojado", "Alegre", "Triste", "Emocionado", "Amigable", "Aterrorizado", "Gritando", "Susurrando", "Esperanzado", "Poco Amigable"]
+    },
+    
+    "en-US-JasonNeural": {
+        "styles": ["angry", "cheerful", "sad", "excited", "friendly", "terrified", "shouting", "whispering", "hopeful", "unfriendly"],
+        "styles_es": ["Enojado", "Alegre", "Triste", "Emocionado", "Amigable", "Aterrorizado", "Gritando", "Susurrando", "Esperanzado", "Poco Amigable"]
+    },
+    
+    "en-US-NancyNeural": {
+        "styles": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+        "styles_es": ["Enojado", "Alegre", "Emocionado", "Amigable", "Esperanzado", "Triste", "Gritando", "Aterrorizado", "Poco Amigable", "Susurrando"]
+    },
+    
+    "en-US-SaraNeural": {
+        "styles": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+        "styles_es": ["Enojado", "Alegre", "Emocionado", "Amigable", "Esperanzado", "Triste", "Gritando", "Aterrorizado", "Poco Amigable", "Susurrando"]
+    },
+    
+    "en-US-TonyNeural": {
+        "styles": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+        "styles_es": ["Enojado", "Alegre", "Emocionado", "Amigable", "Esperanzado", "Triste", "Gritando", "Aterrorizado", "Poco Amigable", "Susurrando"]
+    },
+    
+    "en-US-JaneNeural": {
+        "styles": ["angry", "cheerful", "excited", "friendly", "hopeful", "sad", "shouting", "terrified", "unfriendly", "whispering"],
+        "styles_es": ["Enojado", "Alegre", "Emocionado", "Amigable", "Esperanzado", "Triste", "Gritando", "Aterrorizado", "Poco Amigable", "Susurrando"]
+    },
+    
+    "en-US-AmberNeural": {"styles": [], "styles_es": []},
+    "en-US-AnaNeural": {"styles": [], "styles_es": []},
+    "en-US-AshleyNeural": {"styles": [], "styles_es": []},
+    "en-US-BrandonNeural": {"styles": [], "styles_es": []},
+    "en-US-ChristopherNeural": {"styles": [], "styles_es": []},
+    "en-US-CoraNeural": {"styles": [], "styles_es": []},
+    "en-US-ElizabethNeural": {"styles": [], "styles_es": []},
+    "en-US-EricNeural": {"styles": [], "styles_es": []},
+    "en-US-JacobNeural": {"styles": [], "styles_es": []},
+    "en-US-MichelleNeural": {"styles": [], "styles_es": []},
+    "en-US-MonicaNeural": {"styles": [], "styles_es": []},
+    "en-US-RogerNeural": {"styles": [], "styles_es": []},
+    "en-US-SteffanNeural": {"styles": [], "styles_es": []},
+    "en-US-BlueNeural": {"styles": [], "styles_es": []},
     
     # ========== VOCES SIN ESTILOS (Default/None) ========== #
     "default": {
@@ -96,26 +184,13 @@ VOICE_STYLES_OFFICIAL = {
 def get_voice_styles_spanish(voice_id: str) -> list[dict[str, str]]:
     """
     Retorna lista de estilos emocionales en español para una voz específica.
-    
-    Args:
-        voice_id: ID de la voz (ej: "es-MX-DaliaNeural")
-    
-    Returns:
-        Lista de dicts con {id: str, label: str}
-        Ejemplo: [{"id": "cheerful", "label": "Alegre"}, ...]
-    
-    Ejemplos:
-        >>> get_voice_styles_spanish("es-MX-DaliaNeural")
-        [
-            {"id": "cheerful", "label": "Alegre"},
-            {"id": "sad", "label": "Triste"},
-            {"id": "whispering", "label": "Susurrando"}
-        ]
-        
-        >>> get_voice_styles_spanish("es-MX-BeatrizNeural")
-        []  # No tiene estilos
     """
-    voice_data = VOICE_STYLES_OFFICIAL.get(voice_id, VOICE_STYLES_OFFICIAL["default"])
+    # 1. Buscar en mapa oficial
+    voice_data = VOICE_STYLES_OFFICIAL.get(voice_id)
+    
+    # 2. Si no existe en mapa, intentar obtener el default
+    if not voice_data:
+        voice_data = VOICE_STYLES_OFFICIAL["default"]
     
     styles_en = voice_data.get("styles", [])
     styles_es = voice_data.get("styles_es", [])
@@ -123,9 +198,10 @@ def get_voice_styles_spanish(voice_id: str) -> list[dict[str, str]]:
     # Construir lista de dicts
     result = []
     for i, style_id in enumerate(styles_en):
+        translated_label = styles_es[i] if i < len(styles_es) else STYLE_TRANSLATIONS.get(style_id, style_id.title())
         result.append({
-            "id": style_id,  # Valor técnico que se envía a API
-            "label": styles_es[i] if i < len(styles_es) else style_id.title()  # Labels para UI
+            "id": style_id,  # Valor técnico
+            "label": translated_label # Label traducido
         })
     
     return result
@@ -134,24 +210,6 @@ def get_voice_styles_spanish(voice_id: str) -> list[dict[str, str]]:
 def get_all_voice_styles_spanish() -> dict[str, list[dict[str, str]]]:
     """
     Retorna mapeo completo de TODAS las voces con estilos en español.
-    
-    Returns:
-        Dict con {voice_id: [{"id": str, "label": str}, ...]}
-    
-    Ejemplo:
-        >>> get_all_voice_styles_spanish()
-        {
-            "es-MX-DaliaNeural": [
-                {"id": "cheerful", "label": "Alegre"},
-                {"id": "sad", "label": "Triste"},
-                {"id": "whispering", "label": "Susurrando"}
-            ],
-            "es-MX-JorgeNeural": [
-                {"id": "chat", "label": "Conversación"},
-                ...
-            ],
-            ...
-        }
     """
     result = {}
     
@@ -160,25 +218,25 @@ def get_all_voice_styles_spanish() -> dict[str, list[dict[str, str]]]:
             continue
         result[voice_id] = get_voice_styles_spanish(voice_id)
     
-    # Agregar entrada default para voces sin estilos
+    # Agregar entrada default
     result["default"] = []
     
     return result
 
 
 # =============================================================================
-# VALIDACIÓN: Voces Disponibles en es-MX, es-US, es-ES (Feb 2026)
+# VALIDACIÓN: Voces Disponibles en es-MX, es-US, en-US (Feb 2026)
 # =============================================================================
 
 AVAILABLE_VOICES = {
     "es-MX": [
+        "es-MX-DaliaNeural",      # ✅ Tiene estilos
+        "es-MX-JorgeNeural",       # ✅ Tiene estilos
         "es-MX-BeatrizNeural",
         "es-MX-CandelaNeural",
         "es-MX-CarlotaNeural",
         "es-MX-CecilioNeural",
-        "es-MX-DaliaNeural",      # ✅ Tiene estilos
         "es-MX-GerardoNeural",
-        "es-MX-JorgeNeural",       # ✅ Tiene estilos
         "es-MX-LarissaNeural",
         "es-MX-LibertoNeural",
         "es-MX-LucianoNeural",
@@ -191,42 +249,42 @@ AVAILABLE_VOICES = {
     "es-US": [
         "es-US-AlonsoNeural",
         "es-US-PalomaNeural",
-        # Nota: NO tienen estilos emocionales según docs oficiales
     ],
-    "es-ES": [
-        "es-ES-AlvaroNeural",      # ✅ Tiene estilos
-        "es-ES-ElviraNeural",
-        # ... más voces sin estilos
+    "en-US": [
+        "en-US-AriaNeural",       # ✅ Tiene estilos
+        "en-US-DavisNeural",      # ✅ Tiene estilos
+        "en-US-GuyNeural",        # ✅ Tiene estilos
+        "en-US-JennyNeural",      # ✅ Tiene estilos
+        "en-US-JasonNeural",      # ✅ Tiene estilos
+        "en-US-NancyNeural",      # ✅ Tiene estilos
+        "en-US-SaraNeural",       # ✅ Tiene estilos
+        "en-US-TonyNeural",       # ✅ Tiene estilos
+        "en-US-JaneNeural",       # ✅ Tiene estilos
+        "en-US-AmberNeural", "en-US-AnaNeural", "en-US-AshleyNeural",
+        "en-US-BrandonNeural", "en-US-ChristopherNeural", "en-US-CoraNeural",
+        "en-US-ElizabethNeural", "en-US-EricNeural", "en-US-JacobNeural",
+        "en-US-MichelleNeural", "en-US-MonicaNeural", "en-US-RogerNeural",
+        "en-US-SteffanNeural"
     ]
 }
 
 # =============================================================================
-# RESUMEN DE HALLAZGOS
+# RESUMEN DE HALLAZGOS (Update Feb-2026)
 # =============================================================================
 
 """
-HALLAZGOS CLAVE (Basado en Documentación Oficial Microsoft 2024-2026):
+HALLAZGOS CLAVE:
 
 1. **Voces ES-MX con Estilos:**
-   - DaliaNeural: 3 estilos (cheerful, sad, whispering)
-   - JorgeNeural: 5 estilos (chat, cheerful, excited, sad, whispering)
-   - TOTAL: Solo 2 de 15 voces tienen estilos
+   - Dalia, Jorge.
 
 2. **Voces ES-US:**
-   - NO documentan estilos emocionales
-   - API puede retornar lista vacía
+   - Sin estilos soportados.
 
-3. **Voces ES-ES:**
-   - AlvaroNeural: 2 estilos (cheerful, sad)
-   - Resto sin estilos
+3. **Voces EN-US (Inglés):**
+   - Soporte amplio de estilos (Jenny, Guy, Aria, etc).
+   - Traducciones al ESPAÑOL agregadas para compliance con UI.
 
-4. **Implementación Actual:**
-   - ✅ Campo UI se oculta correctamente con `x-show="availableStyles.length > 0"`
-   - ❌ Estilos están en INGLÉS (necesitan traducción)
-   - ✅ Lógica de cache funciona correctamente
-
-5. **Acciones Requeridas:**
-   - Actualizar azure_tts_adapter.py para retornar estilos en español
-   - Verificar que UI muestra/oculta campo correctamente
-   - Agregar traducciones de estilos
+4. **Traducciones:**
+   - Mapeo completo de estilos en inglés a etiquetas en español.
 """

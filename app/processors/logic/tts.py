@@ -64,7 +64,10 @@ class TTSProcessor(FrameProcessor):
 
                 # --- Response Pacing (Profile Config) ---
                 client_type = getattr(self.config, 'client_type', 'twilio')
-                profile = self.config.get_profile(client_type)
+                if hasattr(self.config, 'get_profile'):
+                    profile = self.config.get_profile(client_type)
+                else:
+                    profile = self.config
 
                 delay = profile.response_delay_seconds or 0.0
 

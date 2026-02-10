@@ -46,7 +46,10 @@ class VADProcessor(FrameProcessor):
 
         # Get profile configuration (type-safe, centralized)
         client_type = getattr(self.config, 'client_type', 'twilio')
-        profile = self.config.get_profile(client_type)
+        if hasattr(self.config, 'get_profile'):
+            profile = self.config.get_profile(client_type)
+        else:
+            profile = self.config
 
         # Barge-in Control
         self.barge_in_enabled = profile.barge_in_enabled if profile.barge_in_enabled is not None else True

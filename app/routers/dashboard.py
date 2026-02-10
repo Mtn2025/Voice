@@ -297,12 +297,13 @@ async def dashboard(
                     {"id": "es-MX-DaliaNeural", "name": "Dalia (Neural)", "gender": "female"},
                     {"id": "es-MX-JorgeNeural", "name": "Jorge (Neural)", "gender": "male"}
                 ],
-                "en-US": [
-                    {"id": "en-US-JennyNeural", "name": "Jenny (Neural)", "gender": "female"}
+                "es-US": [
+                    {"id": "es-US-AlonsoNeural", "name": "Alonso (Neural)", "gender": "male"},
+                    {"id": "es-US-PalomaNeural", "name": "Paloma (Neural)", "gender": "female"}
                 ],
-                "es-ES": [
-                    # Kept for completeness despite not being in target map strictly
-                     {"id": "es-ES-ElviraNeural", "name": "Elvira (Neural)", "gender": "female"}
+                "en-US": [
+                    {"id": "en-US-JennyNeural", "name": "Jenny (Neural)", "gender": "female"},
+                    {"id": "en-US-GuyNeural", "name": "Guy (Neural)", "gender": "male"}
                 ]
             }
 

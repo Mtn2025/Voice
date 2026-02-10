@@ -515,11 +515,27 @@ class VoiceOrchestratorV2:
 
         logger.info(f"Loaded config for agent: {self.config.name}")
 
+        # [RUNTIME] Resolve Profile-Specific Configuration
+        # Uses the get_profile() helper from AgentConfig (ORM) to flatten
+        # profile-specific fields (e.g., llm_model_phone) into the main fields (llm_model).
+        if hasattr(self.config, 'get_profile'):
+            logger.info(f"🔄 Resolving profile configuration for: {self.client_type}")
+            # Cache original ID/Name for logging contexts
+            original_id = self.config.id
+            original_name = self.config.name
+            
+            # Switch to Profile Schema
+            self.config = self.config.get_profile(self.client_type)
+            
+            # Re-attach identifiers (ProfileSchema is Pydantic with extra='allow')
+            self.config.id = original_id
+            self.config.name = original_name
+
         # [RUNTIME] Inject client_type for Processor configuration
         # This ensures STT/TTS adapters know if they should run in 8kHz (Phone) or 16kHz (Browser) mode.
         self.config.client_type = self.client_type
 
-        # Apply client overlay
+        # Apply client overlay (Runtime tweaks for Pacing/Silence)
         apply_client_overlay(self.config, self.client_type)
 
         # Load background audio

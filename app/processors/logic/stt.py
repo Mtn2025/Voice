@@ -31,7 +31,10 @@ class STTProcessor(FrameProcessor):
         """
         # Get profile configuration (type-safe, centralized)
         client_type = getattr(self.config, 'client_type', 'twilio')
-        profile = self.config.get_profile(client_type)
+        if hasattr(self.config, 'get_profile'):
+            profile = self.config.get_profile(client_type)
+        else:
+            profile = self.config
 
         stt_config = STTConfig(
             language=profile.stt_language or 'es-MX',
@@ -125,7 +128,10 @@ class STTProcessor(FrameProcessor):
                 # 3. Interruption Phrases (Force Stop)
                 # Use profile configuration for type-safe access
                 client_type = getattr(self.config, 'client_type', 'twilio')
-                profile = self.config.get_profile(client_type)
+                if hasattr(self.config, 'get_profile'):
+                    profile = self.config.get_profile(client_type)
+                else:
+                    profile = self.config
 
                 phrases_json = profile.interruption_phrases
 

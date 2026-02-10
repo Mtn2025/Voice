@@ -13,6 +13,7 @@ from app.adapters.simulator.transport import SimulatorTransport
 from app.api.connection_manager import manager
 from app.core.orchestrator_v2 import VoiceOrchestratorV2
 from app.core.voice_ports import get_voice_ports
+from app.core.frames import TextFrame  # For testing text input
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -88,6 +89,12 @@ async def simulator_stream(websocket: WebSocket, client_id: str | None = None):
             
             elif event == "stop":
                 break
+
+            elif event == "text_input":
+                # [TESTING] Allow text input simulation to bypass STT
+                text = msg.get("text")
+                if text and orchestrator.pipeline:
+                    await orchestrator.pipeline.queue_frame(TextFrame(text=text))
 
             elif event == "client_interruption":
                  await orchestrator.handle_interruption(text="[USER_CLICK_INTERRUPT]")
