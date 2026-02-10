@@ -39,6 +39,12 @@ class TTSProcessor(FrameProcessor):
             logger.info("🔊 [TTS] Worker started")
 
     async def process_frame(self, frame: Frame, direction: int):
+        # [DEBUG] Inspect incoming frame for Greeting Bug
+        if isinstance(frame, TextFrame):
+             logger.info(f"🔍 [TTS DEBUG] Received TextFrame: {frame.text[:50]} (Source: {frame.metadata.get('source')})")
+        else:
+             logger.debug(f"🔍 [TTS DEBUG] Received Non-TextFrame: {type(frame)}")
+
         if direction == FrameDirection.DOWNSTREAM:
             if isinstance(frame, TextFrame):
                 # Ensure worker is running (defensive programming)

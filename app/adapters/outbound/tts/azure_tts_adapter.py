@@ -52,7 +52,7 @@ class AzureTTSAdapter(TTSPort):
             self.audio_config = audio_config
         else:
             legacy_mode = config.audio_mode if config else audio_mode
-            logger.warning(f"⚠️ [AzureTTS] Using legacy audio_mode: {legacy_mode}")
+            # logger.warning(f"⚠️ [AzureTTS] Using legacy audio_mode: {legacy_mode}")
             self.audio_config = AudioConfig.from_legacy_mode(legacy_mode)
 
         self.speech_config = speechsdk.SpeechConfig(
