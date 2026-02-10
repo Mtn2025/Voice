@@ -177,36 +177,49 @@ async def telephony_media_stream(websocket: WebSocket, client: str = "twilio", c
         await orchestrator.start()
         
         while True:
-            data = await websocket.receive_text()
-            msg = json.loads(data)
+            # Hybrid Receive Loop (Text for control/Twilio, Bytes for Browser Audio)
+            message = await websocket.receive()
 
-            # Delegate VAD handling to transport (Clean Architecture)
-            transport.handle_event(msg)
+            if "text" in message:
+                data = message["text"]
+                msg = json.loads(data)
 
-            # Standard Flow
-            if msg.get("event") == "connected":
-                pass
-            
-            elif msg.get("event") == "start":
-                # Start logic (stream_id setup)
-                # For brevity, implementing minimal requirement
-                start_data = msg.get('start', {})
-                stream_sid = start_data.get('streamSid') or msg.get('stream_id') or str(uuid.uuid4())
-                orchestrator.stream_id = stream_sid
-                transport.set_stream_id(stream_sid)
+                # Delegate VAD handling to transport (Clean Architecture)
+                transport.handle_event(msg)
 
-            elif msg.get("event") == "media":
-                payload = msg["media"]["payload"]
-                await orchestrator.process_audio(payload)
-                if msg.get("mark") == "speech_ended":
-                    orchestrator.is_bot_speaking = False
+                # Standard Flow
+                event_type = msg.get("event")
 
-            elif msg.get("event") == "stop":
-                break
-            
-            elif msg.get("event") == "client_interruption":
-                 # Usually simulator, but maybe Twilio supports it?
-                 pass
+                if event_type == "connected":
+                    pass
+                
+                elif event_type == "start":
+                    # Start logic (stream_id setup)
+                    start_data = msg.get('start', {})
+                    stream_sid = start_data.get('streamSid') or msg.get('stream_id') or str(uuid.uuid4())
+                    orchestrator.stream_id = stream_sid
+                    transport.set_stream_id(stream_sid)
+
+                elif event_type == "media":
+                    payload = msg["media"]["payload"]
+                    await orchestrator.process_audio(payload)
+                    if msg.get("mark") == "speech_ended":
+                        orchestrator.is_bot_speaking = False
+
+                elif event_type == "stop":
+                    break
+                
+                elif event_type == "client_interruption":
+                     # Usually simulator, but maybe Twilio supports it?
+                     pass
+
+            elif "bytes" in message:
+                # RAW AUDIO (Browser)
+                # Orchestrator expects Base64 (legacy compatible), so we encode it.
+                # Optimization: Update Orchestrator to accept bytes later.
+                chunk = message["bytes"]
+                b64_payload = base64.b64encode(chunk).decode('utf-8')
+                await orchestrator.process_audio(b64_payload)
 
     except WebSocketDisconnect:
         logger.info(f"Telephony disconnected: {client_id}")
