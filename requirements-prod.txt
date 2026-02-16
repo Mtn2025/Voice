@@ -44,7 +44,7 @@ httpcore>=1.0.9
 markupsafe~=2.1.5
 
 # State Management
-redis[hiredis]~=5.0.1
+redis[hiredis]~=7.1.0
 
 # Audio processing
 numpy>=1.26.0
